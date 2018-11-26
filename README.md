@@ -18,7 +18,7 @@ To use the ruleset you can install
 
 ## PMD tool
 
-After installing the tool you can run `pmd.bat` similar to the following
+After installing the tool you can run `pmd.sh` or `pmd.bat` similar to the following
 
     pmd.bat \
         -R $java-performance-code-checks/rulesets/java/jpinpoint-rules.xml \
