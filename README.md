@@ -2,9 +2,11 @@
 PMD rule set for performance aware Java coding, sponsored by Rabobank. The project is meant for creating and managing 
 automatic java code checks. 
 These checks are based on what we have learnt in several years of performance problems and other defects and failures 
-found in code, tests and production situations. 
-These checks can be run using SonarQube, from the command-line using the PMD tool or from your favorite development 
-environment with a PMD-plugin.
+found in code, tests and production situations.
+We didn't find these checks in other places, like the the standard PMD, FindBugs/Spotbugs, Checkstyle or Sonar rules.
+If you find duplicates of existing ones, please let us know.
+These jpinpoint rules can be run from the command-line using the PMD tool, from your favorite development
+environment with a PMD-plugin, or in SonarQube after packaging them as Sonar plugin.
 
 ## See also
 TODO
@@ -39,7 +41,7 @@ ruleset from this project *rulesets/java/jpinpoint-rules.xml*:
 
 You can now perform the code checks using [right-click] on a folder or a file and choose:
  
-    Run PMD > Custom rules > performance
+    Run PMD > Custom rules > jpinpoint-rules
 
 *Known Bug: the jpinpoint-rules can occur multiple times in the PMD Plugin: this is a bug and should be resolved by restarting IntelliJ*
 
