@@ -15,7 +15,7 @@ TODO
 
 # Usage
 
-To use the ruleset you can install 
+To use the ruleset you can install: 
 
 - the PMD tool from [PMD project at github](https://pmd.github.io/)
 - the PMDPlugin in you development environment. 
@@ -60,3 +60,7 @@ After installation and configuration you can start the designer from the command
 ## Code Style Indentation
 
 - Indentation: Use spaces aka **Disable Tabs**: *Settings>Editor>Code Style>Java>Use tab character [disable]*
+
+## Contents of the project
+- `rulesets/java/jpinpoint-rules.xml` contains the pmd custom rule definitions
+- `src/main/java/pinpointrules` contains the Java code containing pitfalls for testing the rules. 
