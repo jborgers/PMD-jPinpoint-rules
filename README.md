@@ -64,3 +64,24 @@ After installation and configuration you can start the designer from the command
 ## Contents of the project
 - `rulesets/java/jpinpoint-rules.xml` contains the pmd custom rule definitions
 - `src/main/java/pinpointrules` contains the Java code containing pitfalls for testing the rules. 
+- `rulesets-merger` contains the Java code for a ruleset merger tool.  
+
+## Merging with company specific rules 
+
+Company specific rules are useful for instance for checking the right use of company specific or company-bought frameworks and libraries. 
+Or for rules which are candidates for inclusion into jpinpoint rules, yet need to be validated first.
+
+- rulesets-merger/src contains RulesetMerger.java for merging jpinpoint-rules with company specific rules. 
+You may want to copy rulesets-merger to your company specific rules directory and adjust a few constants at the top to make it work for your company. 
+
+ The merger tool can be built with:
+
+    cd rulesets-merger
+    mvn clean install
+    
+ It can be run with:
+ 
+    cd target
+    java -jar rulesets-merger-1.0-SNAPSHOT.jar
+    
+ The resulting file can be used in your IDE.
