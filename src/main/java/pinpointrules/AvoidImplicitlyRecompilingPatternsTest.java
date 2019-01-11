@@ -1,4 +1,4 @@
-package nl.rabobank.perf.pinpointrules;
+package pinpointrules;
 
 import java.io.File;
 import java.nio.file.FileSystem;

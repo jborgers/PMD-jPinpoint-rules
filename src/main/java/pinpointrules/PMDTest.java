@@ -1,4 +1,4 @@
-package nl.rabobank.perf.pinpointrules;
+package pinpointrules;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

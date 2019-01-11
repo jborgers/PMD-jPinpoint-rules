@@ -1,12 +1,11 @@
-package nl.rabobank.perf.pinpointrules;
+package pinpointrules;
 
-import java.io.IOException;
-
-import org.codehaus.jackson.map.JsonMappingException;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import java.io.IOException;
 
 public class ObjectMapperReuse {
 	private static final ObjectMapper sharedMapper;

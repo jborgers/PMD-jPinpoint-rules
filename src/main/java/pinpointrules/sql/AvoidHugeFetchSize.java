@@ -1,4 +1,4 @@
-package nl.rabobank.perf.pinpointrules.sql;
+package pinpointrules.sql;
 
 import org.apache.openjpa.persistence.OpenJPAPersistence;
 import org.apache.openjpa.persistence.OpenJPAQuery;

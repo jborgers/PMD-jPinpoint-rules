@@ -1,4 +1,4 @@
-package nl.rabobank.perf.pinpointrules;
+package pinpointrules;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;

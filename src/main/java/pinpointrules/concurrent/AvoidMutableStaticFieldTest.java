@@ -1,4 +1,4 @@
-package nl.rabobank.perf.pinpointrules.concurrent;
+package pinpointrules.concurrent;
 
 import net.jcip.annotations.GuardedBy;
 import net.jcip.annotations.NotThreadSafe;

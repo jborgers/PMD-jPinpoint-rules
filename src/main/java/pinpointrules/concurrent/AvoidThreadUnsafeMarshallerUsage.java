@@ -1,6 +1,7 @@
-package nl.rabobank.perf.pinpointrules.concurrent;
+package pinpointrules.concurrent;
 
 import javax.validation.ConstraintViolation;
+import javax.validation.executable.ExecutableValidator;
 import javax.validation.metadata.BeanDescriptor;
 import javax.xml.bind.Marshaller;
 import java.util.Set;
@@ -39,7 +40,12 @@ public class AvoidThreadUnsafeMarshallerUsage {
 			public <T> T unwrap(Class<T> aClass) {
 				return null;
 			}
-		};
+
+            @Override
+            public ExecutableValidator forExecutables() {
+                return null;
+            }
+        };
 	}
 
 	//private javax.ejb.SessionContext mySessionCtx; // nothing wrong here
