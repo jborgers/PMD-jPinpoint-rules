@@ -543,7 +543,7 @@ and
 
     <rule name="AvoidXMLGregorianCalendar" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="XMLGregorianCalendar is used. It is slow in JAXB." typeResolution="true"
           externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-IUOXAR05">
-        <description>XMLGregorianCalendar is a large object, involving substantial processing. It is created with the poorly performing DatatypeFactory.
+        <description>Problem: XMLGregorianCalendar is a large object, involving substantial processing. It is created with the poorly performing DatatypeFactory.
             Solution: Add a converter for alternative date handling with joda-time or Java 8 java.time.
          (jpinpoint-rules)</description>
         <priority>2</priority>
@@ -563,7 +563,7 @@ MethodDeclaration//LocalVariableDeclaration/Type/ReferenceType/ClassOrInterfaceT
 
     <rule name="MDCPutWithoutRemove" message="MDC put is used without finally remove." class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" typeResolution="true" externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-IL04">
         <description>
-            MDCPutWithoutRemove. MDC values are added for logging, but not removed. Problem: MDC values can leak to other user transactions (requests) and log incorrect information. Solution: remove the MDC value in a finally clause.
+            MDC values are added for logging, but not removed. Problem: MDC values can leak to other user transactions (requests) and log incorrect information. Solution: remove the MDC value in a finally clause.
          (jpinpoint-rules)</description>
         <properties>
             <property name="xpath">
@@ -686,7 +686,7 @@ pmd-java:typeof(@Image, 'javax.xml.validation.Validator', 'Validator')]
           class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
           typeResolution="true" externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-IDTF02">
         <description>
-            AvoidRecreatingDateTimeFormatter.Problem: Recreating a DateTimeFormatter is relatively expensive.&#13;
+            Problem: Recreating a DateTimeFormatter is relatively expensive.&#13;
             Solution: org.joda.time.format.DateTimeFormatter or Java 8 java.time.DateTimeFormatter is thread-safe and can be shared among threads. Create the
             formatter from a pattern only once, to initialize a static final field.
          (jpinpoint-rules)</description>
@@ -717,7 +717,7 @@ pmd-java:typeof(@Image, 'javax.xml.validation.Validator', 'Validator')]
           class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
           typeResolution="true" externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-IncorrectequalsandhashCode">
         <description>
-            ImplementEqualsHashCodeOnValueObjects. Problem: If equals and hashCode are not defined, they don't meet the programmer's expectations and the requirements for use with the collections API. It may result in unexpected, undesired behavior.&#13;
+            Problem: If equals and hashCode are not defined, they don't meet the programmer's expectations and the requirements for use with the collections API. It may result in unexpected, undesired behavior.&#13;
             Solution: Add proper equals and hashCode methods that meet the equals-hashCode contract to all objects which might anyhow be put in a Map, Set or other collection. If the object should never be checked for equality or used in a collection, also add those methods and let them throw UnsupportedOperationException to fail fast. @Xml... and @Entity objects are ignored because they are assumed to be not used as value objects.
          (jpinpoint-rules)</description>
         <properties>
@@ -771,7 +771,7 @@ count(ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDecla
           class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
           typeResolution="true" externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-TUTC07">
         <description>
-            AvoidUnguardedMutableFieldsInSharedObjects. Problem: Multiple threads typically access fields of a singleton or may access fields in session scoped objects. If a field or its reference is mutable, access is thread-unsafe and may cause corruption or visibility problems. To make this thread-safe, that is, guard the field e.g. with synchronized methods, may cause contention.&#13;
+            Problem: Multiple threads typically access fields of a singleton or may access fields in session scoped objects. If a field or its reference is mutable, access is thread-unsafe and may cause corruption or visibility problems. To make this thread-safe, that is, guard the field e.g. with synchronized methods, may cause contention.&#13;
             Solution: Make the fields final and unmodifiable. If they really need to be mutable, make access thread-safe. Thread-safety can be achieved e.g. by proper synchronization and use the @GuardedBy annotation or use of volatile.&#13;
             Notes&#13;
             1. Instances of Date, StringBuilder, URL and File are examples of mutable objects and should be avoided (or else guarded) as fields of shared objects. In case mutable fields are final and not modified after initialization (read-only) they are thread safe, however any modification to it is thread-unsafe. Since field modification is easily coded, avoid this situation.
@@ -813,7 +813,7 @@ or (VariableDeclarator/VariableInitializer/Expression/PrimaryExpression/PrimaryP
           class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
           typeResolution="true" externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-TUTC07">
         <description>
-            AvoidUnguardedAssignmentToNonFinalFieldsInSharedObjects. Problem: Multiple threads typically access fields of a singleton or may access fields in session scoped objects. Unguarded assignment to a non-final field is thread-unsafe and may cause corruption or visibility problems. To make this thread-safe, that is, guard the field e.g. with synchronized methods, may cause contention. &#13;
+            Problem: Multiple threads typically access fields of a singleton or may access fields in session scoped objects. Unguarded assignment to a non-final field is thread-unsafe and may cause corruption or visibility problems. To make this thread-safe, that is, guard the field e.g. with synchronized methods, may cause contention. &#13;
             Solution: Make the fields final and unmodifiable.  If they really need to be mutable, make access thread-safe. Thread-safety can be achieved e.g. by proper synchronization and use the @GuardedBy annotation or use of volatile.&#13;
             Notes&#13;
             1. Autowiring/injection is thread safe, yet make sure no other thread-unsafe assignment is made to that field.&#13;
@@ -845,7 +845,7 @@ or (ancestor::ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='VisibleFo
           class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
           typeResolution="true" externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-TUTC07">
         <description>
-            MakeAutoWiredConstructedFieldFinal. Problem: Multiple threads typically access fields of a singleton or may access fields in session scoped objects. If a field or its reference is mutable, non-autowired access is thread-unsafe and may cause corruption or visibility problems. To make this thread-safe, that is, guard the field e.g. with synchronized methods, may cause contention. &#13;
+            Problem: Multiple threads typically access fields of a singleton or may access fields in session scoped objects. If a field or its reference is mutable, non-autowired access is thread-unsafe and may cause corruption or visibility problems. To make this thread-safe, that is, guard the field e.g. with synchronized methods, may cause contention. &#13;
             Solution: Make the fields final and unmodifiable to defend against mutation. If they really need to be mutable (which is strange for autowired fields), make access thread-safe. Thread-safety can be achieved e.g. by proper synchronization and use the @GuardedBy annotation or use of volatile.&#13;
             Notes&#13;
             1. Autowiring/injection is thread safe, yet make sure no other thread-unsafe assignment is made to that field.&#13;
@@ -881,7 +881,7 @@ and  (../../ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='Autowired']
           class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
           typeResolution="true" externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-TUTC08">
         <description>
-            AvoidMutableStaticFields. Problem: Multiple threads typically access static fields. Unguarded assignment to a mutable or non-final static field is thread-unsafe and may cause corruption or visibility problems. To make this thread-safe, that is, guard the field e.g. with synchronized methods, may cause contention. &#13;
+            Problem: Multiple threads typically access static fields. Unguarded assignment to a mutable or non-final static field is thread-unsafe and may cause corruption or visibility problems. To make this thread-safe, that is, guard the field e.g. with synchronized methods, may cause contention. &#13;
             Solution: Make the fields final and unmodifiable.  If they really need to be mutable, make access thread-safe. Thread-safety can be achieved e.g. by proper synchronization and use the @GuardedBy annotation or use of volatile. Consider lock contention.&#13;
          (jpinpoint-rules)</description>
         <properties>
@@ -916,7 +916,7 @@ or Expression/PrimaryExpression/PrimaryPrefix/AllocationExpression/ClassOrInterf
           class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
           typeResolution="true" externalInfoUrl="http://www.jpinpoint.com/doc/Java+Data+Access+Performance#JavaDataAccessPerformance-IDA-TRM03">
         <description>
-            AvoidHugeQueryFetchSize. Problem: if huge numbers of result rows are fetched these are all stored in memory and this may introduce long gc times and out of memory risk.&#13;
+            Problem: if huge numbers of result rows are fetched these are all stored in memory and this may introduce long gc times and out of memory risk.&#13;
             Solution: Set fetch size to 100 maximally. Only set it higher than 100 yet still max 500, if you are sure there is only little data returned per row, like 3 rather short columns.
          (jpinpoint-rules)</description>
         <properties>
@@ -943,7 +943,7 @@ ancestor::ClassOrInterfaceBody//VariableDeclarator/VariableDeclaratorId/@Image
           class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
           typeResolution="true" externalInfoUrl="http://www.jpinpoint.com/doc/Java+Data+Access+Performance#JavaDataAccessPerformance-IDA-INO01">
         <description>
-            AvoidSqlInExpression. Problem: The number of values for the IN-argument list is limited, in Oracle to 1000. An error occurs when exceeding this limit. Additionally, a large IN list takes much time to transport to the database and be parsed. Moreover, each number of IN values used in a query results in a separate cache entry in e.g. the Prepared Statement Cache of the application server and in the Hibernate Query Plan Cache, resulting in higher memory usage and/or low cache hit ratio.&#13;
+            Problem: The number of values for the IN-argument list is limited, in Oracle to 1000. An error occurs when exceeding this limit. Additionally, a large IN list takes much time to transport to the database and be parsed. Moreover, each number of IN values used in a query results in a separate cache entry in e.g. the Prepared Statement Cache of the application server and in the Hibernate Query Plan Cache, resulting in higher memory usage and/or low cache hit ratio.&#13;
             Solution: Rewrite the query by replacing the IN-argument list by a sub query using the criteria used to fetch the IN arguments. Or often even better performing, an inner join using these criteria (depending on indexes etc. - recommended to test to be sure.) This way, the select and update are combined into one, which will also save one roundtrip.
          (jpinpoint-rules)</description>
         <properties>
@@ -982,7 +982,7 @@ ancestor::MethodDeclaration//BlockStatement//PrimaryPrefix/Name[ends-with(@Image
           class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
           typeResolution="true" externalInfoUrl="http://www.jpinpoint.com/doc/Java+Data+Access+Performance#JavaDataAccessPerformance-IDA-TRR05">
         <description>
-            AvoidMultipleRoundtripsForQuery. Problem: Time is taken by the unnecessary roundtrip(s). Unnecessary work is performed.&#13;
+            Problem: Time is taken by the unnecessary roundtrip(s). Unnecessary work is performed.&#13;
             Solution: Execute the query only once.
          (jpinpoint-rules)</description>
         <properties>
@@ -1055,7 +1055,7 @@ or pmd-java:typeof(@Image, 'org.apache.http.conn.ClientConnectionManager', 'Clie
           class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
           typeResolution="true" externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-EUOCS01">
         <description>
-            AvoidSpringApplicationContextRecreation. Problem: When a XXXApplicationContext is created, all Spring beans are initialized, wired and component scanning may take place. Component scanning involves extensive class path scanning which is expensive.&#13;
+            Problem: When a XXXApplicationContext is created, all Spring beans are initialized, wired and component scanning may take place. Component scanning involves extensive class path scanning which is expensive.&#13;
             Solution: Create the ApplicationContext only once in the application deployed/live time.
          (jpinpoint-rules)</description>
         <properties>
@@ -1080,7 +1080,7 @@ and (
           class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
           typeResolution="true" externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Quality#JavaCodeQuality-CSC01">
         <description>
-            AvoidDuplicateAssignmentsInCases. Problem: Potential bug: expected are different assignments in different cases.&#13;
+            Problem: Potential bug: expected are different assignments in different cases.&#13;
             Solution: assign different values in different cases, common assignments should be taken out of the switch.
          (jpinpoint-rules)</description>
         <properties>
@@ -1113,7 +1113,7 @@ or preceding-sibling::SwitchLabel[@Default='true'])
           class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
           typeResolution="true" externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance">
         <description>
-            AvoidFutureGetWithoutTimeout. Problem: Stalls indefinitely in case of hanging threads and consumes a thread.&#13;
+            Problem: Stalls indefinitely in case of hanging threads and consumes a thread.&#13;
             Solution: Provide a timeout value and handle the timeout.
          (jpinpoint-rules)</description>
         <properties>
@@ -1155,7 +1155,8 @@ or preceding-sibling::SwitchLabel[@Default='true'])
           externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-ImproperStreamingI/O"
           class="net.sourceforge.pmd.lang.rule.XPathRule">
         <description>
-            Use of these methods could exhaust memory since they load the entire file into memory
+            Problem: Use of FileItem.get and FileItem.getString could exhaust memory since they load the entire file into memory&#13;
+            Solution: Use streaming methods and buffering.
          (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
@@ -1180,6 +1181,39 @@ or preceding-sibling::SwitchLabel[@Default='true'])
 	)
 ]
 ]]>
+                </value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="AvoidImproperAnnotationCombinations"
+          language="java"
+          message="Don't combine these annotations"
+          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-Annotations"
+          class="net.sourceforge.pmd.lang.rule.XPathRule">
+        <description>
+            Improper combination of annotations. Problem: these annotations are not meant to be combined and may cause unexpected and unwanted behavior.&#13;
+            Solution: remove the inappropriate annotation. &#13;
+            Don't combine 2+ of [@Component, @Service, @Configuration, @Controller, @Repository, @Entity] (Spring/JPA)
+            Don't combine [@Data with @Value] and [@Data or @Value] with any of [@ToString, @EqualsHashCode, @Getter, @Setter, @RequiredArgsConstructor] (Lombok)
+            (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="xpath">
+                <value>
+                    <![CDATA[
+//TypeDeclaration[count(./Annotation/MarkerAnnotation/Name[@Image='Component' or @Image='Service' or @Image='Configuration' or @Image='Controller' or @Image='Repository' or @Image='Entity']) > 1]
+|
+//ClassOrInterfaceBodyDeclaration[count(./Annotation/MarkerAnnotation/Name[@Image='Component' or @Image='Service' or @Image='Configuration' or @Image='Controller' or @Image='Repository' or @Image='Entity']) > 1]
+|
+//TypeDeclaration[count(./Annotation/MarkerAnnotation/Name[@Image='Data' or @Image='Value']) > 1]
+|
+//ClassOrInterfaceBodyDeclaration[count(./Annotation/MarkerAnnotation/Name[@Image='Data' or @Image='Value']) > 1]
+|
+//TypeDeclaration[./Annotation/MarkerAnnotation/Name[@Image='Data' or @Image='Value'] and ./Annotation/MarkerAnnotation/Name[@Image='ToString' or @Image='EqualsAndHashCode' or @Image='Getter' or @Image='Setter' or @Image='RequiredArgsConstructor']]
+|
+//ClassOrInterfaceBodyDeclaration[./Annotation/MarkerAnnotation/Name[@Image='Data' or @Image='Value'] and ./Annotation/MarkerAnnotation/Name[@Image='ToString' or @Image='EqualsAndHashCode' or @Image='Getter' or @Image='Setter' or @Image='RequiredArgsConstructor']]
+                    ]]>
                 </value>
             </property>
         </properties>
