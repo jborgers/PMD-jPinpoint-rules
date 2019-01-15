@@ -1,4 +1,4 @@
-package nl.rabobank.perf.pinpointrules.sql;
+package pinpointrules.sql;
 
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;

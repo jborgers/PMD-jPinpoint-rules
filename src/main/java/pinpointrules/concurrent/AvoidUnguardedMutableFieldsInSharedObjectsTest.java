@@ -1,4 +1,4 @@
-package nl.rabobank.perf.pinpointrules.concurrent;
+package pinpointrules.concurrent;
 
 import com.google.common.annotations.VisibleForTesting;
 import lombok.*;

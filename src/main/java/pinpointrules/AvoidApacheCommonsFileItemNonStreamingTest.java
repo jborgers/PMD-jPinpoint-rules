@@ -1,4 +1,4 @@
-package nl.rabobank.perf.pinpointrules;
+package pinpointrules;
 
 import org.apache.commons.fileupload.FileItem;
 

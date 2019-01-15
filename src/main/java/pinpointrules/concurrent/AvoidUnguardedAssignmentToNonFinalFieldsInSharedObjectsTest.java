@@ -1,4 +1,4 @@
-package nl.rabobank.perf.pinpointrules.concurrent;
+package pinpointrules.concurrent;
 
 import com.google.common.annotations.VisibleForTesting;
 import lombok.Data;
@@ -27,9 +27,11 @@ import javax.persistence.PersistenceContext;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+//import javax.inject.Inject;
 import static org.springframework.context.annotation.ScopedProxyMode.INTERFACES;
 import static org.springframework.context.annotation.ScopedProxyMode.TARGET_CLASS;
 import static org.springframework.web.context.WebApplicationContext.SCOPE_APPLICATION;
+
 
 /**
  * Created by BorgersJM on 25-4-2017.

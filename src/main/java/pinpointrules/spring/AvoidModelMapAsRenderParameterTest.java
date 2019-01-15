@@ -1,4 +1,4 @@
-package nl.rabobank.perf.pinpointrules.spring;
+package pinpointrules.spring;
 
 import org.springframework.ui.ModelMap;
 import org.springframework.validation.Validator;

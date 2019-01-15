@@ -1,4 +1,4 @@
-package nl.rabobank.perf.pinpointrules;
+package pinpointrules;
 
 import java.util.Arrays;
 import java.util.List;

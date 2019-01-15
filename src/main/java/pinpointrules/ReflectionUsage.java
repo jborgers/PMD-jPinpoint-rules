@@ -1,4 +1,4 @@
-package nl.rabobank.perf.pinpointrules;
+package pinpointrules;
 
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;

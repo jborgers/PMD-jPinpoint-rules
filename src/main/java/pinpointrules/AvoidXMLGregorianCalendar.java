@@ -1,4 +1,4 @@
-package nl.rabobank.perf.pinpointrules;
+package pinpointrules;
 
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
