@@ -25,7 +25,7 @@ To use the ruleset you can install:
 After installing the tool you can run `pmd.sh` or `pmd.bat` similar to the following
 
     pmd.bat \
-        -R $java-performance-code-checks/rulesets/java/jpinpoint-rules.xml \
+        -R PMD-jPinpoint-rules/rulesets/java/jpinpoint-rules.xml \
         -d $your-project-src \
         -f text
 
@@ -47,7 +47,7 @@ After installing the tool you can run `pmd.sh` or `pmd.bat` similar to the follo
 
 - If you want more information on a violation: hover over a violation title to get a details popup. 
 
-*Known Bug: the jpinpoint-rules can occur multiple times in the PMD Plugin: this is a bug and should be resolved by restarting IntelliJ*
+*Known Bug: the jpinpoint-rules can be listed multiple times in the PMD Plugin: this is a bug and should be resolved by restarting IntelliJ*
 
 ## Eclipse
 
