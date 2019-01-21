@@ -11,7 +11,7 @@ These jpinpoint rules can be run from the command-line using the PMD tool, from 
 environment with a PMD-plugin, or in SonarQube after packaging them as Sonar plugin.
 
 ## See also
-TODO
+Documentation of the pitfalls will arrive later.
 
 # Usage
 
@@ -31,21 +31,30 @@ After installing the tool you can run `pmd.sh` or `pmd.bat` similar to the follo
 
 ## IntelliJ IDEA
 
-Plugins to install are
+- You need a recent version of IntelliJ, 2018+. Community Edition is fine
+- Install PMDPlugin: 
 
-- `PMDPlugin`
-- `SonarLint`
+      Settings/Preferences > Plugins > Browse Repositories > Search 'PMDPlugin' > Select 'PMDPlugin' > Install > Close > OK > Restart
 
-After installing the plugins you can configure (add) the performance 
-ruleset from this project *rulesets/java/jpinpoint-rules.xml*:
+- Configure (add) the ruleset from this repo: *rulesets/java/jpinpoint-rules.xml*:
 
-    Settings > Other Settings > PMD > RuleSets 
+      Settings/Preferences > Other Settings > PMD > RuleSets 
+- Options tab: check 'Skip Test Sources' and set your Java version 
 
-You can now perform the code checks using [right-click] on a folder or a file and choose:
+- You can now perform the code checks using [right-click] on a folder or a file and choose:
  
-    Run PMD > Custom rules > jpinpoint-rules
+      Run PMD > Custom rules > jpinpoint-rules
+
+- If you want more information on a violation: hover over a violation title to get a details popup. 
 
 *Known Bug: the jpinpoint-rules can occur multiple times in the PMD Plugin: this is a bug and should be resolved by restarting IntelliJ*
+
+## Eclipse
+
+The Acanda PMD plugin seems to be the best one to use. 
+- [Import it into eclipse](http://www.acanda.ch/eclipse-pmd/release/latest).
+- enable PMD through the properties of the project
+- add the ruleset from this project *rulesets/java/jpinpoint-rules.xml*
 
 # Development
 
