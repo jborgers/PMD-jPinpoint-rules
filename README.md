@@ -11,7 +11,9 @@ These jpinpoint rules can be run from the command-line using the PMD tool, from 
 environment with a PMD-plugin, or in SonarQube after packaging them as Sonar plugin.
 
 ## See also
-Documentation of the pitfalls will arrive later.
+- Jeroen Borgers presented at Amsterdam JUG about the why, what and how of these code checking rules: [Performance problem prevention](https://www.meetup.com/nl-NL/Amsterdam-Java-User-Group/events/256497068/)
+| [slides](http://jpinpoint.com/resources/Automated-and-learning-performance-problem-prevention-AMS-JUG.pdf)
+- Documentation of the pitfalls will arrive later.
 
 # Usage
 
@@ -25,7 +27,7 @@ To use the ruleset you can install:
 After installing the tool you can run `pmd.sh` or `pmd.bat` similar to the following
 
     pmd.bat \
-        -R PMD-jPinpoint-rules/rulesets/java/jpinpoint-rules.xml \
+        -R PMD-jPinpoint-rules/rulesets/java/jpinpoint-rules.xml 
         -d $your-project-src \
         -f text
 
