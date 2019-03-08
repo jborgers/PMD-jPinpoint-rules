@@ -10,12 +10,9 @@
         <properties>
             <property name="version" value="1.0"/>
             <property name="xpath">
-                <!--value><![CDATA[
-                    //VariableDeclarator[../Type/ReferenceType/ClassOrInterfaceType[pmd-java:typeof(@Image, 'java.lang.StringBuffer')]]
-                    ]]></value-->
                 <value><![CDATA[
-            	//VariableDeclarator[../Type/ReferenceType/ClassOrInterfaceType[ends-with(@Image, '.StringBuffer') or @Image = 'StringBuffer']]
-            	]]></value>
+                    //VariableDeclarator[../Type/ReferenceType/ClassOrInterfaceType[typeIs('java.lang.StringBuffer')]]
+                    ]]></value>
             </property>
         </properties>
     </rule>
@@ -548,6 +545,7 @@ and
          (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
+
             <property name="version" value="1.0"/>
             <property name="xpath">
                 <value><![CDATA[
@@ -617,20 +615,16 @@ ancestor::ClassOrInterfaceBodyDeclaration/MethodDeclaration/Block//TryStatement/
             <property name="xpath">
                 <value><![CDATA[
 //FieldDeclaration/Type/ReferenceType/ClassOrInterfaceType[
-pmd-java:typeof(@Image, 'javax.xml.bind.Marshaller', 'Marshaller')]
-[//ImportDeclaration/Name[@Image = 'javax.xml.bind.Marshaller' or @Image = 'javax.xml.bind']]
+typeIs('javax.xml.bind.Marshaller')]
 |
 //FieldDeclaration/Type/ReferenceType/ClassOrInterfaceType[
-pmd-java:typeof(@Image, 'javax.xml.bind.Unmarshaller', 'Unmarshaller')]
-[//ImportDeclaration/Name[@Image = 'javax.xml.bind.Unmarshaller' or @Image = 'javax.xml.bind']]
+typeIs('javax.xml.bind.Unmarshaller')]
 |
 //FieldDeclaration/Type/ReferenceType/ClassOrInterfaceType[
-pmd-java:typeof(@Image, 'javax.xml.bind.Validator', 'Validator')]
-[//ImportDeclaration/Name[@Image = 'javax.xml.bind.Validator' or @Image = 'javax.xml.bind']]
+typeIs('javax.xml.bind.Validator')]
 |
 //FieldDeclaration/Type/ReferenceType/ClassOrInterfaceType[
-pmd-java:typeof(@Image, 'javax.xml.validation.Validator', 'Validator')]
-[//ImportDeclaration/Name[@Image = 'javax.xml.validation.Validator' or @Image = 'javax.xml.validation']]
+typeIs('javax.xml.validation.Validator')]
 			]]></value>
                 <!--value><![CDATA[
     //FieldDeclaration/Type/ReferenceType/ClassOrInterfaceType[
@@ -1023,28 +1017,28 @@ or @Image='org.apache.http.conn.ClientConnectionManager'
 ]
 |
 //TypeDeclaration//ClassOrInterfaceDeclaration//ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration/
-Type/ReferenceType/ClassOrInterfaceType[pmd-java:typeof(@Image, 'org.apache.commons.httpclient.SimpleHttpConnectionManager', 'SimpleHttpConnectionManager')
-or pmd-java:typeof(@Image, 'org.apache.http.conn.ClientConnectionManager', 'ClientConnectionManager')
-or pmd-java:typeof(@Image, 'org.apache.http.impl.conn.PoolingClientConnectionManager', 'PoolingClientConnectionManager')
-or pmd-java:typeof(@Image, 'org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager', 'ThreadSafeClientConnManage')
-or pmd-java:typeof(@Image, 'org.apache.http.impl.conn.SingleClientConnManager', 'SingleClientConnManager')
-or pmd-java:typeof(@Image, 'org.apache.http.impl.client.DefaultHttpClient', 'DefaultHttpClient')
-or pmd-java:typeof(@Image, 'org.apache.http.impl.client.SystemDefaultHttpClient', 'SystemDefaultHttpClient')
-or pmd-java:typeof(@Image, 'org.apache.http.conn.ClientConnectionManager', 'ClientConnectionManager')
+Type/ReferenceType/ClassOrInterfaceType[typeIs('org.apache.commons.httpclient.SimpleHttpConnectionManager')
+or typeIs('org.apache.http.conn.ClientConnectionManager')
+or typeIs('org.apache.http.impl.conn.PoolingClientConnectionManager')
+or typeIs('org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager')
+or typeIs('org.apache.http.impl.conn.SingleClientConnManager')
+or typeIs('org.apache.http.impl.client.DefaultHttpClient')
+or typeIs('org.apache.http.impl.client.SystemDefaultHttpClient')
+or typeIs('org.apache.http.conn.ClientConnectionManager')
 ]
 |
 //TypeDeclaration//ClassOrInterfaceDeclaration//ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration/
 VariableDeclarator/VariableInitializer/Expression//AllocationExpression/ClassOrInterfaceType[
-pmd-java:typeof(@Image, 'org.apache.http.conn.ClientConnectionManager', 'ClientConnectionManager')
-or pmd-java:typeof(@Image, 'org.apache.http.impl.conn.PoolingClientConnectionManager', 'PoolingClientConnectionManager')
-or pmd-java:typeof(@Image, 'org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager', 'ThreadSafeClientConnManager')
-or pmd-java:typeof(@Image, 'org.apache.http.impl.conn.SingleClientConnManager', 'SingleClientConnManager')
-or pmd-java:typeof(@Image, 'org.apache.http.impl.client.DefaultHttpClient', 'DefaultHttpClient')
-or pmd-java:typeof(@Image, 'org.apache.http.impl.client.SystemDefaultHttpClient', 'SystemDefaultHttpClient')
-or pmd-java:typeof(@Image, 'org.apache.http.conn.ClientConnectionManager', 'ClientConnectionManager')
+typeIs('org.apache.http.conn.ClientConnectionManager')
+or typeIs('org.apache.http.impl.conn.PoolingClientConnectionManager')
+or typeIs('org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager')
+or typeIs('org.apache.http.impl.conn.SingleClientConnManager')
+or typeIs('org.apache.http.impl.client.DefaultHttpClient')
+or typeIs('org.apache.http.impl.client.SystemDefaultHttpClient')
+or typeIs('org.apache.http.conn.ClientConnectionManager')
 ]
 |
-//AllocationExpression/ClassOrInterfaceType[pmd-java:typeof(@Image, 'org.apache.commons.httpclient.SimpleHttpConnectionManager', 'SimpleHttpConnectionManager')]
+//AllocationExpression/ClassOrInterfaceType[typeIs('org.apache.commons.httpclient.SimpleHttpConnectionManager')]
 		     ]]></value>
             </property>
         </properties>
@@ -1123,21 +1117,21 @@ or preceding-sibling::SwitchLabel[@Default='true'])
                     <![CDATA[
    //MethodDeclaration//PrimaryPrefix/Name[ends-with(@Image, '.get')]
     [(starts-with(@Image, concat(ancestor::MethodDeclaration//FormalParameter/Type/ReferenceType/ClassOrInterfaceType[
-    typeof(@Image, 'java.util.concurrent.Future', 'Future')
-    or typeof(@Image, 'java.util.concurrent.CompletableFuture', 'CompletableFuture')
-    or typeof(@Image, 'java.util.concurrent.Response', 'Response')
-    or typeof(@Image, 'java.util.concurrent.RunnableFuture', 'RunnableFuture')
-    or typeof(@Image, 'java.util.concurrent.RunnableScheduledFuture', 'RunnableScheduledFuture')
-    or typeof(@Image, 'java.util.concurrent.ScheduledFuture', 'ScheduledFuture')
+    typeIs('java.util.concurrent.Future')
+    or typeIs('java.util.concurrent.CompletableFuture')
+    or typeIs('java.util.concurrent.Response')
+    or typeIs('java.util.concurrent.RunnableFuture')
+    or typeIs('java.util.concurrent.RunnableScheduledFuture')
+    or typeIs('java.util.concurrent.ScheduledFuture')
     ]/../../../VariableDeclaratorId/@Image, '.'))
     or
     starts-with(@Image, concat(ancestor::MethodDeclaration//LocalVariableDeclaration/Type/ReferenceType/ClassOrInterfaceType[
-    typeof(@Image, 'java.util.concurrent.Future', 'Future')
-    or typeof(@Image, 'java.util.concurrent.CompletableFuture', 'CompletableFuture')
-    or typeof(@Image, 'java.util.concurrent.Response', 'Response')
-    or typeof(@Image, 'java.util.concurrent.RunnableFuture', 'RunnableFuture')
-    or typeof(@Image, 'java.util.concurrent.RunnableScheduledFuture', 'RunnableScheduledFuture')
-    or typeof(@Image, 'java.util.concurrent.ScheduledFuture', 'ScheduledFuture')
+    typeIs('java.util.concurrent.Future')
+    or typeIs('java.util.concurrent.CompletableFuture')
+    or typeIs('java.util.concurrent.Response')
+    or typeIs('java.util.concurrent.RunnableFuture')
+    or typeIs('java.util.concurrent.RunnableScheduledFuture')
+    or typeIs('java.util.concurrent.ScheduledFuture')
     ]/../../../VariableDeclarator/VariableDeclaratorId/@Image, '.')))
     and not(../../PrimarySuffix/Arguments/ArgumentList)
     and ancestor::CompilationUnit/ImportDeclaration/Name[@Image = 'java.util.concurrent.Future' or @Image = 'java.util.concurrent']
