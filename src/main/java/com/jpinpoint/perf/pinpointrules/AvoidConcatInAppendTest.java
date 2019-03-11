@@ -19,4 +19,13 @@ public class AvoidConcatInAppendTest {
 
 		logStatement.append(values.get(0)).append(values.get(1));
 	}
+
+	public void testConcatInAppendFalsePositive() {
+	    StringBuilder wrappedLine = new StringBuilder();
+        String str = "bar";
+        int offset = 1;
+        int wrapLength = 2;
+        wrappedLine.append(str, offset, wrapLength + offset); // false positive: + but no string concat
+        // this still is false positive: wrappedLine.append(1 + 2);
+    }
 }
