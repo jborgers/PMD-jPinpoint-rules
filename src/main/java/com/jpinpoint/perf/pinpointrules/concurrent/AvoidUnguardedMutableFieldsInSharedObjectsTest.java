@@ -308,9 +308,11 @@ final class TaskExecutorPropertiesViolate {
 }
 
 @Component
-class NoFiles {
+class NoFilesNoArrays {
     private static final File[] NO_FILES_OK = {};
     private static final File[] FILES_Violate = {new File("/tmp/a")};
+    private static final File file_violate = new File("dummy");
+    private static final String[] names_violate = {"aap", "noot", "mies"};
 }
 
 @Component
