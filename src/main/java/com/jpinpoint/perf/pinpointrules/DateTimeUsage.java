@@ -2,12 +2,15 @@ package com.jpinpoint.perf.pinpointrules;
 
 import org.joda.time.DateTime;
 
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 
 public class DateTimeUsage {
+    
+    public static final SimpleDateFormat SIMPLE_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
 
 	void myMethod() {
 		Date now = Calendar.getInstance().getTime();

@@ -195,7 +195,21 @@ Annotation//Name[@Image='RenderMapping'])]
             <property name="version" value="1.0"/>
             <property name="xpath">
                 <value><![CDATA[
- //AllocationExpression/ClassOrInterfaceType[@Image='SimpleDateFormat']
+//AllocationExpression/ClassOrInterfaceType[@Image='SimpleDateFormat']
+	]]></value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="AvoidDecimalAndChoiceFormatAsField" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="DecimalFormat is used. Since it is thread-unsafe, it needs expensive recreation."  typeResolution="true"
+          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-IDTF01">
+        <description>Problem: java.text.DecimalFormat and java.text.ChoiceFormat are thread-unsafe. The usual solution is to create a new one when needed in a method. (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="version" value="1.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+//FieldDeclaration/VariableDeclarator/VariableInitializer/Expression[typeIs('java.text.DecimalFormat') or typeIs('java.text.ChoiceFormat')]
 	]]></value>
             </property>
         </properties>
