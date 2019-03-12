@@ -2,7 +2,6 @@ package com.jpinpoint.perf.pinpointrules;
 
 import org.joda.time.DateTime;
 
-import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
