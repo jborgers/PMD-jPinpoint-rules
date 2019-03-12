@@ -2,12 +2,11 @@ package com.jpinpoint.perf.pinpointrules;
 
 import org.joda.time.DateTime;
 
-import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 
-public class DateTimeUsage {
+public class AvoidCalendarDateCreationTest {
 
 	void myMethod() {
 		Date now = Calendar.getInstance().getTime();
@@ -34,11 +33,6 @@ public class DateTimeUsage {
 		Object[] all = new Object[] {now, nowDT, nowDT1, nowDT2, now2, warmestMonth, time};
 		
 	}
-	
-    private String toKey(final Date rekenDatum) {
-        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
-        return formatter.format(rekenDatum);
-    }
 	
 	private void setDate(Date when){
 		System.out.println("When: " + when);
