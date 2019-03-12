@@ -101,8 +101,8 @@
                 <value><![CDATA[
 //PrimaryPrefix/AllocationExpression/ClassOrInterfaceType
 	[
-		@Image='EqualsBuilder'
-		or @Image='HashCodeBuilder'
+		typeIs('org.apache.commons.lang.builder.EqualsBuilder')
+		or typeIs('org.apache.commons.lang.builder.HashCodeBuilder')
 	]
 [../../../PrimarySuffix[1]
 	[
@@ -136,7 +136,7 @@
 ../../../../../../../../
 BlockStatement/LocalVariableDeclaration/VariableDeclarator/VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/Name[ends-with(@Image,'.getTime') or ends-with(@Image,'.getTimeInMillis')]
 |
-//ClassOrInterfaceType[@Image='DateTime' or @Image='LocalDateTime'][../Arguments/ArgumentList/Expression/PrimaryExpression/PrimaryPrefix/Name[ends-with(@Image, 'Calendar.getInstance')]]
+//ClassOrInterfaceType[typeIs('org.joda.time.DateTime') or typeIs('org.joda.time.LocalDateTime')][../Arguments/ArgumentList/Expression/PrimaryExpression/PrimaryPrefix/Name[ends-with(@Image, 'Calendar.getInstance')]]
 	]]></value>
             </property>
         </properties>
@@ -192,7 +192,7 @@ Annotation//Name[@Image='RenderMapping'])]
             <property name="version" value="1.0"/>
             <property name="xpath">
                 <value><![CDATA[
- //AllocationExpression/ClassOrInterfaceType[@Image='SimpleDateFormat']
+ //AllocationExpression/ClassOrInterfaceType[typeIs('java.text.SimpleDateFormat')]
 	]]></value>
             </property>
         </properties>
@@ -597,7 +597,7 @@ ancestor::ClassOrInterfaceBodyDeclaration/MethodDeclaration/Block//TryStatement/
             <property name="xpath">
                 <value><![CDATA[
 //MethodDeclaration//Expression/PrimaryExpression/PrimaryPrefix/AllocationExpression/ClassOrInterfaceType[
-	(@Image = 'ObjectMapper') and
+	(typeIs('com.fasterxml.jackson.databind.ObjectMapper')) and
 	not(ancestor::TypeDeclaration/Annotation/MarkerAnnotation/Name/@Image='Configuration')
 ]
 			]]></value>
@@ -654,7 +654,7 @@ ancestor::ClassOrInterfaceBodyDeclaration/MethodDeclaration/Block//TryStatement/
             <property name="xpath">
                 <value><![CDATA[
 	//TypeDeclaration/ClassOrInterfaceDeclaration/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration
-//PrimaryExpression/PrimaryPrefix/AllocationExpression/ClassOrInterfaceType[@Image = 'ByteArrayOutputStream' or @Image='StringWriter']
+//PrimaryExpression/PrimaryPrefix/AllocationExpression/ClassOrInterfaceType[typeIs('java.io.ByteArrayOutputStream') or typeIs('java.io.StringWriter')]
 [not(../Arguments/ArgumentList)]
 	]]></value>
             </property>
@@ -873,8 +873,8 @@ and  (../../ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='Autowired']
 [@Static='true' and @Final='false' and @Volatile='false' and not (../Annotation//Name[@Image='GuardedBy'])]
 |
 (//ClassOrInterfaceDeclaration/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Static='true']/Type/ReferenceType/ClassOrInterfaceType[
-(@Image='Date' or @Image='StringBuilder' or @Image='StringBuffer' or @Image='URL' or @Image='File')
- and not (ancestor::FieldDeclaration/VariableDeclarator/VariableInitializer[ArrayInitializer and count(ArrayInitializer/VariableInitializer) = 0])
+(((typeIs('java.util.Date') or typeIs('java.lang.StringBuilder') or typeIs('java.lang.StringBuffer') or typeIs('java.net.URL')) or typeIs('java.io.File'))
+ or (ancestor::FieldDeclaration/VariableDeclarator/VariableInitializer[ArrayInitializer and count(ArrayInitializer/VariableInitializer) > 0]))
  and not (ancestor::ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='GuardedBy'])
 ])
 |
@@ -882,7 +882,7 @@ and  (../../ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='Autowired']
 VariableDeclarator/VariableInitializer[((ArrayInitializer and count(ArrayInitializer/VariableInitializer) > 0)
 or Expression/PrimaryExpression/PrimaryPrefix/AllocationExpression[ArrayDimsAndInits and ArrayDimsAndInits//PrimaryPrefix/Literal/@Image>0]
 or Expression/PrimaryExpression/PrimaryPrefix/AllocationExpression/ClassOrInterfaceType[
-(@Image='ArrayList' or @Image='HashMap' or @Image='HashSet')
+(typeIs('java.util.ArrayList') or typeIs('java.util.HashMap') or typeIs('java.util.HashSet'))
 ])])
 ]]>
                 </value>
@@ -1148,15 +1148,15 @@ or preceding-sibling::SwitchLabel[@Default='true'])
 [ends-with(@Image, '.get') or ends-with(@Image, '.getString')]
 [
 	starts-with(@Image, concat(
-		ancestor::MethodDeclaration/MethodDeclarator//Type/ReferenceType/ClassOrInterfaceType[@Image='FileItem']/../../..//VariableDeclaratorId/@Image,
+		ancestor::MethodDeclaration/MethodDeclarator//Type/ReferenceType/ClassOrInterfaceType[typeIs('org.apache.commons.fileupload.FileItem')]/../../..//VariableDeclaratorId/@Image,
 		'.')
 	) or
 	starts-with(@Image, concat(
-		ancestor::MethodDeclaration/Block//Type/ReferenceType/ClassOrInterfaceType[@Image='FileItem']/../../..//VariableDeclaratorId/@Image,
+		ancestor::MethodDeclaration/Block//Type/ReferenceType/ClassOrInterfaceType[typeIs('org.apache.commons.fileupload.FileItem')]/../../..//VariableDeclaratorId/@Image,
 		'.')
 	) or
 	starts-with(@Image, concat(
-		ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration/Type/ReferenceType/ClassOrInterfaceType[@Image='FileItem']/../../..//VariableDeclaratorId/@Image,
+		ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration/Type/ReferenceType/ClassOrInterfaceType[typeIs('org.apache.commons.fileupload.FileItem')]/../../..//VariableDeclaratorId/@Image,
 		'.')
 	)
 ]
