@@ -43,10 +43,10 @@ public class AvoidUnguardedAssignmentToNonFinalFieldsInSharedObjectsTest {
 // the same for @Service
 @Service
 class AService1 {
-    static private Date date0OK = new Date(); // rule not applicable
-    private Date date1OK = new Date();
-    private String string1OK = new String();
-    private final String string3OK = new String();
+    //static private Date date0OK = new Date(); // rule not applicable
+    //private Date date1OK = new Date();
+    //private String string1OK = new String();
+    //private final String string3OK = new String();
 
     @Value("${batchService.http.url}")
     private String url; // violation on next line, of additional unguarded accessor method
@@ -59,9 +59,9 @@ class AService1 {
 // the same for @Singleton, yet only in case ConcurrencyManagementType.BEAN
 @Singleton
 class ASingletonContainer {
-    static private Date date0Ok = new Date(); // rule not applicable
-    private Date date1Ok = new Date(); // same
-    private String stringOk = new String(); // same
+    //static private Date date0Ok = new Date(); // rule not applicable
+    //private Date date1Ok = new Date(); // same
+    //private String stringOk = new String(); // same
     private final String string3Ok = new String(); // same
 
     private String url; //
@@ -76,9 +76,9 @@ class ASingletonContainer {
 @Singleton
 @ConcurrencyManagement(value = ConcurrencyManagementType.BEAN)
 class ASingletonBean {
-    static private Date date0Ok = new Date(); // rule not applicable
-    private Date date1Ok = new Date(); // same
-    private String stringOk = new String(); // same
+    //static private Date date0Ok = new Date(); // rule not applicable
+    //private Date date1Ok = new Date(); // same
+    //private String stringOk = new String(); // same
     private final String string3Ok = new String(); //
 
     private String url;
@@ -182,7 +182,7 @@ class ASyncedSingletonConcurrencyBean {
 
 @Component
 class AComponentMaoValidation {
-    private String string1Violate = new String(); // violation: non-final, unguarded
+    //private String string1Violate = new String(); // violation: non-final, unguarded; not this rule
     private final String string3Ok = new String(); // OK!: final, immutable
     private RestTemplate restTemplateOk; // OK, autowired setter
 
@@ -207,22 +207,12 @@ class AComponentMaoValidation {
         private Long Id;
     }
 
-    @Data
+    /*@Data
     private class InnerDataViolate { // not static, so accessible from outer instance,
         private Long Id; // violation: non-final, unguarded
         private String string1Violate = new String(); // violation: non-final, unguarded
         private final String string3Ok = new String(); // OK!: final, immutable
-    }
-
-    private FeatureTogglesMessageSource featuresViolate; // autowired constructor, yet non-final
-
-    @Autowired
-    public AComponentMaoValidation(FeatureTogglesMessageSource featureTogglesMessageSource) {
-        this.featuresViolate = featureTogglesMessageSource;
-    }
-
-    class FeatureTogglesMessageSource {
-    }
+    }*/
 
     private static final int KILO = 1024;
 
@@ -256,7 +246,7 @@ class AComponentMaoValidation {
 }
 
 // the same for @Singleton, yet only in case ConcurrencyManagementType.BEAN
-@Singleton
+/*@Singleton
 @ConcurrencyManagement(value = ConcurrencyManagementType.BEAN)
 class ASingletonConcurrencyBean {
     static private Date date0Violate = new Date(); // violation: non-final, mutable, unguarded ; static or not doesn't make difference
@@ -270,10 +260,10 @@ class ASingletonConcurrencyBean {
     private Map<String, String> map1Ok = new HashMap<>(); // OK, guarded
 
     private final String string3Ok = new String(); // OK!: final, immutable
-}
+}*/
 
 // From RO
-@Singleton
+/*@Singleton
 @Startup
 @ConcurrencyManagement(value = ConcurrencyManagementType.BEAN)
 class BbEventSender {
@@ -294,7 +284,7 @@ class BbEventSender {
     private AtomicBoolean processingBbEventViolation = new AtomicBoolean(false); // needs to be final
 
     private int databaseQueryMaxResultsViolation = 1000; // needs to be final
-}
+}*/
 
 @Singleton
 //@Startup

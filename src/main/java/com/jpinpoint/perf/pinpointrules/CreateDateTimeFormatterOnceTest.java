@@ -50,4 +50,13 @@ public class CreateDateTimeFormatterOnceTest {
     public void testNoViolation_2(String dateFormat) {
         DateTimeFormatter dateTimeFormatter = DateTimeFormat.forPattern(dateFormat);
     }
+
+    public void testViolationThreeten() {
+        org.threeten.bp.format.DateTimeFormatter ftor = org.threeten.bp.format.DateTimeFormatter.ofPattern("yyMMdd");
+    }
+
+    public void testViolationJava8() {
+        java.time.format.DateTimeFormatter ftor = java.time.format.DateTimeFormatter.ofPattern("yyMMdd");
+    }
+
 }

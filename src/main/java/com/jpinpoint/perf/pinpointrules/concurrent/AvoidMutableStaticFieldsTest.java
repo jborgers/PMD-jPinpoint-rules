@@ -2,15 +2,19 @@ package com.jpinpoint.perf.pinpointrules.concurrent;
 
 import net.jcip.annotations.GuardedBy;
 import net.jcip.annotations.NotThreadSafe;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.util.*;
+
+import static org.springframework.context.annotation.ScopedProxyMode.INTERFACES;
 
 /**
  * Created by BorgersJM on 4-7-2017.
  */
 @NotThreadSafe
-public class AvoidMutableStaticFieldTest {
+public class AvoidMutableStaticFieldsTest {
     private static final String stringOk1 = "Ok";
     private static String stringViolate1;
     static String stringViolate2;
@@ -36,4 +40,31 @@ public class AvoidMutableStaticFieldTest {
     public static void main(String[] args) {
         System.out.println("" + QUALIFIERS_Violate + QUALIFIERS_Ok);
     }
+}
+    @Component
+    @Scope(value = "request", proxyMode = INTERFACES)
+            // Only request is safe
+class Component3Ok2 {
+    static private Date date0Violate = new Date(); // static is shared among all prototype instances
+    private Date date1Ok = new Date(); //
+    private String string1Ok = new String(); //
+    private final String string3Ok = new String(); // OK!: final, immutable
+}
+
+@Component
+@Scope(value = "prototype", proxyMode = INTERFACES)
+        // prototypes are recreated every time and instance fields are therefore safe, they are not shared
+class Component5_2 {
+    static private Date date0Violate = new Date(); // static is shared among all prototype instances
+    private Date date1Ok = new Date(); //
+    private String string1Ok = new String(); //
+    private final String string3Ok = new String(); //
+}
+
+
+class NoFilesNoArrays_2 {
+    private static final File[] NO_FILES_OK = {};
+    private static final File[] FILES_Violate = {new File("/tmp/a")};
+    private static final File file_violate = new File("dummy");
+    private static final String[] names_violate = {"aap", "noot", "mies"};
 }

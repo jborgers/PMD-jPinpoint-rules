@@ -8,10 +8,10 @@ import java.util.Set;
 /**
  * @TODO
  */
-public class AvoidExposingSyncWrappedInternal {
+public class AvoidExposingSyncWrappedInternalTest {
     private final Set<String> portletNames;
 
-    public AvoidExposingSyncWrappedInternal(Set names) {
+    public AvoidExposingSyncWrappedInternalTest(Set names) {
         //Set copy = new HashSet(names); // copy fixes the problem since Set is not shared anymore,
         // only the immutable Strings which are inherently thread-safe
         portletNames = Collections.synchronizedSet(names);

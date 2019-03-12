@@ -6,7 +6,7 @@ import javax.validation.metadata.BeanDescriptor;
 import javax.xml.bind.Marshaller;
 import java.util.Set;
 
-public class AvoidThreadUnsafeMarshallerUsage {
+public class AvoidThreadUnsafeJaxbUsageTest {
 
 	// these are thread-unsafe objects, do not use in fields,
 	// rather recreated every time and referenced from local variables

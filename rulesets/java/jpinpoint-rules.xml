@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<ruleset name="jpinpoint-rules" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 http://pmd.sourceforge.net/ruleset_2_0_0.xsd" xmlns="http://pmd.sourceforge.net/ruleset/2.0.0" xmlns:fn="http://www.w3.org/TR/xpath-functions/">
+<ruleset name="jpinpoint-rules" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 https://pmd.sourceforge.io/ruleset_2_0_0.xsd" xmlns="http://pmd.sourceforge.net/ruleset/2.0.0">
     <description>jPinpoint rule set for performance aware Java coding, sponsored by Rabobank.</description>
 
     <rule name="AvoidStringBuffer" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="StringBuffer is used. It introduces locking overhead, use StringBuilder." typeResolution="true"
@@ -10,12 +10,9 @@
         <properties>
             <property name="version" value="1.0"/>
             <property name="xpath">
-                <!--value><![CDATA[
-                    //VariableDeclarator[../Type/ReferenceType/ClassOrInterfaceType[pmd-java:typeof(@Image, 'java.lang.StringBuffer')]]
-                    ]]></value-->
                 <value><![CDATA[
-            	//VariableDeclarator[../Type/ReferenceType/ClassOrInterfaceType[ends-with(@Image, '.StringBuffer') or @Image = 'StringBuffer']]
-            	]]></value>
+                    //VariableDeclarator[../Type/ReferenceType/ClassOrInterfaceType[typeIs('java.lang.StringBuffer')]]
+                    ]]></value>
             </property>
         </properties>
     </rule>
@@ -104,8 +101,8 @@
                 <value><![CDATA[
 //PrimaryPrefix/AllocationExpression/ClassOrInterfaceType
 	[
-		@Image='EqualsBuilder'
-		or @Image='HashCodeBuilder'
+		typeIs('org.apache.commons.lang.builder.EqualsBuilder')
+		or typeIs('org.apache.commons.lang.builder.HashCodeBuilder')
 	]
 [../../../PrimarySuffix[1]
 	[
@@ -139,7 +136,7 @@
 ../../../../../../../../
 BlockStatement/LocalVariableDeclaration/VariableDeclarator/VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/Name[ends-with(@Image,'.getTime') or ends-with(@Image,'.getTimeInMillis')]
 |
-//ClassOrInterfaceType[@Image='DateTime' or @Image='LocalDateTime'][../Arguments/ArgumentList/Expression/PrimaryExpression/PrimaryPrefix/Name[ends-with(@Image, 'Calendar.getInstance')]]
+//ClassOrInterfaceType[typeIs('org.joda.time.DateTime') or typeIs('org.joda.time.LocalDateTime')][../Arguments/ArgumentList/Expression/PrimaryExpression/PrimaryPrefix/Name[ends-with(@Image, 'Calendar.getInstance')]]
 	]]></value>
             </property>
         </properties>
@@ -157,9 +154,9 @@ BlockStatement/LocalVariableDeclaration/VariableDeclarator/VariableInitializer/E
                 <value><![CDATA[
 //ClassOrInterfaceBodyDeclaration
 [MethodDeclaration[@Public='true'] and
-(MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter/Type/ReferenceType/ClassOrInterfaceType[@Image = 'ModelMap'] or
+(MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter/Type/ReferenceType/ClassOrInterfaceType[typeIs('org.springframework.ui.ModelMap')] or
 MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter/Annotation/MarkerAnnotation/Name[@Image='ModelAttribute']) and
-(MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter/Type/ReferenceType/ClassOrInterfaceType[@Image='RenderRequest' or @Image='PortletRequest'] or
+(MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter/Type/ReferenceType/ClassOrInterfaceType[typeIs('javax.portlet.RenderRequest') or typeIs('javax.portlet.PortletRequest')] or
 Annotation//Name[@Image='RenderMapping'])]
 	]]></value>
             </property>
@@ -195,7 +192,7 @@ Annotation//Name[@Image='RenderMapping'])]
             <property name="version" value="1.0"/>
             <property name="xpath">
                 <value><![CDATA[
-//AllocationExpression/ClassOrInterfaceType[@Image='SimpleDateFormat']
+ //AllocationExpression/ClassOrInterfaceType[typeIs('java.text.SimpleDateFormat')]
 	]]></value>
             </property>
         </properties>
@@ -280,9 +277,9 @@ Name[@Image=ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/Field
 VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/Literal[string-length(@Image) < 6]]/VariableDeclaratorId/@Image])
 ] |
 //MethodDeclaration//PrimaryPrefix/Name[ends-with(@Image, '.matches')]
-[(starts-with(@Image, concat(ancestor::MethodDeclaration//FormalParameter/Type/ReferenceType/ClassOrInterfaceType[@Image='String']/../../../VariableDeclaratorId/@Image, '.'))
+[(starts-with(@Image, concat(ancestor::MethodDeclaration//FormalParameter/Type/ReferenceType/ClassOrInterfaceType[typeIs('java.lang.String')]/../../../VariableDeclaratorId/@Image, '.'))
 or
-starts-with(@Image, concat(ancestor::MethodDeclaration//LocalVariableDeclaration/Type/ReferenceType/ClassOrInterfaceType[@Image='String']/../../../VariableDeclarator/VariableDeclaratorId/@Image, '.')))
+starts-with(@Image, concat(ancestor::MethodDeclaration//LocalVariableDeclaration/Type/ReferenceType/ClassOrInterfaceType[typeIs('java.lang.String')]/../../../VariableDeclarator/VariableDeclaratorId/@Image, '.')))
 and
 ../../PrimarySuffix/Arguments[@ArgumentCount=1]//Expression[1]//PrimaryPrefix[
 Literal[string-length(@Image) > 5] or Name
@@ -311,8 +308,8 @@ VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/Literal[string-le
                 <value><![CDATA[
 //ClassOrInterfaceBodyDeclaration
 [MethodDeclaration[@Public='true'] and
-MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter/Type/ReferenceType/ClassOrInterfaceType[@Image = 'ModelMap'] and
-(MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter/Type/ReferenceType/ClassOrInterfaceType[@Image='ActionRequest'] or
+MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter/Type/ReferenceType/ClassOrInterfaceType[typeIs('org.springframework.ui.ModelMap')] and
+(MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter/Type/ReferenceType/ClassOrInterfaceType[typeIs('javax.portlet.ActionRequest')] or
 Annotation//Name[@Image='ActionMapping']) and
 count(.//PrimaryExpression/PrimaryPrefix/Name[ends-with(@Image,'.clear')])=0]
 	]]></value>
@@ -462,7 +459,7 @@ ancestor::MethodDeclaration//VariableDeclaratorId[@Image =
 ancestor::MethodDeclaration//ForStatement//AssignmentOperator[@Image='+=']/
 ../PrimaryExpression/PrimaryPrefix/Name/attribute::Image
 and
-./../../Type/ReferenceType/ClassOrInterfaceType[@Image='String']
+./../../Type/ReferenceType/ClassOrInterfaceType[typeIs('java.lang.String')]
 ]]
 |
 //MethodDeclaration//ForStatement//StatementExpression[AssignmentOperator/../Expression/AdditiveExpression[
@@ -474,7 +471,7 @@ and
 @Image =
 ancestor::MethodDeclaration//ForStatement//Statement/StatementExpression/PrimaryExpression/PrimaryPrefix/Name/attribute::Image
 and
-./../../Type/ReferenceType/ClassOrInterfaceType[@Image='String']
+./../../Type/ReferenceType/ClassOrInterfaceType[typeIs('java.lang.String')]
 ]]]
 |
 //MethodDeclaration//WhileStatement//AssignmentOperator[@Image='+='][
@@ -482,7 +479,7 @@ ancestor::MethodDeclaration//VariableDeclaratorId[@Image =
 ancestor::MethodDeclaration//ForStatement//AssignmentOperator[@Image='+=']/
 ../PrimaryExpression/PrimaryPrefix/Name/attribute::Image
 and
-./../../Type/ReferenceType/ClassOrInterfaceType[@Image='String']
+./../../Type/ReferenceType/ClassOrInterfaceType[typeIs('java.lang.String')]
 ]]
 |
 //MethodDeclaration//WhileStatement//StatementExpression[AssignmentOperator/../Expression/AdditiveExpression[
@@ -493,7 +490,7 @@ ancestor::MethodDeclaration//ForStatement//AdditiveExpression/PrimaryExpression/
 and
 @Image =
 ancestor::MethodDeclaration//ForStatement//Statement/StatementExpression/PrimaryExpression/PrimaryPrefix/Name/attribute::Image and
-./../../Type/ReferenceType/ClassOrInterfaceType[@Image='String']
+./../../Type/ReferenceType/ClassOrInterfaceType[typeIs('java.lang.String')]
 ]]]
 	]]>
                 </value>
@@ -516,7 +513,7 @@ count(
 ./BlockStatement/Statement//StatementExpression/PrimaryExpression/PrimaryPrefix/Name
 [@Image=./../../../../../../../../../../../..//VariableDeclaratorId/attribute::Image
 and
-./../../../../../../..//VariableDeclaratorId/../../Type/ReferenceType/ClassOrInterfaceType[@Image='String']
+./../../../../../../..//VariableDeclaratorId/../../Type/ReferenceType/ClassOrInterfaceType[typeIs('java.lang.String')]
 ]
 /../../../AssignmentOperator[@Image='+=']/
 ../Expression//PrimaryExpression/PrimaryPrefix/Name) > 1]/BlockStatement[position()=last()]
@@ -527,7 +524,7 @@ count(
 ./PrimaryExpression/PrimaryPrefix/Name[
 @Image = ../../../Expression/AdditiveExpression/PrimaryExpression/PrimaryPrefix/Name/@Image
 and
-@Image = ./../../../../../../../..//VariableDeclaratorId/../../Type/ReferenceType/ClassOrInterfaceType[@Image='String']/../../../VariableDeclarator/VariableDeclaratorId/attribute::Image
+@Image = ./../../../../../../../..//VariableDeclaratorId/../../Type/ReferenceType/ClassOrInterfaceType[typeIs('java.lang.String')]/../../../VariableDeclarator/VariableDeclaratorId/attribute::Image
 ]
 ]) > 1 ]//BlockStatement[position()=last()]//StatementExpression/Expression/AdditiveExpression[@Image = '+']
 	]]></value>
@@ -562,14 +559,15 @@ and
          (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
+
             <property name="version" value="1.0"/>
             <property name="xpath">
                 <value><![CDATA[
 //TypeDeclaration/ClassOrInterfaceDeclaration/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/
-FieldDeclaration/Type/ReferenceType/ClassOrInterfaceType[@Image='XMLGregorianCalendar']
+FieldDeclaration/Type/ReferenceType/ClassOrInterfaceType[typeIs('javax.xml.datatype.XMLGregorianCalendar')]
 |
 //TypeDeclaration/ClassOrInterfaceDeclaration/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/
-MethodDeclaration//LocalVariableDeclaration/Type/ReferenceType/ClassOrInterfaceType[@Image='XMLGregorianCalendar']
+MethodDeclaration//LocalVariableDeclaration/Type/ReferenceType/ClassOrInterfaceType[typeIs('javax.xml.datatype.XMLGregorianCalendar')]
 	]]></value>
             </property>
         </properties>
@@ -613,7 +611,7 @@ ancestor::ClassOrInterfaceBodyDeclaration/MethodDeclaration/Block//TryStatement/
             <property name="xpath">
                 <value><![CDATA[
 //MethodDeclaration//Expression/PrimaryExpression/PrimaryPrefix/AllocationExpression/ClassOrInterfaceType[
-	(@Image = 'ObjectMapper') and
+	(typeIs('com.fasterxml.jackson.databind.ObjectMapper')) and
 	not(ancestor::TypeDeclaration/Annotation/MarkerAnnotation/Name/@Image='Configuration')
 ]
 			]]></value>
@@ -630,32 +628,14 @@ ancestor::ClassOrInterfaceBodyDeclaration/MethodDeclaration/Block//TryStatement/
             <property name="version" value="1.0"/>
             <property name="xpath">
                 <value><![CDATA[
-//FieldDeclaration/Type/ReferenceType/ClassOrInterfaceType[
-pmd-java:typeof(@Image, 'javax.xml.bind.Marshaller', 'Marshaller')]
-[//ImportDeclaration/Name[@Image = 'javax.xml.bind.Marshaller' or @Image = 'javax.xml.bind']]
+//FieldDeclaration/Type/ReferenceType/ClassOrInterfaceType[typeIs('javax.xml.bind.Marshaller')]
 |
-//FieldDeclaration/Type/ReferenceType/ClassOrInterfaceType[
-pmd-java:typeof(@Image, 'javax.xml.bind.Unmarshaller', 'Unmarshaller')]
-[//ImportDeclaration/Name[@Image = 'javax.xml.bind.Unmarshaller' or @Image = 'javax.xml.bind']]
+//FieldDeclaration/Type/ReferenceType/ClassOrInterfaceType[typeIs('javax.xml.bind.Unmarshaller')]
 |
-//FieldDeclaration/Type/ReferenceType/ClassOrInterfaceType[
-pmd-java:typeof(@Image, 'javax.xml.bind.Validator', 'Validator')]
-[//ImportDeclaration/Name[@Image = 'javax.xml.bind.Validator' or @Image = 'javax.xml.bind']]
+//FieldDeclaration/Type/ReferenceType/ClassOrInterfaceType[typeIs('javax.xml.bind.Validator')]
 |
-//FieldDeclaration/Type/ReferenceType/ClassOrInterfaceType[
-pmd-java:typeof(@Image, 'javax.xml.validation.Validator', 'Validator')]
-[//ImportDeclaration/Name[@Image = 'javax.xml.validation.Validator' or @Image = 'javax.xml.validation']]
+//FieldDeclaration/Type/ReferenceType/ClassOrInterfaceType[typeIs('javax.xml.validation.Validator')]
 			]]></value>
-                <!--value><![CDATA[
-    //FieldDeclaration/Type/ReferenceType/ClassOrInterfaceType[
-    ends-with(@Image,'.Marshaller')
-    or @Image = 'Marshaller'
-    or ends-with(@Image,'.Unmarshaller')
-    or @Image = 'UnMarshaller'
-    or ends-with(@Image,'.Validator')
-    or @Image = 'Validator'
-    ]
-                ]]></value-->
             </property>
         </properties>
     </rule>
@@ -688,7 +668,7 @@ pmd-java:typeof(@Image, 'javax.xml.validation.Validator', 'Validator')]
             <property name="xpath">
                 <value><![CDATA[
 	//TypeDeclaration/ClassOrInterfaceDeclaration/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration
-//PrimaryExpression/PrimaryPrefix/AllocationExpression/ClassOrInterfaceType[@Image = 'ByteArrayOutputStream' or @Image='StringWriter']
+//PrimaryExpression/PrimaryPrefix/AllocationExpression/ClassOrInterfaceType[typeIs('java.io.ByteArrayOutputStream') or typeIs('java.io.StringWriter')]
 [not(../Arguments/ArgumentList)]
 	]]></value>
             </property>
@@ -709,10 +689,10 @@ pmd-java:typeof(@Image, 'javax.xml.validation.Validator', 'Validator')]
             <property name="xpath">
                 <value>
                     <![CDATA[
-    //FieldDeclaration[@Final='false' or @Static='false']//ReferenceType/ClassOrInterfaceType[ends-with(@Image, 'DateTimeFormatter')] |
-    //MethodDeclaration/Block//ReferenceType/ClassOrInterfaceType[ends-with(@Image, 'DateTimeFormatter')]
+    //FieldDeclaration[@Final='false' or @Static='false']//ReferenceType/ClassOrInterfaceType[typeIs('org.joda.time.format.DateTimeFormatter') or typeIs('org.threeten.bp.format.DateTimeFormatter') or typeIs('java.time.format.DateTimeFormatter')] |
+    //MethodDeclaration/Block//ReferenceType/ClassOrInterfaceType[typeIs('org.joda.time.format.DateTimeFormatter') or typeIs('org.threeten.bp.format.DateTimeFormatter') or typeIs('java.time.format.DateTimeFormatter')]
 [ancestor::LocalVariableDeclaration/VariableDeclarator/VariableInitializer/Expression//PrimaryPrefix/Literal] |
-    //MethodDeclaration/Block/BlockStatement//Expression//AllocationExpression/ClassOrInterfaceType[ends-with(@Image, 'DateTimeFormatter')] |
+    //MethodDeclaration/Block/BlockStatement//Expression//AllocationExpression/ClassOrInterfaceType[typeIs('org.joda.time.format.DateTimeFormatter') or typeIs('org.threeten.bp.format.DateTimeFormatter') or typeIs('java.time.format.DateTimeFormatter')] |
     //MethodDeclaration/Block/BlockStatement//Expression/PrimaryExpression/PrimaryPrefix/Name[starts-with(@Image, 'ISODateTimeFormat.')] |
     //MethodDeclaration/Block/BlockStatement//Expression/PrimaryExpression/PrimaryPrefix/Name[starts-with(@Image, 'DateTimeFormat.')
        and not (ends-with(@Image, 'forPattern'))] |
@@ -810,9 +790,9 @@ and not (../Annotation//Name[@Image='Autowired' or @Image='PersistenceContext' o
 and not (../../ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='Autowired' or @Image='PostConstruct' or @Image='BeforeStep' or @Image='Value']
 /../../..//BlockStatement/Statement//StatementExpression/AssignmentOperator/../PrimaryExpression//@Image=
 ./VariableDeclarator/VariableDeclaratorId/@Image)
-or ((Type/ReferenceType/ClassOrInterfaceType[(@Image='Date' or @Image='StringBuilder' or @Image='StringBuffer' or @Image='URL' or @Image='File') and not
-(ancestor::FieldDeclaration/VariableDeclarator/VariableInitializer[ArrayInitializer and count(ArrayInitializer/VariableInitializer) = 0])])
-or (VariableDeclarator/VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/AllocationExpression/ClassOrInterfaceType[@Image='ArrayList' or @Image='HashMap' or @Image='HashSet'] )
+or ((Type/ReferenceType/ClassOrInterfaceType[(typeIs('java.util.Date') or typeIs('java.lang.StringBuilder') or typeIs('java.lang.StringBuffer') or typeIs('java.net.URL') or typeIs('java.io.File')) or
+(ancestor::FieldDeclaration/VariableDeclarator/VariableInitializer[ArrayInitializer and count(ArrayInitializer/VariableInitializer) > 0])])
+or (VariableDeclarator/VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/AllocationExpression/ClassOrInterfaceType[typeIs('java.lang.ArrayList') or typeIs('java.lang.HashMap') or typeIs('java.lang.HashSet')] )
      and not (../Annotation//Name[@Image='GuardedBy']))
 ]
 ]]>
@@ -907,8 +887,8 @@ and  (../../ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='Autowired']
 [@Static='true' and @Final='false' and @Volatile='false' and not (../Annotation//Name[@Image='GuardedBy'])]
 |
 (//ClassOrInterfaceDeclaration/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Static='true']/Type/ReferenceType/ClassOrInterfaceType[
-(@Image='Date' or @Image='StringBuilder' or @Image='StringBuffer' or @Image='URL' or @Image='File')
- and not (ancestor::FieldDeclaration/VariableDeclarator/VariableInitializer[ArrayInitializer and count(ArrayInitializer/VariableInitializer) = 0])
+(((typeIs('java.util.Date') or typeIs('java.lang.StringBuilder') or typeIs('java.lang.StringBuffer') or typeIs('java.net.URL')) or typeIs('java.io.File'))
+ or (ancestor::FieldDeclaration/VariableDeclarator/VariableInitializer[ArrayInitializer and count(ArrayInitializer/VariableInitializer) > 0]))
  and not (ancestor::ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='GuardedBy'])
 ])
 |
@@ -916,7 +896,7 @@ and  (../../ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='Autowired']
 VariableDeclarator/VariableInitializer[((ArrayInitializer and count(ArrayInitializer/VariableInitializer) > 0)
 or Expression/PrimaryExpression/PrimaryPrefix/AllocationExpression[ArrayDimsAndInits and ArrayDimsAndInits//PrimaryPrefix/Literal/@Image>0]
 or Expression/PrimaryExpression/PrimaryPrefix/AllocationExpression/ClassOrInterfaceType[
-(@Image='ArrayList' or @Image='HashMap' or @Image='HashSet')
+(typeIs('java.util.ArrayList') or typeIs('java.util.HashMap') or typeIs('java.util.HashSet'))
 ])])
 ]]>
                 </value>
@@ -1037,28 +1017,28 @@ or @Image='org.apache.http.conn.ClientConnectionManager'
 ]
 |
 //TypeDeclaration//ClassOrInterfaceDeclaration//ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration/
-Type/ReferenceType/ClassOrInterfaceType[pmd-java:typeof(@Image, 'org.apache.commons.httpclient.SimpleHttpConnectionManager', 'SimpleHttpConnectionManager')
-or pmd-java:typeof(@Image, 'org.apache.http.conn.ClientConnectionManager', 'ClientConnectionManager')
-or pmd-java:typeof(@Image, 'org.apache.http.impl.conn.PoolingClientConnectionManager', 'PoolingClientConnectionManager')
-or pmd-java:typeof(@Image, 'org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager', 'ThreadSafeClientConnManage')
-or pmd-java:typeof(@Image, 'org.apache.http.impl.conn.SingleClientConnManager', 'SingleClientConnManager')
-or pmd-java:typeof(@Image, 'org.apache.http.impl.client.DefaultHttpClient', 'DefaultHttpClient')
-or pmd-java:typeof(@Image, 'org.apache.http.impl.client.SystemDefaultHttpClient', 'SystemDefaultHttpClient')
-or pmd-java:typeof(@Image, 'org.apache.http.conn.ClientConnectionManager', 'ClientConnectionManager')
+Type/ReferenceType/ClassOrInterfaceType[typeIs('org.apache.commons.httpclient.SimpleHttpConnectionManager')
+or typeIs('org.apache.http.conn.ClientConnectionManager')
+or typeIs('org.apache.http.impl.conn.PoolingClientConnectionManager')
+or typeIs('org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager')
+or typeIs('org.apache.http.impl.conn.SingleClientConnManager')
+or typeIs('org.apache.http.impl.client.DefaultHttpClient')
+or typeIs('org.apache.http.impl.client.SystemDefaultHttpClient')
+or typeIs('org.apache.http.conn.ClientConnectionManager')
 ]
 |
 //TypeDeclaration//ClassOrInterfaceDeclaration//ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration/
 VariableDeclarator/VariableInitializer/Expression//AllocationExpression/ClassOrInterfaceType[
-pmd-java:typeof(@Image, 'org.apache.http.conn.ClientConnectionManager', 'ClientConnectionManager')
-or pmd-java:typeof(@Image, 'org.apache.http.impl.conn.PoolingClientConnectionManager', 'PoolingClientConnectionManager')
-or pmd-java:typeof(@Image, 'org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager', 'ThreadSafeClientConnManager')
-or pmd-java:typeof(@Image, 'org.apache.http.impl.conn.SingleClientConnManager', 'SingleClientConnManager')
-or pmd-java:typeof(@Image, 'org.apache.http.impl.client.DefaultHttpClient', 'DefaultHttpClient')
-or pmd-java:typeof(@Image, 'org.apache.http.impl.client.SystemDefaultHttpClient', 'SystemDefaultHttpClient')
-or pmd-java:typeof(@Image, 'org.apache.http.conn.ClientConnectionManager', 'ClientConnectionManager')
+typeIs('org.apache.http.conn.ClientConnectionManager')
+or typeIs('org.apache.http.impl.conn.PoolingClientConnectionManager')
+or typeIs('org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager')
+or typeIs('org.apache.http.impl.conn.SingleClientConnManager')
+or typeIs('org.apache.http.impl.client.DefaultHttpClient')
+or typeIs('org.apache.http.impl.client.SystemDefaultHttpClient')
+or typeIs('org.apache.http.conn.ClientConnectionManager')
 ]
 |
-//AllocationExpression/ClassOrInterfaceType[pmd-java:typeof(@Image, 'org.apache.commons.httpclient.SimpleHttpConnectionManager', 'SimpleHttpConnectionManager')]
+//AllocationExpression/ClassOrInterfaceType[typeIs('org.apache.commons.httpclient.SimpleHttpConnectionManager')]
 		     ]]></value>
             </property>
         </properties>
@@ -1137,21 +1117,21 @@ or preceding-sibling::SwitchLabel[@Default='true'])
                     <![CDATA[
    //MethodDeclaration//PrimaryPrefix/Name[ends-with(@Image, '.get')]
     [(starts-with(@Image, concat(ancestor::MethodDeclaration//FormalParameter/Type/ReferenceType/ClassOrInterfaceType[
-    typeof(@Image, 'java.util.concurrent.Future', 'Future')
-    or typeof(@Image, 'java.util.concurrent.CompletableFuture', 'CompletableFuture')
-    or typeof(@Image, 'java.util.concurrent.Response', 'Response')
-    or typeof(@Image, 'java.util.concurrent.RunnableFuture', 'RunnableFuture')
-    or typeof(@Image, 'java.util.concurrent.RunnableScheduledFuture', 'RunnableScheduledFuture')
-    or typeof(@Image, 'java.util.concurrent.ScheduledFuture', 'ScheduledFuture')
+    typeIs('java.util.concurrent.Future')
+    or typeIs('java.util.concurrent.CompletableFuture')
+    or typeIs('java.util.concurrent.Response')
+    or typeIs('java.util.concurrent.RunnableFuture')
+    or typeIs('java.util.concurrent.RunnableScheduledFuture')
+    or typeIs('java.util.concurrent.ScheduledFuture')
     ]/../../../VariableDeclaratorId/@Image, '.'))
     or
     starts-with(@Image, concat(ancestor::MethodDeclaration//LocalVariableDeclaration/Type/ReferenceType/ClassOrInterfaceType[
-    typeof(@Image, 'java.util.concurrent.Future', 'Future')
-    or typeof(@Image, 'java.util.concurrent.CompletableFuture', 'CompletableFuture')
-    or typeof(@Image, 'java.util.concurrent.Response', 'Response')
-    or typeof(@Image, 'java.util.concurrent.RunnableFuture', 'RunnableFuture')
-    or typeof(@Image, 'java.util.concurrent.RunnableScheduledFuture', 'RunnableScheduledFuture')
-    or typeof(@Image, 'java.util.concurrent.ScheduledFuture', 'ScheduledFuture')
+    typeIs('java.util.concurrent.Future')
+    or typeIs('java.util.concurrent.CompletableFuture')
+    or typeIs('java.util.concurrent.Response')
+    or typeIs('java.util.concurrent.RunnableFuture')
+    or typeIs('java.util.concurrent.RunnableScheduledFuture')
+    or typeIs('java.util.concurrent.ScheduledFuture')
     ]/../../../VariableDeclarator/VariableDeclaratorId/@Image, '.')))
     and not(../../PrimarySuffix/Arguments/ArgumentList)
     and ancestor::CompilationUnit/ImportDeclaration/Name[@Image = 'java.util.concurrent.Future' or @Image = 'java.util.concurrent']
@@ -1182,15 +1162,15 @@ or preceding-sibling::SwitchLabel[@Default='true'])
 [ends-with(@Image, '.get') or ends-with(@Image, '.getString')]
 [
 	starts-with(@Image, concat(
-		ancestor::MethodDeclaration/MethodDeclarator//Type/ReferenceType/ClassOrInterfaceType[@Image='FileItem']/../../..//VariableDeclaratorId/@Image,
+		ancestor::MethodDeclaration/MethodDeclarator//Type/ReferenceType/ClassOrInterfaceType[typeIs('org.apache.commons.fileupload.FileItem')]/../../..//VariableDeclaratorId/@Image,
 		'.')
 	) or
 	starts-with(@Image, concat(
-		ancestor::MethodDeclaration/Block//Type/ReferenceType/ClassOrInterfaceType[@Image='FileItem']/../../..//VariableDeclaratorId/@Image,
+		ancestor::MethodDeclaration/Block//Type/ReferenceType/ClassOrInterfaceType[typeIs('org.apache.commons.fileupload.FileItem')]/../../..//VariableDeclaratorId/@Image,
 		'.')
 	) or
 	starts-with(@Image, concat(
-		ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration/Type/ReferenceType/ClassOrInterfaceType[@Image='FileItem']/../../..//VariableDeclaratorId/@Image,
+		ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration/Type/ReferenceType/ClassOrInterfaceType[typeIs('org.apache.commons.fileupload.FileItem')]/../../..//VariableDeclaratorId/@Image,
 		'.')
 	)
 ]

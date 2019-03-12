@@ -43,7 +43,8 @@ public class AvoidUnguardedMutableFieldsInSharedObjectsTest {
 
 @Component
 class Component1 {
-    static private Date date0Violate = new Date(); // violation: non-final, mutable, unguarded ; static or not doesn't make difference
+    //private static String okForThisRule = new String(); // not mutable so ok for this rule (should be final, that's another rule)
+    private Date date0Violate = new Date(); // violation: non-final, mutable, unguarded ; static or not doesn't make difference
     private Date date1Violate = new Date(); // violation: non-final, mutable, unguarded
     private final Date date2Violate = new Date(); // violation: mutable, unguarded
     private final List list1Violate = new ArrayList(); // violation: mutable, unguarded
@@ -71,7 +72,7 @@ class Component1 {
 // the same for @Service
 @Service
 class Service1 {
-    static private Date date0Violate = new Date(); // violation: non-final, mutable, unguarded ; static or not doesn't make difference
+    private Date date0Violate = new Date(); // violation: non-final, mutable, unguarded ;
     private Date date1Violate = new Date(); // violation: non-final, mutable, unguarded
     private String string1Violate = new String(); // violation: non-final, unguarded
     private final String string3OK = new String(); // OK!: final, immutable
@@ -79,15 +80,15 @@ class Service1 {
     @Value("${batchService.http.url}")
     private String url; // additional unguarded accessor method, next line
 
-    public void setUrlViolate(final String url) {
+    /*public void setUrlViolate(final String url) {
         this.url = url;
-    } // violation: unguarded accessor method
+    }*/ // violation: unguarded accessor method
 }
 
 // the same for @Singleton, yet only in case ConcurrencyManagementType.BEAN
 @Singleton
 class Singleton1 {
-    static private Date date0Ok = new Date(); // dealt with by @Singleton default: @ConcurrencyManagementType.CONTAINER
+    private Date date0Ok = new Date(); // dealt with by @Singleton default: @ConcurrencyManagementType.CONTAINER
     private Date date1Ok = new Date(); // same
     private String stringOk = new String(); // same
     private final String string3Ok = new String(); // OK!: final, immutable
@@ -96,7 +97,7 @@ class Singleton1 {
 @Component
 @Scope(value = SCOPE_APPLICATION, proxyMode = TARGET_CLASS)
 class Component2 {
-    static private Date date0Violate = new Date(); // violation: non-final, mutable, unguarded ; static or not doesn't make difference
+    private Date date0Violate = new Date(); // violation: non-final, mutable, unguarded ;
     private Date date1Violate = new Date(); // violation: non-final, mutable, unguarded
     private String string1Violate = new String(); // violation: non-final, unguarded
     private final String string3Ok = new String(); // OK!: final, immutable
@@ -106,7 +107,7 @@ class Component2 {
 @Scope(value = "request", proxyMode = INTERFACES)
         // Only request is safe
 class Component3Ok {
-    static private Date date0Violate = new Date(); // static is shared among all prototype instances
+    //static private Date date0Violate = new Date(); // static is shared among all prototype instances, different rule
     private Date date1Ok = new Date(); //
     private String string1Ok = new String(); //
     private final String string3Ok = new String(); // OK!: final, immutable
@@ -116,7 +117,7 @@ class Component3Ok {
 @Scope(value = WebApplicationContext.SCOPE_SESSION, proxyMode = INTERFACES)
         // sessions need to be thread safe, too; they are shared among threads
 class Component4 {
-    static private Date date0Violate = new Date(); // violation: non-final, mutable, unguarded ; static or not doesn't make difference
+    private Date date0Violate = new Date(); // violation: non-final, mutable, unguarded ; static or not doesn't make difference
     private Date date1Violate = new Date(); // violation: non-final, mutable, unguarded
     private String string1Violate = new String(); // violation: non-final, unguarded
     private final String string3Ok = new String(); // OK!: final, immutable
@@ -126,7 +127,7 @@ class Component4 {
 @Scope(value = "prototype", proxyMode = INTERFACES)
         // prototypes are recreated every time and instance fields are therefore safe, they are not shared
 class Component5 {
-    static private Date date0Violate = new Date(); // static is shared among all prototype instances
+    //static private Date date0Violate = new Date(); // static is shared among all prototype instances; different rule
     private Date date1Ok = new Date(); //
     private String string1Ok = new String(); //
     private final String string3Ok = new String(); //
@@ -150,9 +151,9 @@ class ComponentMoValidation {
         this.restTemplate = restTemplate;
     }
 
-    public void doRestTemplateViolate() {
+    /*public void doRestTemplateViolate() {
         restTemplate = null;
-    }
+    }*/
 
     @Data
     private static class InnerDataOk { // static, so not accessible from outer instance, so OK
@@ -164,16 +165,6 @@ class ComponentMoValidation {
         private Long Id; // violation: non-final, unguarded
         private String string1Violate = new String(); // violation: non-final, unguarded
         private final String string3Ok = new String(); // OK!: final, immutable
-    }
-
-    private FeatureTogglesMessageSource featuresViolate; // autowired constructor, yet non-final --> can be lower severity since not a bug, only non-defensive
-
-    @Autowired
-    public ComponentMoValidation(FeatureTogglesMessageSource featureTogglesMessageSource) {
-        this.featuresViolate = featureTogglesMessageSource;
-    }
-
-    class FeatureTogglesMessageSource {
     }
 
     private static final int KILO = 1024;
@@ -211,7 +202,7 @@ class ComponentMoValidation {
 @Singleton
 @ConcurrencyManagement(value = ConcurrencyManagementType.BEAN)
 class SingletonConcurrencyBean {
-    static private Date date0Violate = new Date(); // violation: non-final, mutable, unguarded ; static or not doesn't make difference
+    private Date date0Violate = new Date(); // violation: non-final, mutable, unguarded ; static or not doesn't make difference
     private Date date1Violate = new Date(); // violation: non-final, mutable, unguarded
     private final Object Lock = new Object();
     @GuardedBy("LOCK")
@@ -264,20 +255,20 @@ class ToggleRequestOutSender {
                 databaseQueryMaxResultsOk = 5000;
             }
         }
-        private void setMax() {
+        /*private void setMax() {
             try {
                 databaseQueryMaxResultsViolation = 5000;
             } catch (RuntimeException e) {}
-        }
+        }*/
 }
 
 @Service("InitializeRCDCTaskletViolate")
 abstract class InitializeTaskletViolate implements Tasklet, InitializingBean {
     // Work directory for this instance only.
     protected String workDirectoryViolate;
-    public void setWorkDirectory(final String workDirectory) {
+    /*public void setWorkDirectory(final String workDirectory) {
         this.workDirectoryViolate = workDirectory;
-    }
+    }*/
 
 }
 
@@ -308,9 +299,11 @@ final class TaskExecutorPropertiesViolate {
 }
 
 @Component
-class NoFiles {
-    private static final File[] NO_FILES_OK = {};
-    private static final File[] FILES_Violate = {new File("/tmp/a")};
+class NoFilesNoArrays {
+    private final File[] NO_FILES_OK = {};
+    private final File[] FILES_Violate = {new File("/tmp/a")};
+    private final File file_violate = new File("dummy");
+    private final String[] names_violate = {"aap", "noot", "mies"};
 }
 
 @Component

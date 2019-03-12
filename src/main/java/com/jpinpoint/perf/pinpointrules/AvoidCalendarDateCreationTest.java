@@ -8,8 +8,8 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 
-public class DateTimeUsage {
-    
+public class AvoidCalendarDateCreationTest {
+
     public static final SimpleDateFormat SIMPLE_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
 
 	void myMethod() {
@@ -20,7 +20,7 @@ public class DateTimeUsage {
 		DateTime nowDT = DateTime.now();
 		DateTime nowDT1 = new DateTime(GregorianCalendar.getInstance());
 		DateTime nowDT2 = new DateTime(Calendar.getInstance());
-		
+
 		Calendar cal = Calendar.getInstance();
 		Date now2 = cal.getTime();
 		// check for NullPointerExceptions
