@@ -531,7 +531,7 @@ and
 //MethodDeclaration/Block/BlockStatement/Statement//StatementExpression[
 ./PrimaryExpression/PrimaryPrefix/Name[substring-after(@Image, '.') = 'append']
 and
-./PrimaryExpression/PrimarySuffix/Arguments/ArgumentList/Expression/AdditiveExpression[@Image='+']
+./PrimaryExpression/PrimarySuffix/Arguments/ArgumentList/Expression[1]/AdditiveExpression[@Image='+']
 ]
 	]]></value>
             </property>
