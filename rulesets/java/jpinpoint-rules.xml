@@ -198,6 +198,25 @@ Annotation//Name[@Image='RenderMapping'])]
         </properties>
     </rule>
 
+    <rule name="AvoidDecimalAndChoiceFormatAsField" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false"
+          dfa="false" language="java"
+          message="Avoid using DecimalFormat or ChoiceFormat as field since it is thread-unsafe."
+          typeResolution="true"
+          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-IDTF01">
+        <description>Problem: java.text.DecimalFormat and java.text.ChoiceFormat are thread-unsafe. The usual solution
+            is to create a new local one when needed in a method. (jpinpoint-rules)
+        </description>
+        <priority>2</priority>
+        <properties>
+            <property name="version" value="1.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+//FieldDeclaration/VariableDeclarator/VariableInitializer/Expression[typeIs('java.text.DecimalFormat') or typeIs('java.text.ChoiceFormat')]
+        ]]></value>
+            </property>
+        </properties>
+    </rule>
+
     <rule name="AvoidRecompilingPatterns" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="Pattern.compile is used in a method. Compiling a regex pattern can be expensive, make it a static final field." typeResolution="true"
           externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-IREU02">
         <description>A regular expression is compiled on every invocation. Problem: this can be expensive, depending on the length of the regular expression.&#13;
@@ -531,7 +550,7 @@ and
 //MethodDeclaration/Block/BlockStatement/Statement//StatementExpression[
 ./PrimaryExpression/PrimaryPrefix/Name[substring-after(@Image, '.') = 'append']
 and
-./PrimaryExpression/PrimarySuffix/Arguments/ArgumentList/Expression/AdditiveExpression[@Image='+']
+./PrimaryExpression/PrimarySuffix/Arguments/ArgumentList/Expression[1]/AdditiveExpression[@Image='+']
 ]
 	]]></value>
             </property>
