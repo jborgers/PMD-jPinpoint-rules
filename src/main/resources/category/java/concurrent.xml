@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ruleset name="jpinpoint-concurrent-rules" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 https://pmd.sourceforge.io/ruleset_2_0_0.xsd" xmlns="http://pmd.sourceforge.net/ruleset/2.0.0">
+    <description>jPinpoint rule set for performance aware Java coding, sponsored by Rabobank.</description>
+
+    <rule name="AvoidFutureGetWithoutTimeout"
+          message="Avoid future.get without timeout"
+          class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
+          typeResolution="true" externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance">
+        <description>
+            Problem: Stalls indefinitely in case of hanging threads and consumes a thread.&#13;
+            Solution: Provide a timeout value and handle the timeout.
+            (jpinpoint-rules)</description>
+        <properties>
+            <property name="version" value="1.0"/>
+            <property name="xpath">
+                <value>
+                    <![CDATA[
+   //MethodDeclaration//PrimaryPrefix/Name[ends-with(@Image, '.get')]
+    [(starts-with(@Image, concat(ancestor::MethodDeclaration//FormalParameter/Type/ReferenceType/ClassOrInterfaceType[
+    typeIs('java.util.concurrent.Future')
+    or typeIs('java.util.concurrent.CompletableFuture')
+    or typeIs('java.util.concurrent.Response')
+    or typeIs('java.util.concurrent.RunnableFuture')
+    or typeIs('java.util.concurrent.RunnableScheduledFuture')
+    or typeIs('java.util.concurrent.ScheduledFuture')
+    ]/../../../VariableDeclaratorId/@Image, '.'))
+    or
+    starts-with(@Image, concat(ancestor::MethodDeclaration//LocalVariableDeclaration/Type/ReferenceType/ClassOrInterfaceType[
+    typeIs('java.util.concurrent.Future')
+    or typeIs('java.util.concurrent.CompletableFuture')
+    or typeIs('java.util.concurrent.Response')
+    or typeIs('java.util.concurrent.RunnableFuture')
+    or typeIs('java.util.concurrent.RunnableScheduledFuture')
+    or typeIs('java.util.concurrent.ScheduledFuture')
+    ]/../../../VariableDeclarator/VariableDeclaratorId/@Image, '.')))
+    and not(../../PrimarySuffix/Arguments/ArgumentList)
+    and ancestor::CompilationUnit/ImportDeclaration/Name[@Image = 'java.util.concurrent.Future' or @Image = 'java.util.concurrent']
+    ]
+    ]]>
+                </value>
+            </property>
+        </properties>
+        <priority>2</priority>
+    </rule>
+
+    <rule name="AvoidUnguardedMutableFieldsInSharedObjects"
+          message="Avoid unguarded non-final or mutable fields in objects shared among threads."
+          class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
+          typeResolution="true" externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-TUTC07">
+        <description>
+            Problem: Multiple threads typically access fields of a singleton or may access fields in session scoped objects. If a field or its reference is mutable, access is thread-unsafe and may cause corruption or visibility problems. To make this thread-safe, that is, guard the field e.g. with synchronized methods, may cause contention.&#13;
+            Solution: Make the fields final and unmodifiable. If they really need to be mutable, make access thread-safe. Thread-safety can be achieved e.g. by proper synchronization and use the @GuardedBy annotation or use of volatile.&#13;
+            Notes&#13;
+            1. Instances of Date, StringBuilder, URL and File are examples of mutable objects and should be avoided (or else guarded) as fields of shared objects. In case mutable fields are final and not modified after initialization (read-only) they are thread safe, however any modification to it is thread-unsafe. Since field modification is easily coded, avoid this situation.
+            &#13;2. Instances of classes like ArrayList, HashMap and HashSet are also mutable and should be properly wrapped with e.g. Collections.unmodifiableList after initialization (see TUTC03), or accessed thread-safely with e.g. Collections.synchronizedList or thread-safe implementations like ConcurrentHashMap.
+            &#13;3. Autowiring/injection is thread safe, yet make sure no other thread-unsafe assignment is made to that field.
+            &#13;4. In case you are sure the Component is used in single threaded context only (e.g. a Tasklet), annotate the class with @NotThreadSafe to make this explicit.
+            &#13;5. Use package private and @VisibleForTesting for methods used for JUnit only.
+            (jpinpoint-rules)</description>
+        <properties>
+            <property name="version" value="1.0"/>
+            <property name="xpath">
+                <value>
+                    <![CDATA[
+//TypeDeclaration/Annotation//Name[(@Image='Component' or @Image='Service' or @Image='Controller' or @Image='Repository' or
+(@Image='Singleton' and ancestor::TypeDeclaration/Annotation/NormalAnnotation/MemberValuePairs//Name[@Image='ConcurrencyManagementType.BEAN']))
+and not (ancestor::TypeDeclaration/Annotation/NormalAnnotation/Name[@Image='Scope']/..//Literal[@Image='"request"' or @Image='"prototype"'])
+and not (ancestor::TypeDeclaration/Annotation/MarkerAnnotation/Name[@Image='NotThreadSafe'])
+and not ((ancestor::TypeDeclaration/Annotation/NormalAnnotation/Name[@Image='ConfigurationProperties'])
+             and not (ancestor::TypeDeclaration/Annotation/MarkerAnnotation/Name[@Image='Setter']))]
+/../../..//ClassOrInterfaceDeclaration[@Static='false']/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Final='false' and @Volatile='false'
+and not (../Annotation//Name[@Image='Autowired' or @Image='PersistenceContext' or @Image='EJB' or @Image='Resource' or @Image='Inject' or @Image='Value' or @Image='GuardedBy'])
+and not (../../ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='Autowired' or @Image='PostConstruct' or @Image='BeforeStep' or @Image='Value']
+/../../..//BlockStatement/Statement//StatementExpression/AssignmentOperator/../PrimaryExpression//@Image=
+./VariableDeclarator/VariableDeclaratorId/@Image)
+or ((Type/ReferenceType/ClassOrInterfaceType[(typeIs('java.util.Date') or typeIs('java.lang.StringBuilder') or typeIs('java.lang.StringBuffer') or typeIs('java.net.URL') or typeIs('java.io.File')) or
+(ancestor::FieldDeclaration/VariableDeclarator/VariableInitializer[ArrayInitializer and count(ArrayInitializer/VariableInitializer) > 0])])
+or (VariableDeclarator/VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/AllocationExpression/ClassOrInterfaceType[typeIs('java.lang.ArrayList') or typeIs('java.lang.HashMap') or typeIs('java.lang.HashSet')] )
+     and not (../Annotation//Name[@Image='GuardedBy']))
+]
+]]>
+                </value>
+            </property>
+        </properties>
+        <priority>2</priority>
+    </rule>
+
+</ruleset>
