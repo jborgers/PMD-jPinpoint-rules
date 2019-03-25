@@ -200,11 +200,11 @@ Annotation//Name[@Image='RenderMapping'])]
 
     <rule name="AvoidDecimalAndChoiceFormatAsField" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false"
           dfa="false" language="java"
-          message="DecimalFormat is used. Since it is thread-unsafe, it needs expensive recreation."
+          message="Avoid using DecimalFormat or ChoiceFormat as field since it is thread-unsafe."
           typeResolution="true"
           externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-IDTF01">
         <description>Problem: java.text.DecimalFormat and java.text.ChoiceFormat are thread-unsafe. The usual solution
-            is to create a new one when needed in a method. (jpinpoint-rules)
+            is to create a new local one when needed in a method. (jpinpoint-rules)
         </description>
         <priority>2</priority>
         <properties>
