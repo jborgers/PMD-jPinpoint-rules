@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>Avoid Apache Commons FileItem NonStreamingl</description>
+        <expected-problems>5</expected-problems>
+        <code><![CDATA[
+import org.apache.commons.fileupload.FileItem;
+
+/**
+ * Following test is to add detections for non streaming methods of the commons-fileupload methods
+ * get and getString. These should be avoided for big files!
+ *
+ * See also JPCC-19
+ */
+public class AvoidApacheCommonsFileItemNonStreamingTest {
+
+    private FileItem globalFileItem;
+
+    private String getAllowedMimeType(final FileItem fileItem1) {
+        return allowedDocumentExtensionsList.getAllowedMimeType(
+                fileItem1.get(), // avoid!!!
+                fileItem1.getName());
+    }
+
+    private String getString(final FileItem fileItem2) {
+        FileItem fileItem3 = fileItem2;
+        return fileItem2.getString() + fileItem3.getString(); // avoid!!!
+    }
+
+    private String getString(final HarmlessClass harmless) {
+        globalFileItem.getString(); // avoid!!!
+        return harmless.getString(); // harmless
+    }
+
+    private byte [] get(final HarmlessClass harmless) {
+        globalFileItem.get(); // avoid!!!
+        return harmless.get(); // harmless
+    }
+
+    private class AllowedDocumentExtensionsList {
+        public String getAllowedMimeType(byte [] byteArray, String fileItemName) {
+            return "pdf";
+        }
+    }
+
+    private AllowedDocumentExtensionsList allowedDocumentExtensionsList = new AllowedDocumentExtensionsList();
+
+    private class HarmlessClass {
+
+        public byte [] get() {
+            return new byte[0];
+        }
+
+        public String getString() {
+            return "";
+        }
+    }
+
+}
+
+     ]]></code>
+    </test-code>
+</test-data>
