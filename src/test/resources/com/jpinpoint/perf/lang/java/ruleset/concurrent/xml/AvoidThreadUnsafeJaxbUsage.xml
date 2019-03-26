@@ -24,7 +24,7 @@ public class AvoidThreadUnsafeJaxbUsageTest {
 	private javax.xml.bind.Validator validator; // should violate
 	private javax.xml.validation.Validator validator2; // should violate
 	private javax.validation.Validator validator3; // should *not* violate
-	private Validator validator;  // should *not* violate
+	private Validator validator4;  // should *not* violate
 
 	// this one is OK to use
 	private EmailValidator eValidator; // OK

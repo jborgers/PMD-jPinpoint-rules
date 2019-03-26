@@ -41,4 +41,57 @@ ancestor::MethodDeclaration//BlockStatement//PrimaryPrefix/Name[ends-with(@Image
         <priority>2</priority>
     </rule>
 
+    <rule name="AvoidHugeQueryFetchSize"
+          message="Avoid a huge query fetch size, it consumes much memory."
+          class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
+          typeResolution="true" externalInfoUrl="http://www.jpinpoint.com/doc/Java+Data+Access+Performance#JavaDataAccessPerformance-IDA-TRM03">
+        <description>
+            Problem: if huge numbers of result rows are fetched these are all stored in memory and this may introduce long gc times and out of memory risk.&#13;
+            Solution: Set fetch size to 100 maximally. Only set it higher than 100 yet still max 500, if you are sure there is only little data returned per row, like 3 rather short columns.
+            (jpinpoint-rules)</description>
+        <properties>
+            <property name="version" value="1.0"/>
+            <property name="xpath">
+                <value>
+                    <![CDATA[
+//MethodDeclaration//PrimaryExpression[PrimaryPrefix/Name[ends-with(@Image, '.setFetchSize')]
+[ancestor::PrimaryExpression/PrimarySuffix/Arguments/ArgumentList/Expression/PrimaryExpression/PrimaryPrefix/Literal[@Image > 500]]]
+|
+//MethodDeclaration//PrimaryExpression[PrimaryPrefix/Name[ends-with(@Image, '.setFetchSize')]
+[ancestor::PrimaryExpression/PrimarySuffix/Arguments/ArgumentList/Expression/PrimaryExpression/PrimaryPrefix/Name[@Image =
+ancestor::ClassOrInterfaceBody//VariableDeclarator/VariableDeclaratorId/@Image
+[ancestor::VariableDeclarator/VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/Literal[@Image > 500]]]]]
+]]>
+                </value>
+            </property>
+        </properties>
+        <priority>2</priority>
+    </rule>
+
+    <rule name="AvoidMultipleRoundtripsForQuery"
+          message="Avoid multiple roundtrips for the same query"
+          class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
+          typeResolution="true" externalInfoUrl="http://www.jpinpoint.com/doc/Java+Data+Access+Performance#JavaDataAccessPerformance-IDA-TRR05">
+        <description>
+            Problem: Time is taken by the unnecessary roundtrip(s). Unnecessary work is performed.&#13;
+            Solution: Execute the query only once.
+            (jpinpoint-rules)</description>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value>
+                    <![CDATA[
+//MethodDeclaration/Block//PrimaryExpression/PrimaryPrefix/Name[ends-with(@Image, '.getSingleResult')]
+[ancestor::MethodDeclaration[count(.//VariableInitializer/Expression/PrimaryExpression/PrimarySuffix[@Image='createQuery']) = 1
+and
+count(.//PrimaryExpression/PrimaryPrefix/Name[ends-with(@Image, '.getResultList')]) +
+count(.//PrimaryExpression/PrimaryPrefix/Name[ends-with(@Image, '.getSingleResult')])
+> 1]]
+]]>
+                </value>
+            </property>
+        </properties>
+        <priority>2</priority>
+    </rule>
+
 </ruleset>
