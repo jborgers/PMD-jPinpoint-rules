@@ -1,5 +1,12 @@
-package com.jpinpoint.perf.pinpointrules.concurrent;
-
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>Avoid mutable static fields</description>
+        <expected-problems>21</expected-problems>
+        <code><![CDATA[
 import net.jcip.annotations.GuardedBy;
 import net.jcip.annotations.NotThreadSafe;
 import org.springframework.context.annotation.Scope;
@@ -68,3 +75,6 @@ class NoFilesNoArrays_2 {
     private static final File file_violate = new File("dummy");
     private static final String[] names_violate = {"aap", "noot", "mies"};
 }
+        ]]></code>
+    </test-code>
+</test-data>

@@ -1,5 +1,12 @@
-package com.jpinpoint.perf.pinpointrules.sql;
-
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>Avoid huge query setFetchSize</description>
+        <expected-problems>8</expected-problems>
+        <code><![CDATA[
 import org.apache.openjpa.persistence.OpenJPAPersistence;
 import org.apache.openjpa.persistence.OpenJPAQuery;
 import org.apache.openjpa.persistence.jdbc.JDBCFetchPlan;
@@ -98,3 +105,6 @@ public class AvoidHugeFetchSize {
 
     }
 }
+     ]]></code>
+    </test-code>
+</test-data>

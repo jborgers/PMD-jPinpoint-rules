@@ -1,3 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>Make auto-wired constructed fields final</description>
+        <expected-problems>1</expected-problems>
+        <code><![CDATA[
 package com.jpinpoint.perf.pinpointrules.concurrent;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,5 +25,6 @@ public class MakeAutoWiredConstructedFieldFinalTest {
 
 class FeatureTogglesMessageSource {
 }
-
-
+     ]]></code>
+    </test-code>
+</test-data>

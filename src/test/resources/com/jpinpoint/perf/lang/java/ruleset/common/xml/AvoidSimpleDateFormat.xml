@@ -4,9 +4,19 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
     <test-code>
-        <description></description>
-        <expected-problems>3</expected-problems>
+        <description>Avoid the use of SimpleDateFormat</description>
+        <expected-problems>1</expected-problems>
         <code><![CDATA[
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+public class AvoidSimpleDateFormatTest {
+
+    private String toKey(final Date rekenDatum) {
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+        return formatter.format(rekenDatum);
+    }
+}
      ]]></code>
     </test-code>
 </test-data>

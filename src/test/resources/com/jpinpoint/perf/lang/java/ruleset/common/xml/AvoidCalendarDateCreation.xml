@@ -5,7 +5,7 @@
         xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
     <test-code>
         <description>Avoid the use of GregorianCalendar since it is expensive to construct/create</description>
-        <expected-problems>99</expected-problems>
+        <expected-problems>9</expected-problems>
         <code><![CDATA[
 import org.joda.time.DateTime;
 

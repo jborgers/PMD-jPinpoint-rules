@@ -4,8 +4,8 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
     <test-code>
-        <description>Avoid Mutable Static Fields</description>
-        <expected-problems>6</expected-problems>
+        <description>Avoid unguarded assignment to non-final fields in shared objects</description>
+        <expected-problems>10</expected-problems>
         <code><![CDATA[
 import com.google.common.annotations.VisibleForTesting;
 import lombok.Data;
@@ -384,6 +384,7 @@ ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration[
 
 Thought: what about getter access? Also wrong. Yet, if not assigned-to, no problem? Maybe for non-primitives, non-atomics, how to check? return a List or HashMap? Known mutable field types?
 
-*/     ]]></code>
+*/
+        ]]></code>
     </test-code>
 </test-data>

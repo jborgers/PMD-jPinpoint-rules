@@ -4,8 +4,8 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
     <test-code>
-        <description></description>
-        <expected-problems>3</expected-problems>
+        <description>Avoid Constants in interface NEEDS WORK!!!</description>
+        <expected-problems>99</expected-problems>
         <code><![CDATA[
      ]]></code>
     </test-code>

@@ -1,5 +1,12 @@
-package com.jpinpoint.perf.pinpointrules.spring;
-
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>Avoid ModelMap as render parameter</description>
+        <expected-problems>4</expected-problems>
+        <code><![CDATA[
 import org.springframework.ui.ModelMap;
 import org.springframework.validation.Validator;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -36,7 +43,7 @@ public class AvoidModelMapAsRenderParameterTest {
 		modelMap.put("texts", messageSource);
 		return "/" + viewName;
 	}
-	
+
 	// ModelMap in session between action and render, and after that
 	// must flag [--> NOT, see JPCC-88?]
 	@ResourceMapping("subview-init")
@@ -48,7 +55,7 @@ public class AvoidModelMapAsRenderParameterTest {
 
 		return "/" + viewName;
 	}
-	
+
 	// ModelMap in session between action and render, and after that
 	// must flag
     @RenderMapping(params = "flow=view_unsigned")
@@ -59,7 +66,7 @@ public class AvoidModelMapAsRenderParameterTest {
     	//Object doodleForm = new Object();
     	return new ModelAndView("FIRST_SCREEN_VIEW", "FIRST_SCREEN_FORM", modelMap);
     }
-	
+
     // @ModelAttribute creates an implicit ModelMap in session
     // must flag
     @RenderMapping(params = "RENDER=SECOND_SCREEN_FIRST_TIME")
@@ -69,7 +76,7 @@ public class AvoidModelMapAsRenderParameterTest {
         final Object secondScreenForm = new Object();
     	return new ModelAndView("SECOND_SCREEN_VIEW", "SECOND_SCREEN_FORM", new Object[]{firstScreenForm, secondScreenForm});
     }
-    
+
 	// must NOT flag
 	public ModelAndView initialOverviewRender2(final RenderRequest request,
 			final String viewName) {
@@ -82,3 +89,6 @@ public class AvoidModelMapAsRenderParameterTest {
 	}
 
 }
+     ]]></code>
+    </test-code>
+</test-data>

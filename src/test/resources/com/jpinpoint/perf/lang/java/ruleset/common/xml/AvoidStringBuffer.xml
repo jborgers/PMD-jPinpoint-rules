@@ -4,9 +4,21 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
     <test-code>
-        <description></description>
-        <expected-problems>3</expected-problems>
+        <description>Avoid StringBuffer use for instance StringBuilder instead</description>
+        <expected-problems>2</expected-problems>
         <code><![CDATA[
+import javax.servlet.http.HttpServletRequest;
+import java.util.*;
+import java.util.logging.Level;
+
+public class AvoidStringBuffer {
+
+	private StringBuffer buffer = new StringBuffer(); // Avoid!!!
+
+    public void testUnConditionalStringOperations() {
+        StringBuffer sb = new StringBuffer(); // Avoid!!!
+    }
+}
      ]]></code>
     </test-code>
 </test-data>

@@ -5,7 +5,7 @@
         xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
     <test-code>
         <description>Avoid Apache Commons FileItem NonStreamingl</description>
-        <expected-problems>3</expected-problems>
+        <expected-problems>5</expected-problems>
         <code><![CDATA[
 import org.apache.commons.fileupload.FileItem;
 
