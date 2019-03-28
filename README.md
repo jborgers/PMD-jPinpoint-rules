@@ -123,7 +123,7 @@ You may want to copy rulesets-merger to your company specific rules directory an
     cd target
     java -jar rulesets-merger-1.0-SNAPSHOT.jar PMD-jPinpoint-rules rulesets/java jpinpoint-rules.xml 
 
- This will attempt to lookup the PMD-jPintpoint-rules project (next to your own project)
+ This will attempt to lookup the PMD-jPinpoint-rules project (next to your own project)
  and merge rulesets/java/jpinpoint-rules.xml together with your rule files (from ``src/main/resources/category/java/*.xml``)     
  The resulting file can be used in your IDE.
  
