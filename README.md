@@ -68,6 +68,33 @@ After installation and configuration you can start the designer from the command
 
     designer.bat
 
+## Rules and unit tests
+
+The project can be build using **maven**. The build will perform the **unit tests** which will unit-test 
+the rules. The next paragraph "Adding new rules" will describe in more detail where you can find the rule files.
+To run the unit tests run the following command from the project home directory of:
+
+    mvn clean test  
+
+## Adding new rules
+
+You can add new rules using the following steps below. The steps basically tell you to create 3 files. 
+As an example you can copy existing files and change the content according to your needs.
+
+- add the Test class in `src/test/java/com/.../perf/lang/java/ruleset/yourruleset/YourRule.java` 
+elements from the package structure are used to lookup the rules xml file you add next. 
+The relevant items based on the example given are the following: lang/**java**/ruleset/**yourruleset** 
+- rules go into xml files found in `src/main/resources/category/` in this case 
+src/main/resources/category/**java**/**yourruleset.xml**. Also add a rule with name `YourRule` 
+since that is what the framework expects.
+For new rule files you will also need to register it in the `categories.properties` file found in the same directory 
+(category/java/categories.properties) in this case add `category/java/yourruleset.xml`
+- add the unit test in an xml file in 
+`src/test/resources/com/.../perf/lang/java/ruleset/yourruleset/xml/YourRule.xml`. 
+Pay attention to the package structure which is also dictated by the first java test class!
+
+Depending on what you want to add you may also find it is sufficient to change one or more of the existing files.
+Or to add only a Test class and unit test xml file (steps 1 and 3).  
 
 ## Code Style Indentation
 
@@ -94,6 +121,11 @@ You may want to copy rulesets-merger to your company specific rules directory an
  It can be run with:
  
     cd target
-    java -jar rulesets-merger-1.0-SNAPSHOT.jar
-    
+    java -jar rulesets-merger-1.0-SNAPSHOT.jar PMD-jPinpoint-rules rulesets/java jpinpoint-rules.xml 
+
+ This will attempt to lookup the PMD-jPintpoint-rules project (next to your own project)
+ and merge rulesets/java/jpinpoint-rules.xml together with your rule files (from ``src/main/resources/category/java/*.xml``)     
  The resulting file can be used in your IDE.
+ 
+ When running the rulesets merger without arguments it will just merge the rules from 
+ ``src/main/resources/category/java/*.xml`` (as was used to create the jpinpoint-rules.xml file) 

@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ruleset name="jpinpoint-spring-rules" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 https://pmd.sourceforge.io/ruleset_2_0_0.xsd" xmlns="http://pmd.sourceforge.net/ruleset/2.0.0">
+    <description>jPinpoint rule set for performance aware Java coding, sponsored by Rabobank.</description>
+
+    <rule name="MakeAutoWiredConstructedFieldFinal"
+          message="Make autowired, constructed field final in objects shared among threads."
+          class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
+          typeResolution="true" externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-TUTC07">
+        <description>
+            Problem: Multiple threads typically access fields of a singleton or may access fields in session scoped objects. If a field or its reference is mutable, non-autowired access is thread-unsafe and may cause corruption or visibility problems. To make this thread-safe, that is, guard the field e.g. with synchronized methods, may cause contention. &#13;
+            Solution: Make the fields final and unmodifiable to defend against mutation. If they really need to be mutable (which is strange for autowired fields), make access thread-safe. Thread-safety can be achieved e.g. by proper synchronization and use the @GuardedBy annotation or use of volatile.&#13;
+            Notes&#13;
+            1. Autowiring/injection is thread safe, yet make sure no other thread-unsafe assignment is made to that field.&#13;
+            2. In case you are sure the Component is used in single threaded context only (e.g. a Tasklet), annotate the class with @NotThreadSafe to make this explicit. &#13;
+            3. Use package-private and @VisibleForTesting for methods (e.g. setters) used for JUnit only.
+            (jpinpoint-rules)</description>
+        <properties>
+            <property name="version" value="1.0"/>
+            <property name="xpath">
+                <value>
+                    <![CDATA[
+	//TypeDeclaration/Annotation//Name[(@Image='Component' or @Image='Service' or @Image='Controller' or @Image='Repository' or
+(@Image='Singleton' and ancestor::TypeDeclaration/Annotation/NormalAnnotation/MemberValuePairs//Name[@Image='ConcurrencyManagementType.BEAN']))
+and not (ancestor::TypeDeclaration/Annotation/NormalAnnotation/Name[@Image='Scope']/..//Literal[@Image='"request"' or @Image='"prototype"'])
+and not (ancestor::TypeDeclaration/Annotation/MarkerAnnotation/Name[@Image='NotThreadSafe'])
+and not ((ancestor::TypeDeclaration/Annotation/NormalAnnotation/Name[@Image='ConfigurationProperties'])
+             and not (ancestor::TypeDeclaration/Annotation/MarkerAnnotation/Name[@Image='Setter']))]
+/../../..//ClassOrInterfaceDeclaration[@Static='false']/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Final='false' and @Volatile='false'
+and not (../Annotation//Name[@Image='Autowired' or @Image='PersistenceContext' or @Image='EJB' or @Image='Resource' or @Image='Inject' or @Image='Value' or @Image='GuardedBy'])
+and  (../../ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='Autowired']
+/../../../ConstructorDeclaration//BlockStatement/Statement//StatementExpression/AssignmentOperator/../PrimaryExpression//@Image=
+./VariableDeclarator/VariableDeclaratorId/@Image)
+]
+]]>
+                </value>
+            </property>
+        </properties>
+        <priority>4</priority>
+    </rule>
+
+    <rule name="AvoidModelMapAsRenderParameter" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="A ModelMap or @ModelAttribute is used as parameter of a portlet render method and implicitely put in the session." typeResolution="true"
+          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-TMSU11">
+        <description>Problem: ModelMaps are rather large objects containing explicitly added data and administrative data from Spring. They are added to the Portlet session implicitly. They stay in the session for some time: during session activity and 30 minutes (HTTP timeout) after it, in case the user does not exit explicitly. They occupy heap space during that time, for every user.&#13;
+            Solution: Remove the ModelMap from the render method parameter list and create a new local ModelMap to use in the render request scope.
+            (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="version" value="1.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+//ClassOrInterfaceBodyDeclaration
+[MethodDeclaration[@Public='true'] and
+(MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter/Type/ReferenceType/ClassOrInterfaceType[typeIs('org.springframework.ui.ModelMap')] or
+MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter/Annotation/MarkerAnnotation/Name[@Image='ModelAttribute']) and
+(MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter/Type/ReferenceType/ClassOrInterfaceType[typeIs('javax.portlet.RenderRequest') or typeIs('javax.portlet.PortletRequest')] or
+Annotation//Name[@Image='RenderMapping'])]
+	]]></value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="MinimizeActionModelMapInSession" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="ModelMap in action method is not cleared. This may bloat the session." typeResolution="true"
+          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-TMSU12">
+        <description>A ModelMap is used in an action method typically for form validation and not cleared. Problem: the ModelMap is put in the session by Spring. This is typically a large object which may bloat the session.&#13;
+            Solution: clear the ModelMap right after the validation in the happy flow.
+            (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="version" value="1.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+//ClassOrInterfaceBodyDeclaration
+[MethodDeclaration[@Public='true'] and
+MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter/Type/ReferenceType/ClassOrInterfaceType[typeIs('org.springframework.ui.ModelMap')] and
+(MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter/Type/ReferenceType/ClassOrInterfaceType[typeIs('javax.portlet.ActionRequest')] or
+Annotation//Name[@Image='ActionMapping']) and
+count(.//PrimaryExpression/PrimaryPrefix/Name[ends-with(@Image,'.clear')])=0]
+	]]></value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="AvoidSpringApplicationContextRecreation"
+          message="Avoid re-creation of Spring application context"
+          class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
+          typeResolution="true" externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-EUOCS01">
+        <description>
+            Problem: When a XXXApplicationContext is created, all Spring beans are initialized, wired and component scanning may take place. Component scanning involves extensive class path scanning which is expensive.&#13;
+            Solution: Create the ApplicationContext only once in the application deployed/live time.
+            (jpinpoint-rules)</description>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value>
+                    <![CDATA[
+   //TypeDeclaration/ClassOrInterfaceDeclaration/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration
+/MethodDeclaration//PrimaryExpression/PrimaryPrefix/AllocationExpression/ClassOrInterfaceType[ends-with(@Image, 'ApplicationContext')
+and (
+//ImportDeclaration/Name[starts-with(@Image, 'org.springframework.context')]
+)]
+]]>
+                </value>
+            </property>
+        </properties>
+        <priority>2</priority>
+    </rule>
+
+    <rule name="AvoidImproperAnnotationCombinations"
+          language="java"
+          message="Don't combine these annotations"
+          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-Annotations"
+          class="net.sourceforge.pmd.lang.rule.XPathRule">
+        <description>
+            Improper combination of annotations. Problem: these annotations are not meant to be combined and may cause unexpected and unwanted behavior.&#13;
+            Solution: remove the inappropriate annotation. &#13;
+            Don't combine 2+ of [@Component, @Service, @Configuration, @Controller, @Repository, @Entity] (Spring/JPA)
+            Don't combine [@Data with @Value] and [@Data or @Value] with any of [@ToString, @EqualsHashCode, @Getter, @Setter, @RequiredArgsConstructor] (Lombok)
+            (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="xpath">
+                <value>
+                    <![CDATA[
+//TypeDeclaration[count(./Annotation/MarkerAnnotation/Name[@Image='Component' or @Image='Service' or @Image='Configuration' or @Image='Controller' or @Image='Repository' or @Image='Entity']) > 1]
+|
+//ClassOrInterfaceBodyDeclaration[count(./Annotation/MarkerAnnotation/Name[@Image='Component' or @Image='Service' or @Image='Configuration' or @Image='Controller' or @Image='Repository' or @Image='Entity']) > 1]
+|
+//TypeDeclaration[count(./Annotation/MarkerAnnotation/Name[@Image='Data' or @Image='Value']) > 1]
+|
+//ClassOrInterfaceBodyDeclaration[count(./Annotation/MarkerAnnotation/Name[@Image='Data' or @Image='Value']) > 1]
+|
+//TypeDeclaration[./Annotation/MarkerAnnotation/Name[@Image='Data' or @Image='Value'] and ./Annotation/MarkerAnnotation/Name[@Image='ToString' or @Image='EqualsAndHashCode' or @Image='Getter' or @Image='Setter' or @Image='RequiredArgsConstructor']]
+|
+//ClassOrInterfaceBodyDeclaration[./Annotation/MarkerAnnotation/Name[@Image='Data' or @Image='Value'] and ./Annotation/MarkerAnnotation/Name[@Image='ToString' or @Image='EqualsAndHashCode' or @Image='Getter' or @Image='Setter' or @Image='RequiredArgsConstructor']]
+                    ]]>
+                </value>
+            </property>
+        </properties>
+    </rule>
+
+</ruleset>

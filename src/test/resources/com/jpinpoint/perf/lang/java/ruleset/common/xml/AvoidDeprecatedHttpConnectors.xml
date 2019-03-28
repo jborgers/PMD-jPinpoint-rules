@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>Avoid the use of deprecated HttpConnectors</description>
+        <expected-problems>8</expected-problems>
+        <code><![CDATA[
+import org.apache.commons.httpclient.SimpleHttpConnectionManager;
+import org.apache.http.conn.ClientConnectionManager;
+import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
+
+/*
+deprecated: ClientConnectionManager, ThreadSafeClientConnManager and PoolingClientConnectionManager;
+
+Risk of session data mixup: SimpleHttpConnectionManager
+
+good: PoolingHttpClientConnectionManager
+
+found also deprecated: ClientConnectionManager, SingleClientConnManager, DefaultHttpClient, SystemDefaultHttpClient
+ */
+public class AvoidDeprecatedHttpConnectors {
+
+    private SimpleHttpConnectionManager simple = new SimpleHttpConnectionManager();
+    ClientConnectionManager mgr = new ThreadSafeClientConnManager();
+
+    private AvoidDeprecatedHttpConnectors() {
+        new SimpleHttpConnectionManager();
+    }
+
+}
+     ]]></code>
+    </test-code>
+</test-data>
