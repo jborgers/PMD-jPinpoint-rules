@@ -19,10 +19,10 @@ public class AvoidThreadUnsafeJaxbUsageTest {
 
 	// these are thread-unsafe objects, do not use in fields,
 	// rather recreated every time and referenced from local variables
-	private javax.xml.bind.Unmarshaller unmarshaller; // should violate
-	private Marshaller marshaller; // should violate
-	private javax.xml.bind.Validator validator; // should violate
-	private javax.xml.validation.Validator validator2; // should violate
+	private javax.xml.bind.Unmarshaller unmarshaller; // should violate 1
+	private Marshaller marshaller; // should violate 2
+	private javax.xml.bind.Validator validator; // should violate 3
+	private javax.xml.validation.Validator validator2; // should violate 4
 	private javax.validation.Validator validator3; // should *not* violate
 	private Validator validator4;  // should *not* violate
 
