@@ -213,6 +213,15 @@ public class AvoidImplicitlyRecompilingPatternsTest {
         String[] partsField = string.split(ERROR_MSG);
     }
 
+    // false positive from RMO
+    // @TODO
+    public final static String PAYLOADDATA = "PAYLOADDATA";
+    private String stringReplaceAllNonRegexOK() {
+        String result = "some xml data with [PAYLOADDATA]";
+        StringBuilder payloadData = new StringBuilder("some payload");
+        result = result.replaceAll(PAYLOADDATA, payloadData.toString());
+        return result;
+    }
 
 
     /* ignoring String.replace - strange to replace by Pattern.compile explicitely
