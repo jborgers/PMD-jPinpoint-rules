@@ -6,6 +6,7 @@
     <test-code>
         <description>Avoid thread unsafe usage of jaxb</description>
         <expected-problems>4</expected-problems>
+        <expected-linenumbers>13,14,15,16</expected-linenumbers>
         <code><![CDATA[
 import javax.validation.ConstraintViolation;
 import javax.validation.executable.ExecutableValidator;
