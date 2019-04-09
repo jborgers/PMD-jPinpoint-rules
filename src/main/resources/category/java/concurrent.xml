@@ -32,11 +32,55 @@
     or typeIs('java.util.concurrent.RunnableFuture')
     or typeIs('java.util.concurrent.RunnableScheduledFuture')
     or typeIs('java.util.concurrent.ScheduledFuture')
+    ]/../../../VariableDeclarator/VariableDeclaratorId/@Image, '.'))
+    or
+    starts-with(@Image, concat(ancestor::ClassOrInterfaceBody//FieldDeclaration/Type/ReferenceType/ClassOrInterfaceType[
+    typeIs('java.util.concurrent.Future')
+    or typeIs('java.util.concurrent.CompletableFuture')
+    or typeIs('java.util.concurrent.Response')
+    or typeIs('java.util.concurrent.RunnableFuture')
+    or typeIs('java.util.concurrent.RunnableScheduledFuture')
+    or typeIs('java.util.concurrent.ScheduledFuture')
     ]/../../../VariableDeclarator/VariableDeclaratorId/@Image, '.')))
     and not(../../PrimarySuffix/Arguments/ArgumentList)
     and ancestor::CompilationUnit/ImportDeclaration/Name[@Image = 'java.util.concurrent.Future' or @Image = 'java.util.concurrent']
     ]
     ]]>
+                </value>
+            </property>
+        </properties>
+        <priority>2</priority>
+    </rule>
+
+    <rule name="AvoidCompletionServiceTake"
+          message="Avoid completionService.take, use poll"
+          class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
+          typeResolution="true" externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance">
+        <description>
+            Problem: take() stalls indefinitely in case of hanging threads and consumes a thread.&#13;
+            Solution: use poll() with a timeout value and handle the timeout.
+            (jpinpoint-rules)</description>
+        <properties>
+            <property name="version" value="1.0"/>
+            <property name="xpath">
+                <value>
+                    <![CDATA[
+  //MethodDeclaration//PrimaryPrefix/Name[ends-with(@Image, '.take')]
+    [(starts-with(@Image, concat(ancestor::MethodDeclaration//FormalParameter/Type/ReferenceType/ClassOrInterfaceType[
+    typeIs('java.util.concurrent.CompletionService')
+    or typeIs('java.util.concurrent.ExecutorCompletionService')
+    ]/../../../VariableDeclaratorId/@Image, '.'))
+    or
+    starts-with(@Image, concat(ancestor::MethodDeclaration//LocalVariableDeclaration/Type/ReferenceType/ClassOrInterfaceType[
+     typeIs('java.util.concurrent.CompletionService')
+    or typeIs('java.util.concurrent.ExecutorCompletionService')
+    ]/../../../VariableDeclarator/VariableDeclaratorId/@Image, '.'))
+    or
+    starts-with(@Image, concat(ancestor::ClassOrInterfaceBody//FieldDeclaration/Type/ReferenceType/ClassOrInterfaceType[
+     typeIs('java.util.concurrent.CompletionService')
+    or typeIs('java.util.concurrent.ExecutorCompletionService')
+    ]/../../../VariableDeclarator/VariableDeclaratorId/@Image, '.')))
+]    ]]>
                 </value>
             </property>
         </properties>
