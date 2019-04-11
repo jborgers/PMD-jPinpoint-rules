@@ -113,6 +113,17 @@ class AComponent3Ok {
         this.url = url;
     } // no violation: request scope
 }
+
+@Component
+@Scope("request")
+        // Only request is safe
+class AComponent4Ok {
+    private String url; //
+    public void setUrlOk(final String url) {
+        this.url = url;
+    } // no violation: request scope
+}
+
 @Component
 class AnotherComponent {
     private String url;
