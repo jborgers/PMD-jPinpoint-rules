@@ -99,6 +99,12 @@ public class RulesetMerger {
                 System.exit(1);
             }
         }
+        if ((optionalExternalRulesFile != null) && (optionalExternalRulesFile.equals(resultFile))) {
+            System.out.println(String.format("INFO: skipping processing '%s' to prevent we get double entries in our output!", optionalExternalRulesFile.getName()));
+            optionalExternalRulesFile = null;
+            mergeWithRepositoryName = null;
+        }
+
 
         try {
             List<String> mergedFileLines = new ArrayList<String>();
