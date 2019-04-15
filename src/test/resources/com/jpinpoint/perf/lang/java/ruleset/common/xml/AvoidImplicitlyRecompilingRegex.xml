@@ -21,7 +21,7 @@ import java.util.regex.Pattern;
 public class AvoidImplicitlyRecompilingPatternsTest {
 
     private static final String PAT_STRING = "(?=\\p{Lu})";
-    private static final String PAT_STRING_SHORT = "/";
+    private static final String PAT_STRING_SHORT = "/$1";
     private static final Pattern PATTERN = Pattern.compile(PAT_STRING); // ok
     private static final Matcher MATCHER = PATTERN.matcher("input"); // ok
     private static final PathMatcher PATH_MATCHER = FileSystems.getDefault().getPathMatcher("*.java)");
@@ -47,8 +47,7 @@ public class AvoidImplicitlyRecompilingPatternsTest {
     void violatingReplaceAll3x(String action) {
         action.replaceAll("(?=\\p{Lu})", "-"); // should precompile and use separate pattern, for str len > 1
         action.replaceAll(PAT_STRING, "-"); // should precompile and use separate pattern
-        //@TODO
-        // action.replaceAll(PAT_STRING_SHORT, "-"); // regex short, OK
+        action.replaceAll(PAT_STRING_SHORT, "-"); // regex short, OK
         action.replaceAll(dynPatString, ";"); // field should be pattern
     }
 
@@ -220,16 +219,14 @@ public class AvoidImplicitlyRecompilingPatternsTest {
         String[] partsField = string.split(ERROR_MSG);
     }
 
-    // false positive from RMO
-    // @TODO
-    public final static String PAYLOADDATA = "PAYLOADDATA";
+    private final static String PAYLOADDATA = "PAYLOADDATA";
+
     private String stringReplaceAllNonRegexOK() {
         String result = "some xml data with [PAYLOADDATA]";
         StringBuilder payloadData = new StringBuilder("some payload");
         result = result.replaceAll(PAYLOADDATA, payloadData.toString());
         return result;
     }
-
 
     /* ignoring String.replace - strange to replace by Pattern.compile explicitely
     void violatingReplace(String action) {

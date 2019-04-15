@@ -229,12 +229,23 @@ ancestor::MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter/Va
             <property name="version" value="1.0"/>
             <property name="xpath">
                 <value><![CDATA[
-	//MethodDeclaration//PrimaryPrefix/Name[ends-with(@Image, '.replaceAll') or ends-with(@Image, '.replaceFirst') or ends-with(@Image, 'Pattern.matches')]/../../PrimarySuffix/Arguments[@ArgumentCount=2]//Expression[1]//PrimaryPrefix[
-Literal[string-length(@Image) > 5] or Name
+//MethodDeclaration//PrimaryPrefix/Name[ends-with(@Image, '.replaceAll') or ends-with(@Image, '.replaceFirst') or ends-with(@Image, 'Pattern.matches')]/../../PrimarySuffix/Arguments[@ArgumentCount=2]//Expression[1]//PrimaryPrefix[
+Literal[string-length(@Image) > 5 and
+(contains(@Image, '.') or contains(@Image, '$') or contains(@Image, '|') or contains(@Image, '(') or contains(@Image, ')') or contains(@Image, '[')
+or contains(@Image, ']') or contains(@Image, '{') or contains(@Image, '}') or contains(@Image, '^') or contains(@Image, '?') or contains(@Image, '*')
+or contains(@Image, '+') or contains(@Image, '\'))] or Name
 and not(../PrimarySuffix)
 and not (
-Name/@Image=
-ancestor::MethodDeclaration//VariableDeclaratorId/@Image)] |
+Name/@Image=ancestor::MethodDeclaration//VariableDeclaratorId/@Image)
+and not (
+Name[@Image=ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration/VariableDeclarator[
+VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/Literal[string-length(@Image) < 6 or not
+(contains(@Image, '.') or contains(@Image, '$') or contains(@Image, '|') or contains(@Image, '(') or contains(@Image, ')') or contains(@Image, '[')
+or contains(@Image, ']') or contains(@Image, '{') or contains(@Image, '}') or contains(@Image, '^') or contains(@Image, '?') or contains(@Image, '*')
+or contains(@Image, '+') or contains(@Image, '\'))]
+]/VariableDeclaratorId/@Image])
+]
+|
 //MethodDeclaration//PrimaryPrefix/Name[ends-with(@Image, '.split') or ends-with(@Image, 'getPathMatcher')]/../../PrimarySuffix/Arguments[@ArgumentCount=1]//Expression[1]//PrimaryPrefix[
 Literal[string-length(@Image) > 5 and
 (contains(@Image, '.') or contains(@Image, '$') or contains(@Image, '|') or contains(@Image, '(') or contains(@Image, ')') or contains(@Image, '[')
