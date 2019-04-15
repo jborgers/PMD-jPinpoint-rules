@@ -127,5 +127,7 @@ You may want to copy rulesets-merger to your company specific rules directory an
  and merge rulesets/java/jpinpoint-rules.xml together with your rule files (from ``src/main/resources/category/java/*.xml``)     
  The resulting file can be used in your IDE.
  
- When running the rulesets merger without arguments it will just merge the rules from 
- ``src/main/resources/category/java/*.xml`` (as was used to create the jpinpoint-rules.xml file) 
+ When running the rulesets merger **without arguments** it will just merge the rules from 
+ ``src/main/resources/category/java/*.xml`` (as was used to create the jpinpoint-rules.xml file)
+ Further note that the rulesets merger will check and prevent merging with the output file file since that would result
+ in duplicate rule entries!

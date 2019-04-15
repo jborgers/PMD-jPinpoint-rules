@@ -231,12 +231,23 @@ ancestor::MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter/Va
             <property name="version" value="1.0"/>
             <property name="xpath">
                 <value><![CDATA[
-	//MethodDeclaration//PrimaryPrefix/Name[ends-with(@Image, '.replaceAll') or ends-with(@Image, '.replaceFirst') or ends-with(@Image, 'Pattern.matches')]/../../PrimarySuffix/Arguments[@ArgumentCount=2]//Expression[1]//PrimaryPrefix[
-Literal[string-length(@Image) > 5] or Name
+//MethodDeclaration//PrimaryPrefix/Name[ends-with(@Image, '.replaceAll') or ends-with(@Image, '.replaceFirst') or ends-with(@Image, 'Pattern.matches')]/../../PrimarySuffix/Arguments[@ArgumentCount=2]//Expression[1]//PrimaryPrefix[
+Literal[string-length(@Image) > 5 and
+(contains(@Image, '.') or contains(@Image, '$') or contains(@Image, '|') or contains(@Image, '(') or contains(@Image, ')') or contains(@Image, '[')
+or contains(@Image, ']') or contains(@Image, '{') or contains(@Image, '}') or contains(@Image, '^') or contains(@Image, '?') or contains(@Image, '*')
+or contains(@Image, '+') or contains(@Image, '\'))] or Name
 and not(../PrimarySuffix)
 and not (
-Name/@Image=
-ancestor::MethodDeclaration//VariableDeclaratorId/@Image)] |
+Name/@Image=ancestor::MethodDeclaration//VariableDeclaratorId/@Image)
+and not (
+Name[@Image=ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration/VariableDeclarator[
+VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/Literal[string-length(@Image) < 6 or not
+(contains(@Image, '.') or contains(@Image, '$') or contains(@Image, '|') or contains(@Image, '(') or contains(@Image, ')') or contains(@Image, '[')
+or contains(@Image, ']') or contains(@Image, '{') or contains(@Image, '}') or contains(@Image, '^') or contains(@Image, '?') or contains(@Image, '*')
+or contains(@Image, '+') or contains(@Image, '\'))]
+]/VariableDeclaratorId/@Image])
+]
+|
 //MethodDeclaration//PrimaryPrefix/Name[ends-with(@Image, '.split') or ends-with(@Image, 'getPathMatcher')]/../../PrimarySuffix/Arguments[@ArgumentCount=1]//Expression[1]//PrimaryPrefix[
 Literal[string-length(@Image) > 5 and
 (contains(@Image, '.') or contains(@Image, '$') or contains(@Image, '|') or contains(@Image, '(') or contains(@Image, ')') or contains(@Image, '[')
@@ -853,11 +864,55 @@ or preceding-sibling::SwitchLabel[@Default='true'])
     or typeIs('java.util.concurrent.RunnableFuture')
     or typeIs('java.util.concurrent.RunnableScheduledFuture')
     or typeIs('java.util.concurrent.ScheduledFuture')
+    ]/../../../VariableDeclarator/VariableDeclaratorId/@Image, '.'))
+    or
+    starts-with(@Image, concat(ancestor::ClassOrInterfaceBody//FieldDeclaration/Type/ReferenceType/ClassOrInterfaceType[
+    typeIs('java.util.concurrent.Future')
+    or typeIs('java.util.concurrent.CompletableFuture')
+    or typeIs('java.util.concurrent.Response')
+    or typeIs('java.util.concurrent.RunnableFuture')
+    or typeIs('java.util.concurrent.RunnableScheduledFuture')
+    or typeIs('java.util.concurrent.ScheduledFuture')
     ]/../../../VariableDeclarator/VariableDeclaratorId/@Image, '.')))
     and not(../../PrimarySuffix/Arguments/ArgumentList)
     and ancestor::CompilationUnit/ImportDeclaration/Name[@Image = 'java.util.concurrent.Future' or @Image = 'java.util.concurrent']
     ]
     ]]>
+                </value>
+            </property>
+        </properties>
+        <priority>2</priority>
+    </rule>
+
+    <rule name="AvoidCompletionServiceTake"
+          message="Avoid completionService.take, use poll"
+          class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
+          typeResolution="true" externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance">
+        <description>
+            Problem: take() stalls indefinitely in case of hanging threads and consumes a thread.&#13;
+            Solution: use poll() with a timeout value and handle the timeout.
+            (jpinpoint-rules)</description>
+        <properties>
+            <property name="version" value="1.0"/>
+            <property name="xpath">
+                <value>
+                    <![CDATA[
+  //MethodDeclaration//PrimaryPrefix/Name[ends-with(@Image, '.take')]
+    [(starts-with(@Image, concat(ancestor::MethodDeclaration//FormalParameter/Type/ReferenceType/ClassOrInterfaceType[
+    typeIs('java.util.concurrent.CompletionService')
+    or typeIs('java.util.concurrent.ExecutorCompletionService')
+    ]/../../../VariableDeclaratorId/@Image, '.'))
+    or
+    starts-with(@Image, concat(ancestor::MethodDeclaration//LocalVariableDeclaration/Type/ReferenceType/ClassOrInterfaceType[
+     typeIs('java.util.concurrent.CompletionService')
+    or typeIs('java.util.concurrent.ExecutorCompletionService')
+    ]/../../../VariableDeclarator/VariableDeclaratorId/@Image, '.'))
+    or
+    starts-with(@Image, concat(ancestor::ClassOrInterfaceBody//FieldDeclaration/Type/ReferenceType/ClassOrInterfaceType[
+     typeIs('java.util.concurrent.CompletionService')
+    or typeIs('java.util.concurrent.ExecutorCompletionService')
+    ]/../../../VariableDeclarator/VariableDeclaratorId/@Image, '.')))
+]    ]]>
                 </value>
             </property>
         </properties>
@@ -918,7 +973,7 @@ or Expression/PrimaryExpression/PrimaryPrefix/AllocationExpression/ClassOrInterf
                     <![CDATA[
 //TypeDeclaration/Annotation//Name[(@Image='Component' or @Image='Service' or @Image='Controller' or @Image='Repository' or
 (@Image='Singleton' and ancestor::TypeDeclaration/Annotation/NormalAnnotation/MemberValuePairs//Name[@Image='ConcurrencyManagementType.BEAN']))
-and not (ancestor::TypeDeclaration/Annotation/NormalAnnotation/Name[@Image='Scope']/..//Literal[@Image='"request"' or @Image='"prototype"'])
+and not (ancestor::TypeDeclaration/Annotation//Name[@Image='Scope']/..//Literal[@Image='"request"' or @Image='"prototype"'])
 and not (ancestor::TypeDeclaration/Annotation/MarkerAnnotation/Name[@Image='NotThreadSafe'])]
 /../../..//ClassOrInterfaceDeclaration[@Static='false']/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDeclaration/Block/BlockStatement/Statement//StatementExpression/AssignmentOperator/../PrimaryExpression//*[@Image=
 ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Final='false' and @Volatile='false' and not (../Annotation//Name[@Image='GuardedBy'])]/VariableDeclarator/VariableDeclaratorId/@Image
@@ -952,7 +1007,7 @@ or (ancestor::ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='VisibleFo
                     <![CDATA[
 //TypeDeclaration/Annotation//Name[(@Image='Component' or @Image='Service' or @Image='Controller' or @Image='Repository' or
 (@Image='Singleton' and ancestor::TypeDeclaration/Annotation/NormalAnnotation/MemberValuePairs//Name[@Image='ConcurrencyManagementType.BEAN']))
-and not (ancestor::TypeDeclaration/Annotation/NormalAnnotation/Name[@Image='Scope']/..//Literal[@Image='"request"' or @Image='"prototype"'])
+and not (ancestor::TypeDeclaration/Annotation//Name[@Image='Scope']/..//Literal[@Image='"request"' or @Image='"prototype"'])
 and not (ancestor::TypeDeclaration/Annotation/MarkerAnnotation/Name[@Image='NotThreadSafe'])
 and not ((ancestor::TypeDeclaration/Annotation/NormalAnnotation/Name[@Image='ConfigurationProperties'])
              and not (ancestor::TypeDeclaration/Annotation/MarkerAnnotation/Name[@Image='Setter']))]
