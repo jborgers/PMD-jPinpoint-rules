@@ -138,4 +138,48 @@ and (
         </properties>
     </rule>
 
+    <rule name="AvoidSpringMVCMemoryLeaks" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
+          message="Spring Controller returns an additive expression or a ModelAndView object which may cause a MemoryLeak" typeResolution="true"
+          externalInfoUrl="https://confluence.dev.rabobank.nl/display/PCC/Java+Code+Performance">
+        <description>Avoid to return an additive expression for a Spring Controller because it may cause a MemoryLeak.
+            Each new value returned will create a new entry in the View Cache.
+            Also avoid to return a ModelAndView object created using non-static and non-final methods because it may
+            cause a MemoryLeak.
+            Solution: Although multiple solutions exist you can make use of model attributes icw a redirectUrl like
+            redirect:/redirectUrl?someAttribute={someAttribute}.</description>
+        <priority>2</priority>
+        <properties>
+            <property name="version" value="1.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+(
+    //Statement/ReturnStatement
+    [Expression/AdditiveExpression]
+    [ancestor::ClassOrInterfaceBodyDeclaration/Annotation/NormalAnnotation/Name[starts-with(@Image,'RequestMapping')]]
+    [ancestor::CompilationUnit/ImportDeclaration/Name[starts-with(@Image,'org.springframework')]]
+) | (
+    //Block//PrimaryExpression
+    [
+        PrimaryPrefix/Name[ends-with(@Image,'.setViewName')]
+        or (PrimaryPrefix/AllocationExpression/ClassOrInterfaceType[typeIs('org.springframework.web.servlet.ModelAndView')])
+    ]
+    [
+        PrimarySuffix/Arguments/ArgumentList//PrimaryPrefix/Name[
+            (@Image = ancestor::MethodDeclaration//VariableDeclaratorId/@Image)
+            or (@Image = ancestor::ClassOrInterfaceBody//FieldDeclaration[@Final='false']//VariableDeclaratorId/@Image)]
+    |
+            PrimaryPrefix/AllocationExpression/Arguments/ArgumentList/Expression[1]/PrimaryExpression/PrimaryPrefix/Name[
+            (@Image = ancestor::MethodDeclaration//VariableDeclaratorId/@Image)
+            or (@Image = ancestor::ClassOrInterfaceBody//FieldDeclaration[@Final='false']//VariableDeclaratorId/@Image)]
+    |
+            PrimaryPrefix/AllocationExpression/Arguments/ArgumentList/Expression//Arguments//PrimaryExpression/PrimaryPrefix/Name[
+            (@Image = ancestor::MethodDeclaration//VariableDeclaratorId/@Image)
+            or (@Image = ancestor::ClassOrInterfaceBody//FieldDeclaration[@Final='false']//VariableDeclaratorId/@Image)]
+    ]
+)
+            ]]></value>
+            </property>
+        </properties>
+    </rule>
+
 </ruleset>
