@@ -974,6 +974,7 @@ or Expression/PrimaryExpression/PrimaryPrefix/AllocationExpression/ClassOrInterf
 //TypeDeclaration/Annotation//Name[(@Image='Component' or @Image='Service' or @Image='Controller' or @Image='Repository' or
 (@Image='Singleton' and ancestor::TypeDeclaration/Annotation/NormalAnnotation/MemberValuePairs//Name[@Image='ConcurrencyManagementType.BEAN']))
 and not (ancestor::TypeDeclaration/Annotation//Name[@Image='Scope']/..//Literal[@Image='"request"' or @Image='"prototype"'])
+and not (ancestor::TypeDeclaration/Annotation//Name[@Image='RequestScope'])
 and not (ancestor::TypeDeclaration/Annotation/MarkerAnnotation/Name[@Image='NotThreadSafe'])]
 /../../..//ClassOrInterfaceDeclaration[@Static='false']/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDeclaration/Block/BlockStatement/Statement//StatementExpression/AssignmentOperator/../PrimaryExpression//*[@Image=
 ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Final='false' and @Volatile='false' and not (../Annotation//Name[@Image='GuardedBy'])]/VariableDeclarator/VariableDeclaratorId/@Image
@@ -1008,6 +1009,7 @@ or (ancestor::ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='VisibleFo
 //TypeDeclaration/Annotation//Name[(@Image='Component' or @Image='Service' or @Image='Controller' or @Image='Repository' or
 (@Image='Singleton' and ancestor::TypeDeclaration/Annotation/NormalAnnotation/MemberValuePairs//Name[@Image='ConcurrencyManagementType.BEAN']))
 and not (ancestor::TypeDeclaration/Annotation//Name[@Image='Scope']/..//Literal[@Image='"request"' or @Image='"prototype"'])
+and not (ancestor::TypeDeclaration/Annotation//Name[@Image='RequestScope'])
 and not (ancestor::TypeDeclaration/Annotation/MarkerAnnotation/Name[@Image='NotThreadSafe'])
 and not ((ancestor::TypeDeclaration/Annotation/NormalAnnotation/Name[@Image='ConfigurationProperties'])
              and not (ancestor::TypeDeclaration/Annotation/MarkerAnnotation/Name[@Image='Setter']))]
@@ -1183,6 +1185,50 @@ and (
 //ClassOrInterfaceBodyDeclaration[./Annotation/MarkerAnnotation/Name[@Image='Data' or @Image='Value'] and ./Annotation/MarkerAnnotation/Name[@Image='ToString' or @Image='EqualsAndHashCode' or @Image='Getter' or @Image='Setter' or @Image='RequiredArgsConstructor']]
                     ]]>
                 </value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="AvoidSpringMVCMemoryLeaks" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
+          message="Spring Controller returns an additive expression or a ModelAndView object which may cause a MemoryLeak" typeResolution="true"
+          externalInfoUrl="https://confluence.dev.rabobank.nl/display/PCC/Java+Code+Performance">
+        <description>Avoid to return an additive expression for a Spring Controller because it may cause a MemoryLeak.
+            Each new value returned will create a new entry in the View Cache.
+            Also avoid to return a ModelAndView object created using non-static and non-final methods because it may
+            cause a MemoryLeak.
+            Solution: Although multiple solutions exist you can make use of model attributes icw a redirectUrl like
+            redirect:/redirectUrl?someAttribute={someAttribute}.</description>
+        <priority>2</priority>
+        <properties>
+            <property name="version" value="1.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+(
+    //Statement/ReturnStatement
+    [Expression/AdditiveExpression]
+    [ancestor::ClassOrInterfaceBodyDeclaration/Annotation/NormalAnnotation/Name[starts-with(@Image,'RequestMapping')]]
+    [ancestor::CompilationUnit/ImportDeclaration/Name[starts-with(@Image,'org.springframework')]]
+) | (
+    //Block//PrimaryExpression
+    [
+        PrimaryPrefix/Name[ends-with(@Image,'.setViewName')]
+        or (PrimaryPrefix/AllocationExpression/ClassOrInterfaceType[typeIs('org.springframework.web.servlet.ModelAndView')])
+    ]
+    [
+        PrimarySuffix/Arguments/ArgumentList//PrimaryPrefix/Name[
+            (@Image = ancestor::MethodDeclaration//VariableDeclaratorId/@Image)
+            or (@Image = ancestor::ClassOrInterfaceBody//FieldDeclaration[@Final='false']//VariableDeclaratorId/@Image)]
+    |
+            PrimaryPrefix/AllocationExpression/Arguments/ArgumentList/Expression[1]/PrimaryExpression/PrimaryPrefix/Name[
+            (@Image = ancestor::MethodDeclaration//VariableDeclaratorId/@Image)
+            or (@Image = ancestor::ClassOrInterfaceBody//FieldDeclaration[@Final='false']//VariableDeclaratorId/@Image)]
+    |
+            PrimaryPrefix/AllocationExpression/Arguments/ArgumentList/Expression//Arguments//PrimaryExpression/PrimaryPrefix/Name[
+            (@Image = ancestor::MethodDeclaration//VariableDeclaratorId/@Image)
+            or (@Image = ancestor::ClassOrInterfaceBody//FieldDeclaration[@Final='false']//VariableDeclaratorId/@Image)]
+    ]
+)
+            ]]></value>
             </property>
         </properties>
     </rule>

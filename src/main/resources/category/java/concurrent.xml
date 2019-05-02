@@ -142,6 +142,7 @@ or Expression/PrimaryExpression/PrimaryPrefix/AllocationExpression/ClassOrInterf
 //TypeDeclaration/Annotation//Name[(@Image='Component' or @Image='Service' or @Image='Controller' or @Image='Repository' or
 (@Image='Singleton' and ancestor::TypeDeclaration/Annotation/NormalAnnotation/MemberValuePairs//Name[@Image='ConcurrencyManagementType.BEAN']))
 and not (ancestor::TypeDeclaration/Annotation//Name[@Image='Scope']/..//Literal[@Image='"request"' or @Image='"prototype"'])
+and not (ancestor::TypeDeclaration/Annotation//Name[@Image='RequestScope'])
 and not (ancestor::TypeDeclaration/Annotation/MarkerAnnotation/Name[@Image='NotThreadSafe'])]
 /../../..//ClassOrInterfaceDeclaration[@Static='false']/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDeclaration/Block/BlockStatement/Statement//StatementExpression/AssignmentOperator/../PrimaryExpression//*[@Image=
 ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Final='false' and @Volatile='false' and not (../Annotation//Name[@Image='GuardedBy'])]/VariableDeclarator/VariableDeclaratorId/@Image
@@ -176,6 +177,7 @@ or (ancestor::ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='VisibleFo
 //TypeDeclaration/Annotation//Name[(@Image='Component' or @Image='Service' or @Image='Controller' or @Image='Repository' or
 (@Image='Singleton' and ancestor::TypeDeclaration/Annotation/NormalAnnotation/MemberValuePairs//Name[@Image='ConcurrencyManagementType.BEAN']))
 and not (ancestor::TypeDeclaration/Annotation//Name[@Image='Scope']/..//Literal[@Image='"request"' or @Image='"prototype"'])
+and not (ancestor::TypeDeclaration/Annotation//Name[@Image='RequestScope'])
 and not (ancestor::TypeDeclaration/Annotation/MarkerAnnotation/Name[@Image='NotThreadSafe'])
 and not ((ancestor::TypeDeclaration/Annotation/NormalAnnotation/Name[@Image='ConfigurationProperties'])
              and not (ancestor::TypeDeclaration/Annotation/MarkerAnnotation/Name[@Image='Setter']))]

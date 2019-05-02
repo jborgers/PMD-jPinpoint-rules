@@ -105,20 +105,33 @@ Or to add only a Test class and unit test xml file (steps 1 and 3).
 - `src/main/java/pinpointrules` contains the Java code containing pitfalls for testing the rules. 
 - `rulesets-merger` contains the Java code for a ruleset merger tool.  
 
-## Merging with company specific rules 
+## Merging rules
 
-Company specific rules are useful for instance for checking the right use of company specific or company-bought frameworks and libraries. 
-Or for rules which are candidates for inclusion into jpinpoint rules, yet need to be validated first.
-
-- rulesets-merger/src contains RulesetMerger.java for merging jpinpoint-rules with company specific rules. 
-You may want to copy rulesets-merger to your company specific rules directory and adjust a few constants at the top to make it work for your company. 
+- rulesets-merger/src contains RulesetMerger.java for merging jpinpoint-rules.
 
  The merger tool can be built with:
 
     cd rulesets-merger
     mvn clean install
+
+### Merging from different categories
+
+ If the merger tool is run as follows:
+
+    cd target
+    java -jar rulesets-merger-1.0-SNAPSHOT.jar
+
+ It will just merge the rules from ``src/main/resources/category/java/*.xml`` to create the jpinpoint-rules.xml file which can be used in your IDE.
+
+### Merging with company specific rules
+
+Company specific rules are useful for instance for checking the right use of company specific or company-bought frameworks and libraries. 
+Or for rules which are candidates for inclusion into jpinpoint rules, yet need to be validated first.
+
+- rulesets-merger/src contains RulesetMerger.java for merging jpinpoint-rules with company specific rules. 
+You may want to copy rulesets-merger to your company specific rules directory and adjust a few constants at the top to make it work for your company.
     
- It can be run with:
+ After building, the merger tool can be run with:
  
     cd target
     java -jar rulesets-merger-1.0-SNAPSHOT.jar PMD-jPinpoint-rules rulesets/java jpinpoint-rules.xml 
@@ -127,5 +140,3 @@ You may want to copy rulesets-merger to your company specific rules directory an
  and merge rulesets/java/jpinpoint-rules.xml together with your rule files (from ``src/main/resources/category/java/*.xml``)     
  The resulting file can be used in your IDE.
  
- When running the rulesets merger without arguments it will just merge the rules from 
- ``src/main/resources/category/java/*.xml`` (as was used to create the jpinpoint-rules.xml file) 
