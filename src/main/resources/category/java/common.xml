@@ -795,34 +795,35 @@ or preceding-sibling::SwitchLabel[@Default='true'])
 
     <rule name="AvoidApacheCommonsFileItemNonStreaming"
           language="java"
-          message="FileItem.get or FileItem.getString should be avoided"
-          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-ImproperStreamingI/O"
-          class="net.sourceforge.pmd.lang.rule.XPathRule">
+          message="Avoid memory intensive FileItem.get and FileItem.getString"
+          class="net.sourceforge.pmd.lang.rule.XPathRule"
+          typeResolution="true"
+          externalInfoUrl="${pmd.website.baseurl}/pmd_rules_performance.html#AvoidApacheCommonsFileItemNonStreaming">
         <description>
             Problem: Use of FileItem.get and FileItem.getString could exhaust memory since they load the entire file into memory&#13;
             Solution: Use streaming methods and buffering.
-            (jpinpoint-rules)</description>
+        </description>
         <priority>2</priority>
         <properties>
+            <property name="version" value="1.0"/>
             <property name="xpath">
                 <value>
                     <![CDATA[
 //PrimaryPrefix/Name
-[ancestor::CompilationUnit/ImportDeclaration/Name[starts-with(@Image,'org.apache.commons.fileupload')]]
 [ends-with(@Image, '.get') or ends-with(@Image, '.getString')]
 [
 	starts-with(@Image, concat(
-		ancestor::MethodDeclaration/MethodDeclarator//Type/ReferenceType/ClassOrInterfaceType[typeIs('org.apache.commons.fileupload.FileItem')]/../../..//VariableDeclaratorId/@Image,
+		ancestor::MethodDeclaration//FormalParameter/Type/ReferenceType/ClassOrInterfaceType[typeIs('org.apache.commons.fileupload.FileItem')]/../../..//VariableDeclaratorId/@Image,
 		'.')
 	) or
 	starts-with(@Image, concat(
-		ancestor::MethodDeclaration/Block//Type/ReferenceType/ClassOrInterfaceType[typeIs('org.apache.commons.fileupload.FileItem')]/../../..//VariableDeclaratorId/@Image,
+		ancestor::MethodDeclaration//LocalVariableDeclaration/Type/ReferenceType/ClassOrInterfaceType[typeIs('org.apache.commons.fileupload.FileItem')]/../../..//VariableDeclaratorId/@Image,
 		'.')
 	) or
 	starts-with(@Image, concat(
 		ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration/Type/ReferenceType/ClassOrInterfaceType[typeIs('org.apache.commons.fileupload.FileItem')]/../../..//VariableDeclaratorId/@Image,
 		'.')
-	)
+)
 ]
 ]]>
                 </value>

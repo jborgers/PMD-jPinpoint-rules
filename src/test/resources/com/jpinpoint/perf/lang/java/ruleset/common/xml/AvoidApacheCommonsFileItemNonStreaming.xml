@@ -12,8 +12,7 @@ import org.apache.commons.fileupload.FileItem;
 /**
  * Following test is to add detections for non streaming methods of the commons-fileupload methods
  * get and getString. These should be avoided for big files!
- *
- * See also JPCC-19
+ * @TODO separate cases: get, getString, harmless; add testcase with fully qualified classname (no import)
  */
 public class AvoidApacheCommonsFileItemNonStreamingTest {
 
