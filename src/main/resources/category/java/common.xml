@@ -829,6 +829,19 @@ or preceding-sibling::SwitchLabel[@Default='true'])
                 </value>
             </property>
         </properties>
+        <example>
+            <![CDATA[
+public class FileStuff {
+   private String bad(FileItem fileItem) {
+        return fileItem.getString();
+   }
+
+   private InputStream good(FileItem fileItem) {
+        return fileItem.getInputStream();
+   }
+}
+            ]]>
+        </example>
     </rule>
 
 </ruleset>
