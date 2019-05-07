@@ -53,11 +53,15 @@ public class FileStuff {
         </example>
     </rule>
 
-    <rule name="AvoidCalendarDateCreation" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="A Calendar is used to create a Date or DateTime, this is expensive." typeResolution="true"
-          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-UE01">
+    <rule name="AvoidCalendarDateCreation"
+          language="java"
+          message="A Calendar is used to create a Date or DateTime, this is expensive."
+          class="net.sourceforge.pmd.lang.rule.XPathRule"
+          typeResolution="true"
+          externalInfoUrl="${pmd.website.baseurl}/pmd_rules_performance.html#AvoidCalendarDateCreation">
         <description>Problem: A Calendar is a heavyweight object and expensive to create. &#13;
-            Solution: Use 'new Date()', joda time '(Local)DateTime.now()' or Java 8 java.time.(Local/Zoned)DateTime.now().
-            (jpinpoint-rules)</description>
+            Solution: Use 'new Date()', Java 8+ java.time.[Local/Zoned]DateTime.now() or joda time '[Local]DateTime.now()'.
+        </description>
         <priority>2</priority>
         <properties>
             <property name="version" value="1.0"/>
@@ -70,36 +74,89 @@ public class FileStuff {
 BlockStatement/LocalVariableDeclaration/VariableDeclarator/VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/Name[ends-with(@Image,'.getTime') or ends-with(@Image,'.getTimeInMillis')]
 |
 //ClassOrInterfaceType[typeIs('org.joda.time.DateTime') or typeIs('org.joda.time.LocalDateTime')][../Arguments/ArgumentList/Expression/PrimaryExpression/PrimaryPrefix/Name[ends-with(@Image, 'Calendar.getInstance')]]
-	]]></value>
+	         ]]></value>
             </property>
         </properties>
+        <example>
+            <![CDATA[
+public class DateStuff {
+    private Date bad1() {
+        return Calendar.getInstance().getTime(); // now
+    }
+    private Date good1a() {
+        return new Date(); // now
+    }
+    private LocalDateTime good1b() {
+        return LocalDateTime.now();
+    }
+    private long bad2() {
+        return Calendar.getInstance().getTimeInMillis();
+    }
+    private long good2() {
+        return System.currentTimeMillis();
+    }
+
+}
+            ]]>
+        </example>
     </rule>
 
-    <rule name="AvoidConcatInAppend" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="Concatenation inside append. Use extra append." typeResolution="true"
-          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-ISU02">
+    <rule name="AvoidConcatInAppend"
+          language="java"
+          message="Concatenation inside append. Use extra append."
+          class="net.sourceforge.pmd.lang.rule.XPathRule"
+          typeResolution="true"
+          externalInfoUrl="${pmd.website.baseurl}/pmd_rules_performance.html#AvoidConcatInAppend">
         <description>Concatenation of Strings is used inside an StringBuilder.append argument. Problem: Each statement with one or more +-operators creates a hidden temporary StringBuilder, a char[] and a new String object, which all have to be garbage collected.&#13;
             Solution: Use an extra fluent append instead of concatenation.
-            (jpinpoint-rules)</description>
+            </description>
         <priority>2</priority>
         <properties>
             <property name="version" value="1.0"/>
             <property name="xpath">
                 <value><![CDATA[
-//MethodDeclaration/Block/BlockStatement/Statement//StatementExpression[
-./PrimaryExpression/PrimaryPrefix/Name[substring-after(@Image, '.') = 'append']
+//MethodDeclaration/Block/BlockStatement[
+(.//PrimaryExpression/PrimaryPrefix/Name[substring-after(@Image, '.') = 'append']
+or
+.//PrimaryExpression/PrimarySuffix/@Image = 'append')
 and
-./PrimaryExpression/PrimarySuffix/Arguments/ArgumentList/Expression[1]/AdditiveExpression[@Image='+']
-]
+.//PrimaryExpression/PrimarySuffix/Arguments/ArgumentList/Expression[1]/AdditiveExpression[@Image='+'
+and (count(PrimaryExpression/PrimaryPrefix/Name) > 0)
+and not(PrimaryExpression/PrimaryPrefix/Name/@Image=
+ancestor::ClassOrInterfaceBody//FieldDeclaration[@Final='true' and @Static='true']//VariableDeclaratorId/@Image
+)
+]]
 	]]></value>
             </property>
         </properties>
+        <example>
+            <![CDATA[
+public class StringStuff {
+   private String bad(String arg) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("arg='" + arg + "'");
+        return sb.toString();
+   }
+
+   private String good(String arg) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("arg=").append(arg).append("'");
+        return sb.toString();
+   }
+}
+            ]]>
+        </example>
     </rule>
 
-    <rule name="AvoidConcatInLoop" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="A String is concatenated in a loop. Use StringBuilder.append." typeResolution="true"
-          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-ISU02">
+    <rule name="AvoidConcatInLoop"
+          language="java"
+          message="A String is concatenated in a loop. Use StringBuilder.append."
+          class="net.sourceforge.pmd.lang.rule.XPathRule"
+          typeResolution="true"
+          externalInfoUrl="${pmd.website.baseurl}/pmd_rules_performance.html#AvoidConcatInLoop">
         <description>A String is built in a loop by concatenation. Problem: Each statement with one or more +-operators creates a hidden temporary StringBuilder, a char[] and a new String object, which all have to be garbage collected. &#13;
             Solution: Use the StringBuilder append method.
-            (jpinpoint-rules)</description>
+        </description>
         <priority>2</priority>
         <properties>
             <property name="version" value="1.0"/>
