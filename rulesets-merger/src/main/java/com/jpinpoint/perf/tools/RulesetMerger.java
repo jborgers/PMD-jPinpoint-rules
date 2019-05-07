@@ -5,6 +5,8 @@ import org.apache.commons.lang.StringUtils;
 import java.io.*;
 import java.nio.charset.Charset;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Merger tool for merging categories and company specific custom rules with the generic jpinpoint rules.
@@ -16,12 +18,13 @@ public class RulesetMerger {
     private static final String RESULT_RULES_NAME = "jpinpoint-rules";
     private static final String PATH_TO_SPEC_RULES = "src/main/resources/category/java/";
     private static final String COMPANY_DOC_ROOT = "http://www.jpinpoint.com/doc";
-    private static final boolean USE_COMPANY_SPEC_NAME_AND_DOC = true;
+    private static final boolean IS_ADD_TAG_TO_DESCRIPTION_AND_DOC = true;
 
     // constants unlikely to have to change
     private static final String MERGED_RULESETS_DIR = "rulesets/java";
     private static final String RESULT_START_LINE = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
     private static final String RESULT_END_LINE = "</ruleset>";
+    private static final String DESCRIPTION_END_TAG = "</description>";
     private static final String RESULT_RULE_SET_LINE = "<ruleset name=\"" + RESULT_RULES_NAME + "\" " +
             "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" " +
             "xsi:schemaLocation=\"http://pmd.sourceforge.net/ruleset/2.0.0 http://pmd.sourceforge.net/ruleset_2_0_0.xsd\" " +
@@ -149,8 +152,8 @@ public class RulesetMerger {
 
             mergedFileLines.add(RESULT_END_LINE);
 
-            if (USE_COMPANY_SPEC_NAME_AND_DOC) {
-                mergedFileLines = replaceNameAndDoc(mergedFileLines);
+            if (IS_ADD_TAG_TO_DESCRIPTION_AND_DOC) {
+                mergedFileLines = addTagToDescriptionAndDoc(mergedFileLines);
             }
 
             IOUtils.writeLines(mergedFileLines, LSEP, new FileOutputStream(resultFile), Charset.defaultCharset());
@@ -176,10 +179,32 @@ public class RulesetMerger {
         return repositoryBaseDirCandidate;
     }
 
-    private static List<String> replaceNameAndDoc(List<String> mergedFileLines) {
+    /**
+     * Tag rule descriptions with some clear reference such that it will look like the following:
+     * <pre>
+     *     - rule ...
+     *       - ...
+     *       - description
+     *           ...
+     *           (jpinpoint-rules)
+     * </pre>
+     * @param mergedFileLines to cleanup
+     * @return cleanedup lines
+     */
+    private static List<String> addTagToDescriptionAndDoc(List<String> mergedFileLines) {
+
+        String descriptionEndTagPattern = DESCRIPTION_END_TAG.replace('<','.').replace('>', '.');
+        Pattern taggedDescriptionEndTagPattern = Pattern.compile("\\(.*\\) *" + descriptionEndTagPattern);
+
         List<String> fileLinesWithReplaced = new ArrayList<String>(mergedFileLines.size());
+        String taggedDescriptionEndTag = String.format("(%s)%s", RESULT_RULES_NAME, DESCRIPTION_END_TAG);
         for(String line : mergedFileLines) {
-            line = line.replace("(jpinpoint-rules)", "(" + RESULT_RULES_NAME + ")");
+            Matcher mather = taggedDescriptionEndTagPattern.matcher(line);
+            if (!mather.find()) {
+                // not yet tag so add our tag
+                line = line.replace(DESCRIPTION_END_TAG, taggedDescriptionEndTag);
+            }
+            // @TODO replace externalInfoUrl="..."
             line = line.replace("http://www.jpinpoint.com/doc", COMPANY_DOC_ROOT);
             fileLinesWithReplaced.add(line);
         }
