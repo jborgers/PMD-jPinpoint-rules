@@ -1,13 +1,13 @@
 package com.jpinpoint.perf.tools;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 import java.io.*;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 /**
- * Merger tool for merging company specific custom rules with the generic jpinpoint rules.
+ * Merger tool for merging categories and company specific custom rules with the generic jpinpoint rules.
  */
 public class RulesetMerger {
 
@@ -75,12 +75,13 @@ public class RulesetMerger {
             System.out.println(String.format("ERROR: expected the rules to be present in '%s'", ourProjectRulesDir.getAbsolutePath()));
             System.exit(1);
         }
-        String [] ourRulesFiles = ourProjectRulesDir.list(new FilenameFilter() {
+        String[] ourRulesFiles = ourProjectRulesDir.list(new FilenameFilter() {
             @Override
             public boolean accept(File dir, String name) {
                 return name.endsWith(".xml");
             }
         });
+        Arrays.sort(ourRulesFiles);
         if (ourRulesFiles.length == 0) {
             System.out.println(String.format("ERROR: no rules files (*.xml) found in '%s'", ourProjectRulesDir.getAbsolutePath()));
             System.exit(1);
@@ -122,7 +123,7 @@ public class RulesetMerger {
                     System.out.println(String.format("INFO: processing '%s'", optionalExternalRulesFile.getName()));
                     List<String> file1Lines = IOUtils.readLines(is1, Charset.defaultCharset());
 
-                    List<List<String>> ruleLinesList1 = parseIntoRuleLinesList(file1Lines);
+                    List<List<String>> ruleLinesList1 = parseSortIntoRuleLinesList(file1Lines);
                     mergedFileLines.add(String.format(BEGIN_INCLUDED_FILE_COMMENT_TEMPLATE, optionalExternalRulesFile.getName()));
                     for (List<String> ruleLines : ruleLinesList1) {
                         mergedFileLines.addAll(ruleLines);
@@ -136,7 +137,7 @@ public class RulesetMerger {
                 try(InputStream eachRuleStream = new FileInputStream(new File(ourProjectRulesDir, eachFileName))) {
                     System.out.println(String.format("INFO: processing '%s'", eachFileName));
                     List<String> file2Lines = IOUtils.readLines(eachRuleStream, Charset.defaultCharset());
-                    List<List<String>> ruleLinesList2 = parseIntoRuleLinesList(file2Lines);
+                    List<List<String>> ruleLinesList2 = parseSortIntoRuleLinesList(file2Lines);
                     mergedFileLines.add(String.format(BEGIN_INCLUDED_FILE_COMMENT_TEMPLATE, eachFileName));
                     for (List<String> ruleLines : ruleLinesList2) {
                         mergedFileLines.addAll(ruleLines);
@@ -185,25 +186,27 @@ public class RulesetMerger {
         return fileLinesWithReplaced;
     }
 
-    private static List<List<String>> parseIntoRuleLinesList(List<String> fileLines) {
+    private static List<List<String>> parseSortIntoRuleLinesList(List<String> fileLines) {
+        Map<String, List> nameToLines = new TreeMap<>();
         boolean ruleStarted = false;
-        List currentRuleLines = new ArrayList();
-        List<List<String>> ruleLinesList = new ArrayList<>();
+        List currentRuleLines = Collections.emptyList();
+        String currentRuleName = "<none>";
         for(String line : fileLines) {
             if (line.contains("<rule name")) {
                 currentRuleLines = new ArrayList();
                 currentRuleLines.add(line);
+                currentRuleName = StringUtils.substringBetween(line, "\"");
                 ruleStarted = true;
             }
             else if (line.contains("</rule>")) {
                 currentRuleLines.add(line);
-                ruleLinesList.add(currentRuleLines);
+                nameToLines.put(currentRuleName, currentRuleLines);
                 ruleStarted = false;
             }
             else if (ruleStarted) {
                 currentRuleLines.add(line);
             }
         }
-        return ruleLinesList;
+        return new ArrayList(nameToLines.values());
     }
 }
