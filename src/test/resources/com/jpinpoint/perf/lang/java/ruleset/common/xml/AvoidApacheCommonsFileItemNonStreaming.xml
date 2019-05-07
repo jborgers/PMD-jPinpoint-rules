@@ -4,62 +4,135 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
     <test-code>
-        <description>Avoid Apache Commons FileItem NonStreamingl</description>
-        <expected-problems>5</expected-problems>
+        <description>Avoid Apache Commons FileItem get methods</description>
+        <expected-problems>3</expected-problems>
+        <expected-linenumbers>7,12,16</expected-linenumbers>
         <code><![CDATA[
 import org.apache.commons.fileupload.FileItem;
-
-/**
- * Following test is to add detections for non streaming methods of the commons-fileupload methods
- * get and getString. These should be avoided for big files!
- * @TODO separate cases: get, getString, harmless; add testcase with fully qualified classname (no import)
- */
-public class AvoidApacheCommonsFileItemNonStreamingTest {
+public class Foo {
 
     private FileItem globalFileItem;
 
-    private String getAllowedMimeType(final FileItem fileItem1) {
-        return allowedDocumentExtensionsList.getAllowedMimeType(
-                fileItem1.get(), // avoid!!!
-                fileItem1.getName());
+    private byte [] get(final FileItem fileItem) {
+        return fileItem.get(); // bad
     }
 
-    private String getString(final FileItem fileItem2) {
-        FileItem fileItem3 = fileItem2;
-        return fileItem2.getString() + fileItem3.getString(); // avoid!!!
+    private byte [] get(final FileItem fileItem) {
+        FileItem sameFileItem = fileItem;
+        return sameFileItem.get(); // bad
     }
 
+    private byte [] get() {
+        globalFileItem.get(); // bad
+    }
+}
+     ]]></code>
+    </test-code>
+    <test-code>
+        <description>Avoid Apache Commons FileItem get methods (fully qualified class reference)</description>
+        <expected-problems>3</expected-problems>
+        <expected-linenumbers>6,11,15</expected-linenumbers>
+        <code><![CDATA[
+public class Foo {
+
+    private org.apache.commons.fileupload.FileItem globalFileItem;
+
+    private byte [] get(final org.apache.commons.fileupload.FileItem fileItem) {
+        return fileItem.get(); // bad
+    }
+
+    private byte [] get(final org.apache.commons.fileupload.FileItem fileItem) {
+        org.apache.commons.fileupload.FileItem sameFileItem = fileItem;
+        return sameFileItem.get(); // bad
+    }
+
+    private byte [] get() {
+        globalFileItem.get(); // bad
+    }
+}
+     ]]></code>
+    </test-code>
+    <test-code>
+        <description>Avoid Apache Commons FileItem getString methods</description>
+        <expected-problems>4</expected-problems>
+        <expected-linenumbers>7,12,12,16</expected-linenumbers>
+        <code><![CDATA[
+import org.apache.commons.fileupload.FileItem;
+public class Foo {
+
+    private FileItem globalFileItem;
+
+    private String getString(final FileItem fileItem) {
+        return fileItem.getString(); // bad
+    }
+
+    private String getString(final FileItem fileItem) {
+        FileItem sameFileItem = fileItem;
+        return fileItem.getString() + sameFileItem.getString(); // bad (2x)
+    }
+
+    private String getString() {
+        globalFileItem.getString(); // bad
+    }
+}
+     ]]></code>
+    </test-code>
+    <test-code>
+        <description>Avoid Apache Commons FileItem getString methods (fully qualified class reference)</description>
+        <expected-problems>4</expected-problems>
+        <expected-linenumbers>6,11,11,15</expected-linenumbers>
+        <code><![CDATA[
+public class Foo {
+
+    private org.apache.commons.fileupload.FileItem globalFileItem;
+
+    private String getString(final org.apache.commons.fileupload.FileItem fileItem) {
+        return fileItem.getString(); // bad
+    }
+
+    private String getString(final org.apache.commons.fileupload.FileItem fileItem) {
+        org.apache.commons.fileupload.FileItem sameFileItem = fileItem;
+        return fileItem.getString() + sameFileItem.getString(); // bad (2x)
+    }
+
+    private String getString() {
+        globalFileItem.getString(); // bad
+    }
+}
+     ]]></code>
+    </test-code>
+    <test-code>
+        <description>Harmless get methods</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+public class Foo {
     private String getString(final HarmlessClass harmless) {
-        globalFileItem.getString(); // avoid!!!
-        return harmless.getString(); // harmless
-    }
-
-    private byte [] get(final HarmlessClass harmless) {
-        globalFileItem.get(); // avoid!!!
         return harmless.get(); // harmless
     }
 
-    private class AllowedDocumentExtensionsList {
-        public String getAllowedMimeType(byte [] byteArray, String fileItemName) {
-            return "pdf";
-        }
-    }
-
-    private AllowedDocumentExtensionsList allowedDocumentExtensionsList = new AllowedDocumentExtensionsList();
-
     private class HarmlessClass {
-
         public byte [] get() {
             return new byte[0];
         }
+    }
+}
+     ]]></code>
+    </test-code>
+    <test-code>
+        <description>Harmless getString methods</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+public class Foo {
+    private String getString(final HarmlessClass harmless) {
+        return harmless.getString(); // harmless
+    }
 
+    private class HarmlessClass {
         public String getString() {
             return "";
         }
     }
-
 }
-
      ]]></code>
     </test-code>
 </test-data>
