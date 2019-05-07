@@ -2,122 +2,55 @@
 <ruleset name="jpinpoint-common-rules" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 https://pmd.sourceforge.io/ruleset_2_0_0.xsd" xmlns="http://pmd.sourceforge.net/ruleset/2.0.0">
     <description>jPinpoint rule set for performance aware Java coding, sponsored by Rabobank.</description>
 
-    <rule name="AvoidStringBuffer" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="StringBuffer is used. It introduces locking overhead, use StringBuilder." typeResolution="true"
-          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-ISU01" >
-        <description>Problem: StringBuffer introduces locking overhead because it is thread safe. Its thread-safety is rarely needed.&#13;
-            Solution: Replace StringBuffer by StringBuilder.  (jpinpoint-rules)</description>
-        <priority>3</priority>
-        <properties>
-            <property name="version" value="1.0"/>
-            <property name="xpath">
-                <value><![CDATA[
-                    //VariableDeclarator[../Type/ReferenceType/ClassOrInterfaceType[typeIs('java.lang.StringBuffer')]]
-                    ]]></value>
-            </property>
-        </properties>
-    </rule>
-
-    <rule name="UnconditionalStringOperationOnLogArgument" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="String operation is executed regardless of log level and can be expensive" typeResolution="true"
-          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-IL03">
-        <description>Problem: A String operation like toString() or String.format is executed regardless of log level. This may include formatting, reflection and other wasteful processing.&#13;
-            Solution: Remove the operation and utilize SLF4J formatting with {}-placeholders, or log and format conditionally.  (jpinpoint-rules)</description>
+    <rule name="AvoidApacheCommonsFileItemNonStreaming"
+          language="java"
+          message="Avoid memory intensive FileItem.get and FileItem.getString"
+          class="net.sourceforge.pmd.lang.rule.XPathRule"
+          typeResolution="true"
+          externalInfoUrl="${pmd.website.baseurl}/pmd_rules_performance.html#AvoidApacheCommonsFileItemNonStreaming">
+        <description>
+            Problem: Use of FileItem.get and FileItem.getString could exhaust memory since they load the entire file into memory&#13;
+            Solution: Use streaming methods and buffering.
+        </description>
         <priority>2</priority>
         <properties>
             <property name="version" value="1.0"/>
             <property name="xpath">
-                <value><![CDATA[
-            //PrimaryPrefix/Name
-            [
-            	ends-with(@Image,'.trace')
-            	or ends-with(@Image,'.debug')
-            	or ends-with(@Image,'.info')
-            ]
-            /../../PrimarySuffix/Arguments/ArgumentList/Expression//PrimaryExpression/PrimaryPrefix/Name
-            [
-            	ends-with(@Image,'.toString')
-            	or starts-with(@Image,'String.')
-            ]
-            [not(ancestor::IfStatement/Expression//PrimaryPrefix/Name
-            	[
-					ends-with(@Image,'.isTraceEnabled')
-					or ends-with(@Image,'.isDebugEnabled')
-					or ends-with(@Image,'.isInfoEnabled')
-					or ends-with(@Image,'.isLoggable')
-				])
-			]
-			]]>
+                <value>
+                    <![CDATA[
+//PrimaryPrefix/Name
+[ends-with(@Image, '.get') or ends-with(@Image, '.getString')]
+[
+	starts-with(@Image, concat(
+		ancestor::MethodDeclaration//FormalParameter/Type/ReferenceType/ClassOrInterfaceType[typeIs('org.apache.commons.fileupload.FileItem')]/../../..//VariableDeclaratorId/@Image,
+		'.')
+	) or
+	starts-with(@Image, concat(
+		ancestor::MethodDeclaration//LocalVariableDeclaration/Type/ReferenceType/ClassOrInterfaceType[typeIs('org.apache.commons.fileupload.FileItem')]/../../..//VariableDeclaratorId/@Image,
+		'.')
+	) or
+	starts-with(@Image, concat(
+		ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration/Type/ReferenceType/ClassOrInterfaceType[typeIs('org.apache.commons.fileupload.FileItem')]/../../..//VariableDeclaratorId/@Image,
+		'.')
+)
+]
+]]>
                 </value>
             </property>
         </properties>
-    </rule>
+        <example>
+            <![CDATA[
+public class FileStuff {
+   private String bad(FileItem fileItem) {
+        return fileItem.getString();
+   }
 
-    <rule name="UnconditionalConcatInLogArgument" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="String concatenation (+) is executed regardless of log level and can be expensive" typeResolution="true"
-          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-IL01">
-        <description>Problem: String concatenation (+) is executed regardless of log level and can be expensive. &#13;
-            Solution: Use SLF4J formatting with {}-placeholders or log and format conditionally.  (jpinpoint-rules)</description>
-        <priority>2</priority>
-        <properties>
-            <property name="version" value="1.0"/>
-            <property name="xpath">
-                <value><![CDATA[
-			//PrimaryPrefix/Name[ends-with(@Image,'.trace') or ends-with(@Image,'.debug') or ends-with(@Image,'.info')]/../../PrimarySuffix/Arguments/ArgumentList/Expression/AdditiveExpression
-			[PrimaryExpression/PrimaryPrefix/Name]
-			[not(ancestor::IfStatement/Expression/PrimaryExpression/PrimaryPrefix/Name[
-			ends-with(@Image,'.isTraceEnabled')
-			or ends-with(@Image,'.isDebugEnabled')
-			or ends-with(@Image,'.isInfoEnabled')
-			or ends-with(@Image,'.isLoggable')
-			])]
-]]></value>
-            </property>
-        </properties>
-    </rule>
-
-    <rule name="JAXBContextCreatedForEachMethodCall" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="JAXBContext is created for each method call, which is expensive."  typeResolution="true"
-          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-IUOXAR04">
-        <description>Problem: JAXBContext creation is expensive because it does much class loading.  &#13;
-            Solution: Since JAXBContext objects are thread safe, they can be shared between requests and reused. So, reuse created instances, e.g. as singletons.
-            (jpinpoint-rules)</description>
-        <priority>2</priority>
-        <properties>
-            <property name="version" value="1.0"/>
-            <property name="xpath">
-                <value><![CDATA[
-//MethodDeclaration//Expression/PrimaryExpression/PrimaryPrefix/Name[@Image = 'JAXBContext.newInstance']
-			]]></value>
-            </property>
-        </properties>
-    </rule>
-
-    <rule name="AvoidReflectionInToStringAndHashCode" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="Reflection is used in toString or hashCode, which is expensive." typeResolution="true"
-          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-UUOR01">
-        <description>Problem: Reflection is relatively expensive. &#13;
-            Solution: Avoid to use reflection. Use the non-reflective, explicit way, preferably using Guava.
-            (jpinpoint-rules)</description>
-        <priority>2</priority>
-        <properties>
-            <property name="version" value="1.0"/>
-            <property name="xpath">
-                <value><![CDATA[
-//PrimaryPrefix/AllocationExpression/ClassOrInterfaceType
-	[
-		typeIs('org.apache.commons.lang.builder.EqualsBuilder')
-		or typeIs('org.apache.commons.lang.builder.HashCodeBuilder')
-	]
-[../../../PrimarySuffix[1]
-	[
-		@Image='reflectionEquals'
-		or @Image='reflectionHashCode'
-	]
-] |
-//PrimaryPrefix/Name
-	[
-		@Image='EqualsBuilder.reflectionEquals'
-		or @Image='HashCodeBuilder.reflectionHashCode'
-	]
-	]]></value>
-            </property>
-        </properties>
+   private InputStream good(FileItem fileItem) {
+        return fileItem.getInputStream();
+   }
+}
+            ]]>
+        </example>
     </rule>
 
     <rule name="AvoidCalendarDateCreation" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="A Calendar is used to create a Date or DateTime, this is expensive." typeResolution="true"
@@ -142,276 +75,20 @@ BlockStatement/LocalVariableDeclaration/VariableDeclarator/VariableInitializer/E
         </properties>
     </rule>
 
-    <rule name="AvoidConstantsInInterface" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="Interface defines constants. It may expose implementation details." typeResolution="true"
-          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-VOEDOS04">
-        <description>Interface defines constants. Problem: Possibly exposes implementation details.  &#13;
-            Solution: Make it a Class which cannot be instantiated, or an Enum. Use static imports.
-            (jpinpoint-rules)</description>
-        <priority>3</priority>
-        <properties>
-            <property name="version" value="1.0"/>
-            <property name="xpath">
-                <value><![CDATA[
- //ClassOrInterfaceDeclaration[@Interface='true']
-    [
-      count(.//FieldDeclaration)>0
-    ]
-	]]></value>
-            </property>
-        </properties>
-    </rule>
-
-    <rule name="AvoidSimpleDateFormat" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="SimpleDateFormat is used. Since it is thread-unsafe, it needs expensive recreation."  typeResolution="true"
-          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-IDTF01">
-        <description>Problem: java.util.SimpleDateFormat is thread-unsafe. The usual solution is to create a new one when needed in a method. Creating SimpleDateFormat is relatively expensive. &#13;
-            Solution: Use a Joda-Time DateTimeFormat to create a specific DateTimeFormatter or Java 8 java.time.DateTimeFormatter. These classes are immutable, thus thread-safe and can be made static.
+    <rule name="AvoidConcatInAppend" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="Concatenation inside append. Use extra append." typeResolution="true"
+          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-ISU02">
+        <description>Concatenation of Strings is used inside an StringBuilder.append argument. Problem: Each statement with one or more +-operators creates a hidden temporary StringBuilder, a char[] and a new String object, which all have to be garbage collected.&#13;
+            Solution: Use an extra fluent append instead of concatenation.
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
             <property name="version" value="1.0"/>
             <property name="xpath">
                 <value><![CDATA[
- //AllocationExpression/ClassOrInterfaceType[typeIs('java.text.SimpleDateFormat')]
-	]]></value>
-            </property>
-        </properties>
-    </rule>
-
-    <rule name="AvoidDecimalAndChoiceFormatAsField" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false"
-          dfa="false" language="java"
-          message="Avoid using DecimalFormat or ChoiceFormat as field since it is thread-unsafe."
-          typeResolution="true"
-          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-IDTF01">
-        <description>Problem: java.text.DecimalFormat and java.text.ChoiceFormat are thread-unsafe. The usual solution
-            is to create a new local one when needed in a method. (jpinpoint-rules)
-        </description>
-        <priority>2</priority>
-        <properties>
-            <property name="version" value="1.0"/>
-            <property name="xpath">
-                <value><![CDATA[
-//FieldDeclaration/VariableDeclarator/VariableInitializer/Expression[typeIs('java.text.DecimalFormat') or typeIs('java.text.ChoiceFormat')]
-        ]]></value>
-            </property>
-        </properties>
-    </rule>
-
-    <rule name="AvoidRecompilingPatterns" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="Pattern.compile is used in a method. Compiling a regex pattern can be expensive, make it a static final field." typeResolution="true"
-          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-IREU02">
-        <description>A regular expression is compiled on every invocation. Problem: this can be expensive, depending on the length of the regular expression.&#13;
-            Solution: Usually a pattern is a literal, not dynamic and can be compiled only once. Assign it to a private static field. java.util.Pattern objects are thread-safe so they can be shared among threads.
-            (jpinpoint-rules)</description>
-        <priority>2</priority>
-        <properties>
-            <property name="version" value="1.0"/>
-            <property name="xpath">
-                <value><![CDATA[
-//TypeDeclaration/ClassOrInterfaceDeclaration/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDeclaration
-//PrimaryExpression/PrimaryPrefix/Name[ends-with(@Image, '.compile') and
-count(../../PrimarySuffix/Arguments/ArgumentList/Expression//PrimaryExpression) = 1
-and not (
-../../PrimarySuffix/Arguments/ArgumentList/Expression/PrimaryExpression/PrimaryPrefix/Name/@Image=
-ancestor::MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter/VariableDeclaratorId/@Image)]
-	]]></value>
-            </property>
-        </properties>
-    </rule>
-
-
-    <rule name="AvoidImplicitlyRecompilingRegex" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="String regex method, Pattern.matches or FileSystem.getPathMatcher is used.
-	   Implicitely compiles a regex pattern, can be expensive." typeResolution="true"
-          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-IREU01">
-        <description>A regular expression is compiled implicitely on every invocation. Problem: this can be expensive, depending on the length of the regular expression.&#13;
-            Solution: Compile the regex pattern only once and assign it to a private static final Pattern field. java.util.Pattern objects are thread-safe so they can be shared among threads.
-            (jpinpoint-rules)</description>
-        <priority>2</priority>
-        <properties>
-            <property name="version" value="1.0"/>
-            <property name="xpath">
-                <value><![CDATA[
-//MethodDeclaration//PrimaryPrefix/Name[ends-with(@Image, '.replaceAll') or ends-with(@Image, '.replaceFirst') or ends-with(@Image, 'Pattern.matches')]/../../PrimarySuffix/Arguments[@ArgumentCount=2]//Expression[1]//PrimaryPrefix[
-Literal[string-length(@Image) > 5 and
-(contains(@Image, '.') or contains(@Image, '$') or contains(@Image, '|') or contains(@Image, '(') or contains(@Image, ')') or contains(@Image, '[')
-or contains(@Image, ']') or contains(@Image, '{') or contains(@Image, '}') or contains(@Image, '^') or contains(@Image, '?') or contains(@Image, '*')
-or contains(@Image, '+') or contains(@Image, '\'))] or Name
-and not(../PrimarySuffix)
-and not (
-Name/@Image=ancestor::MethodDeclaration//VariableDeclaratorId/@Image)
-and not (
-Name[@Image=ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration/VariableDeclarator[
-VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/Literal[string-length(@Image) < 6 or not
-(contains(@Image, '.') or contains(@Image, '$') or contains(@Image, '|') or contains(@Image, '(') or contains(@Image, ')') or contains(@Image, '[')
-or contains(@Image, ']') or contains(@Image, '{') or contains(@Image, '}') or contains(@Image, '^') or contains(@Image, '?') or contains(@Image, '*')
-or contains(@Image, '+') or contains(@Image, '\'))]
-]/VariableDeclaratorId/@Image])
-]
-|
-//MethodDeclaration//PrimaryPrefix/Name[ends-with(@Image, '.split') or ends-with(@Image, 'getPathMatcher')]/../../PrimarySuffix/Arguments[@ArgumentCount=1]//Expression[1]//PrimaryPrefix[
-Literal[string-length(@Image) > 5 and
-(contains(@Image, '.') or contains(@Image, '$') or contains(@Image, '|') or contains(@Image, '(') or contains(@Image, ')') or contains(@Image, '[')
-or contains(@Image, ']') or contains(@Image, '{') or contains(@Image, '}') or contains(@Image, '^') or contains(@Image, '?') or contains(@Image, '*')
-or contains(@Image, '+') or contains(@Image, '\'))] or Name
-and not(../PrimarySuffix)
-and not (
-Name/@Image=ancestor::MethodDeclaration//VariableDeclaratorId/@Image)
-and not (
-Name[@Image=ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration/VariableDeclarator[
-VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/Literal[string-length(@Image) < 6 or not
-(contains(@Image, '.') or contains(@Image, '$') or contains(@Image, '|') or contains(@Image, '(') or contains(@Image, ')') or contains(@Image, '[')
-or contains(@Image, ']') or contains(@Image, '{') or contains(@Image, '}') or contains(@Image, '^') or contains(@Image, '?') or contains(@Image, '*')
-or contains(@Image, '+') or contains(@Image, '\'))]
-]/VariableDeclaratorId/@Image])
-] |
-//MethodDeclaration//PrimarySuffix[@Image='getPathMatcher']/../PrimarySuffix/Arguments[@ArgumentCount=1]/ArgumentList/Expression[1]/PrimaryExpression/PrimaryPrefix[
-Literal[string-length(@Image) > 5] or Name
-and not(../PrimarySuffix)
-and not (
-Name/@Image=ancestor::MethodDeclaration//VariableDeclaratorId/@Image)
-and not (
-Name[@Image=ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration/VariableDeclarator[
-VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/Literal[string-length(@Image) < 6]]/VariableDeclaratorId/@Image])
-] |
-//MethodDeclaration//PrimaryPrefix/Name[ends-with(@Image, '.matches')]
-[(starts-with(@Image, concat(ancestor::MethodDeclaration//FormalParameter/Type/ReferenceType/ClassOrInterfaceType[typeIs('java.lang.String')]/../../../VariableDeclaratorId/@Image, '.'))
-or
-starts-with(@Image, concat(ancestor::MethodDeclaration//LocalVariableDeclaration/Type/ReferenceType/ClassOrInterfaceType[typeIs('java.lang.String')]/../../../VariableDeclarator/VariableDeclaratorId/@Image, '.')))
+//MethodDeclaration/Block/BlockStatement/Statement//StatementExpression[
+./PrimaryExpression/PrimaryPrefix/Name[substring-after(@Image, '.') = 'append']
 and
-../../PrimarySuffix/Arguments[@ArgumentCount=1]//Expression[1]//PrimaryPrefix[
-Literal[string-length(@Image) > 5] or Name
-and not(../PrimarySuffix)
-and not (
-Name/@Image=ancestor::MethodDeclaration//VariableDeclaratorId/@Image)
-and not (
-Name[@Image=ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration/VariableDeclarator[
-VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/Literal[string-length(@Image) < 6]
-]/VariableDeclaratorId/@Image])
-]]
-]]></value>
-            </property>
-        </properties>
-    </rule>
-
-    <rule name="MinimizeAttributesInSession" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="Attribute is set in the session, yet not removed. This may bloat the session." typeResolution="true"
-          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-TMSU01">
-        <description>An attribute is set in the session and not removed. Problem: This may be a large object and data in the sessions takes heap space and stay in the session until time-out. This may take substantial heap space.&#13;
-            Solution: remove the attribute if not really needed in the session, remove it from the session as soon as possible. Alternatively, use render parameters.
-            (jpinpoint-rules)</description>
-        <priority>2</priority>
-        <properties>
-            <property name="version" value="1.0"/>
-            <property name="xpath">
-                <value><![CDATA[
-//ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDeclaration//Block/BlockStatement/Statement[
-./StatementExpression/PrimaryExpression/PrimarySuffix[ends-with(@Image, 'setAttribute')]
-/ancestor::ClassOrInterfaceBodyDeclaration//ClassOrInterfaceBody[not(
-ClassOrInterfaceBodyDeclaration/MethodDeclaration//Block/BlockStatement/Statement/StatementExpression/PrimaryExpression/PrimarySuffix[ends-with(@Image, 'removeAttribute')]
-or
-ClassOrInterfaceBodyDeclaration/MethodDeclaration//Block/BlockStatement/Statement/StatementExpression/PrimaryExpression/PrimaryPrefix/Name[ends-with(@Image, 'removeAttribute')]
-)]]
-|
-//ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDeclaration//Block/BlockStatement/Statement[
-./StatementExpression/PrimaryExpression/PrimaryPrefix/Name[ends-with(@Image, 'setAttribute')]
-/ancestor::ClassOrInterfaceBodyDeclaration//ClassOrInterfaceBody[not(
-ClassOrInterfaceBodyDeclaration/MethodDeclaration//Block/BlockStatement/Statement/StatementExpression/PrimaryExpression/PrimarySuffix[ends-with(@Image, 'removeAttribute')]
-or
-ClassOrInterfaceBodyDeclaration/MethodDeclaration//Block/BlockStatement/Statement/StatementExpression/PrimaryExpression/PrimaryPrefix/Name[ends-with(@Image, 'removeAttribute')]
-)]]
-|
-//ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDeclaration//Block/BlockStatement/Statement[
-.//StatementExpression/PrimaryExpression/PrimaryPrefix/Name[@Image = 'PortletUtils.setSessionAttribute']
-/ancestor::ClassOrInterfaceBodyDeclaration//ClassOrInterfaceBody[not(
-ClassOrInterfaceBodyDeclaration/MethodDeclaration//Block/BlockStatement//Statement/StatementExpression/PrimaryExpression/PrimaryPrefix/Name[@Image = 'PortletUtils.setSessionAttribute']
-/../../PrimarySuffix/Arguments/ArgumentList/Expression/PrimaryExpression/PrimaryPrefix/Literal/NullLiteral
-)]]
-	]]></value>
-            </property>
-        </properties>
-    </rule>
-
-    <rule name="AvoidXPathUsage" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="XPath is used. XPath implementation has bad performance." typeResolution="true"
-          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-UX03">
-        <description>XPath is used. Problem: XPath implementation is slow.&#13;
-            Solution: 1. avoid using XPath. 2. improve performance by using jvm parameters and possibly Cached XPath API.
-            (jpinpoint-rules)</description>
-        <priority>3</priority>
-        <properties>
-            <property name="version" value="1.0"/>
-            <property name="xpath">
-                <value><![CDATA[
-//TypeDeclaration/ClassOrInterfaceDeclaration/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration
-//PrimaryExpression/PrimaryPrefix/Name[@Image='XPathFactory.newInstance']
-	]]></value>
-            </property>
-        </properties>
-    </rule>
-
-    <rule name="AvoidRecompilingXPathExpression" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="XPathExpression is created and compiled every time. Beware it is thread-unsafe." typeResolution="true"
-          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-UX02">
-        <description>XPathExpression is created and compiled on every method call. Problem: Creation XPath and compilation of XPathExpression takes time. It may slow down your application. &#13;
-            Solution: 1. Avoid XPath usage. 2. Since XPath and XPathExpression classes are thread-unsafe, they are not easily cached. Caching in Thread locals may be a solution.
-            (jpinpoint-rules)</description>
-        <priority>2</priority>
-        <properties>
-            <property name="version" value="1.0"/>
-            <property name="xpath">
-                <value><![CDATA[
-//TypeDeclaration/ClassOrInterfaceDeclaration/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDeclaration
-//PrimaryExpression/PrimaryPrefix/Name[ends-with(@Image,'.newXPath')]
-/ancestor::ClassOrInterfaceBodyDeclaration
-//PrimaryExpression/PrimaryPrefix/Name[ends-with(@Image, '.compile')]
-	]]></value>
-            </property>
-        </properties>
-    </rule>
-
-    <rule name="AvoidWideScopeXPathExpression" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="XPathExpression targets a wide scope, this is potentially slow." typeResolution="true"
-          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-UX01">
-        <description>The XPathExpression targets a wide scope since it starts with '//'. Problem: XPath has to search in a wide scope for occurrences, this may take a while. &#13;
-            Solution: 1. Avoid XPath usage. 2. Make the scope as narrow as possible, do not start with '//'.
-            (jpinpoint-rules)</description>
-        <priority>2</priority>
-        <properties>
-            <property name="version" value="1.0"/>
-            <property name="xpath">
-                <value><![CDATA[
-//TypeDeclaration/ClassOrInterfaceDeclaration/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDeclaration
-//PrimaryExpression/PrimarySuffix[
-Arguments/ArgumentList/Expression/PrimaryExpression/PrimaryPrefix/
-Literal[starts-with(@Image, '"//')]
-and
-../PrimaryPrefix/Name[ends-with(@Image, '.compile')]
-]
-	]]></value>
-            </property>
-        </properties>
-    </rule>
-
-    <rule name="AvoidUnconditionalBuiltLogStrings" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="Log String is built irrespective of log level." typeResolution="true"
-          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-IL02">
-        <description>A String to be logged is built unconditionally. Problem: String building, concatenation and/or other operations happen before the debug, trace or info method executes, so independent of the need to actually log. Concatenation is relatively expensive. &#13;
-            Solution: Build the String conditionally on the log level, within an if statement.
-            (jpinpoint-rules)</description>
-        <priority>2</priority>
-        <properties>
-            <property name="version" value="1.0"/>
-            <property name="xpath">
-                <value><![CDATA[
-//MethodDeclaration/Block/BlockStatement/Statement//StatementExpression/PrimaryExpression/PrimaryPrefix/Name[
-(substring-before(@Image, '.') =
-ancestor::MethodDeclaration//BlockStatement/Statement/StatementExpression/PrimaryExpression/PrimaryPrefix/Name[ends-with
-(@Image, '.debug') or ends-with(@Image, '.trace') or ends-with(@Image, '.info')]
-/../../PrimarySuffix/Arguments/ArgumentList/Expression/PrimaryExpression/PrimaryPrefix/Name/attribute::Image
-and
-substring-after(@Image, '.') = 'append')
-and count(ancestor::IfStatement) = 0
-and
-count(ancestor::MethodDeclaration/Block/BlockStatement/Statement//PrimaryExpression/PrimaryPrefix/Name[
-(substring-before(@Image, '.') =
-ancestor::MethodDeclaration//BlockStatement/Statement//PrimaryExpression/PrimaryPrefix/Name[ends-with
-(@Image, '.debug') or ends-with(@Image, '.trace') or ends-with(@Image, '.info')]
-/../../PrimarySuffix/Arguments/ArgumentList//PrimaryExpression/PrimaryPrefix/Name/attribute::Image
-and
-substring-after(@Image, '.') != 'append')]) = 0
+./PrimaryExpression/PrimarySuffix/Arguments/ArgumentList/Expression[1]/AdditiveExpression[@Image='+']
 ]
 	]]></value>
             </property>
@@ -472,245 +149,42 @@ ancestor::MethodDeclaration//ForStatement//Statement/StatementExpression/Primary
         </properties>
     </rule>
 
-    <rule name="AvoidMultipleConcatStatements" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="Multiple statements concatenate to the same String. Use StringBuilder append." typeResolution="true"
-          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-ISU02">
-        <description>Multiple statements concatenate to the same String. Problem: Each statement with one or more +-operators creates a hidden temporary StringBuilder, a char[] and a new String object, which all have to be garbage collected.&#13;
-            Solution: Use StringBulder.append.
+    <rule name="AvoidConstantsInInterface" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="Interface defines constants. It may expose implementation details." typeResolution="true"
+          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-VOEDOS04">
+        <description>Interface defines constants. Problem: Possibly exposes implementation details.  &#13;
+            Solution: Make it a Class which cannot be instantiated, or an Enum. Use static imports.
             (jpinpoint-rules)</description>
-        <priority>2</priority>
-        <properties>
-            <property name="version" value="1.0"/>
-            <property name="xpath">
-                <value><![CDATA[
-//MethodDeclaration/Block[
-count(
-./BlockStatement/Statement//StatementExpression/PrimaryExpression/PrimaryPrefix/Name
-[@Image=./../../../../../../../../../../../..//VariableDeclaratorId/attribute::Image
-and
-./../../../../../../..//VariableDeclaratorId/../../Type/ReferenceType/ClassOrInterfaceType[typeIs('java.lang.String')]
-]
-/../../../AssignmentOperator[@Image='+=']/
-../Expression//PrimaryExpression/PrimaryPrefix/Name) > 1]/BlockStatement[position()=last()]
-|
-//MethodDeclaration/Block[
-count(
-./BlockStatement/Statement//StatementExpression[
-./PrimaryExpression/PrimaryPrefix/Name[
-@Image = ../../../Expression/AdditiveExpression/PrimaryExpression/PrimaryPrefix/Name/@Image
-and
-@Image = ./../../../../../../../..//VariableDeclaratorId/../../Type/ReferenceType/ClassOrInterfaceType[typeIs('java.lang.String')]/../../../VariableDeclarator/VariableDeclaratorId/attribute::Image
-]
-]) > 1 ]//BlockStatement[position()=last()]//StatementExpression/Expression/AdditiveExpression[@Image = '+']
-	]]></value>
-            </property>
-        </properties>
-    </rule>
-
-    <rule name="AvoidConcatInAppend" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="Concatenation inside append. Use extra append." typeResolution="true"
-          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-ISU02">
-        <description>Concatenation of Strings is used inside an StringBuilder.append argument. Problem: Each statement with one or more +-operators creates a hidden temporary StringBuilder, a char[] and a new String object, which all have to be garbage collected.&#13;
-            Solution: Use an extra fluent append instead of concatenation.
-            (jpinpoint-rules)</description>
-        <priority>2</priority>
-        <properties>
-            <property name="version" value="1.0"/>
-            <property name="xpath">
-                <value><![CDATA[
-//MethodDeclaration/Block/BlockStatement/Statement//StatementExpression[
-./PrimaryExpression/PrimaryPrefix/Name[substring-after(@Image, '.') = 'append']
-and
-./PrimaryExpression/PrimarySuffix/Arguments/ArgumentList/Expression[1]/AdditiveExpression[@Image='+']
-]
-	]]></value>
-            </property>
-        </properties>
-    </rule>
-
-    <rule name="AvoidXMLGregorianCalendar" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="XMLGregorianCalendar is used. It is slow in JAXB." typeResolution="true"
-          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-IUOXAR05">
-        <description>Problem: XMLGregorianCalendar is a large object, involving substantial processing. It is created with the poorly performing DatatypeFactory.
-            Solution: Add a converter for alternative date handling with joda-time or Java 8 java.time.
-            (jpinpoint-rules)</description>
-        <priority>2</priority>
-        <properties>
-
-            <property name="version" value="1.0"/>
-            <property name="xpath">
-                <value><![CDATA[
-//TypeDeclaration/ClassOrInterfaceDeclaration/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/
-FieldDeclaration/Type/ReferenceType/ClassOrInterfaceType[typeIs('javax.xml.datatype.XMLGregorianCalendar')]
-|
-//TypeDeclaration/ClassOrInterfaceDeclaration/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/
-MethodDeclaration//LocalVariableDeclaration/Type/ReferenceType/ClassOrInterfaceType[typeIs('javax.xml.datatype.XMLGregorianCalendar')]
-	]]></value>
-            </property>
-        </properties>
-    </rule>
-
-    <rule name="MDCPutWithoutRemove" message="MDC put is used without finally remove." class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" typeResolution="true" externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-IL04">
-        <description>
-            MDC values are added for logging, but not removed. Problem: MDC values can leak to other user transactions (requests) and log incorrect information. Solution: remove the MDC value in a finally clause.
-            (jpinpoint-rules)</description>
-        <properties>
-            <property name="xpath">
-                <value>
-                    <![CDATA[
-//TypeDeclaration/ClassOrInterfaceDeclaration/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/
-MethodDeclaration/Block//Statement/StatementExpression/PrimaryExpression/PrimaryPrefix/Name[@Image='MDC.put']
-/../../PrimarySuffix/Arguments/ArgumentList/Expression[1]/PrimaryExpression/PrimaryPrefix/Literal[not(@Image=
-ancestor::ClassOrInterfaceBodyDeclaration/MethodDeclaration/Block//TryStatement//Statement/StatementExpression/PrimaryExpression/PrimaryPrefix/Name[@Image='MDC.remove']
-/../../PrimarySuffix/Arguments/ArgumentList/Expression[1]/PrimaryExpression/PrimaryPrefix/Literal/@Image)
-]
-|
-//TypeDeclaration/ClassOrInterfaceDeclaration/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/
-MethodDeclaration/Block//Statement/StatementExpression/PrimaryExpression/PrimaryPrefix/Name[@Image='MDC.put']
-/../../PrimarySuffix/Arguments/ArgumentList/Expression[1]/PrimaryExpression/PrimaryPrefix/Name[not(@Image=
-ancestor::ClassOrInterfaceBodyDeclaration/MethodDeclaration/Block//TryStatement//Statement/StatementExpression/PrimaryExpression/PrimaryPrefix/Name[@Image='MDC.remove']
-/../../PrimarySuffix/Arguments/ArgumentList/Expression[1]/PrimaryExpression/PrimaryPrefix/Name/@Image)
-]
-]]>
-                </value>
-            </property>
-        </properties>
-        <priority>2</priority>
-    </rule>
-
-    <rule name="ObjectMapperCreatedForEachMethodCall" message="An ObjectMapper is created for each method call, which is expensive." class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"   typeResolution="true" externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-IUOJAR01">
-        <description>Problem: Jackson ObjectMapper creation is expensive because it does much class loading.  &#13;
-            Solution: Since ObjectMapper objects are thread-safe after configuration in one thread, they can be shared afterwards between requests and reused. So, reuse created instances, from a static field.
-            (jpinpoint-rules)</description>
-        <priority>2</priority>
-        <properties>
-            <property name="version" value="1.0"/>
-            <property name="xpath">
-                <value><![CDATA[
-//MethodDeclaration//Expression/PrimaryExpression/PrimaryPrefix/AllocationExpression/ClassOrInterfaceType[
-	(typeIs('com.fasterxml.jackson.databind.ObjectMapper')) and
-	not(ancestor::TypeDeclaration/Annotation/MarkerAnnotation/Name/@Image='Configuration')
-]
-			]]></value>
-            </property>
-        </properties>
-    </rule>
-
-    <rule name="AvoidXPathAPIUsage" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="XPathAPI is used. XPathAPI implementation has bad performance." typeResolution="true"
-          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-UX03">
-        <description>XPathAPI is used. Problem: XPathAPI implementation is slow.&#13;
-            Solution: 1. try to avoid using XPathAPI. 2. improve performance by using jvm parameters and possibly CachedXPathAPI.
-            (jpinpoint-rules)</description>
-        <priority>2</priority>
-        <properties>
-            <property name="version" value="1.0"/>
-            <property name="xpath">
-                <value><![CDATA[
-//TypeDeclaration/ClassOrInterfaceDeclaration/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration
-//PrimaryExpression/PrimaryPrefix/Name[starts-with(@Image, 'XPathAPI.')]
-	]]></value>
-            </property>
-        </properties>
-    </rule>
-
-    <rule name="AvoidInMemoryStreamingDefaultConstructor" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="Default capacity constructor of ByteArrayOutputStream or StringWriter is used, it usually needs expensive expansions." typeResolution="true"
-          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-ISIO01">
-        <description>Default constructor of ByteArrayOutputStream or StringWriter is used. Problem: It allocates a small buffer as capacity which usually needs several expensive expansions.&#13;
-            Solution: Presize the ByteArrayOutputStream or StringWriter with an initial capacity such that an expansion is not needed in most cases.
-            (jpinpoint-rules)</description>
-        <priority>2</priority>
-        <properties>
-            <property name="version" value="1.0"/>
-            <property name="xpath">
-                <value><![CDATA[
-	//TypeDeclaration/ClassOrInterfaceDeclaration/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration
-//PrimaryExpression/PrimaryPrefix/AllocationExpression/ClassOrInterfaceType[typeIs('java.io.ByteArrayOutputStream') or typeIs('java.io.StringWriter')]
-[not(../Arguments/ArgumentList)]
-	]]></value>
-            </property>
-        </properties>
-    </rule>
-
-    <rule name="AvoidRecreatingDateTimeFormatter"
-          message="Avoid recreating DateTimeFormatter, it is relatively expensive."
-          class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
-          typeResolution="true" externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-IDTF02">
-        <description>
-            Problem: Recreating a DateTimeFormatter is relatively expensive.&#13;
-            Solution: org.joda.time.format.DateTimeFormatter or Java 8 java.time.DateTimeFormatter is thread-safe and can be shared among threads. Create the
-            formatter from a pattern only once, to initialize a static final field.
-            (jpinpoint-rules)</description>
-        <properties>
-            <property name="version" value="1.0"/>
-            <property name="xpath">
-                <value>
-                    <![CDATA[
-    //FieldDeclaration[@Final='false' or @Static='false']//ReferenceType/ClassOrInterfaceType[typeIs('org.joda.time.format.DateTimeFormatter') or typeIs('org.threeten.bp.format.DateTimeFormatter') or typeIs('java.time.format.DateTimeFormatter')] |
-    //MethodDeclaration/Block//ReferenceType/ClassOrInterfaceType[typeIs('org.joda.time.format.DateTimeFormatter') or typeIs('org.threeten.bp.format.DateTimeFormatter') or typeIs('java.time.format.DateTimeFormatter')]
-[ancestor::LocalVariableDeclaration/VariableDeclarator/VariableInitializer/Expression//PrimaryPrefix/Literal] |
-    //MethodDeclaration/Block/BlockStatement//Expression//AllocationExpression/ClassOrInterfaceType[typeIs('org.joda.time.format.DateTimeFormatter') or typeIs('org.threeten.bp.format.DateTimeFormatter') or typeIs('java.time.format.DateTimeFormatter')] |
-    //MethodDeclaration/Block/BlockStatement//Expression/PrimaryExpression/PrimaryPrefix/Name[starts-with(@Image, 'ISODateTimeFormat.')] |
-    //MethodDeclaration/Block/BlockStatement//Expression/PrimaryExpression/PrimaryPrefix/Name[starts-with(@Image, 'DateTimeFormat.')
-       and not (ends-with(@Image, 'forPattern'))] |
-   //MethodDeclaration/Block/BlockStatement//Expression/PrimaryExpression/PrimaryPrefix/Name[starts-with(@Image, 'DateTimeFormat.forPattern')]
-[ancestor::Expression//PrimaryPrefix/Literal] |
-    //MethodDeclaration/Block/BlockStatement//Expression/PrimaryExpression/PrimarySuffix[@Image='toFormatter']
-]]>
-                </value>
-            </property>
-        </properties>
-        <priority>2</priority>
-    </rule>
-
-    <rule name="ImplementEqualsHashCodeOnValueObjects"
-          message="Equals and/or hashCode is missing for a value object."
-          class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
-          typeResolution="true" externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-IncorrectequalsandhashCode">
-        <description>
-            Problem: If equals and hashCode are not defined, they don't meet the programmer's expectations and the requirements for use with the collections API. It may result in unexpected, undesired behavior.&#13;
-            Solution: Add proper equals and hashCode methods that meet the equals-hashCode contract to all objects which might anyhow be put in a Map, Set or other collection. If the object should never be checked for equality or used in a collection, also add those methods and let them throw UnsupportedOperationException to fail fast. @Xml... and @Entity objects are ignored because they are assumed to be not used as value objects.
-            (jpinpoint-rules)</description>
-        <properties>
-            <property name="version" value="1.0"/>
-            <property name="xpath">
-                <value>
-                    <![CDATA[
-//TypeDeclaration[not(./Annotation//Name[@Image='Data' or @Image='Value' or @Image='EqualsAndHashCode'
-or @Image='Singleton' or @Image='Component' or @Image='Service' or @Image='Repository' or @Image='Configuration' or @Image='Endpoint' or @Image='RestController' or @Image='ControllerAdvice'
-or starts-with(@Image, 'Xml') or @Image='Entity' or @Image='Embeddable' or @Image='MappedSuperclass'])]
-/ClassOrInterfaceDeclaration[@Interface='false' and @Abstract='false']
-[not(./ExtendsList/ClassOrInterfaceType[ends-with(@Image, 'Exception') or ends-with(@Image, 'Throwable')])]
-/ClassOrInterfaceBody[ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Static='false']
-[
-(not (../Annotation//Name[@Image = 'XmlElement']))
-and
-(
-ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDeclaration
-[@Public='true' and @Static='false']/MethodDeclarator[starts-with(@Image, 'get') and string-length(@Image) > 3 or starts-with(@Image, 'is') and string-length(@Image) > 2]
-[../ResultType/Type/ReferenceType/ClassOrInterfaceType/@Image =
-ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Static='false']/Type/ReferenceType/ClassOrInterfaceType/@Image]
-)
-and
-(not (
-ancestor::ClassOrInterfaceBody//MethodDeclaration[@Public='true' and @Static='false']/MethodDeclarator[@Image='equals' or @Image='hashCode'])
-)
-and
-((ancestor::ClassOrInterfaceBody//MethodDeclaration[@Public='true' and @Static='false']/MethodDeclarator/@Image='toString'
-and
-count(ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Static='false']) <=
-(1 + count(ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDeclaration
-[@Public='true' and @Static='false']/MethodDeclarator[starts-with(@Image, 'get') and string-length(@Image) > 3 or starts-with(@Image, 'is') and string-length(@Image) > 2]))
-)
-or
-ancestor::ClassOrInterfaceDeclaration[ends-with(@Image, 'Dto')]
-or
-count(ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Static='false']) =
-count(ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDeclaration
-[@Public='true' and @Static='false']/MethodDeclarator[starts-with(@Image, 'get') and string-length(@Image) > 3 or starts-with(@Image, 'is') and string-length(@Image) > 2])
-)]
-]
-]]>
-                </value>
-            </property>
-        </properties>
         <priority>3</priority>
+        <properties>
+            <property name="version" value="1.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+ //ClassOrInterfaceDeclaration[@Interface='true']
+    [
+      count(.//FieldDeclaration)>0
+    ]
+	]]></value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="AvoidDecimalAndChoiceFormatAsField" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false"
+          dfa="false" language="java"
+          message="Avoid using DecimalFormat or ChoiceFormat as field since it is thread-unsafe."
+          typeResolution="true"
+          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-IDTF01">
+        <description>Problem: java.text.DecimalFormat and java.text.ChoiceFormat are thread-unsafe. The usual solution
+            is to create a new local one when needed in a method. (jpinpoint-rules)
+        </description>
+        <priority>2</priority>
+        <properties>
+            <property name="version" value="1.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+//FieldDeclaration/VariableDeclarator/VariableInitializer/Expression[typeIs('java.text.DecimalFormat') or typeIs('java.text.ChoiceFormat')]
+        ]]></value>
+            </property>
+        </properties>
     </rule>
 
     <rule name="AvoidDeprecatedHttpConnectors" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="Avoid the use of deprecated/thread-unsafe HTTP connectors" typeResolution="true"
@@ -793,55 +267,580 @@ or preceding-sibling::SwitchLabel[@Default='true'])
         <priority>2</priority>
     </rule>
 
-    <rule name="AvoidApacheCommonsFileItemNonStreaming"
-          language="java"
-          message="Avoid memory intensive FileItem.get and FileItem.getString"
-          class="net.sourceforge.pmd.lang.rule.XPathRule"
-          typeResolution="true"
-          externalInfoUrl="${pmd.website.baseurl}/pmd_rules_performance.html#AvoidApacheCommonsFileItemNonStreaming">
-        <description>
-            Problem: Use of FileItem.get and FileItem.getString could exhaust memory since they load the entire file into memory&#13;
-            Solution: Use streaming methods and buffering.
-        </description>
+    <rule name="AvoidImplicitlyRecompilingRegex" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="String regex method, Pattern.matches or FileSystem.getPathMatcher is used.
+	   Implicitely compiles a regex pattern, can be expensive." typeResolution="true"
+          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-IREU01">
+        <description>A regular expression is compiled implicitely on every invocation. Problem: this can be expensive, depending on the length of the regular expression.&#13;
+            Solution: Compile the regex pattern only once and assign it to a private static final Pattern field. java.util.Pattern objects are thread-safe so they can be shared among threads.
+            (jpinpoint-rules)</description>
         <priority>2</priority>
+        <properties>
+            <property name="version" value="1.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+//MethodDeclaration//PrimaryPrefix/Name[ends-with(@Image, '.replaceAll') or ends-with(@Image, '.replaceFirst') or ends-with(@Image, 'Pattern.matches')]/../../PrimarySuffix/Arguments[@ArgumentCount=2]//Expression[1]//PrimaryPrefix[
+Literal[string-length(@Image) > 5 and
+(contains(@Image, '.') or contains(@Image, '$') or contains(@Image, '|') or contains(@Image, '(') or contains(@Image, ')') or contains(@Image, '[')
+or contains(@Image, ']') or contains(@Image, '{') or contains(@Image, '}') or contains(@Image, '^') or contains(@Image, '?') or contains(@Image, '*')
+or contains(@Image, '+') or contains(@Image, '\'))] or Name
+and not(../PrimarySuffix)
+and not (
+Name/@Image=ancestor::MethodDeclaration//VariableDeclaratorId/@Image)
+and not (
+Name[@Image=ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration/VariableDeclarator[
+VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/Literal[string-length(@Image) < 6 or not
+(contains(@Image, '.') or contains(@Image, '$') or contains(@Image, '|') or contains(@Image, '(') or contains(@Image, ')') or contains(@Image, '[')
+or contains(@Image, ']') or contains(@Image, '{') or contains(@Image, '}') or contains(@Image, '^') or contains(@Image, '?') or contains(@Image, '*')
+or contains(@Image, '+') or contains(@Image, '\'))]
+]/VariableDeclaratorId/@Image])
+]
+|
+//MethodDeclaration//PrimaryPrefix/Name[ends-with(@Image, '.split') or ends-with(@Image, 'getPathMatcher')]/../../PrimarySuffix/Arguments[@ArgumentCount=1]//Expression[1]//PrimaryPrefix[
+Literal[string-length(@Image) > 5 and
+(contains(@Image, '.') or contains(@Image, '$') or contains(@Image, '|') or contains(@Image, '(') or contains(@Image, ')') or contains(@Image, '[')
+or contains(@Image, ']') or contains(@Image, '{') or contains(@Image, '}') or contains(@Image, '^') or contains(@Image, '?') or contains(@Image, '*')
+or contains(@Image, '+') or contains(@Image, '\'))] or Name
+and not(../PrimarySuffix)
+and not (
+Name/@Image=ancestor::MethodDeclaration//VariableDeclaratorId/@Image)
+and not (
+Name[@Image=ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration/VariableDeclarator[
+VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/Literal[string-length(@Image) < 6 or not
+(contains(@Image, '.') or contains(@Image, '$') or contains(@Image, '|') or contains(@Image, '(') or contains(@Image, ')') or contains(@Image, '[')
+or contains(@Image, ']') or contains(@Image, '{') or contains(@Image, '}') or contains(@Image, '^') or contains(@Image, '?') or contains(@Image, '*')
+or contains(@Image, '+') or contains(@Image, '\'))]
+]/VariableDeclaratorId/@Image])
+] |
+//MethodDeclaration//PrimarySuffix[@Image='getPathMatcher']/../PrimarySuffix/Arguments[@ArgumentCount=1]/ArgumentList/Expression[1]/PrimaryExpression/PrimaryPrefix[
+Literal[string-length(@Image) > 5] or Name
+and not(../PrimarySuffix)
+and not (
+Name/@Image=ancestor::MethodDeclaration//VariableDeclaratorId/@Image)
+and not (
+Name[@Image=ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration/VariableDeclarator[
+VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/Literal[string-length(@Image) < 6]]/VariableDeclaratorId/@Image])
+] |
+//MethodDeclaration//PrimaryPrefix/Name[ends-with(@Image, '.matches')]
+[(starts-with(@Image, concat(ancestor::MethodDeclaration//FormalParameter/Type/ReferenceType/ClassOrInterfaceType[typeIs('java.lang.String')]/../../../VariableDeclaratorId/@Image, '.'))
+or
+starts-with(@Image, concat(ancestor::MethodDeclaration//LocalVariableDeclaration/Type/ReferenceType/ClassOrInterfaceType[typeIs('java.lang.String')]/../../../VariableDeclarator/VariableDeclaratorId/@Image, '.')))
+and
+../../PrimarySuffix/Arguments[@ArgumentCount=1]//Expression[1]//PrimaryPrefix[
+Literal[string-length(@Image) > 5] or Name
+and not(../PrimarySuffix)
+and not (
+Name/@Image=ancestor::MethodDeclaration//VariableDeclaratorId/@Image)
+and not (
+Name[@Image=ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration/VariableDeclarator[
+VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/Literal[string-length(@Image) < 6]
+]/VariableDeclaratorId/@Image])
+]]
+]]></value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="AvoidInMemoryStreamingDefaultConstructor" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="Default capacity constructor of ByteArrayOutputStream or StringWriter is used, it usually needs expensive expansions." typeResolution="true"
+          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-ISIO01">
+        <description>Default constructor of ByteArrayOutputStream or StringWriter is used. Problem: It allocates a small buffer as capacity which usually needs several expensive expansions.&#13;
+            Solution: Presize the ByteArrayOutputStream or StringWriter with an initial capacity such that an expansion is not needed in most cases.
+            (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="version" value="1.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+	//TypeDeclaration/ClassOrInterfaceDeclaration/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration
+//PrimaryExpression/PrimaryPrefix/AllocationExpression/ClassOrInterfaceType[typeIs('java.io.ByteArrayOutputStream') or typeIs('java.io.StringWriter')]
+[not(../Arguments/ArgumentList)]
+	]]></value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="AvoidMultipleConcatStatements" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="Multiple statements concatenate to the same String. Use StringBuilder append." typeResolution="true"
+          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-ISU02">
+        <description>Multiple statements concatenate to the same String. Problem: Each statement with one or more +-operators creates a hidden temporary StringBuilder, a char[] and a new String object, which all have to be garbage collected.&#13;
+            Solution: Use StringBulder.append.
+            (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="version" value="1.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+//MethodDeclaration/Block[
+count(
+./BlockStatement/Statement//StatementExpression/PrimaryExpression/PrimaryPrefix/Name
+[@Image=./../../../../../../../../../../../..//VariableDeclaratorId/attribute::Image
+and
+./../../../../../../..//VariableDeclaratorId/../../Type/ReferenceType/ClassOrInterfaceType[typeIs('java.lang.String')]
+]
+/../../../AssignmentOperator[@Image='+=']/
+../Expression//PrimaryExpression/PrimaryPrefix/Name) > 1]/BlockStatement[position()=last()]
+|
+//MethodDeclaration/Block[
+count(
+./BlockStatement/Statement//StatementExpression[
+./PrimaryExpression/PrimaryPrefix/Name[
+@Image = ../../../Expression/AdditiveExpression/PrimaryExpression/PrimaryPrefix/Name/@Image
+and
+@Image = ./../../../../../../../..//VariableDeclaratorId/../../Type/ReferenceType/ClassOrInterfaceType[typeIs('java.lang.String')]/../../../VariableDeclarator/VariableDeclaratorId/attribute::Image
+]
+]) > 1 ]//BlockStatement[position()=last()]//StatementExpression/Expression/AdditiveExpression[@Image = '+']
+	]]></value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="AvoidRecompilingPatterns" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="Pattern.compile is used in a method. Compiling a regex pattern can be expensive, make it a static final field." typeResolution="true"
+          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-IREU02">
+        <description>A regular expression is compiled on every invocation. Problem: this can be expensive, depending on the length of the regular expression.&#13;
+            Solution: Usually a pattern is a literal, not dynamic and can be compiled only once. Assign it to a private static field. java.util.Pattern objects are thread-safe so they can be shared among threads.
+            (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="version" value="1.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+//TypeDeclaration/ClassOrInterfaceDeclaration/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDeclaration
+//PrimaryExpression/PrimaryPrefix/Name[ends-with(@Image, '.compile') and
+count(../../PrimarySuffix/Arguments/ArgumentList/Expression//PrimaryExpression) = 1
+and not (
+../../PrimarySuffix/Arguments/ArgumentList/Expression/PrimaryExpression/PrimaryPrefix/Name/@Image=
+ancestor::MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter/VariableDeclaratorId/@Image)]
+	]]></value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="AvoidRecompilingXPathExpression" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="XPathExpression is created and compiled every time. Beware it is thread-unsafe." typeResolution="true"
+          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-UX02">
+        <description>XPathExpression is created and compiled on every method call. Problem: Creation XPath and compilation of XPathExpression takes time. It may slow down your application. &#13;
+            Solution: 1. Avoid XPath usage. 2. Since XPath and XPathExpression classes are thread-unsafe, they are not easily cached. Caching in Thread locals may be a solution.
+            (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="version" value="1.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+//TypeDeclaration/ClassOrInterfaceDeclaration/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDeclaration
+//PrimaryExpression/PrimaryPrefix/Name[ends-with(@Image,'.newXPath')]
+/ancestor::ClassOrInterfaceBodyDeclaration
+//PrimaryExpression/PrimaryPrefix/Name[ends-with(@Image, '.compile')]
+	]]></value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="AvoidRecreatingDateTimeFormatter"
+          message="Avoid recreating DateTimeFormatter, it is relatively expensive."
+          class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
+          typeResolution="true" externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-IDTF02">
+        <description>
+            Problem: Recreating a DateTimeFormatter is relatively expensive.&#13;
+            Solution: org.joda.time.format.DateTimeFormatter or Java 8 java.time.DateTimeFormatter is thread-safe and can be shared among threads. Create the
+            formatter from a pattern only once, to initialize a static final field.
+            (jpinpoint-rules)</description>
         <properties>
             <property name="version" value="1.0"/>
             <property name="xpath">
                 <value>
                     <![CDATA[
+    //FieldDeclaration[@Final='false' or @Static='false']//ReferenceType/ClassOrInterfaceType[typeIs('org.joda.time.format.DateTimeFormatter') or typeIs('org.threeten.bp.format.DateTimeFormatter') or typeIs('java.time.format.DateTimeFormatter')] |
+    //MethodDeclaration/Block//ReferenceType/ClassOrInterfaceType[typeIs('org.joda.time.format.DateTimeFormatter') or typeIs('org.threeten.bp.format.DateTimeFormatter') or typeIs('java.time.format.DateTimeFormatter')]
+[ancestor::LocalVariableDeclaration/VariableDeclarator/VariableInitializer/Expression//PrimaryPrefix/Literal] |
+    //MethodDeclaration/Block/BlockStatement//Expression//AllocationExpression/ClassOrInterfaceType[typeIs('org.joda.time.format.DateTimeFormatter') or typeIs('org.threeten.bp.format.DateTimeFormatter') or typeIs('java.time.format.DateTimeFormatter')] |
+    //MethodDeclaration/Block/BlockStatement//Expression/PrimaryExpression/PrimaryPrefix/Name[starts-with(@Image, 'ISODateTimeFormat.')] |
+    //MethodDeclaration/Block/BlockStatement//Expression/PrimaryExpression/PrimaryPrefix/Name[starts-with(@Image, 'DateTimeFormat.')
+       and not (ends-with(@Image, 'forPattern'))] |
+   //MethodDeclaration/Block/BlockStatement//Expression/PrimaryExpression/PrimaryPrefix/Name[starts-with(@Image, 'DateTimeFormat.forPattern')]
+[ancestor::Expression//PrimaryPrefix/Literal] |
+    //MethodDeclaration/Block/BlockStatement//Expression/PrimaryExpression/PrimarySuffix[@Image='toFormatter']
+]]>
+                </value>
+            </property>
+        </properties>
+        <priority>2</priority>
+    </rule>
+
+    <rule name="AvoidReflectionInToStringAndHashCode" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="Reflection is used in toString or hashCode, which is expensive." typeResolution="true"
+          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-UUOR01">
+        <description>Problem: Reflection is relatively expensive. &#13;
+            Solution: Avoid to use reflection. Use the non-reflective, explicit way, preferably using Guava.
+            (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="version" value="1.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+//PrimaryPrefix/AllocationExpression/ClassOrInterfaceType
+	[
+		typeIs('org.apache.commons.lang.builder.EqualsBuilder')
+		or typeIs('org.apache.commons.lang.builder.HashCodeBuilder')
+	]
+[../../../PrimarySuffix[1]
+	[
+		@Image='reflectionEquals'
+		or @Image='reflectionHashCode'
+	]
+] |
 //PrimaryPrefix/Name
-[ends-with(@Image, '.get') or ends-with(@Image, '.getString')]
+	[
+		@Image='EqualsBuilder.reflectionEquals'
+		or @Image='HashCodeBuilder.reflectionHashCode'
+	]
+	]]></value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="AvoidSimpleDateFormat" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="SimpleDateFormat is used. Since it is thread-unsafe, it needs expensive recreation."  typeResolution="true"
+          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-IDTF01">
+        <description>Problem: java.util.SimpleDateFormat is thread-unsafe. The usual solution is to create a new one when needed in a method. Creating SimpleDateFormat is relatively expensive. &#13;
+            Solution: Use a Joda-Time DateTimeFormat to create a specific DateTimeFormatter or Java 8 java.time.DateTimeFormatter. These classes are immutable, thus thread-safe and can be made static.
+            (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="version" value="1.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+ //AllocationExpression/ClassOrInterfaceType[typeIs('java.text.SimpleDateFormat')]
+	]]></value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="AvoidStringBuffer" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="StringBuffer is used. It introduces locking overhead, use StringBuilder." typeResolution="true"
+          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-ISU01" >
+        <description>Problem: StringBuffer introduces locking overhead because it is thread safe. Its thread-safety is rarely needed.&#13;
+            Solution: Replace StringBuffer by StringBuilder.  (jpinpoint-rules)</description>
+        <priority>3</priority>
+        <properties>
+            <property name="version" value="1.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+                    //VariableDeclarator[../Type/ReferenceType/ClassOrInterfaceType[typeIs('java.lang.StringBuffer')]]
+                    ]]></value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="AvoidUnconditionalBuiltLogStrings" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="Log String is built irrespective of log level." typeResolution="true"
+          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-IL02">
+        <description>A String to be logged is built unconditionally. Problem: String building, concatenation and/or other operations happen before the debug, trace or info method executes, so independent of the need to actually log. Concatenation is relatively expensive. &#13;
+            Solution: Build the String conditionally on the log level, within an if statement.
+            (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="version" value="1.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+//MethodDeclaration/Block/BlockStatement/Statement//StatementExpression/PrimaryExpression/PrimaryPrefix/Name[
+(substring-before(@Image, '.') =
+ancestor::MethodDeclaration//BlockStatement/Statement/StatementExpression/PrimaryExpression/PrimaryPrefix/Name[ends-with
+(@Image, '.debug') or ends-with(@Image, '.trace') or ends-with(@Image, '.info')]
+/../../PrimarySuffix/Arguments/ArgumentList/Expression/PrimaryExpression/PrimaryPrefix/Name/attribute::Image
+and
+substring-after(@Image, '.') = 'append')
+and count(ancestor::IfStatement) = 0
+and
+count(ancestor::MethodDeclaration/Block/BlockStatement/Statement//PrimaryExpression/PrimaryPrefix/Name[
+(substring-before(@Image, '.') =
+ancestor::MethodDeclaration//BlockStatement/Statement//PrimaryExpression/PrimaryPrefix/Name[ends-with
+(@Image, '.debug') or ends-with(@Image, '.trace') or ends-with(@Image, '.info')]
+/../../PrimarySuffix/Arguments/ArgumentList//PrimaryExpression/PrimaryPrefix/Name/attribute::Image
+and
+substring-after(@Image, '.') != 'append')]) = 0
+]
+	]]></value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="AvoidWideScopeXPathExpression" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="XPathExpression targets a wide scope, this is potentially slow." typeResolution="true"
+          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-UX01">
+        <description>The XPathExpression targets a wide scope since it starts with '//'. Problem: XPath has to search in a wide scope for occurrences, this may take a while. &#13;
+            Solution: 1. Avoid XPath usage. 2. Make the scope as narrow as possible, do not start with '//'.
+            (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="version" value="1.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+//TypeDeclaration/ClassOrInterfaceDeclaration/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDeclaration
+//PrimaryExpression/PrimarySuffix[
+Arguments/ArgumentList/Expression/PrimaryExpression/PrimaryPrefix/
+Literal[starts-with(@Image, '"//')]
+and
+../PrimaryPrefix/Name[ends-with(@Image, '.compile')]
+]
+	]]></value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="AvoidXMLGregorianCalendar" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="XMLGregorianCalendar is used. It is slow in JAXB." typeResolution="true"
+          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-IUOXAR05">
+        <description>Problem: XMLGregorianCalendar is a large object, involving substantial processing. It is created with the poorly performing DatatypeFactory.
+            Solution: Add a converter for alternative date handling with joda-time or Java 8 java.time.
+            (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+
+            <property name="version" value="1.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+//TypeDeclaration/ClassOrInterfaceDeclaration/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/
+FieldDeclaration/Type/ReferenceType/ClassOrInterfaceType[typeIs('javax.xml.datatype.XMLGregorianCalendar')]
+|
+//TypeDeclaration/ClassOrInterfaceDeclaration/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/
+MethodDeclaration//LocalVariableDeclaration/Type/ReferenceType/ClassOrInterfaceType[typeIs('javax.xml.datatype.XMLGregorianCalendar')]
+	]]></value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="AvoidXPathAPIUsage" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="XPathAPI is used. XPathAPI implementation has bad performance." typeResolution="true"
+          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-UX03">
+        <description>XPathAPI is used. Problem: XPathAPI implementation is slow.&#13;
+            Solution: 1. try to avoid using XPathAPI. 2. improve performance by using jvm parameters and possibly CachedXPathAPI.
+            (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="version" value="1.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+//TypeDeclaration/ClassOrInterfaceDeclaration/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration
+//PrimaryExpression/PrimaryPrefix/Name[starts-with(@Image, 'XPathAPI.')]
+	]]></value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="AvoidXPathUsage" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="XPath is used. XPath implementation has bad performance." typeResolution="true"
+          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-UX03">
+        <description>XPath is used. Problem: XPath implementation is slow.&#13;
+            Solution: 1. avoid using XPath. 2. improve performance by using jvm parameters and possibly Cached XPath API.
+            (jpinpoint-rules)</description>
+        <priority>3</priority>
+        <properties>
+            <property name="version" value="1.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+//TypeDeclaration/ClassOrInterfaceDeclaration/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration
+//PrimaryExpression/PrimaryPrefix/Name[@Image='XPathFactory.newInstance']
+	]]></value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="ImplementEqualsHashCodeOnValueObjects"
+          message="Equals and/or hashCode is missing for a value object."
+          class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
+          typeResolution="true" externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-IncorrectequalsandhashCode">
+        <description>
+            Problem: If equals and hashCode are not defined, they don't meet the programmer's expectations and the requirements for use with the collections API. It may result in unexpected, undesired behavior.&#13;
+            Solution: Add proper equals and hashCode methods that meet the equals-hashCode contract to all objects which might anyhow be put in a Map, Set or other collection. If the object should never be checked for equality or used in a collection, also add those methods and let them throw UnsupportedOperationException to fail fast. @Xml... and @Entity objects are ignored because they are assumed to be not used as value objects.
+            (jpinpoint-rules)</description>
+        <properties>
+            <property name="version" value="1.0"/>
+            <property name="xpath">
+                <value>
+                    <![CDATA[
+//TypeDeclaration[not(./Annotation//Name[@Image='Data' or @Image='Value' or @Image='EqualsAndHashCode'
+or @Image='Singleton' or @Image='Component' or @Image='Service' or @Image='Repository' or @Image='Configuration' or @Image='Endpoint' or @Image='RestController' or @Image='ControllerAdvice'
+or starts-with(@Image, 'Xml') or @Image='Entity' or @Image='Embeddable' or @Image='MappedSuperclass'])]
+/ClassOrInterfaceDeclaration[@Interface='false' and @Abstract='false']
+[not(./ExtendsList/ClassOrInterfaceType[ends-with(@Image, 'Exception') or ends-with(@Image, 'Throwable')])]
+/ClassOrInterfaceBody[ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Static='false']
 [
-	starts-with(@Image, concat(
-		ancestor::MethodDeclaration//FormalParameter/Type/ReferenceType/ClassOrInterfaceType[typeIs('org.apache.commons.fileupload.FileItem')]/../../..//VariableDeclaratorId/@Image,
-		'.')
-	) or
-	starts-with(@Image, concat(
-		ancestor::MethodDeclaration//LocalVariableDeclaration/Type/ReferenceType/ClassOrInterfaceType[typeIs('org.apache.commons.fileupload.FileItem')]/../../..//VariableDeclaratorId/@Image,
-		'.')
-	) or
-	starts-with(@Image, concat(
-		ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration/Type/ReferenceType/ClassOrInterfaceType[typeIs('org.apache.commons.fileupload.FileItem')]/../../..//VariableDeclaratorId/@Image,
-		'.')
+(not (../Annotation//Name[@Image = 'XmlElement']))
+and
+(
+ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDeclaration
+[@Public='true' and @Static='false']/MethodDeclarator[starts-with(@Image, 'get') and string-length(@Image) > 3 or starts-with(@Image, 'is') and string-length(@Image) > 2]
+[../ResultType/Type/ReferenceType/ClassOrInterfaceType/@Image =
+ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Static='false']/Type/ReferenceType/ClassOrInterfaceType/@Image]
 )
+and
+(not (
+ancestor::ClassOrInterfaceBody//MethodDeclaration[@Public='true' and @Static='false']/MethodDeclarator[@Image='equals' or @Image='hashCode'])
+)
+and
+((ancestor::ClassOrInterfaceBody//MethodDeclaration[@Public='true' and @Static='false']/MethodDeclarator/@Image='toString'
+and
+count(ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Static='false']) <=
+(1 + count(ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDeclaration
+[@Public='true' and @Static='false']/MethodDeclarator[starts-with(@Image, 'get') and string-length(@Image) > 3 or starts-with(@Image, 'is') and string-length(@Image) > 2]))
+)
+or
+ancestor::ClassOrInterfaceDeclaration[ends-with(@Image, 'Dto')]
+or
+count(ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Static='false']) =
+count(ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDeclaration
+[@Public='true' and @Static='false']/MethodDeclarator[starts-with(@Image, 'get') and string-length(@Image) > 3 or starts-with(@Image, 'is') and string-length(@Image) > 2])
+)]
 ]
 ]]>
                 </value>
             </property>
         </properties>
-        <example>
-            <![CDATA[
-public class FileStuff {
-   private String bad(FileItem fileItem) {
-        return fileItem.getString();
-   }
+        <priority>3</priority>
+    </rule>
 
-   private InputStream good(FileItem fileItem) {
-        return fileItem.getInputStream();
-   }
-}
-            ]]>
-        </example>
+    <rule name="JAXBContextCreatedForEachMethodCall" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="JAXBContext is created for each method call, which is expensive."  typeResolution="true"
+          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-IUOXAR04">
+        <description>Problem: JAXBContext creation is expensive because it does much class loading.  &#13;
+            Solution: Since JAXBContext objects are thread safe, they can be shared between requests and reused. So, reuse created instances, e.g. as singletons.
+            (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="version" value="1.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+//MethodDeclaration//Expression/PrimaryExpression/PrimaryPrefix/Name[@Image = 'JAXBContext.newInstance']
+			]]></value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="MDCPutWithoutRemove" message="MDC put is used without finally remove." class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" typeResolution="true" externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-IL04">
+        <description>
+            MDC values are added for logging, but not removed. Problem: MDC values can leak to other user transactions (requests) and log incorrect information. Solution: remove the MDC value in a finally clause.
+            (jpinpoint-rules)</description>
+        <properties>
+            <property name="xpath">
+                <value>
+                    <![CDATA[
+//TypeDeclaration/ClassOrInterfaceDeclaration/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/
+MethodDeclaration/Block//Statement/StatementExpression/PrimaryExpression/PrimaryPrefix/Name[@Image='MDC.put']
+/../../PrimarySuffix/Arguments/ArgumentList/Expression[1]/PrimaryExpression/PrimaryPrefix/Literal[not(@Image=
+ancestor::ClassOrInterfaceBodyDeclaration/MethodDeclaration/Block//TryStatement//Statement/StatementExpression/PrimaryExpression/PrimaryPrefix/Name[@Image='MDC.remove']
+/../../PrimarySuffix/Arguments/ArgumentList/Expression[1]/PrimaryExpression/PrimaryPrefix/Literal/@Image)
+]
+|
+//TypeDeclaration/ClassOrInterfaceDeclaration/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/
+MethodDeclaration/Block//Statement/StatementExpression/PrimaryExpression/PrimaryPrefix/Name[@Image='MDC.put']
+/../../PrimarySuffix/Arguments/ArgumentList/Expression[1]/PrimaryExpression/PrimaryPrefix/Name[not(@Image=
+ancestor::ClassOrInterfaceBodyDeclaration/MethodDeclaration/Block//TryStatement//Statement/StatementExpression/PrimaryExpression/PrimaryPrefix/Name[@Image='MDC.remove']
+/../../PrimarySuffix/Arguments/ArgumentList/Expression[1]/PrimaryExpression/PrimaryPrefix/Name/@Image)
+]
+]]>
+                </value>
+            </property>
+        </properties>
+        <priority>2</priority>
+    </rule>
+
+    <rule name="MinimizeAttributesInSession" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="Attribute is set in the session, yet not removed. This may bloat the session." typeResolution="true"
+          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-TMSU01">
+        <description>An attribute is set in the session and not removed. Problem: This may be a large object and data in the sessions takes heap space and stay in the session until time-out. This may take substantial heap space.&#13;
+            Solution: remove the attribute if not really needed in the session, remove it from the session as soon as possible. Alternatively, use render parameters.
+            (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="version" value="1.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+//ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDeclaration//Block/BlockStatement/Statement[
+./StatementExpression/PrimaryExpression/PrimarySuffix[ends-with(@Image, 'setAttribute')]
+/ancestor::ClassOrInterfaceBodyDeclaration//ClassOrInterfaceBody[not(
+ClassOrInterfaceBodyDeclaration/MethodDeclaration//Block/BlockStatement/Statement/StatementExpression/PrimaryExpression/PrimarySuffix[ends-with(@Image, 'removeAttribute')]
+or
+ClassOrInterfaceBodyDeclaration/MethodDeclaration//Block/BlockStatement/Statement/StatementExpression/PrimaryExpression/PrimaryPrefix/Name[ends-with(@Image, 'removeAttribute')]
+)]]
+|
+//ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDeclaration//Block/BlockStatement/Statement[
+./StatementExpression/PrimaryExpression/PrimaryPrefix/Name[ends-with(@Image, 'setAttribute')]
+/ancestor::ClassOrInterfaceBodyDeclaration//ClassOrInterfaceBody[not(
+ClassOrInterfaceBodyDeclaration/MethodDeclaration//Block/BlockStatement/Statement/StatementExpression/PrimaryExpression/PrimarySuffix[ends-with(@Image, 'removeAttribute')]
+or
+ClassOrInterfaceBodyDeclaration/MethodDeclaration//Block/BlockStatement/Statement/StatementExpression/PrimaryExpression/PrimaryPrefix/Name[ends-with(@Image, 'removeAttribute')]
+)]]
+|
+//ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDeclaration//Block/BlockStatement/Statement[
+.//StatementExpression/PrimaryExpression/PrimaryPrefix/Name[@Image = 'PortletUtils.setSessionAttribute']
+/ancestor::ClassOrInterfaceBodyDeclaration//ClassOrInterfaceBody[not(
+ClassOrInterfaceBodyDeclaration/MethodDeclaration//Block/BlockStatement//Statement/StatementExpression/PrimaryExpression/PrimaryPrefix/Name[@Image = 'PortletUtils.setSessionAttribute']
+/../../PrimarySuffix/Arguments/ArgumentList/Expression/PrimaryExpression/PrimaryPrefix/Literal/NullLiteral
+)]]
+	]]></value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="ObjectMapperCreatedForEachMethodCall" message="An ObjectMapper is created for each method call, which is expensive." class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"   typeResolution="true" externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-IUOJAR01">
+        <description>Problem: Jackson ObjectMapper creation is expensive because it does much class loading.  &#13;
+            Solution: Since ObjectMapper objects are thread-safe after configuration in one thread, they can be shared afterwards between requests and reused. So, reuse created instances, from a static field.
+            (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="version" value="1.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+//MethodDeclaration//Expression/PrimaryExpression/PrimaryPrefix/AllocationExpression/ClassOrInterfaceType[
+	(typeIs('com.fasterxml.jackson.databind.ObjectMapper')) and
+	not(ancestor::TypeDeclaration/Annotation/MarkerAnnotation/Name/@Image='Configuration')
+]
+			]]></value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="UnconditionalConcatInLogArgument" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="String concatenation (+) is executed regardless of log level and can be expensive" typeResolution="true"
+          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-IL01">
+        <description>Problem: String concatenation (+) is executed regardless of log level and can be expensive. &#13;
+            Solution: Use SLF4J formatting with {}-placeholders or log and format conditionally.  (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="version" value="1.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+			//PrimaryPrefix/Name[ends-with(@Image,'.trace') or ends-with(@Image,'.debug') or ends-with(@Image,'.info')]/../../PrimarySuffix/Arguments/ArgumentList/Expression/AdditiveExpression
+			[PrimaryExpression/PrimaryPrefix/Name]
+			[not(ancestor::IfStatement/Expression/PrimaryExpression/PrimaryPrefix/Name[
+			ends-with(@Image,'.isTraceEnabled')
+			or ends-with(@Image,'.isDebugEnabled')
+			or ends-with(@Image,'.isInfoEnabled')
+			or ends-with(@Image,'.isLoggable')
+			])]
+]]></value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="UnconditionalStringOperationOnLogArgument" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="String operation is executed regardless of log level and can be expensive" typeResolution="true"
+          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-IL03">
+        <description>Problem: A String operation like toString() or String.format is executed regardless of log level. This may include formatting, reflection and other wasteful processing.&#13;
+            Solution: Remove the operation and utilize SLF4J formatting with {}-placeholders, or log and format conditionally.  (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="version" value="1.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+            //PrimaryPrefix/Name
+            [
+            	ends-with(@Image,'.trace')
+            	or ends-with(@Image,'.debug')
+            	or ends-with(@Image,'.info')
+            ]
+            /../../PrimarySuffix/Arguments/ArgumentList/Expression//PrimaryExpression/PrimaryPrefix/Name
+            [
+            	ends-with(@Image,'.toString')
+            	or starts-with(@Image,'String.')
+            ]
+            [not(ancestor::IfStatement/Expression//PrimaryPrefix/Name
+            	[
+					ends-with(@Image,'.isTraceEnabled')
+					or ends-with(@Image,'.isDebugEnabled')
+					or ends-with(@Image,'.isInfoEnabled')
+					or ends-with(@Image,'.isLoggable')
+				])
+			]
+			]]>
+                </value>
+            </property>
+        </properties>
     </rule>
 
 </ruleset>
