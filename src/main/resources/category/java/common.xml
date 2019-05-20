@@ -204,7 +204,29 @@ ancestor::MethodDeclaration//ForStatement//Statement/StatementExpression/Primary
                 </value>
             </property>
         </properties>
-    </rule>
+        <example>
+            <![CDATA[
+public class StringStuff {
+   private String bad(String arg) {
+        String log = "";
+        List<String> values = Arrays.asList("tic ", "tac ", "toe ");
+        for (String val : values) {
+            log += val;
+        }
+        return log;
+    }
+
+   private String good(String arg) {
+        StringBuilder sb = new StringBuilder();
+        List<String> values = Arrays.asList("tic ", "tac ", "toe ");
+        for (String val : values) {
+            sb.append(val);
+        }
+        return sb.toString();
+   }
+}
+            ]]>
+        </example>    </rule>
 
     <rule name="AvoidConstantsInInterface" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="Interface defines constants. It may expose implementation details." typeResolution="true"
           externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-VOEDOS04">

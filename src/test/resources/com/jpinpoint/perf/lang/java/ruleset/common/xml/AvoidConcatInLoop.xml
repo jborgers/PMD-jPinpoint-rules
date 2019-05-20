@@ -115,16 +115,12 @@ public class AvoidConcatInLoopTest {
                 totalParticipationPercentage = totalParticipationPercentage
                         + (double) portfolioInstrumentDetails.hashCode();
 
-                // putting portfolio line with its attributes in the columns csv
-
-                // add tokens needed in csv file
-
             }
         }
 
     }
 
-    public int testCorrectKruithof_indexOfCorrect(String keyName) {
+    public int testCorrectKruith_indexOfCorrect(String keyName) {
         int index = 0;
         HashMap<String, String> columnsTypes = new HashMap<String, String>();
         for (String variableName : columnsTypes.keySet()) {
@@ -161,7 +157,7 @@ public class AvoidConcatInLoopTest {
         }
     }
 
-    public static void testROMInitLoggingCorrect(ServletContext servletContext) {
+    public static void testRMInitLoggingCorrect(ServletContext servletContext) {
         String propertyFile = servletContext.getInitParameter("X");
         String[] properyFilenames = propertyFile.split(",");
         for (String propertyFilename : properyFilenames) {
@@ -175,7 +171,7 @@ public class AvoidConcatInLoopTest {
         }
     }
 
-    public static void testROMInitLoggingCorrect2(ServletContext servletContext) {
+    public static void testRMInitLoggingCorrect2(ServletContext servletContext) {
         String propertyFile = servletContext.getInitParameter("X");
         String[] properyFilenames = propertyFile.split(",");
         for (String propertyFilename : properyFilenames) {
@@ -190,7 +186,7 @@ public class AvoidConcatInLoopTest {
         }
     }
 
-    public static void correctAfov_PCC_477() {
+    public static void correctAfov() {
         List<String> linkNames = new ArrayList<String>();
         Map<String, String> messages = new HashMap<String, String>();
         // Get texts from RetrieveLinkMessage service
