@@ -231,7 +231,7 @@ ancestor::MethodDeclaration//ForStatement//Statement/StatementExpression/Primary
           typeResolution="true"
           externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-IDTF01">
         <description>Problem: java.text.DecimalFormat and java.text.ChoiceFormat are thread-unsafe. The usual solution
-            is to create a new local one when needed in a method. (jpinpoint-rules)
+            is to create a new local one when needed in a method.
         </description>
         <priority>2</priority>
         <properties>
