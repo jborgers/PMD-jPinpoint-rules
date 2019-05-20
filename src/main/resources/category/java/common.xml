@@ -95,7 +95,6 @@ public class DateStuff {
     private long good2() {
         return System.currentTimeMillis();
     }
-
 }
             ]]>
         </example>
@@ -123,8 +122,9 @@ and
 .//PrimaryExpression/PrimarySuffix/Arguments/ArgumentList/Expression[1]/AdditiveExpression[@Image='+'
 and (count(PrimaryExpression/PrimaryPrefix/Name) > 0)
 and not(PrimaryExpression/PrimaryPrefix/Name/@Image=
-ancestor::ClassOrInterfaceBody//FieldDeclaration[@Final='true' and @Static='true']//VariableDeclaratorId/@Image
-)
+ancestor::ClassOrInterfaceBody//FieldDeclaration[@Final='true']//VariableDeclaratorId/@Image)
+and not(PrimaryExpression/PrimaryPrefix/Name/@Image=
+ancestor::Block//LocalVariableDeclaration[@Final='true']//VariableDeclaratorId/@Image)
 ]]
 	]]></value>
             </property>
@@ -140,7 +140,7 @@ public class StringStuff {
 
    private String good(String arg) {
         StringBuilder sb = new StringBuilder();
-        sb.append("arg=").append(arg).append("'");
+        sb.append("arg='").append(arg).append("'");
         return sb.toString();
    }
 }

@@ -24,7 +24,7 @@ public class AvoidConcatInAppendTest {
 
     private String good(String arg) {
         StringBuilder sb = new StringBuilder();
-        sb.append("arg=").append(arg).append("'");
+        sb.append("arg='").append(arg).append("'");
         return sb.toString();
     }
     public void testAddInSecondOrThirdArgAppendGood() {
@@ -45,11 +45,22 @@ public class AvoidConcatInAppendTest {
         return sb.toString();
     }
 
-    private String testFinalBad() {
-        return new StringBuilder().append("fld:" + FINAL_F).toString(); //bad
+    private String testFinalFieldGood() { // final assumed a constant expression
+        return new StringBuilder().append("fld:" + FINAL_F).toString(); //good
     }
-    private String testStaticFinalGood() {
-        return new StringBuilder().append("fld:" + STATIC_FINAL_F).toString();
+
+    private String testStaticFinalFieldGood() {
+        return new StringBuilder().append("fld:" + STATIC_FINAL_F).toString(); // good
+    }
+
+    private String testFinalLocalGood() {
+        final String local = "local"; // final assumed a constant expression
+        return new StringBuilder().append("fld:" + local).toString(); // good
+    }
+
+    private String testFinalLocalBad() {
+        String local = "local"; // non-final, open issue: jdk9+ good if effectively final
+        return new StringBuilder().append("fld:" + local).toString(); // bad?
     }
 }
      ]]></code>
