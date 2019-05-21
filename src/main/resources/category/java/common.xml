@@ -69,9 +69,8 @@ public class FileStuff {
                 <value><![CDATA[
 //PrimaryPrefix[Name[ends-with(@Image, 'Calendar.getInstance')]] [count(../PrimarySuffix) > 2 and ../PrimarySuffix[last()-1][@Image = 'getTime' or @Image='getTimeInMillis']]
 |
-//Block/BlockStatement/LocalVariableDeclaration/VariableDeclarator/VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/Name[ends-with(@Image, 'Calendar.getInstance')]/
-../../../../../../../../
-BlockStatement/LocalVariableDeclaration/VariableDeclarator/VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/Name[ends-with(@Image,'.getTime') or ends-with(@Image,'.getTimeInMillis')]
+//Block/BlockStatement//Expression/PrimaryExpression/
+PrimaryPrefix/Name[typeIs('java.util.Calendar') and (ends-with(@Image,'.getTime') or ends-with(@Image,'.getTimeInMillis'))]
 |
 //ClassOrInterfaceType[typeIs('org.joda.time.DateTime') or typeIs('org.joda.time.LocalDateTime')][../Arguments/ArgumentList/Expression/PrimaryExpression/PrimaryPrefix/Name[ends-with(@Image, 'Calendar.getInstance')]]
 	         ]]></value>

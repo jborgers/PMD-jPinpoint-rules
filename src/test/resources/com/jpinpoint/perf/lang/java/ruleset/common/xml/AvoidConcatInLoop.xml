@@ -4,7 +4,7 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
     <test-code>
-        <description>Avoid String concatenations expecially in loops</description>
+        <description>Avoid String concatenations in loops</description>
         <expected-problems>8</expected-problems>
         <code><![CDATA[
 import org.slf4j.Logger;
