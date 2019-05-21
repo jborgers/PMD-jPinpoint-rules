@@ -161,7 +161,7 @@ public class AvoidConcatInLoopTest {
                 try {
                     InputStream inputStream = AvoidConcatInLoopTest.class.getClassLoader().getResourceAsStream(propertyFilename);
                 } catch (Exception e) {
-                    log("Failed to load propertyFile with name " + propertyFilename + ": ", e);
+                    logError("Failed to load propertyFile with name " + propertyFilename + ": ", e);
                 }
             }
         }
@@ -176,7 +176,7 @@ public class AvoidConcatInLoopTest {
                 try {
                     InputStream inputStream = AvoidConcatInLoopTest.class.getClassLoader().getResourceAsStream(propertyFilename);
                 } catch (Exception e) {
-                    log("Failed to load propertyFile with name " + propertyFilename + ": ", e);
+                    logError("Failed to load propertyFile with name " + propertyFilename + ": ", e);
                 }
             }
         }
@@ -208,7 +208,7 @@ public class AvoidConcatInLoopTest {
         }
     }
 
-    private static void log(String text, Exception e) {
+    private static void logError(String text, Exception e) {
     }
 }
      ]]></code>
