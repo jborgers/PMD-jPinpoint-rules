@@ -99,6 +99,63 @@ public class DateStuff {
         </example>
     </rule>
 
+    <rule name="AvoidCDIReferenceLeak"
+          language="java"
+          message="Explicit CDI references need to be destroyed otherwise they leak."
+          class="net.sourceforge.pmd.lang.rule.XPathRule"
+          typeResolution="true"
+          externalInfoUrl="${pmd.website.baseurl}/pmd_rules_performance.html#AvoidCDIReferenceLeak">
+        <description>Problem: A proxy object is created by CDI for explicit references, they are not de-referenced implicitely and become a memory leak. &#13;
+            Solution: Destroy the reference explicitely.
+        </description>
+        <priority>2</priority>
+        <properties>
+            <property name="version" value="1.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+//Expression/PrimaryExpression/PrimaryPrefix/Name[@Image='CDI.current']/../../
+PrimarySuffix[@Image = 'select'
+and not
+(ancestor::MethodDeclaration//TryStatement/FinallyStatement//PrimaryExpression[
+PrimaryPrefix/Name/@Image='CDI.current'][PrimarySuffix/@Image = 'destroy']
+[PrimarySuffix/Arguments/ArgumentList/Expression/PrimaryExpression/PrimaryPrefix/Name/@Image =
+ancestor::MethodDeclaration//Expression/PrimaryExpression/PrimaryPrefix/Name[@Image='CDI.current']/../../
+PrimarySuffix[@Image = 'select']/ancestor::StatementExpression/PrimaryExpression/PrimaryPrefix/Name/@Image
+])
+and not
+(ancestor::MethodDeclaration//TryStatement/FinallyStatement//PrimaryExpression[
+PrimaryPrefix/Name/@Image='CDI.current'][PrimarySuffix/@Image = 'destroy']
+[PrimarySuffix/Arguments/ArgumentList/Expression/PrimaryExpression/PrimaryPrefix/Name/@Image =
+ancestor::MethodDeclaration//VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/Name[@Image='CDI.current']/../../
+PrimarySuffix[@Image = 'select']/ancestor::VariableDeclarator/VariableDeclaratorId/@Image
+])]
+]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+public class CDIStuff {
+
+	private void bad() {
+		MyClass o = CDI.current().select(MyClass.class).get();
+		o.doStuff();
+	    // bad - missing destroy in finally
+	}
+
+	private void good() {
+		MyClass o = CDI.current().select(MyClass.class).get();
+		try {
+			o.doStuff();
+		} finally {
+			CDI.current().destroy(o); // good - destroy properly
+		}
+	}
+}
+            ]]>
+        </example>
+    </rule>
+
+
     <rule name="AvoidConcatInAppend"
           language="java"
           message="Concatenation inside append. Use extra append."
