@@ -94,7 +94,22 @@ For new rule files you will also need to register it in the `categories.properti
 Pay attention to the package structure which is also dictated by the first java test class!
 
 Depending on what you want to add you may also find it is sufficient to change one or more of the existing files.
-Or to add only a Test class and unit test xml file (steps 1 and 3).  
+Or to add only a Test class and unit test xml file (steps 1 and 3).
+
+### Conventions for XML Unit test files
+
+Following are some conventions and reccomendations on how to
+construct the unit test files:
+
+- separate test code *(create separate ``<test-code>`` blocks)*
+- specify test code description *(``<test-code><description>``)*
+- specify number of occurrences *(``<test-code><expected-problems>``)*
+- specify line-numbers *(``<test-code><expected-linenumbers>``)*
+- code *(``<test-code><code>``)* conventions:
+  - use class names like **``Foo``**
+  - use method names like **``bad``** and **``good``**
+  - add comment at the end of bad lines **``//bad``**  
+  - remove useless code and **``import``** statements
 
 ## Code Style Indentation
 
