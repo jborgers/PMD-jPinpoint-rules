@@ -4,18 +4,14 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
     <test-code>
-        <description>Avoid building String with concatenations in loops</description>
-        <expected-problems>8</expected-problems>
+        <description>violation: concat to String in for/while loop</description>
+        <expected-problems>4</expected-problems>
         <code><![CDATA[
-import javax.servlet.ServletContext;
-import java.io.InputStream;
 import java.util.*;
 
-public class AvoidConcatInLoopTest {
+public class ConcatInLoop {
 
-    private static final String ROLE_PREFIX = "role-";
-
-    public void testConcatInLoopBad() {
+    public void bad1() {
         String logStatement = "";
         List<String> values = Arrays.asList("tic", "tac", "toe");
         for (String val : values) {
@@ -26,8 +22,26 @@ public class AvoidConcatInLoopTest {
             logStatement = logStatement + iter.next() + ", "; // bad
         }
     }
+    public void bad2() {
+        String log = "";
+        List<String> values = Arrays.asList(new String[]{"tic", "tac", "toe"});
+        for (String val1 : values) {
+            log += val1; // bad
+        }
+        for (String val2 : values) log += val2; // bad
+    }
+}
+     ]]></code>
+    </test-code>
 
-    public void testConcatInLoopCorrect() {
+    <test-code>
+        <description>no violation: add integers in loops</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import java.util.*;
+
+public class ConcatInLoop {
+    public void good1() {
         int log = 0;
         List<Integer> values = Arrays.asList(new Integer[]{1, 2, 3});
         for (int val : values) {
@@ -39,48 +53,69 @@ public class AvoidConcatInLoopTest {
         }
     }
 
-    public void testConcatInLoopBad2() {
-        String log = "";
-        List<String> values = Arrays
-                .asList(new String[]{"tic", "tac", "toe"});
-        for (String val : values) {
-            log += val;
-        }
-    }
-
-    public void testConcatInLoopCorrect2() {
+    public void good2() {
         int log = 0;
         List<Integer> values = Arrays.asList(new Integer[]{1, 2, 3});
         for (int val : values) {
             log += val;
         }
     }
+}
+    ]]></code>
+    </test-code>
 
+    <test-code>
+        <description>violation: concat in append in loops</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import java.util.*;
 
-    public void testConcatInLoopBad3FoundInAppend() {
+public class ConcatInLoop {
+    public void bad1() {
         StringBuilder logStatement = new StringBuilder();
-        List<String> values = Arrays
-                .asList(new String[]{"tic", "tac", "toe"});
+        List<String> values = Arrays.asList("tic", "tac", "toe");
         for (String val : values) {
-            logStatement.append(val + ", ");
+            logStatement.append(val + ", "); // bad
         }
     }
+}
+    ]]></code>
+    </test-code>
 
-    public void testConcatInLoopCorrect3() {
+    <test-code>
+        <description>no violation: proper append in loops</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import java.util.*;
+
+public class ConcatInLoop {
+    public void good() {
         StringBuilder logStatement = new StringBuilder();
-        List<String> values = Arrays
-                .asList(new String[]{"tic", "tac", "toe"});
-        for (String val : values) {
+        List<String> values = Arrays.asList("tic", "tac", "toe");
+        for (String val1 : values) {
             logStatement.append(val);
         }
+        for (String val2 : values) logStatement.append(val2);
     }
+}
+    ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>violation:  concat in loops</description>
+        <expected-problems>5</expected-problems>
+        <code><![CDATA[
+import java.util.*;
+
+public class ConcatInLoop {
+    private static final String ROLE_PREFIX = "role-";
 
     public void testConcatInLoopBad4() {
         String logStatement = "";
         List<String> values = Arrays
                 .asList(new String[]{"tic", "tac", "toe"});
         for (String val : values) {
-            logStatement += val + ", ";
+            logStatement += val + ", "; // bad
         }
     }
 
@@ -92,12 +127,12 @@ public class AvoidConcatInLoopTest {
         List<String> persons = new ArrayList<String>();
         for (final String person : persons) {
             if (person != null) {
-                description += "0" + ":";
+                description += "0" + ":"; //bad
             } else {
-                description += ":";
+                description += ":"; //bad
             }
-            description += person.toString() + ":";
-            description += ";";
+            description += person.toString() + ":"; // bad
+            description += ";"; // bad
         }
         return description;
     }
@@ -153,13 +188,12 @@ public class AvoidConcatInLoopTest {
         }
     }
 
-    public static void testRMInitLoggingGood(ServletContext servletContext) {
-        String propertyFile = servletContext.getInitParameter("X");
+    public static void testRMInitLoggingGood(String propertyFile) {
         String[] properyFilenames = propertyFile.split(",");
         for (String propertyFilename : properyFilenames) {
             if (propertyFilename != null) {
                 try {
-                    InputStream inputStream = AvoidConcatInLoopTest.class.getClassLoader().getResourceAsStream(propertyFilename);
+                    //getResourceAsStream(propertyFilename);
                 } catch (Exception e) {
                     logError("Failed to load propertyFile with name " + propertyFilename + ": ", e);
                 }
@@ -167,20 +201,20 @@ public class AvoidConcatInLoopTest {
         }
     }
 
-    public static void testRMInitLoggingGood2(ServletContext servletContext) {
-        String propertyFile = servletContext.getInitParameter("X");
+    public static void testRMInitLoggingGood2(String propertyFile) {
         String[] properyFilenames = propertyFile.split(",");
         for (String propertyFilename : properyFilenames) {
             if (propertyFilename != null) {
                 propertyFilename = propertyFilename.trim();
                 try {
-                    InputStream inputStream = AvoidConcatInLoopTest.class.getClassLoader().getResourceAsStream(propertyFilename);
+                    //getResourceAsStream(propertyFilename);
                 } catch (Exception e) {
                     logError("Failed to load propertyFile with name " + propertyFilename + ": ", e);
                 }
             }
         }
     }
+
 
     public static void GoodAfov() {
         List<String> linkNames = new ArrayList<String>();
