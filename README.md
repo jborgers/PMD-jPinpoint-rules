@@ -102,7 +102,9 @@ Following are some conventions and reccomendations on how to
 construct the unit test files:
 
 - separate test code *(create separate ``<test-code>`` blocks)*
-- specify test code description *(``<test-code><description>``)*
+- specify test code description *(``<test-code><description>``)* Start the description with:
+  - **violation:** or
+  - **no violation:**
 - specify number of occurrences *(``<test-code><expected-problems>``)*
 - specify line-numbers *(``<test-code><expected-linenumbers>``)*
 - code *(``<test-code><code>``)* conventions:
