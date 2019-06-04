@@ -4,31 +4,39 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
     <test-code>
-        <description>Avoid the use of deprecated HttpConnectors</description>
+        <description>violation: Avoid the use of deprecated HttpConnectors</description>
         <expected-problems>8</expected-problems>
+        <expected-linenumbers>1,2,3,24,24,25,25,28</expected-linenumbers>
         <code><![CDATA[
-import org.apache.commons.httpclient.SimpleHttpConnectionManager;
-import org.apache.http.conn.ClientConnectionManager;
-import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
+import org.apache.commons.httpclient.SimpleHttpConnectionManager; //bad
+import org.apache.http.conn.ClientConnectionManager; //bad
+import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager; //bad
 
 /*
-deprecated: ClientConnectionManager, ThreadSafeClientConnManager and PoolingClientConnectionManager;
+Deprecated:
 
-Risk of session data mixup: SimpleHttpConnectionManager
+  - ClientConnectionManager
+  - SingleClientConnManager
+  - ThreadSafeClientConnManager
+  - DefaultHttpClient
+  - SystemDefaultHttpClient
+  - PoolingClientConnectionManager;
+
+Risk of session data mixup:
+
+  - SimpleHttpConnectionManager
 
 good: PoolingHttpClientConnectionManager
 
-found also deprecated: ClientConnectionManager, SingleClientConnManager, DefaultHttpClient, SystemDefaultHttpClient
  */
-public class AvoidDeprecatedHttpConnectors {
+public class Foo {
 
-    private SimpleHttpConnectionManager simple = new SimpleHttpConnectionManager();
-    ClientConnectionManager mgr = new ThreadSafeClientConnManager();
+    private SimpleHttpConnectionManager simple = new SimpleHttpConnectionManager(); // bad: 2x
+    ClientConnectionManager mgr = new ThreadSafeClientConnManager(); // bad: 2x
 
     private AvoidDeprecatedHttpConnectors() {
-        new SimpleHttpConnectionManager();
+        new SimpleHttpConnectionManager(); // bad
     }
-
 }
      ]]></code>
     </test-code>

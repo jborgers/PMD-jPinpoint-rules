@@ -4,8 +4,82 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
     <test-code>
-        <description>Avoid implicit recompiling of regular expressions</description>
+        <description>violation: Avoid implicit recompiling of regular expressions</description>
         <expected-problems>22</expected-problems>
+        <expected-linenumbers>17,18,19,23,24, 26,30,31,32,38, 39,40,42,48,49, 50,54,55,56,56, 59,65</expected-linenumbers>
+        <code><![CDATA[
+import java.io.File;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
+import java.nio.file.PathMatcher;
+import java.util.regex.Pattern;
+
+public class Foo {
+
+    private static final String PAT_STRING = "(?=\\p{Lu})";
+    private static final String PAT_STRING_SHORT = "/$1";
+    private String dynPatString; // field should be transformed to Pattern
+    private static final Path path = new File("fileName").toPath();
+    private String context;
+
+    void violatingSplit3x(String action) {
+        String[] splitString = action.split("(?=\\p{Lu})"); // bad: should precompile and use separate pattern, for str len > 1
+        String[] splitString2 = action.split(PAT_STRING); // bad: should precompile and use separate pattern
+        String[] splitStringDynamic = action.split(dynPatString); // bad: violation, field should be transformed to Pattern
+    }
+
+    void violatingReplaceAll3x(String action) {
+        action.replaceAll("(?=\\p{Lu})", "-"); // bad: should precompile and use separate pattern, for str len > 1
+        action.replaceAll(PAT_STRING, "-"); // bad: should precompile and use separate pattern
+        action.replaceAll(PAT_STRING_SHORT, "-"); // good: regex short, OK
+        action.replaceAll(dynPatString, ";"); // bad: field should be pattern
+    }
+
+    void violatingReplaceFirst3x(String action) {
+        action.replaceFirst("(?=\\p{Lu})", "-"); // bad: should precompile and use separate pattern, for str len > 1
+        action.replaceFirst(PAT_STRING, "-"); // bad: should precompile and use separate pattern
+        action.replaceFirst(dynPatString, ";"); // bad: field should be Pattern
+    }
+
+    // .matches on a String
+
+    void violatingMatches4x(String action) {
+        boolean b = action.matches("(?=\\p{Lu})"); // bad: should precompile and use separate pattern, for str len > 1
+        boolean c = action.matches(PAT_STRING); // bad: should precompile and use separate pattern
+        boolean d = action.matches(dynPatString); // bad: field should be Pattern
+        String action2 = action;
+        boolean e = action2.matches(PAT_STRING); // bad: should precompile and use separate pattern
+    }
+
+    // Pattern.matches
+
+    void violatingPatternMatches3x(String action) {
+        boolean b = Pattern.matches("(?=\\p{Lu})", action); // bad: should precompile and use separate pattern, for str len > 1
+        boolean c = Pattern.matches(PAT_STRING, action); // bad: should precompile and use separate pattern
+        boolean d = Pattern.matches(context, action); // todo: flagged but is realy ok?
+    }
+
+    public void violatingPathMatcher4x(String action) {
+        PathMatcher p = FileSystems.getDefault().getPathMatcher("(?=\\p{Lu})"); // bad: violation, should not be inside method, make static final
+        FileSystems.getDefault().getPathMatcher(PAT_STRING); // bad: violation
+        FileSystems.getDefault().getPathMatcher(dynPatString).matches(path); // bad (2x):  field should be PathMatcher
+
+        FileSystem fs = FileSystems.getDefault();
+        p = fs.getPathMatcher(PAT_STRING); // bad: violation
+    }
+
+    private static final String FREE_TEXT_PATTERN = "[A-Z\\s]+";
+
+    public static boolean isValid_violate1x(final String text) {
+        return text.length() > 0 && !Pattern.matches(FREE_TEXT_PATTERN, text.trim());// bad
+    }
+}
+     ]]></code>
+    </test-code>
+    <test-code>
+        <description>no violation: Avoid implicit recompiling of regular expressions</description>
+        <expected-problems>0</expected-problems>
         <code><![CDATA[
 import java.io.File;
 import java.nio.file.FileSystem;
@@ -15,10 +89,7 @@ import java.nio.file.PathMatcher;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * Created by BorgersJM on 14-8-2015.
- */
-public class AvoidImplicitlyRecompilingPatternsTest {
+public class Bar {
 
     private static final String PAT_STRING = "(?=\\p{Lu})";
     private static final String PAT_STRING_SHORT = "/$1";
@@ -31,12 +102,6 @@ public class AvoidImplicitlyRecompilingPatternsTest {
     private static final String ERROR_MSG = "Error Message";
     private String context;
 
-    void violatingSplit3x(String action) {
-        String[] splitString = action.split("(?=\\p{Lu})"); // should precompile and use separate pattern, for str len > 1
-        String[] splitString2 = action.split(PAT_STRING); // should precompile and use separate pattern
-        String[] splitStringDynamic = action.split(dynPatString); // violation, field should be transformed to Pattern
-    }
-
     void correctSplit(String action, String dyn) {
         String[] splitStringShort = action.split(","); // ok, short
         String[] splitStringDynamic = action.split(dyn); // ok, dynamic, cannot precompile
@@ -45,10 +110,7 @@ public class AvoidImplicitlyRecompilingPatternsTest {
 
 
     void violatingReplaceAll3x(String action) {
-        action.replaceAll("(?=\\p{Lu})", "-"); // should precompile and use separate pattern, for str len > 1
-        action.replaceAll(PAT_STRING, "-"); // should precompile and use separate pattern
-        action.replaceAll(PAT_STRING_SHORT, "-"); // regex short, OK
-        action.replaceAll(dynPatString, ";"); // field should be pattern
+        action.replaceAll(PAT_STRING_SHORT, "-"); // good: regex short, OK
     }
 
     void correctReplaceAll(String action, String dyn) {
@@ -62,12 +124,6 @@ public class AvoidImplicitlyRecompilingPatternsTest {
         m.replaceAll("------"); // ok, on Matcher, not on String
     }
 
-    void violatingReplaceFirst3x(String action) {
-        action.replaceFirst("(?=\\p{Lu})", "-"); // should precompile and use separate pattern, for str len > 1
-        action.replaceFirst(PAT_STRING, "-"); // should precompile and use separate pattern
-        action.replaceFirst(dynPatString, ";"); // field should be Pattern
-    }
-
     void correctReplaceFirst(String action, String dyn) {
         action.replaceFirst(",", ";"); // ok, regex short
         action.replaceFirst(",", ";----;"); // ok, regex short
@@ -75,14 +131,6 @@ public class AvoidImplicitlyRecompilingPatternsTest {
     }
 
     // .matches on a String
-
-    void violatingMatches4x(String action) {
-        boolean b = action.matches("(?=\\p{Lu})"); // should precompile and use separate pattern, for str len > 1
-        boolean c = action.matches(PAT_STRING); // should precompile and use separate pattern
-        boolean d = action.matches(dynPatString); // field should be Pattern
-        String action2 = action;
-        boolean e = action2.matches(PAT_STRING); // should precompile and use separate pattern
-    }
 
     void correctMatches(String action, String dyn) {
         boolean b = action.matches(","); // ok, short
@@ -93,12 +141,6 @@ public class AvoidImplicitlyRecompilingPatternsTest {
     }
 
     // Pattern.matches
-
-    void violatingPatternMatches3x(String action) {
-        boolean b = Pattern.matches("(?=\\p{Lu})", action); // should precompile and use separate pattern, for str len > 1
-        boolean c = Pattern.matches(PAT_STRING, action); // should precompile and use separate pattern
-        boolean d = Pattern.matches(context, action); // also ok
-    }
 
     void correctPatternMatches(String action, String dyn) {
         boolean b = Pattern.matches(",", action); // ok, short
@@ -118,15 +160,6 @@ public class AvoidImplicitlyRecompilingPatternsTest {
         PATTERN.matcher(dyn).replaceAll("-"); //  Matcher created every time, yet dynamic
     }
 
-    public void violatingPathMatcher4x(String action) {
-        PathMatcher p = FileSystems.getDefault().getPathMatcher("(?=\\p{Lu})"); // violation, should not be inside method, make static final
-        FileSystems.getDefault().getPathMatcher(PAT_STRING); // violation
-        FileSystems.getDefault().getPathMatcher(dynPatString).matches(path); //  field should be PathMatcher
-
-        FileSystem fs = FileSystems.getDefault();
-        p = fs.getPathMatcher(PAT_STRING); // violation
-    }
-
     public void correctPathMatcher(String fileName, String dyn, PathMatcher pm) {
         Path p = new File(fileName).toPath();
         PATH_MATCHER.matches(p); //  Matcher created before,
@@ -140,13 +173,6 @@ public class AvoidImplicitlyRecompilingPatternsTest {
         fs.getPathMatcher(dyn).matches(p); //  Matcher created every time, yet dynamic
     }
 
-    /**
-     * Case from Auto JPCC-59
-     *
-     * @param haystack
-     * @param needle
-     * @return
-     */
     public static int countOccurrences_correct(String haystack, String needle) {
         if (haystack == null) return 0;
         if (needle == null) return 0;
@@ -165,16 +191,6 @@ public class AvoidImplicitlyRecompilingPatternsTest {
 
     private static final String FREE_TEXT_PATTERN = "[A-Z\\s]+";
 
-    /**
-     * case JPCC-25
-     */
-    public static boolean isValid_violate1x(final String text) {
-        if (text.length() > 0 && !Pattern.matches(FREE_TEXT_PATTERN, text.trim())) {
-            return false;
-        }
-        return true;
-    }
-
     public void testFromMCenterOk() {
         String oldContext = TRAILING_SLASH_OR_BACKSLASH.matcher(context).replaceAll("");
     }
@@ -182,17 +198,14 @@ public class AvoidImplicitlyRecompilingPatternsTest {
     private static final String RUN_ID_SERVER_SEPARATOR = "--";
 
     public void testFromAutoOk(String nameOne) {
-        String serverOne = nameOne.split(RUN_ID_SERVER_SEPARATOR)[1]; // false postive to solve
+        String serverOne = nameOne.split(RUN_ID_SERVER_SEPARATOR)[1]; // good
     }
 
-    //from pi
-    private static final int EXPONENT = 2;
     private static final int TEN = 10;
     private static final int ZERO = 0;
     private static final Pattern DIGITS_ONLY_REGEX = Pattern.compile("[^0-9]");
     private static final String EMPTY_STRING = "";
 
-    // False positive from pi
     private String getLastTenDigitsOfNumberOk(final String number) {
         String numberDigits = DIGITS_ONLY_REGEX.matcher(number).replaceAll(EMPTY_STRING);
         if (numberDigits.length() > TEN) {
@@ -203,7 +216,6 @@ public class AvoidImplicitlyRecompilingPatternsTest {
         return numberDigits;
     }
 
-    // from work group
     private final Pattern LINE_BREAK_PATTERN = Pattern.compile(">\\s+<");
     private static final String LINE_BREAK_REPLACEMENT = "><";
 
@@ -212,7 +224,6 @@ public class AvoidImplicitlyRecompilingPatternsTest {
         return inputMessage;
     }
 
-    // false positive from VS
     private void stringSplitNonRegexOK() {
         String string = "Blah Error Message Blah2 Error Message Blah3";
         String[] parts = string.split("Error Message");
@@ -227,19 +238,6 @@ public class AvoidImplicitlyRecompilingPatternsTest {
         result = result.replaceAll(PAYLOADDATA, payloadData.toString());
         return result;
     }
-
-    /* ignoring String.replace - strange to replace by Pattern.compile explicitely
-    void violatingReplace(String action) {
-        action.replace("(?=\\p{Lu})", "-"); // should precompile and use separate pattern, for str len > 1
-        action.replace(PAT_STRING, "-"); // should precompile and use separate pattern
-    }
-
-    void correctReplace(String action, String dyn) {
-        action.replace(",", ";"); // ok, regex short
-        action.replace(",", ";----;"); // ok, regex short
-        action.replace(dyn, ";"); // ok, dynamic, cannot precompile
-    }*/
-
 }
      ]]></code>
     </test-code>

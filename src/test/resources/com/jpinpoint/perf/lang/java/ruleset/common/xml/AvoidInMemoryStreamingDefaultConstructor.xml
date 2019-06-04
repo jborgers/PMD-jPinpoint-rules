@@ -4,26 +4,35 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
     <test-code>
-        <description>Avoid XxxStream default constructor</description>
+        <description>violation: Avoid XxxStream default constructor</description>
         <expected-problems>3</expected-problems>
+        <expected-linenumbers>7,10,13</expected-linenumbers>
         <code><![CDATA[
 import java.io.ByteArrayOutputStream;
 import java.io.StringWriter;
 
-/**
- * Created by BorgersJM on 14-4-2015.
- */
-public class AvoidInMemoryStreamingDefaultConstructorTest {
+public class Foo {
     public static void testViolation1()  {
         ByteArrayOutputStream baos = null;
-        baos = new ByteArrayOutputStream();
+        baos = new ByteArrayOutputStream(); //bad
     }
     public static void testViolation2()  {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ByteArrayOutputStream baos = new ByteArrayOutputStream(); //bad
     }
     public static void testViolation3()  {
-        StringWriter sw = new StringWriter();
+        StringWriter sw = new StringWriter(); //bad
     }
+}
+     ]]></code>
+    </test-code>
+    <test-code>
+        <description>no violation: Avoid XxxStream default constructor</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import java.io.ByteArrayOutputStream;
+import java.io.StringWriter;
+
+public class Bar {
     public static void testNoViolation1()  {
         ByteArrayOutputStream baos = null;
         baos = new ByteArrayOutputStream(8*1024);
@@ -36,5 +45,5 @@ public class AvoidInMemoryStreamingDefaultConstructorTest {
     }
 }
      ]]></code>
-    </test-code>
+     </test-code>
 </test-data>

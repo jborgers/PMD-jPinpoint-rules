@@ -4,11 +4,12 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
     <test-code>
-        <description>Avoid Constants in interface</description>
+        <description>violation: Avoid Constants in interface</description>
         <expected-problems>1</expected-problems>
+        <expected-linenumbers>1</expected-linenumbers>
         <code><![CDATA[
-public interface AvoidConstantsInInterfaceTest {
-    static final Object CONST = new Object();
+public interface Foo {
+    static final Object CONST = new Object(); //bad
 }
      ]]></code>
     </test-code>

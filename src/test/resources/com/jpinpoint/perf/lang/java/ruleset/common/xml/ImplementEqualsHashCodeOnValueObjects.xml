@@ -4,8 +4,108 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
     <test-code>
-        <description>Implement equals and hashcode methods on value Objects</description>
+        <description>violation: Implement equals and hashcode methods on value Objects</description>
         <expected-problems>4</expected-problems>
+        <expected-linenumbers>44,52,66,81</expected-linenumbers>
+        <code><![CDATA[
+import lombok.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Controller;
+import org.springframework.stereotype.Service;
+
+import javax.annotation.PostConstruct;
+import javax.ejb.Singleton;
+import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.inject.Produces;
+import javax.enterprise.inject.spi.InjectionPoint;
+import javax.inject.Inject;
+import javax.persistence.Entity;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlType;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Properties;
+
+/**
+ * Value object assumed:
+ * * has at least 1 instance field and
+ * * (no equals or no hashCode) and (
+ * * has toString() method or
+ * * classname ends with 'Dto' or
+ * * has N fields and exactly N getters)
+ */
+public class Foo {
+    private String someState = "some";
+
+    @Override
+    public String toString() {
+        return "ImplementEqualsHashCodeOnValueObjectsTest{" +
+                "someState='" + someState + '\'' +
+                '}';
+    }
+    // state and toString and no equals/hashCode --> violation
+}
+
+class ViolateDtoBad {
+    private String someState = "some";
+
+    public String getSomeState() {
+        return someState;
+    }
+}
+
+class ViolateGetters1Bad {
+    private String someState1 = "some1";
+    private String someState2 = "some2";
+
+
+    public String getSomeState2() {
+        return someState2;
+    }
+
+    public String getSomeState1() {
+        return someState1;
+    }
+}
+
+class ViolateGetters2Bad {
+    private String someState1 = "some1";
+    private boolean someState2 = true;
+
+
+    public boolean isSomeState2() {
+        return someState2;
+    }
+
+    public String getSomeState1() {
+        return someState1;
+    }
+}
+
+@ApplicationScoped
+class ViolateLoggerProducerBad {
+
+    @Inject
+    private Properties properties;
+
+    @PostConstruct
+    private void init() {
+        System.out.println("Initializing, Properties file contains: " + properties);
+        //PropertyConfigurator.configure(properties);
+    }
+
+    public Properties getProperties() {return properties;}
+}
+     ]]></code>
+    </test-code>
+    <test-code>
+        <description>no violation: Implement equals and hashcode methods on value Objects</description>
+        <expected-problems>0</expected-problems>
         <code><![CDATA[
 import lombok.*;
 import org.slf4j.Logger;
@@ -32,7 +132,6 @@ import java.util.Properties;
 
 
 /**
- * Created by BorgersJM on 5-8-2016.
  * Value object assumed:
  * * has at least 1 instance field and
  * * (no equals or no hashCode) and (
@@ -40,7 +139,7 @@ import java.util.Properties;
  * * classname ends with 'Dto' or
  * * has N fields and exactly N getters)
  */
-public class ImplementEqualsHashCodeOnValueObjectsTest {
+public class Bar {
     private String someState = "some";
 
     @Override
@@ -63,7 +162,6 @@ class Ok1 {
         Ok1 ok1 = (Ok1) o;
 
         return someState != null ? someState.equals(ok1.someState) : ok1.someState == null;
-
     }
 
     @Override
@@ -90,7 +188,6 @@ class Ok3 {
     public String toString() {
         return "Ok3{}";
     }
-
 }
 
 abstract class Ok4 { // abstract, so no violation
@@ -99,15 +196,6 @@ abstract class Ok4 { // abstract, so no violation
     @Override
     public String toString() {
         return "Ok4{}";
-    }
-
-}
-
-class ViolateDto {
-    private String someState = "some";
-
-    public String getSomeState() {
-        return someState;
     }
 }
 
@@ -122,40 +210,11 @@ class OkDto {
         OkDto okDto = (OkDto) o;
 
         return someState != null ? someState.equals(okDto.someState) : okDto.someState == null;
-
     }
 
     @Override
     public int hashCode() {
         return someState != null ? someState.hashCode() : 0;
-    }
-}
-
-class ViolateGetters {
-    private String someState1 = "some1";
-    private String someState2 = "some2";
-
-
-    public String getSomeState2() {
-        return someState2;
-    }
-
-    public String getSomeState1() {
-        return someState1;
-    }
-}
-
-class ViolateGetters2 {
-    private String someState1 = "some1";
-    private boolean someState2 = true;
-
-
-    public boolean isSomeState2() {
-        return someState2;
-    }
-
-    public String getSomeState1() {
-        return someState1;
     }
 }
 
@@ -195,7 +254,6 @@ class OkGetters2 {
     private final String someState1 = "some1";
     private boolean someState2 = true;
 
-
     public boolean getSomeState2() {
         return someState2;
     }
@@ -228,7 +286,6 @@ class OkGet {
     private final String someState1 = "some1";
     private boolean someState2 = true;
 
-
     public OkGet get() {
         return this;
     } // get is not counted as getter
@@ -236,7 +293,6 @@ class OkGet {
     public String getSomeState1() {
         return someState1;
     }
-
 }
 
 class OkMuchMoreFieldsThanGetters {
@@ -272,7 +328,7 @@ class OkException extends RuntimeException {
 }
 
 @Data
-class OkLombok {
+class OkLombok1 {
     private String someState1 = "some1";
 
     public String getSomeState1() {
@@ -350,43 +406,11 @@ class OkLoggerProducer {
 
 }
 
-@ApplicationScoped
-class ViolateLoggerProducer
-{
-
-    @Inject
-    //@PropertyFile(envEntry = "loggerPropertyFiles")
-    private Properties properties;
-
-    @PostConstruct
-    private void init() {
-        System.out.println(this.getClass().getCanonicalName() + " - Initializing, Properties file contains: " + properties);
-        //PropertyConfigurator.configure(properties);
-    }
-
-    public Properties getProperties() {return properties;}
-}
-
-@EqualsAndHashCode(callSuper = false, doNotUseGetters = true, exclude = {"peanutVerzoek"})
-@XmlAccessorType(XmlAccessType.NONE)
-final class EigenToggleActiviteitOk {
-    private Object peanutVerzoek;
-    private String test;
-
-    public String getName() {
-        return "Eigentoggle";
-    }
-    public Object getCake() {
-        return peanutVerzoek;
-    }
-}
-
 // static field doesn't make it a value object
 class SprinklerSettingsControllerOK {
 
     private final static List<String> JELLY_AND_RBB_SERVICE_CONCEPTS = Arrays.asList("RM", "BF", "BS");
     private final Object sprinklerSettingsBO;
-    //private final String str = "blah";
 
     public SprinklerSettingsControllerOK(Object sprinklerSettingsBO) {
         this.sprinklerSettingsBO = sprinklerSettingsBO;
@@ -408,7 +432,6 @@ class SprinklerSettingsControllerViolation {
 
     private final static List<String> JELLY_AND_RBB_SERVICE_CONCEPTS = Arrays.asList("RM", "BF", "BS");
     private final Object sprinklerSettingsBO;
-    //private final String str = "blah";
 
     public SprinklerSettingsControllerViolation(Object sprinklerSettingsBO) {
         this.sprinklerSettingsBO = sprinklerSettingsBO;

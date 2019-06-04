@@ -4,16 +4,17 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
     <test-code>
-        <description>Avoid the use of SimpleDateFormat</description>
+        <description>violation: Avoid the use of SimpleDateFormat</description>
         <expected-problems>1</expected-problems>
+        <expected-linenumbers>7</expected-linenumbers>
         <code><![CDATA[
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-public class AvoidSimpleDateFormatTest {
+public class Foo {
 
     private String toKey(final Date rekenDatum) {
-        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd"); //bad
         return formatter.format(rekenDatum);
     }
 }

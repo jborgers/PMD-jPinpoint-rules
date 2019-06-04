@@ -4,38 +4,49 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
     <test-code>
-        <description>Avoid recompiling patterns</description>
+        <description>violation: Avoid recompiling patterns</description>
         <expected-problems>3</expected-problems>
+        <expected-linenumbers>8,9,13</expected-linenumbers>
+        <code><![CDATA[
+import java.util.regex.Pattern;
+
+public class Foo {
+
+    public static final String PATTERN = "^\\s*%s=(.*)";
+
+    public static void methodBad(String action) {
+        Pattern p = Pattern.compile("(?=\\p{Lu})"); // bad: violation, should not be inside method, make static final
+        Pattern s = Pattern.compile(PATTERN); // bad: violation
+    }
+
+    public void createNameFromAction(String action) {
+        Pattern p = Pattern.compile("(?=\\p{Lu})"); // bad
+    }
+}
+     ]]></code>
+    </test-code>
+    <test-code>
+        <description>no violation: Avoid recompiling patterns</description>
+        <expected-problems>0</expected-problems>
         <code><![CDATA[
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
-public class RegexUsage {
-	private static final Pattern pat = Pattern.compile("[;: ]"); // ok
-	public static final String PATTERN = "^\\s*%s=(.*)";
+public class Bar {
+    public static final String PATTERN = "^\\s*%s=(.*)";
 
-	public static List createEventNameFromAction(String action) {
-		Pattern p = Pattern.compile("(?=\\p{Lu})"); // violation, should not be inside method, make static final
-		Pattern q = Pattern.compile("(" + action + "?=\\p{Lu})"); // ok, dynamic
-		Pattern r = Pattern.compile(String.format(PATTERN, action)); // ok, dynamic
-		Pattern s = Pattern.compile(PATTERN); // violation
-		Pattern t = Pattern.compile(action); // dynamic, so ok (fix for JPCC-63)
+    public static List createEventNameFromAction(String action) {
+        Pattern q = Pattern.compile("(" + action + "?=\\p{Lu})"); // ok, dynamic
+        Pattern r = Pattern.compile(String.format(PATTERN, action)); // ok, dynamic
+        Pattern t = Pattern.compile(action); // dynamic, so ok (fix for JPCC-63)
 
-		String[] actionSplit = p.split(action); // ok
-		List<String[]> list = new ArrayList<String[]>();
-		list.add(actionSplit);
-		//list.add(splitString);
-		//list.add(splitStringShort);
-		//list.add(splitString2);
-		System.out.println(""+q+r+s+t);
-		return list;
-	}
+        String[] actionSplit = q.split(action); // ok
+        List<String[]> list = new ArrayList<String[]>();
+        list.add(actionSplit);
+        return list;
+    }
 
-
-	public void createNameFromAction(String action) {
-		Pattern p = Pattern.compile("(?=\\p{Lu})"); // should not be inside method, make static final
-	}
 }
      ]]></code>
     </test-code>

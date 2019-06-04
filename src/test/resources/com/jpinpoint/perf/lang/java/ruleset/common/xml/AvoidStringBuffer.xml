@@ -4,14 +4,11 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
     <test-code>
-        <description>Avoid StringBuffer use for instance StringBuilder instead</description>
+        <description>violation: Avoid StringBuffer. Use for instance StringBuilder instead</description>
         <expected-problems>2</expected-problems>
+        <expected-linenumbers>3,6</expected-linenumbers>
         <code><![CDATA[
-import javax.servlet.http.HttpServletRequest;
-import java.util.*;
-import java.util.logging.Level;
-
-public class AvoidStringBuffer {
+public class Foo {
 
 	private StringBuffer buffer = new StringBuffer(); // Avoid!!!
 
