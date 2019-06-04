@@ -4,8 +4,9 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
     <test-code>
-        <description>Avoid multiple roundtrips for Query</description>
+        <description>violation: Avoid multiple roundtrips for Query</description>
         <expected-problems>1</expected-problems>
+        <expected-linenumbers>17</expected-linenumbers>
         <code><![CDATA[
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
@@ -13,12 +14,12 @@ import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import java.util.List;
 
-public class AvoidMultipleRoundtripsForQuery {
+public class Foo {
 
     @PersistenceContext(unitName = "rPersistenceUnit")
     protected EntityManager entityManager;
 
-    public Object findInformationByCode(String code) {
+    public Object findInformationByCodeBad(String code) {
         Query q = this.entityManager.createQuery("SELECT reas FROM Information reas WHERE reas.code = :code", Object.class);
         q.setParameter("code", code);
         List results = q.getResultList();
@@ -27,8 +28,25 @@ public class AvoidMultipleRoundtripsForQuery {
         }
         return null;
     }
+}
+     ]]></code>
+    </test-code>
+    <test-code>
+        <description>no violation: Avoid multiple roundtrips for Query</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
+import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
+import java.util.List;
 
-    public Object findInformationByCodeOk(String code) {
+public class Foo {
+
+    @PersistenceContext(unitName = "rPersistenceUnit")
+    protected EntityManager entityManager;
+
+    public Object findInformationByCodeGoot(String code) {
         Query q = this.entityManager.createQuery("SELECT reas FROM Information reas WHERE reas.code = :code", Object.class);
         q.setParameter("code", code);
         try {
@@ -39,7 +57,6 @@ public class AvoidMultipleRoundtripsForQuery {
         }
     }
 }
-
      ]]></code>
     </test-code>
 </test-data>
