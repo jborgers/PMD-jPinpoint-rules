@@ -359,6 +359,25 @@ abstract class AInitializeTaskletOk implements Tasklet, InitializingBean {
     }
 }
 
+// no violation
+@Component
+@ConfigurationProperties
+class Foo {
+    private String field;
+    public void setField(String f) {
+        field = f;
+    }
+}
+
+// no violation
+@Component
+@ConfigurationProperties(prefix="")
+class Foo {
+    private String field;
+    public void setField(String f) {
+        field = f;
+    }
+}
 // @Scope(value = "session", proxyMode = ScopedProxyMode.TARGET_CLASS)
 // @Scope(value = "session", proxyMode = ScopedProxyMode.INTERFACES)
 //@Scope(value = "globalSession", proxyMode = ScopedProxyMode.INTERFACES)
