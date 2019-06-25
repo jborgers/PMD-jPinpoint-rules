@@ -1,3 +1,5 @@
 target/
-.idea/*
+.idea
+.idea/
+.idea/**
 *.iml
