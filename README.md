@@ -146,7 +146,7 @@ Company specific rules are useful for instance for checking the right use of com
 Or for rules which are candidates for inclusion into jpinpoint rules, yet need to be validated first.
 
 - rulesets-merger/src contains RulesetMerger.java for merging jpinpoint-rules with company specific rules. 
-You may want to copy rulesets-merger to your company specific rules directory and adjust a few constants at the top to make it work for your company.
+Copy rulesets-merger to your company specific rules directory and adjust a few constants at the top to make it work for your company.
     
  After building, the merger tool can be run with:
  
@@ -157,3 +157,23 @@ You may want to copy rulesets-merger to your company specific rules directory an
  and merge rulesets/java/jpinpoint-rules.xml together with your rule files (from ``src/main/resources/category/java/*.xml``)     
  The resulting file can be used in your IDE.
  
+ It assumes you have the following repositories in directories next to each other:
+ 
+     PMD-Company-jPinpoint-rules
+     PMD-jPinpoint-rules (optional)
+ 
+  It can be built and run the same way.
+ 
+  It will generate two files:
+  
+     company-rules.xml
+     company-jpinpoint-rules.xml
+     
+  These files can be used in your IDE. The former only contains the company specific rules. 
+  The latter contains all rules combined and will only be generated if the optional PMD-jPinpoint-rules repo is available.
+ 
+  You can also specify the external repo to merge with explicitely:
+   
+      java -jar rulesets-merger-1.0-SNAPSHOT.jar PMD-jPinpoint-rules rulesets/java jpinpoint-rules.xml 
+   
+

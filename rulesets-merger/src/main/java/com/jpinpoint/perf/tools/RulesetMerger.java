@@ -18,7 +18,7 @@ public class RulesetMerger {
     private static final String COMPANY_SPECIFIC = "jPinpoint";
     private static final String RESULT_COMPANY_RULES_NAME = "jpinpoint-rules";
     private static final String RESULT_ALL_RULES_NAME = "jpinpoint-rules";
-    private static final String PATH_TO_SPEC_RULES = "src/main/resources/category/java/";
+    private static final String PATH_TO_CAT_RULES = "src/main/resources/category/java/";
     private static final String COMPANY_DOC_ROOT = "http://www.jpinpoint.com/doc";
     private static final boolean IS_ADD_TAG_TO_DESCRIPTION_AND_DOC = true;
 
@@ -44,62 +44,124 @@ public class RulesetMerger {
 
         // Find our project base working directory (differs when running from jar or using your IDE to run this main)
         File repositoryBaseDir = getRepositoryBaseDir();
-        String resultRulesName = RESULT_COMPANY_RULES_NAME; // default
-        File optionalExternalRulesFile = null;
-        String mergeWithRepositoryName = null;
-        if (args.length >= 3) {
-            // Check if the other project we use for merging the rules is present
-            mergeWithRepositoryName = args[0];
-            String repositoryRelativeRulesDir = args[1];
-            String repositoryRulesFilename = args[2];
-            System.out.println("INFO: arguments (3) are specified. Looking for: ");
-            System.out.println(String.format("\t repository directory name:           %s", mergeWithRepositoryName));
-            System.out.println(String.format("\t repository relative rules directory: %s", repositoryRelativeRulesDir));
-            System.out.println(String.format("\t repository rules file name:          %s", repositoryRulesFilename));
 
-            File projectDir = repositoryBaseDir.getParentFile();
-            File githubProjectDir = new File(projectDir, mergeWithRepositoryName);
-            if (!githubProjectDir.exists() || !githubProjectDir.isDirectory()) {
-                System.out.println(String.format("ERROR: expected the external rules project to be available at '%s'", githubProjectDir.getAbsolutePath()));
-                System.exit(1);
-            }
-            File githubProjectRulesDir = new File(githubProjectDir, repositoryRelativeRulesDir);
-            if (!githubProjectRulesDir.exists() || !githubProjectRulesDir.isDirectory()) {
-                System.out.println(String.format("ERROR: expected the external rules project to have the following directory structure present '%s'", githubProjectRulesDir.getAbsolutePath()));
-                System.exit(1);
-            }
-            final File rulesFile1 = new File(githubProjectRulesDir, repositoryRulesFilename);
-            if (!rulesFile1.exists()) {
-                System.out.println(String.format("ERROR: Cannot find rules file '%s'", rulesFile1.getAbsolutePath()));
-                System.exit(1);
-            }
-            optionalExternalRulesFile = rulesFile1;
-            resultRulesName = RESULT_ALL_RULES_NAME;
+        // validity check
+        if (COMPANY_SPECIFIC.equals("jPinpoint") && RESULT_COMPANY_RULES_NAME.equals("jpinpoint-rules") && RESULT_ALL_RULES_NAME.equals("jpinpoint-rules")) {
+            // valid, merge only in jpinpoint-rules.xml
         }
-
-        // Check our project structure
-        File ourProjectRulesDir = new File(repositoryBaseDir, PATH_TO_SPEC_RULES);
-        if (!ourProjectRulesDir.exists() || !ourProjectRulesDir.isDirectory()) {
-            System.out.println(String.format("ERROR: expected the rules to be present in '%s'", ourProjectRulesDir.getAbsolutePath()));
+        else if (!COMPANY_SPECIFIC.equals("jPinpoint") && !RESULT_COMPANY_RULES_NAME.equals(RESULT_ALL_RULES_NAME)) {
+            //valid, merge into company-rules.xml and company-jpinpoint-rules.xml
+        }
+        else {
+            System.out.println(String.format("ERROR: invalid combination of COMPANY_SPECIFIC=%s, RESULT_COMPANY_RULES_NAME=%s RESULT_ALL_RULES_NAME=%s", COMPANY_SPECIFIC, RESULT_COMPANY_RULES_NAME, RESULT_ALL_RULES_NAME));
             System.exit(1);
         }
+
+        if (COMPANY_SPECIFIC.equals("jPinpoint")) {
+            //merge once for one file: jpinpoint-rules.xml
+            mergeRuleFiles(repositoryBaseDir, null, null, RESULT_ALL_RULES_NAME);
+        }
+        else {
+            File optionalExtRulesFile;
+            String mergeWithRepoName;
+            if (args.length >= 3) {
+                mergeWithRepoName = args[0];
+                optionalExtRulesFile = new MergeWithExternalHelper(args, repositoryBaseDir).lookupRulesFileMustBeThere();
+            } else { // default
+                mergeWithRepoName = "PMD-jPinpoint-rules";
+                MergeWithExternalHelper helper = new MergeWithExternalHelper(mergeWithRepoName, "rulesets/java", "jpinpoint-rules.xml", repositoryBaseDir);
+                optionalExtRulesFile = helper.lookupRulesFileMayBeThere(); // may be null
+            }
+            //merge company specific into company-rules.xml
+            mergeRuleFiles(repositoryBaseDir, null, mergeWithRepoName, RESULT_COMPANY_RULES_NAME);
+
+            if (optionalExtRulesFile != null) {
+                // merge all into company-jpinpoint-rules.xml
+                mergeRuleFiles(repositoryBaseDir, optionalExtRulesFile, mergeWithRepoName, RESULT_ALL_RULES_NAME);
+            }
+        }
+    }
+
+    private static void mergeRuleFiles(File repositoryBaseDir, File optionalExtRulesFile, String mergeWithRepoName, String resultRulesName) {
+        // Get rule files
+        File ourProjectRulesDir = new File(repositoryBaseDir, PATH_TO_CAT_RULES);
         String[] ourRulesFiles = ourProjectRulesDir.list(new FilenameFilter() {
             @Override
             public boolean accept(File dir, String name) {
                 return name.endsWith(".xml");
             }
         });
+        File outputDir = new File(repositoryBaseDir, MERGED_RULESETS_DIR);
+        File resultFile = new File(outputDir, resultRulesName + ".xml");
+        System.out.println("INFO: start on '" + resultFile.getName() + "'");
+        checkIfValid(ourProjectRulesDir, ourRulesFiles, outputDir, resultFile);
+
+        // this should not occur anymore?
+        if ((optionalExtRulesFile != null) && (optionalExtRulesFile.equals(resultFile))) {
+            System.out.println(String.format("INFO: skipping processing '%s' to prevent we get double entries in our output!", optionalExtRulesFile.getName()));
+            optionalExtRulesFile = null;
+            mergeWithRepoName = null;
+        }
         Arrays.sort(ourRulesFiles);
+        try {
+            List<String> mergedFileLines = new ArrayList<String>();
+            mergedFileLines.add(RESULT_START_LINE);
+            mergedFileLines.add(String.format(RESULT_RULE_SET_LINE_TEMPLATE, resultRulesName));
+            String mergeWithText = mergeWithRepoName == null ? "" : String.format(MERGED_WITH_TEMPLATE, mergeWithRepoName);
+            String resultDescription = String.format(RESULT_DESC_LINE_TEMPLATE, COMPANY_SPECIFIC, mergeWithText);
+            mergedFileLines.add(resultDescription);
+            mergedFileLines.add("");
+            mergedFileLines.add("<!-- IMPORTANT NOTICE: The content of this file is generated. Do not edit this file directly since changes may be lost when this file is regenerated! -->");
+            mergedFileLines.add("");
+
+            if (optionalExtRulesFile != null) {
+                mergeFileIntoLines(optionalExtRulesFile, mergedFileLines);
+            }
+            for (String eachFileName: ourRulesFiles) {
+                mergeFileIntoLines(new File(ourProjectRulesDir, eachFileName), mergedFileLines);
+            }
+            mergedFileLines.add(RESULT_END_LINE);
+
+            if (IS_ADD_TAG_TO_DESCRIPTION_AND_DOC) {
+                mergedFileLines = addTagToDescriptionAndDoc(mergedFileLines, String.format("(%s)%s", resultRulesName, DESCRIPTION_END_TAG));
+            }
+            IOUtils.writeLines(mergedFileLines, LSEP, new FileOutputStream(resultFile), Charset.defaultCharset());
+            System.out.println(String.format("INFO: merged files into '%s'.", resultFile.getPath()));
+        }
+        catch(IOException e) {
+            System.out.println(String.format("Error while trying to merge rules into '%s'.", resultFile.getPath()));
+            System.out.println(e);
+        }
+    }
+
+    private static void mergeFileIntoLines(File file, List<String> mergedFileLines) throws IOException {
+        try (InputStream is1 = new FileInputStream(file)) {
+            System.out.println(String.format("INFO: processing '%s'", file.getName()));
+            List<String> file1Lines = IOUtils.readLines(is1, Charset.defaultCharset());
+
+            List<List<String>> ruleLinesList1 = parseSortIntoRuleLinesList(file1Lines);
+            mergedFileLines.add(String.format(BEGIN_INCLUDED_FILE_COMMENT_TEMPLATE, file.getName()));
+            for (List<String> ruleLines : ruleLinesList1) {
+                mergedFileLines.addAll(ruleLines);
+                mergedFileLines.add("");
+            }
+            mergedFileLines.add(String.format(END_INCLUDED_FILE_COMMENT_TEMPLATE, file.getName()));
+        }
+    }
+
+    private static void checkIfValid(File ourProjectRulesDir, String[] ourRulesFiles, File outputDir, File resultFile) {
+        if (!ourProjectRulesDir.exists() || !ourProjectRulesDir.isDirectory()) {
+            System.out.println(String.format("ERROR: expected the rules to be present in '%s'", ourProjectRulesDir.getAbsolutePath()));
+            System.exit(1);
+        }
         if (ourRulesFiles.length == 0) {
             System.out.println(String.format("ERROR: no rules files (*.xml) found in '%s'", ourProjectRulesDir.getAbsolutePath()));
             System.exit(1);
         }
-        File outputDir = new File(repositoryBaseDir, MERGED_RULESETS_DIR);
         if (!outputDir.exists() || !outputDir.isDirectory()) {
             System.out.println(String.format("ERROR: expected the output directory ('%s') for storing merged results to be exist", outputDir.getAbsolutePath()));
             System.exit(1);
         }
-        File resultFile = new File(outputDir, resultRulesName + ".xml");
         if (resultFile.exists()) {
             if (resultFile.canWrite()) {
                 System.out.println(String.format("INFO: merging will overwrite the existing rules file at '%s'", resultFile.getAbsolutePath()));
@@ -107,66 +169,6 @@ public class RulesetMerger {
                 System.out.println(String.format("ERROR: expected the output file ('%s') for storing merged results to be writable", resultFile.getAbsolutePath()));
                 System.exit(1);
             }
-        }
-        if ((optionalExternalRulesFile != null) && (optionalExternalRulesFile.equals(resultFile))) {
-            System.out.println(String.format("INFO: skipping processing '%s' to prevent we get double entries in our output!", optionalExternalRulesFile.getName()));
-            optionalExternalRulesFile = null;
-            mergeWithRepositoryName = null;
-        }
-
-
-        try {
-            List<String> mergedFileLines = new ArrayList<String>();
-            mergedFileLines.add(RESULT_START_LINE);
-            mergedFileLines.add(String.format(RESULT_RULE_SET_LINE_TEMPLATE, resultRulesName));
-            String mergeWithText = mergeWithRepositoryName == null ? "" : String.format(MERGED_WITH_TEMPLATE, mergeWithRepositoryName);
-            String resultDescription = String.format(RESULT_DESC_LINE_TEMPLATE, COMPANY_SPECIFIC, mergeWithText);
-            mergedFileLines.add(resultDescription);
-            mergedFileLines.add("");
-            mergedFileLines.add("<!-- IMPORTANT NOTICE: The content of this file is generated. Do not edit this file directly since changes may be lost when this file is regenerated! -->");
-            mergedFileLines.add("");
-
-            if (optionalExternalRulesFile != null) {
-                try (InputStream is1 = new FileInputStream(optionalExternalRulesFile)) {
-                    System.out.println(String.format("INFO: processing '%s'", optionalExternalRulesFile.getName()));
-                    List<String> file1Lines = IOUtils.readLines(is1, Charset.defaultCharset());
-
-                    List<List<String>> ruleLinesList1 = parseSortIntoRuleLinesList(file1Lines);
-                    mergedFileLines.add(String.format(BEGIN_INCLUDED_FILE_COMMENT_TEMPLATE, optionalExternalRulesFile.getName()));
-                    for (List<String> ruleLines : ruleLinesList1) {
-                        mergedFileLines.addAll(ruleLines);
-                        mergedFileLines.add("");
-                    }
-                    mergedFileLines.add(String.format(END_INCLUDED_FILE_COMMENT_TEMPLATE, optionalExternalRulesFile.getName()));
-                }
-            }
-
-            for (String eachFileName: ourRulesFiles) {
-                try(InputStream eachRuleStream = new FileInputStream(new File(ourProjectRulesDir, eachFileName))) {
-                    System.out.println(String.format("INFO: processing '%s'", eachFileName));
-                    List<String> file2Lines = IOUtils.readLines(eachRuleStream, Charset.defaultCharset());
-                    List<List<String>> ruleLinesList2 = parseSortIntoRuleLinesList(file2Lines);
-                    mergedFileLines.add(String.format(BEGIN_INCLUDED_FILE_COMMENT_TEMPLATE, eachFileName));
-                    for (List<String> ruleLines : ruleLinesList2) {
-                        mergedFileLines.addAll(ruleLines);
-                        mergedFileLines.add("");
-                    }
-                    mergedFileLines.add(String.format(END_INCLUDED_FILE_COMMENT_TEMPLATE, eachFileName));
-                }
-            }
-
-            mergedFileLines.add(RESULT_END_LINE);
-
-            if (IS_ADD_TAG_TO_DESCRIPTION_AND_DOC) {
-                mergedFileLines = addTagToDescriptionAndDoc(mergedFileLines, String.format("(%s)%s", resultRulesName, DESCRIPTION_END_TAG));
-            }
-
-            IOUtils.writeLines(mergedFileLines, LSEP, new FileOutputStream(resultFile), Charset.defaultCharset());
-            System.out.println(String.format("INFO: merged files into '%s'.", resultFile.getPath()));
-        }
-        catch(IOException e) {
-            System.out.println(String.format("Error while trying to merge rules into '%s'.", resultFile.getPath()));
-            System.out.println(e);
         }
     }
 
@@ -235,5 +237,86 @@ public class RulesetMerger {
             }
         }
         return new ArrayList(nameToLines.values());
+    }
+
+    private static class MergeWithExternalHelper {
+        private final String mergeWithRepoName;
+        private final String repoRelativeRulesDir;
+        private final String repoRulesFilename;
+        private final File repoBaseDir;
+
+        public MergeWithExternalHelper(String[] args, File repoBaseDir) {
+            mergeWithRepoName = args[0];
+            repoRelativeRulesDir = args[1];
+            repoRulesFilename = args[2];
+            this.repoBaseDir = repoBaseDir;
+        }
+
+        public MergeWithExternalHelper(String mergeWithRepoName, String repoRelativeRulesDir, String repoRulesFilename, File repoBaseDir) {
+            this.mergeWithRepoName = mergeWithRepoName;
+            this.repoRelativeRulesDir = repoRelativeRulesDir;
+            this.repoRulesFilename = repoRulesFilename;
+            this.repoBaseDir = repoBaseDir;
+        }
+
+        /**
+         * Returns the rules file based on the fields, error message and exit if not available
+         * @return the rules file based on the fields, error message and exit if not available
+         */
+        public File lookupRulesFileMustBeThere() {
+            // Check if the other project we use for merging the rules is present, must be there to continue
+            System.out.println("INFO: arguments (3) are specified. Looking for: ");
+            System.out.println(String.format("\t repository directory name:           %s", mergeWithRepoName)); // PMD-jPinpoint-rules
+            System.out.println(String.format("\t repository relative rules directory: %s", repoRelativeRulesDir)); // rulesets/java
+            System.out.println(String.format("\t repository rules file name:          %s", repoRulesFilename)); // jpinpoint-rules.xml
+
+            File projectDir = repoBaseDir.getParentFile();
+            File githubProjectDir = new File(projectDir, mergeWithRepoName);
+            if (!githubProjectDir.exists() || !githubProjectDir.isDirectory()) {
+                System.out.println(String.format("ERROR: expected the external rules project to be available at '%s'", githubProjectDir.getAbsolutePath()));
+                System.exit(1);
+            }
+            File githubProjectRulesDir = new File(githubProjectDir, repoRelativeRulesDir);
+            if (!githubProjectRulesDir.exists() || !githubProjectRulesDir.isDirectory()) {
+                System.out.println(String.format("ERROR: expected the external rules project to have the following directory structure present '%s'", githubProjectRulesDir.getAbsolutePath()));
+                System.exit(1);
+            }
+            File rulesFile = new File(githubProjectRulesDir, repoRulesFilename);
+            if (!rulesFile.exists()) {
+                System.out.println(String.format("ERROR: Cannot find rules file '%s'", rulesFile.getAbsolutePath()));
+                System.exit(1);
+            }
+            return rulesFile;
+        }
+
+        /**
+         * Return the rules file based on the fields, null if not available
+         * @return the rules file based on the fields, null if not available
+         */
+        public File lookupRulesFileMayBeThere() {
+            // Check if the other project we use for merging the rules is present, if not: return null
+
+            File projectDir = repoBaseDir.getParentFile();
+            File githubProjectDir = new File(projectDir, mergeWithRepoName);
+            if (!githubProjectDir.exists() || !githubProjectDir.isDirectory()) {
+                //unavailable
+            }
+            else {
+                File githubProjectRulesDir = new File(githubProjectDir, repoRelativeRulesDir);
+                if (!githubProjectRulesDir.exists() || !githubProjectRulesDir.isDirectory()) {
+                    // unavailable
+                } else {
+                    File rulesFile = new File(githubProjectRulesDir, repoRulesFilename);
+                    if (!rulesFile.exists()) {
+                        //unavailable
+                    } else {
+                        //available
+                        System.out.println(String.format("INFO: Found external rules for merging: %s/%s/%s", mergeWithRepoName, repoRelativeRulesDir, repoRulesFilename)); // jpinpoint-rules.xml
+                        return rulesFile;
+                    }
+                }
+            }
+            return null;
+        }
     }
 }
