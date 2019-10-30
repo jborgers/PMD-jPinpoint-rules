@@ -5,8 +5,8 @@
         xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
     <test-code>
         <description>violation: Avoid implicit recompiling of regular expressions</description>
-        <expected-problems>22</expected-problems>
-        <expected-linenumbers>17,18,19,23,24, 26,30,31,32,38, 39,40,42,48,49, 50,54,55,56,56, 59,65</expected-linenumbers>
+        <expected-problems>27</expected-problems>
+        <expected-linenumbers>18,19,20, 24,25,27, 31,32,33, 39,40,41,43,45, 52,53,54, 59,60,61,61,64, 70, 76, 82,83,84</expected-linenumbers>
         <code><![CDATA[
 import java.io.File;
 import java.nio.file.FileSystem;
@@ -21,8 +21,9 @@ public class Foo {
     private static final String PAT_STRING_SHORT = "/$1";
     private String dynPatString; // field should be transformed to Pattern
     private static final Path path = new File("fileName").toPath();
-    private String context;
-
+    private String context1;
+    private String context2;
+    // line 16
     void violatingSplit3x(String action) {
         String[] splitString = action.split("(?=\\p{Lu})"); // bad: should precompile and use separate pattern, for str len > 1
         String[] splitString2 = action.split(PAT_STRING); // bad: should precompile and use separate pattern
@@ -35,7 +36,7 @@ public class Foo {
         action.replaceAll(PAT_STRING_SHORT, "-"); // good: regex short, OK
         action.replaceAll(dynPatString, ";"); // bad: field should be pattern
     }
-
+    // line 29
     void violatingReplaceFirst3x(String action) {
         action.replaceFirst("(?=\\p{Lu})", "-"); // bad: should precompile and use separate pattern, for str len > 1
         action.replaceFirst(PAT_STRING, "-"); // bad: should precompile and use separate pattern
@@ -43,23 +44,27 @@ public class Foo {
     }
 
     // .matches on a String
-
-    void violatingMatches4x(String action) {
-        boolean b = action.matches("(?=\\p{Lu})"); // bad: should precompile and use separate pattern, for str len > 1
-        boolean c = action.matches(PAT_STRING); // bad: should precompile and use separate pattern
-        boolean d = action.matches(dynPatString); // bad: field should be Pattern
-        String action2 = action;
-        boolean e = action2.matches(PAT_STRING); // bad: should precompile and use separate pattern
+    // line 37
+    void violatingMatchesParamAndLocal5x(String param1, String param2) {
+        boolean b = param1.matches("(?=\\p{Lu})"); // bad: should precompile and use separate pattern, for str len > 1
+        boolean c = param2.matches(PAT_STRING); // bad: should precompile and use separate pattern
+        boolean d = param1.matches(dynPatString); // bad: field should be Pattern
+        String local1 = param1;
+        boolean e = local1.matches(PAT_STRING); // bad: should precompile and use separate pattern
+        String local2 = param1;
+        boolean f = local2.matches(PAT_STRING); // bad: should precompile and use separate pattern
+        boolean g = local2.matches(PAT_STRING_SHORT); // good
     }
 
     // Pattern.matches
-
+    // line 50
     void violatingPatternMatches3x(String action) {
         boolean b = Pattern.matches("(?=\\p{Lu})", action); // bad: should precompile and use separate pattern, for str len > 1
         boolean c = Pattern.matches(PAT_STRING, action); // bad: should precompile and use separate pattern
-        boolean d = Pattern.matches(context, action); // todo: flagged but is realy ok?
+        boolean d = Pattern.matches(context1, action); // todo: flagged but is really ok?
     }
 
+    // line 57
     public void violatingPathMatcher4x(String action) {
         PathMatcher p = FileSystems.getDefault().getPathMatcher("(?=\\p{Lu})"); // bad: violation, should not be inside method, make static final
         FileSystems.getDefault().getPathMatcher(PAT_STRING); // bad: violation
@@ -72,7 +77,33 @@ public class Foo {
     private static final String FREE_TEXT_PATTERN = "[A-Z\\s]+";
 
     public static boolean isValid_violate1x(final String text) {
-        return text.length() > 0 && !Pattern.matches(FREE_TEXT_PATTERN, text.trim());// bad
+        return text.length() > 0 && !Pattern.matches(FREE_TEXT_PATTERN, text.trim());// bad line 70
+    }
+
+    // .matches on a String field
+    // line 74
+    String violatingMatchesOnFieldInIf() {
+        if (action == null || !context1.matches(PAT_STRING)) { // bad
+            return "no match";
+        }
+    }
+    // line 80
+    void violatingMatchesOnField3x(String arg) {
+        boolean b = context1.matches("(?=\\p{Lu})"); // bad: should precompile and use separate pattern, for str len > 1
+        boolean c = context2.matches(PAT_STRING); // bad: should precompile and use separate pattern
+        boolean d = context2.matches(dynPatString); // bad: field should be Pattern
+        boolean e = context1.matches(arg); // good, dynamic
+        boolean f = context1.matches("\\w"); // good, short
+        String local = arg;
+        boolean g = context1.matches(method(arg)); // good, dynamic
+        boolean h = context1.matches(method2()); // good, dynamic
+        boolean i = context1.matches(local); // good, dynamic
+    }
+    String method(String arg) {
+        return arg;
+    }
+    String method2() {
+        return arg;
     }
 }
      ]]></code>

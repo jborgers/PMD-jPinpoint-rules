@@ -187,42 +187,35 @@ or preceding-sibling::SwitchLabel[@Default='true'])
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
-            <property name="version" value="1.0"/>
+            <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
-//MethodDeclaration//PrimaryPrefix/Name[ends-with(@Image, '.replaceAll') or ends-with(@Image, '.replaceFirst') or ends-with(@Image, 'Pattern.matches')]/../../PrimarySuffix/Arguments[@ArgumentCount=2]//Expression[1]//PrimaryPrefix[
+(//MethodDeclaration//PrimaryPrefix/Name[ends-with(@Image, '.replaceAll') or ends-with(@Image, '.replaceFirst') or ends-with(@Image, 'Pattern.matches')]/../../PrimarySuffix/Arguments[@ArgumentCount=2]//Expression[1]//PrimaryPrefix[
 Literal[string-length(@Image) > 5 and
-(contains(@Image, '.') or contains(@Image, '$') or contains(@Image, '|') or contains(@Image, '(') or contains(@Image, ')') or contains(@Image, '[')
-or contains(@Image, ']') or contains(@Image, '{') or contains(@Image, '}') or contains(@Image, '^') or contains(@Image, '?') or contains(@Image, '*')
-or contains(@Image, '+') or contains(@Image, '\'))] or Name
+(matches(@Image, '[\.\$\|\(\)\[\]\{\}\^\?\*\+\\]+'))] or Name
 and not(../PrimarySuffix)
 and not (
 Name/@Image=ancestor::MethodDeclaration//VariableDeclaratorId/@Image)
 and not (
 Name[@Image=ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration/VariableDeclarator[
 VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/Literal[string-length(@Image) < 6 or not
-(contains(@Image, '.') or contains(@Image, '$') or contains(@Image, '|') or contains(@Image, '(') or contains(@Image, ')') or contains(@Image, '[')
-or contains(@Image, ']') or contains(@Image, '{') or contains(@Image, '}') or contains(@Image, '^') or contains(@Image, '?') or contains(@Image, '*')
-or contains(@Image, '+') or contains(@Image, '\'))]
+(matches(@Image, '[\.\$\|\(\)\[\]\{\}\^\?\*\+\\]+'))]
 ]/VariableDeclaratorId/@Image])
 ]
-|
+,
 //MethodDeclaration//PrimaryPrefix/Name[ends-with(@Image, '.split') or ends-with(@Image, 'getPathMatcher')]/../../PrimarySuffix/Arguments[@ArgumentCount=1]//Expression[1]//PrimaryPrefix[
 Literal[string-length(@Image) > 5 and
-(contains(@Image, '.') or contains(@Image, '$') or contains(@Image, '|') or contains(@Image, '(') or contains(@Image, ')') or contains(@Image, '[')
-or contains(@Image, ']') or contains(@Image, '{') or contains(@Image, '}') or contains(@Image, '^') or contains(@Image, '?') or contains(@Image, '*')
-or contains(@Image, '+') or contains(@Image, '\'))] or Name
+matches(@Image, '[\.\$\|\(\)\[\]\{\}\^\?\*\+\\]+')] or Name
 and not(../PrimarySuffix)
 and not (
 Name/@Image=ancestor::MethodDeclaration//VariableDeclaratorId/@Image)
 and not (
 Name[@Image=ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration/VariableDeclarator[
 VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/Literal[string-length(@Image) < 6 or not
-(contains(@Image, '.') or contains(@Image, '$') or contains(@Image, '|') or contains(@Image, '(') or contains(@Image, ')') or contains(@Image, '[')
-or contains(@Image, ']') or contains(@Image, '{') or contains(@Image, '}') or contains(@Image, '^') or contains(@Image, '?') or contains(@Image, '*')
-or contains(@Image, '+') or contains(@Image, '\'))]
+(matches(@Image, '[\.\$\|\(\)\[\]\{\}\^\?\*\+\\]+'))]
 ]/VariableDeclaratorId/@Image])
-] |
+]
+,
 //MethodDeclaration//PrimarySuffix[@Image='getPathMatcher']/../PrimarySuffix/Arguments[@ArgumentCount=1]/ArgumentList/Expression[1]/PrimaryExpression/PrimaryPrefix[
 Literal[string-length(@Image) > 5] or Name
 and not(../PrimarySuffix)
@@ -231,22 +224,31 @@ Name/@Image=ancestor::MethodDeclaration//VariableDeclaratorId/@Image)
 and not (
 Name[@Image=ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration/VariableDeclarator[
 VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/Literal[string-length(@Image) < 6]]/VariableDeclaratorId/@Image])
-] |
+]
+,
+(: --- String.matches called on formalparams, locals and fields --- :)
 //MethodDeclaration//PrimaryPrefix/Name[ends-with(@Image, '.matches')]
-[(starts-with(@Image, concat(ancestor::MethodDeclaration//FormalParameter/Type/ReferenceType/ClassOrInterfaceType[typeIs('java.lang.String')]/../../../VariableDeclaratorId/@Image, '.'))
+[
+(exists(index-of((ancestor::MethodDeclaration//FormalParameter[pmd-java:typeIs('java.lang.String')]/VariableDeclaratorId/@Image), substring-before(@Image,'.')))
 or
-starts-with(@Image, concat(ancestor::MethodDeclaration//LocalVariableDeclaration/Type/ReferenceType/ClassOrInterfaceType[typeIs('java.lang.String')]/../../../VariableDeclarator/VariableDeclaratorId/@Image, '.')))
+exists(index-of((ancestor::MethodDeclaration//LocalVariableDeclaration/Type[pmd-java:typeIs('java.lang.String')]/../VariableDeclarator/VariableDeclaratorId/@Image), substring-before(@Image,'.')))
+or
+exists(index-of((ancestor::ClassOrInterfaceBody//FieldDeclaration[pmd-java:typeIs('java.lang.String')]/VariableDeclarator/VariableDeclaratorId/@Image), substring-before(@Image,'.'))))
 and
+(: for matches param is >5 literal or something named :)
 ../../PrimarySuffix/Arguments[@ArgumentCount=1]//Expression[1]//PrimaryPrefix[
 Literal[string-length(@Image) > 5] or Name
+(: exclude method calls :)
 and not(../PrimarySuffix)
+(: exclude for param is method arg or local :)
 and not (
 Name/@Image=ancestor::MethodDeclaration//VariableDeclaratorId/@Image)
+(: exclude for param is short fields :)
 and not (
 Name[@Image=ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration/VariableDeclarator[
 VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/Literal[string-length(@Image) < 6]
 ]/VariableDeclaratorId/@Image])
-]]
+]])
 ]]></value>
             </property>
         </properties>
