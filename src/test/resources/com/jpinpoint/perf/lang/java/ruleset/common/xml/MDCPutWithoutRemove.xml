@@ -5,8 +5,8 @@
         xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
     <test-code>
         <description>violation: MDC Values should be removed to avoid problems leaking to other transactions and log incorrect information</description>
-        <expected-problems>3</expected-problems>
-        <expected-linenumbers>14,15,19</expected-linenumbers>
+        <expected-problems>4</expected-problems>
+        <expected-linenumbers>12,15,16,20</expected-linenumbers>
         <code><![CDATA[
 import org.slf4j.MDC;
 
@@ -18,9 +18,10 @@ public class Foo {
 
         try {
             if (true) {
-                MDC.put("levelKey1", "levelName");
+                MDC.put("levelKey1", "levelName1");
+                MDC.put("levelKey2", "levelName2"); // bad: not removed in finally
                 MDC.put(USER_TYPE_KEY1, "userTypeNameField");
-                MDC.put("levelKey2", "levelName2");
+
                 MDC.put("userTypeKey2", "userTypeName2"); //bad: never removed
                 MDC.put(USER_TYPE_KEY2, "userTypeNameField2"); //bad: never removed
 
@@ -29,14 +30,23 @@ public class Foo {
                     MDC.put("focusIdKey2", "focusIdValue2"); //bad: never removed
                 }
             }
-            MDC.remove("levelKey2"); // violation, not in finally
+            MDC.remove("levelKey2"); // wrong, not in finally
 
         } finally {
             MDC.remove("focusIdKey1");
             MDC.remove("levelKey1");
             MDC.remove(USER_TYPE_KEY1);
         }
-        MDC.remove("levelKey2"); // violation, not in finally
+        MDC.remove("levelKey2"); // wrong, not in finally
+    }
+
+    public void good(Object arg) {
+        try {
+            MDC.put("sessionId", arg); // good, cleared in finally
+            MDC.put(USER_TYPE_KEY1, arg); // good
+        } finally {
+            MDC.clear();
+        }
     }
 }
      ]]></code>

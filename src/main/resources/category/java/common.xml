@@ -620,21 +620,22 @@ count(ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDecla
             MDC values are added for logging, but not removed. Problem: MDC values can leak to other user transactions (requests) and log incorrect information. Solution: remove the MDC value in a finally clause.
             (jpinpoint-rules)</description>
         <properties>
+            <property name="version" value="2.0"/>
             <property name="xpath">
                 <value>
                     <![CDATA[
-//TypeDeclaration/ClassOrInterfaceDeclaration/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/
-MethodDeclaration/Block//Statement/StatementExpression/PrimaryExpression/PrimaryPrefix/Name[@Image='MDC.put']
+//MethodDeclaration//StatementExpression//Name[@Image='MDC.put']
 /../../PrimarySuffix/Arguments/ArgumentList/Expression[1]/PrimaryExpression/PrimaryPrefix/Literal[not(@Image=
-ancestor::ClassOrInterfaceBodyDeclaration/MethodDeclaration/Block//TryStatement//Statement/StatementExpression/PrimaryExpression/PrimaryPrefix/Name[@Image='MDC.remove']
+ancestor::MethodDeclaration//TryStatement/FinallyStatement//StatementExpression//Name[@Image='MDC.remove']
 /../../PrimarySuffix/Arguments/ArgumentList/Expression[1]/PrimaryExpression/PrimaryPrefix/Literal/@Image)
+and not(ancestor::MethodDeclaration//TryStatement/FinallyStatement//StatementExpression//Name[@Image='MDC.clear'])
 ]
 |
-//TypeDeclaration/ClassOrInterfaceDeclaration/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/
-MethodDeclaration/Block//Statement/StatementExpression/PrimaryExpression/PrimaryPrefix/Name[@Image='MDC.put']
+//MethodDeclaration//StatementExpression//Name[@Image='MDC.put']
 /../../PrimarySuffix/Arguments/ArgumentList/Expression[1]/PrimaryExpression/PrimaryPrefix/Name[not(@Image=
-ancestor::ClassOrInterfaceBodyDeclaration/MethodDeclaration/Block//TryStatement//Statement/StatementExpression/PrimaryExpression/PrimaryPrefix/Name[@Image='MDC.remove']
+ancestor::MethodDeclaration//TryStatement/FinallyStatement//StatementExpression//Name[@Image='MDC.remove']
 /../../PrimarySuffix/Arguments/ArgumentList/Expression[1]/PrimaryExpression/PrimaryPrefix/Name/@Image)
+and not(ancestor::MethodDeclaration//TryStatement/FinallyStatement//StatementExpression//Name[@Image='MDC.clear'])
 ]
 ]]>
                 </value>
