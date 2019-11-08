@@ -96,25 +96,38 @@
             Solution: Make the fields final and unmodifiable.  If they really need to be mutable, make access thread-safe. Thread-safety can be achieved e.g. by proper synchronization and use the @GuardedBy annotation or use of volatile. Consider lock contention.&#13;
             (jpinpoint-rules)</description>
         <properties>
-            <property name="version" value="1.0"/>
+            <property name="version" value="2.0"/>
             <property name="xpath">
                 <value>
                     <![CDATA[
+(: static field, non-final, non-volatile, non-guarded by :)
 //ClassOrInterfaceDeclaration/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration
-[@Static='true' and @Final='false' and @Volatile='false' and not (../Annotation//Name[@Image='GuardedBy'])]
-|
-(//ClassOrInterfaceDeclaration/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Static='true']/Type/ReferenceType/ClassOrInterfaceType[
-(((typeIs('java.util.Date') or typeIs('java.lang.StringBuilder') or typeIs('java.lang.StringBuffer') or typeIs('java.net.URL')) or typeIs('java.io.File'))
+[@Static=true() and @Final=false() and @Volatile=false() and not (../Annotation//Name[@Image='GuardedBy'])]
+,
+(: static field, non-guarded, some often used known mutable types, declaration side :)
+(//ClassOrInterfaceDeclaration/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Static=true()]/Type/ReferenceType/ClassOrInterfaceType[
+(((pmd-java:typeIs('java.util.Date') or pmd-java:typeIs('java.lang.StringBuilder') or pmd-java:typeIs('java.lang.StringBuffer') or pmd-java:typeIs('java.net.URL')) or pmd-java:typeIs('java.io.File'))
  or (ancestor::FieldDeclaration/VariableDeclarator/VariableInitializer[ArrayInitializer and count(ArrayInitializer/VariableInitializer) > 0]))
  and not (ancestor::ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='GuardedBy'])
 ])
-|
-(//ClassOrInterfaceDeclaration/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Static='true' and not (../Annotation//Name[@Image='GuardedBy'])]/
+,
+(: static field, non-guarded, some often used known collection/array types, allocation side:)
+(//ClassOrInterfaceDeclaration/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Static=true() and not (../Annotation//Name[@Image='GuardedBy'])]/
 VariableDeclarator/VariableInitializer[((ArrayInitializer and count(ArrayInitializer/VariableInitializer) > 0)
-or Expression/PrimaryExpression/PrimaryPrefix/AllocationExpression[ArrayDimsAndInits and ArrayDimsAndInits//PrimaryPrefix/Literal/@Image>0]
-or Expression/PrimaryExpression/PrimaryPrefix/AllocationExpression/ClassOrInterfaceType[
-(typeIs('java.util.ArrayList') or typeIs('java.util.HashMap') or typeIs('java.util.HashSet'))
-])])
+or Expression/PrimaryExpression/PrimaryPrefix/AllocationExpression[ArrayDimsAndInits and xs:int(ArrayDimsAndInits and (xs:int(ArrayDimsAndInits/Expression//Literal/@Image) > 0 or ArrayDimsAndInits/Expression//Name))]
+or Expression/PrimaryExpression/PrimaryPrefix/AllocationExpression[(pmd-java:typeIs('java.util.ArrayList') or pmd-java:typeIs('java.util.HashMap') or pmd-java:typeIs('java.util.HashSet'))]
+or Expression/PrimaryExpression/PrimaryPrefix/Name[@Image='Arrays.asList']
+)])
+,
+(: static-block allocations of non-empty arrays :)
+//Initializer//AllocationExpression[((ArrayDimsAndInits and ((xs:int(ArrayDimsAndInits/Expression//Literal/@Image) > 0) or exists(ArrayDimsAndInits/Expression//Name) or exists(ArrayDimsAndInits/ArrayInitializer//Expression)))
+or
+(: static-block allocations of known mutable types :)
+ClassOrInterfaceType[pmd-java:typeIs('java.util.ArrayList') or pmd-java:typeIs('java.util.HashMap') or pmd-java:typeIs('java.util.HashSet')])
+and
+(: given the field is not @GuardedBy :)
+ancestor::StatementExpression/PrimaryExpression/PrimaryPrefix/Name/@Image = ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration[count(Annotation//Name[@Image='GuardedBy']) = 0]/FieldDeclaration//VariableDeclaratorId/@Image
+]
 ]]>
                 </value>
             </property>
