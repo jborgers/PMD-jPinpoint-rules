@@ -548,6 +548,30 @@ MethodDeclaration//LocalVariableDeclaration/Type/ReferenceType/ClassOrInterfaceT
         </properties>
     </rule>
 
+    <rule name="HttpClientBuilderWithoutDisableConnectionState" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="A HttpClient builder is used and disableConnectionState is not called" typeResolution="true"
+          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-IBI">
+        <description>Problem: In cloud environment sessions are not sticky and connections are stateless. If HttpClients have enabled connection state, TLS connections will not be reused and performance will suffer..&#13;
+            Solution: HttpClients should have disabled connection state to reuse TLS connections. (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+(:locally created http client builder without disableConnectionState :)
+//MethodDeclaration//PrimaryExpression/PrimaryPrefix/Name[
+(@Image="HttpClientBuilder.create" or @Image="HttpAsyncClientBuilder.create" or @Image="HttpClients.custom") and not(
+ancestor::MethodDeclaration//PrimarySuffix/@Image="disableConnectionState")]
+,
+(: method param http client builder without disableConnectionState :)
+//MethodDeclaration//FormalParameter//ClassOrInterfaceType[
+(@Image="HttpClientBuilder" or @Image="HttpAsyncClientBuilder" or @Image="HttpClients") and not(
+ancestor::MethodDeclaration//PrimarySuffix/@Image="disableConnectionState")]
+			]]>
+                </value>
+            </property>
+        </properties>
+    </rule>
+
     <rule name="ImplementEqualsHashCodeOnValueObjects"
           message="Equals and/or hashCode is missing for a value object."
           class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"

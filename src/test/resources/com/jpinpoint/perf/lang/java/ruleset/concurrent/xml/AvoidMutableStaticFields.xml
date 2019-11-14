@@ -6,7 +6,7 @@
     <test-code>
         <description>Avoid mutable static fields</description>
         <expected-problems>28</expected-problems>
-        <expected-linenumbers>17,18,19,22,23,25,29,29,30,33,34,34,46,46,56,56,65,65,66,67,67,68,84,86,89,91,98,99</expected-linenumbers>
+        <expected-linenumbers>17,18,19,22,23,25,29,29,30,33,34,34,46,46,56,56,65,65,66,67,67,68,84,86,88,90,97,98</expected-linenumbers>
         <code><![CDATA[
 import net.jcip.annotations.GuardedBy;
 import net.jcip.annotations.NotThreadSafe;
