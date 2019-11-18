@@ -784,7 +784,7 @@ ClassOrInterfaceBodyDeclaration/MethodDeclaration//Block/BlockStatement//Stateme
 
     <rule name="UsingSuppressWarnings" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="Using SuppressWarnings." typeResolution="true"
           externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance">
-        <description>Problem: This rule detects problems, suppressing them without full knowledge can lead to the problems this rule is trying to prevent. &#13;
+        <description>(Informative) Problem: This rule detects problems, suppressing them without full knowledge can lead to the problems this rule is trying to prevent. &#13;
             Solution: Suppress warnings judiciously based on full knowledge and report reasons to suppress (false positives) to the rule maintainers so these can be fixed. (jpinpoint-rules)</description>
         <priority>4</priority>
         <properties>
@@ -804,7 +804,7 @@ ClassOrInterfaceBodyDeclaration/MethodDeclaration//Block/BlockStatement//Stateme
 
     <rule name="UsingSuppressWarningsHighRisk" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="Using SuppressWarnings for a rule that is meant to prevent high risk problems." typeResolution="true"
           externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance">
-        <description>Problem: This rule detects high risk problems, suppressing them without full knowledge can lead to incidents like customer data mix-up, corrupt data, server crashes or very bad performance. &#13;
+        <description>(Informative) Problem: This rule detects high risk problems, suppressing them without full knowledge can lead to incidents like customer data mix-up, corrupt data, server crashes or very bad performance. &#13;
             Solution: Suppress warnings judiciously based on full knowledge and report reasons to suppress (false positives) to the rule maintainers so these can be fixed. (jpinpoint-rules)</description>
         <priority>4</priority>
         <properties>
