@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>violation: suppress warnings on different levels</description>
+        <expected-problems>6</expected-problems>
+        <expected-linenumbers>1,2,3,6,6,6</expected-linenumbers>
+        <code><![CDATA[
+@SuppressWarnings("PMD.SingularField") // bad
+@SuppressWarnings("pmd:ImplementEqualsHashCodeOnValueObjects") // bad
+@SuppressFBWarnings("ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD") // bad
+@Component
+class Bad {
+    @SuppressWarnings({"PMD.SignatureDeclareThrowsException", "PMD.ReplaceHashtableWithMap", "PMD.AvoidUnguardedMutableFieldsInSharedObjects"}) // 3x bad
+    public void bad() {
+    }
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>violation: matched also in other rule - HighRisky</description>
+        <expected-problems>6</expected-problems>
+        <expected-linenumbers>3,4,6,9,9,10</expected-linenumbers>
+        <code><![CDATA[
+@Component
+@Provider
+@SuppressFBWarnings("ALL") //bad
+@SuppressWarnings("pmd")   //bad
+//@SuppressWarnings("PMD")   //bad, we cannot detect nor test this :-(
+@SuppressWarnings("ALL")   //bad
+//@SuppressWarnings("all")   //bad, we cannot detect nor test this :-(
+class Bad {
+    @SuppressWarnings({"PMD.AvoidUnguardedMutableFieldsInSharedObjects", "pmd:AvoidUnguardedAssignmentToNonFinalFieldsInSharedObjects"}) // 2x bad
+    @SuppressWarnings("PMD.AvoidMutableStaticFields")  // bad
+    public void bad() {}
+}
+     ]]></code>
+    </test-code>
+
+</test-data>

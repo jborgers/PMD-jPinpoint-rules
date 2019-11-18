@@ -549,7 +549,7 @@ MethodDeclaration//LocalVariableDeclaration/Type/ReferenceType/ClassOrInterfaceT
     </rule>
 
     <rule name="HttpClientBuilderWithoutDisableConnectionState" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="A HttpClient builder is used and disableConnectionState is not called" typeResolution="true"
-          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-IBI">
+          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-IBI07">
         <description>Problem: In cloud environment sessions are not sticky and connections are stateless. If HttpClients have enabled connection state, TLS connections will not be reused and performance will suffer..&#13;
             Solution: HttpClients should have disabled connection state to reuse TLS connections. (jpinpoint-rules)</description>
         <priority>2</priority>
@@ -776,6 +776,46 @@ ClassOrInterfaceBodyDeclaration/MethodDeclaration//Block/BlockStatement//Stateme
 					or ends-with(@Image,'.isLoggable')
 				])
 			]
+			]]>
+                </value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="UsingSuppressWarnings" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="Using SuppressWarnings." typeResolution="true"
+          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance">
+        <description>Problem: This rule detects problems, suppressing them without full knowledge can lead to the problems this rule is trying to prevent. &#13;
+            Solution: Suppress warnings judiciously based on full knowledge and report reasons to suppress (false positives) to the rule maintainers so these can be fixed. (jpinpoint-rules)</description>
+        <priority>4</priority>
+        <properties>
+            <property name="ruleIdMatches" type="String" value=".*"
+                      description="Regex for inclusion of high risk rules"/>
+            <property name="ruleIdNotMatches" type="String" value="^$"
+                      description="Regex for exclusion of high risk rules"/>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+//Annotation//Name[@Image="SuppressWarnings" or @Image="SuppressFBWarnings"]/..//Literal[(matches(@Image, $ruleIdMatches)) and not (matches(@Image, $ruleIdNotMatches))]
+			]]>
+                </value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="UsingSuppressWarningsHighRisk" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="Using SuppressWarnings for a rule that is meant to prevent high risk problems." typeResolution="true"
+          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance">
+        <description>Problem: This rule detects high risk problems, suppressing them without full knowledge can lead to incidents like customer data mix-up, corrupt data, server crashes or very bad performance. &#13;
+            Solution: Suppress warnings judiciously based on full knowledge and report reasons to suppress (false positives) to the rule maintainers so these can be fixed. (jpinpoint-rules)</description>
+        <priority>4</priority>
+        <properties>
+            <property name="ruleIdMatches" type="String" value="AvoidUnguardedMutableFieldsInSharedObjects|AvoidUnguardedAssignmentToNonFinalFieldsInSharedObjects|AvoidMutableStaticFields|ALL|all|PMD[^\.]|pmd[^:]"
+                      description="Regex for inclusion of high risk rules"/>
+            <property name="ruleIdNotMatches" type="String" value="^$"
+                      description="Regex for exclusion of high risk rules"/>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+//Annotation//Name[@Image="SuppressWarnings" or @Image="SuppressFBWarnings"]/..//Literal[(matches(@Image, $ruleIdMatches)) and not (matches(@Image, $ruleIdNotMatches))]
 			]]>
                 </value>
             </property>
