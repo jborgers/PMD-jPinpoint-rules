@@ -10,6 +10,7 @@
             Problem: take() stalls indefinitely in case of hanging threads and consumes a thread.&#13;
             Solution: use poll() with a timeout value and handle the timeout.
             (jpinpoint-rules)</description>
+        <priority>2</priority>
         <properties>
             <property name="version" value="1.0"/>
             <property name="xpath">
@@ -34,7 +35,6 @@
                 </value>
             </property>
         </properties>
-        <priority>2</priority>
     </rule>
 
     <rule name="AvoidFutureGetWithoutTimeout"
@@ -45,6 +45,7 @@
             Problem: Stalls indefinitely in case of hanging threads and consumes a thread.&#13;
             Solution: Provide a timeout value and handle the timeout.
             (jpinpoint-rules)</description>
+        <priority>2</priority>
         <properties>
             <property name="version" value="1.0"/>
             <property name="xpath">
@@ -84,7 +85,6 @@
                 </value>
             </property>
         </properties>
-        <priority>2</priority>
     </rule>
 
     <rule name="AvoidMutableStaticFields"
@@ -93,8 +93,9 @@
           typeResolution="true" externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-TUTC08">
         <description>
             Problem: Multiple threads typically access static fields. Unguarded assignment to a mutable or non-final static field is thread-unsafe and may cause corruption or visibility problems. To make this thread-safe, that is, guard the field e.g. with synchronized methods, may cause contention. &#13;
-            Solution: Make the fields final and unmodifiable.  If they really need to be mutable, make access thread-safe. Thread-safety can be achieved e.g. by proper synchronization and use the @GuardedBy annotation or use of volatile. Consider lock contention.&#13;
+            Solution: Make the fields final and unmodifiable.  If they really need to be mutable, make access thread-safe: use synchronized and @GuardedBy or use volatile. Consider lock contention.&#13;
             (jpinpoint-rules)</description>
+        <priority>2</priority>
         <properties>
             <property name="version" value="2.0"/>
             <property name="xpath">
@@ -132,7 +133,6 @@ ancestor::StatementExpression/PrimaryExpression/PrimaryPrefix/Name/@Image = ance
                 </value>
             </property>
         </properties>
-        <priority>2</priority>
     </rule>
 
     <rule name="AvoidThreadUnsafeJaxbUsage" message="A JAXB Marshaller, Unmarshaller or Validator is used in a thread-unsafe way." class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" typeResolution="true" externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-IUOXAR07">
@@ -162,14 +162,15 @@ ancestor::StatementExpression/PrimaryExpression/PrimaryPrefix/Name/@Image = ance
           typeResolution="true" externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-TUTC07">
         <description>
             Problem: Multiple threads typically access fields of a singleton or may access fields in session scoped objects. Unguarded assignment to a non-final field is thread-unsafe and may cause corruption or visibility problems. To make this thread-safe, that is, guard the field e.g. with synchronized methods, may cause contention. &#13;
-            Solution: Make the fields final and unmodifiable.  If they really need to be mutable, make access thread-safe. Thread-safety can be achieved e.g. by proper synchronization and use the @GuardedBy annotation or use of volatile.&#13;
+            Solution: Make the fields final and unmodifiable.  If they really need to be mutable, make access thread-safe: use synchronized and @GuardedBy or use volatile.&#13;
             Notes&#13;
             1. Autowiring/injection is thread safe, yet make sure no other thread-unsafe assignment is made to that field.&#13;
             2. In case you are sure the Component is used in single threaded context only (e.g. a Tasklet), annotate the class with @NotThreadSafe to make this explicit. &#13;
             3. Use package-private and @VisibleForTesting for methods (e.g. setters) used for JUnit only.
             (jpinpoint-rules)</description>
+        <priority>2</priority>
         <properties>
-            <property name="version" value="1.0"/>
+            <property name="version" value="2.0"/>
             <property name="xpath">
                 <value>
                     <![CDATA[
@@ -180,15 +181,14 @@ and not (ancestor::TypeDeclaration/Annotation//Name[@Image='RequestScope'])
 and not (ancestor::TypeDeclaration/Annotation/MarkerAnnotation/Name[@Image='NotThreadSafe'])
 and not ((ancestor::TypeDeclaration/Annotation//Name[@Image='ConfigurationProperties'])
          and not (ancestor::TypeDeclaration/Annotation/MarkerAnnotation/Name[@Image='Setter']))]
-/../../..//ClassOrInterfaceDeclaration[@Static='false']/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDeclaration/Block/BlockStatement/Statement//StatementExpression/AssignmentOperator/../PrimaryExpression//*[@Image=
-ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Final='false' and @Volatile='false' and not (../Annotation//Name[@Image='GuardedBy'])]/VariableDeclarator/VariableDeclaratorId/@Image
-and not (ancestor::ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='Autowired' or @Image='PostConstruct' or @Image='BeforeStep' or @Image='Value']
-or (ancestor::ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='VisibleForTesting'] and ancestor::MethodDeclaration[@Public='false']))]
+/../../..//ClassOrInterfaceDeclaration[@Static=false()]/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDeclaration/Block/BlockStatement/Statement//StatementExpression/AssignmentOperator/../PrimaryExpression//*[@Image=
+ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Final=false() and @Volatile=false() and not (../Annotation//Name[@Image='GuardedBy'])]/VariableDeclarator/VariableDeclaratorId/@Image
+and not (ancestor::ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='Autowired' or @Image='PostConstruct' or @Image='BeforeStep' or @Image='Value' or @Image='Inject']
+or (ancestor::ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='VisibleForTesting'] and ancestor::MethodDeclaration[@Public=false()]))]
 ]]>
                 </value>
             </property>
         </properties>
-        <priority>2</priority>
     </rule>
 
     <rule name="AvoidUnguardedMutableFieldsInSharedObjects"
@@ -197,7 +197,7 @@ or (ancestor::ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='VisibleFo
           typeResolution="true" externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-TUTC07">
         <description>
             Problem: Multiple threads typically access fields of a singleton or may access fields in session scoped objects. If a field or its reference is mutable, access is thread-unsafe and may cause corruption or visibility problems. To make this thread-safe, that is, guard the field e.g. with synchronized methods, may cause contention.&#13;
-            Solution: Make the fields final and unmodifiable. If they really need to be mutable, make access thread-safe. Thread-safety can be achieved e.g. by proper synchronization and use the @GuardedBy annotation or use of volatile.&#13;
+            Solution: Make the fields final and unmodifiable. If they really need to be mutable, make access thread-safe: use synchronized and @GuardedBy or use volatile.&#13;
             Notes&#13;
             1. Instances of Date, StringBuilder, URL and File are examples of mutable objects and should be avoided (or else guarded) as fields of shared objects. In case mutable fields are final and not modified after initialization (read-only) they are thread safe, however any modification to it is thread-unsafe. Since field modification is easily coded, avoid this situation.
             &#13;2. Instances of classes like ArrayList, HashMap and HashSet are also mutable and should be properly wrapped with e.g. Collections.unmodifiableList after initialization (see TUTC03), or accessed thread-safely with e.g. Collections.synchronizedList or thread-safe implementations like ConcurrentHashMap.
@@ -205,33 +205,123 @@ or (ancestor::ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='VisibleFo
             &#13;4. In case you are sure the Component is used in single threaded context only (e.g. a Tasklet), annotate the class with @NotThreadSafe to make this explicit.
             &#13;5. Use package private and @VisibleForTesting for methods used for JUnit only.
             (jpinpoint-rules)</description>
+        <priority>2</priority>
         <properties>
-            <property name="version" value="1.0"/>
+            <property name="version" value="2.0"/>
             <property name="xpath">
                 <value>
                     <![CDATA[
+(: known assumed singleton types by annotation :)
 //TypeDeclaration/Annotation//Name[(@Image='Component' or @Image='Service' or @Image='Controller' or @Image='Repository' or
 (@Image='Singleton' and ancestor::TypeDeclaration/Annotation/NormalAnnotation/MemberValuePairs//Name[@Image='ConcurrencyManagementType.BEAN']))
+(: not shared when request or prototype scope :)
 and not (ancestor::TypeDeclaration/Annotation//Name[@Image='Scope']/..//Literal[@Image='"request"' or @Image='"prototype"'])
 and not (ancestor::TypeDeclaration/Annotation//Name[@Image='RequestScope'])
+(: if @NotThreadSafe no checking :)
 and not (ancestor::TypeDeclaration/Annotation/MarkerAnnotation/Name[@Image='NotThreadSafe'])
+(: ConfigurationProperties assumed executed only once, no violation, except if Lombok Setter :)
 and not ((ancestor::TypeDeclaration/Annotation//Name[@Image='ConfigurationProperties'])
              and not (ancestor::TypeDeclaration/Annotation/MarkerAnnotation/Name[@Image='Setter']))]
-/../../..//ClassOrInterfaceDeclaration[@Static='false']/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Final='false' and @Volatile='false'
+(: non-final and non-volatile fields :)
+/../../..//ClassOrInterfaceDeclaration[@Static=false()]/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Final=false() and @Volatile=false()
+(: field not annotated with framework annotation or GuardedBy :)
 and not (../Annotation//Name[@Image='Autowired' or @Image='PersistenceContext' or @Image='EJB' or @Image='Resource' or @Image='Inject' or @Image='Value' or @Image='GuardedBy'])
-and not (../../ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='Autowired' or @Image='PostConstruct' or @Image='BeforeStep' or @Image='Value']
+(: field not on accessor method with assignment level annotated with framework annotation :)
+and not (../../ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='Autowired' or @Image='PostConstruct' or @Image='BeforeStep' or @Image='Value' or 'Inject']
 /../../..//BlockStatement/Statement//StatementExpression/AssignmentOperator/../PrimaryExpression//@Image=
 ./VariableDeclarator/VariableDeclaratorId/@Image)
-or ((Type/ReferenceType/ClassOrInterfaceType[(typeIs('java.util.Date') or typeIs('java.lang.StringBuilder') or typeIs('java.lang.StringBuffer') or typeIs('java.net.URL') or typeIs('java.io.File')) or
+(: or field of known mutable types including array :)
+or ((Type/ReferenceType/ClassOrInterfaceType[(pmd-java:typeIs('java.util.Date') or pmd-java:typeIs('java.lang.StringBuilder') or pmd-java:typeIs('java.lang.StringBuffer') or pmd-java:typeIs('java.net.URL') or pmd-java:typeIs('java.io.File')) or
 (ancestor::FieldDeclaration/VariableDeclarator/VariableInitializer[ArrayInitializer and count(ArrayInitializer/VariableInitializer) > 0])])
-or (VariableDeclarator/VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/AllocationExpression/ClassOrInterfaceType[typeIs('java.lang.ArrayList') or typeIs('java.lang.HashMap') or typeIs('java.lang.HashSet')] )
+(: or allocation of known mutable collection types :)
+or (VariableDeclarator/VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/AllocationExpression/ClassOrInterfaceType[pmd-java:typeIs('java.lang.ArrayList') or pmd-java:typeIs('java.lang.HashMap') or pmd-java:typeIs('java.lang.HashSet')] )
+(: not annotated GuardedBy :)
      and not (../Annotation//Name[@Image='GuardedBy']))
 ]
 ]]>
                 </value>
             </property>
         </properties>
+    </rule>
+
+    <rule name="AvoidUnguardedAssignmentToNonFinalFieldsInObjectsUsingSynchronized"
+          message="Avoid unguarded assignments to non-final fields in objects using synchronized."
+          class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
+          typeResolution="true" externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-TUTC07">
+        <description>
+            Problem: Multiple threads typically access fields of an object using synchronized. Unguarded assignment to a non-final field is thread-unsafe and may cause corruption or visibility problems. To make this thread-safe, that is, guard the field e.g. with synchronized methods, may cause contention. &#13;
+            Solution: Make the fields final and unmodifiable.  If they really need to be mutable, make access thread-safe: use synchronized and @GuardedBy or use volatile.&#13;
+            Notes&#13;
+            1. In case you are sure the class is used in single threaded context only, remove current use of synchronized and annotate the class with @NotThreadSafe to make this explicit. &#13;
+            2. Use package-private and @VisibleForTesting for methods (e.g. setters) used for JUnit only.
+            (jpinpoint-rules)</description>
         <priority>2</priority>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value>
+                    <![CDATA[
+(: if @NotThreadSafe no checking :)
+//TypeDeclaration[count(Annotation/MarkerAnnotation/Name[@Image='NotThreadSafe'])=0]
+(: non-static classes using synchronized :)
+//ClassOrInterfaceDeclaration[@Static=false()]/ClassOrInterfaceBody[//SynchronizedStatement or //MethodDeclaration[@Synchronized=true()]]
+/ClassOrInterfaceBodyDeclaration/MethodDeclaration/Block/BlockStatement/Statement//StatementExpression/AssignmentOperator/../PrimaryExpression//*[@Image=
+(: non-final, non-volatile, non-GuardedBy fields :)
+ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Final=false() and @Volatile=false() and not (../Annotation//Name[@Image='GuardedBy'])]/VariableDeclarator/VariableDeclaratorId/@Image
+(: field not on accessor method with assignment, annotated with framework annotation :)
+and not (ancestor::ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='Autowired' or @Image='PostConstruct' or @Image='BeforeStep' or @Image='Value' or @Image='Inject']
+(: field not assigned in non-public accessor method annotated with VisibleForTesting :)
+or (ancestor::ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='VisibleForTesting'] and ancestor::MethodDeclaration[@Public=false()]))]
+]]>
+                </value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="AvoidUnguardedMutableFieldsInObjectsUsingSynchronized"
+          message="Avoid unguarded non-final or mutable fields in objects using synchronized."
+          class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
+          typeResolution="true" externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-TUTC07">
+        <description>
+            Problem: Multiple threads typically access fields of an object using synchronized. If a field or its reference is mutable, access is thread-unsafe and may cause corruption or visibility problems. To make this thread-safe, that is, guard the field e.g. with synchronized methods, may cause contention.&#13;
+            Solution: Make the fields final and unmodifiable. If they really need to be mutable, make access thread-safe: use synchronized and @GuardedBy or use volatile.&#13;
+            Notes&#13;
+            1. Instances of Date, StringBuilder, URL and File are examples of mutable objects and should be avoided (or else guarded) as fields of shared objects. In case mutable fields are final and not modified after initialization (read-only) they are thread safe, however any modification to it is thread-unsafe. Since field modification is easily coded, avoid this situation.
+            &#13;2. Instances of classes like ArrayList, HashMap and HashSet are also mutable and should be properly wrapped with e.g. Collections.unmodifiableList after initialization (see TUTC03), or accessed thread-safely with e.g. Collections.synchronizedList or thread-safe implementations like ConcurrentHashMap.
+            &#13;3. Autowiring/injection is thread safe, yet make sure no other thread-unsafe assignment is made to that field.
+            &#13;4. In case you are sure the class is used in single threaded context only, annotate the class with @NotThreadSafe to make this explicit.
+            &#13;5. Use package private and @VisibleForTesting for methods used for JUnit only.
+            (jpinpoint-rules)</description>
+        <priority>3</priority>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value>
+                    <![CDATA[
+(: if @NotThreadSafe no checking :)
+//TypeDeclaration[count(Annotation/MarkerAnnotation/Name[@Image='NotThreadSafe'])=0]
+(: non-static classes using synchronized :)
+//ClassOrInterfaceDeclaration[@Static=false()]/ClassOrInterfaceBody[//SynchronizedStatement or //MethodDeclaration[@Synchronized=true()]]
+(: non-final and non-volatile fields :)
+/ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Final=false() and @Volatile=false()
+(: field not annotated with framework annotation or GuardedBy :)
+and not (../Annotation//Name[@Image='Autowired' or @Image='PersistenceContext' or @Image='EJB' or @Image='Resource' or @Image='Inject' or @Image='Value' or @Image='GuardedBy'])
+(: field not on accessor method with assignment, annotated with framework annotation :)
+and not (../../ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='Autowired' or @Image='PostConstruct' or @Image='BeforeStep' or @Image='Value' or 'Inject']
+/../../..//BlockStatement/Statement//StatementExpression/AssignmentOperator/../PrimaryExpression//@Image=
+./VariableDeclarator/VariableDeclaratorId/@Image)
+(: or field of known mutable types including array :)
+or ((Type/ReferenceType/ClassOrInterfaceType[(pmd-java:typeIs('java.util.Date') or pmd-java:typeIs('java.lang.StringBuilder') or pmd-java:typeIs('java.lang.StringBuffer') or pmd-java:typeIs('java.net.URL') or pmd-java:typeIs('java.io.File')) or
+(ancestor::FieldDeclaration/VariableDeclarator/VariableInitializer[ArrayInitializer and count(ArrayInitializer/VariableInitializer) > 0])])
+(: or allocation of known mutable collection types :)
+or (VariableDeclarator/VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/AllocationExpression/ClassOrInterfaceType[pmd-java:typeIs('java.lang.ArrayList') or pmd-java:typeIs('java.lang.HashMap') or pmd-java:typeIs('java.lang.HashSet')] )
+(: mutable types not annotated with GuardedBy :)
+) and not (../Annotation//Name[@Image='GuardedBy'])
+]
+]]>
+                </value>
+            </property>
+        </properties>
     </rule>
 
 </ruleset>

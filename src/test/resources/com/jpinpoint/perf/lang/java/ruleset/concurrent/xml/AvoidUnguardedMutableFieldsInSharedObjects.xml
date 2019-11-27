@@ -4,7 +4,7 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
     <test-code>
-        <description>Avoid Mutable Static Fields</description>
+        <description>Avoid unguarded mutable fields in shared objects</description>
         <expected-problems>6</expected-problems>
         <code><![CDATA[
 import com.google.common.annotations.VisibleForTesting;
