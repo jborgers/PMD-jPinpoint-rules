@@ -1111,7 +1111,7 @@ public class StringStuff {
     </rule>
 
     <rule name="AvoidMutableStaticFields"
-          message="Avoid non-final or mutable static fields."
+          message="Avoid non-final or mutable static fields. Make final immutable or access thread-safely and use @GuardedBy."
           class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
           typeResolution="true" externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-TUTC08">
         <description>
@@ -1180,12 +1180,12 @@ ancestor::StatementExpression/PrimaryExpression/PrimaryPrefix/Name/@Image = ance
     </rule>
 
     <rule name="AvoidUnguardedAssignmentToNonFinalFieldsInObjectsUsingSynchronized"
-          message="Avoid unguarded assignments to non-final fields in objects using synchronized."
+          message="Avoid unguarded assignments to non-final fields in objects using synchronized. Access thread-safely and use @GuardedBy."
           class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
           typeResolution="true" externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-TUTC07">
         <description>
             Problem: Multiple threads typically access fields of an object using synchronized. Unguarded assignment to a non-final field is thread-unsafe and may cause corruption or visibility problems. To make this thread-safe, that is, guard the field e.g. with synchronized methods, may cause contention. &#13;
-            Solution: Make the fields final and unmodifiable.  If they really need to be mutable, make access thread-safe: use synchronized and @GuardedBy or use volatile.&#13;
+            Solution: Make the fields final and unmodifiable.  If they really need to be mutable, make access thread-safe: use synchronized and jcip @GuardedBy or use volatile.&#13;
             Notes&#13;
             1. In case you are sure the class is used in single threaded context only, remove current use of synchronized and annotate the class with @NotThreadSafe to make this explicit. &#13;
             2. Use package-private and @VisibleForTesting for methods (e.g. setters) used for JUnit only.
@@ -1200,6 +1200,7 @@ ancestor::StatementExpression/PrimaryExpression/PrimaryPrefix/Name/@Image = ance
 //TypeDeclaration[count(Annotation/MarkerAnnotation/Name[@Image='NotThreadSafe'])=0]
 (: non-static classes using synchronized :)
 //ClassOrInterfaceDeclaration[@Static=false()]/ClassOrInterfaceBody[//SynchronizedStatement or //MethodDeclaration[@Synchronized=true()]]
+(: assignment to a field :)
 /ClassOrInterfaceBodyDeclaration/MethodDeclaration/Block/BlockStatement/Statement//StatementExpression/AssignmentOperator/../PrimaryExpression//*[@Image=
 (: non-final, non-volatile, non-GuardedBy fields :)
 ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Final=false() and @Volatile=false() and not (../Annotation//Name[@Image='GuardedBy'])]/VariableDeclarator/VariableDeclaratorId/@Image
@@ -1214,12 +1215,12 @@ or (ancestor::ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='VisibleFo
     </rule>
 
     <rule name="AvoidUnguardedAssignmentToNonFinalFieldsInSharedObjects"
-          message="Avoid unguarded assignments to non-final fields in objects shared among threads."
+          message="Avoid unguarded assignments to non-final fields in objects shared among threads. Access thread-safely and use @GuardedBy."
           class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
           typeResolution="true" externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-TUTC07">
         <description>
             Problem: Multiple threads typically access fields of a singleton or may access fields in session scoped objects. Unguarded assignment to a non-final field is thread-unsafe and may cause corruption or visibility problems. To make this thread-safe, that is, guard the field e.g. with synchronized methods, may cause contention. &#13;
-            Solution: Make the fields final and unmodifiable.  If they really need to be mutable, make access thread-safe: use synchronized and @GuardedBy or use volatile.&#13;
+            Solution: Make the fields final and unmodifiable.  If they really need to be mutable, make access thread-safe: use synchronized and jcip @GuardedBy or use volatile.&#13;
             Notes&#13;
             1. Autowiring/injection is thread safe, yet make sure no other thread-unsafe assignment is made to that field.&#13;
             2. In case you are sure the Component is used in single threaded context only (e.g. a Tasklet), annotate the class with @NotThreadSafe to make this explicit. &#13;
@@ -1235,12 +1236,18 @@ or (ancestor::ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='VisibleFo
 (@Image='Singleton' and ancestor::TypeDeclaration/Annotation/NormalAnnotation/MemberValuePairs//Name[@Image='ConcurrencyManagementType.BEAN']))
 and not (ancestor::TypeDeclaration/Annotation//Name[@Image='Scope']/..//Literal[@Image='"request"' or @Image='"prototype"'])
 and not (ancestor::TypeDeclaration/Annotation//Name[@Image='RequestScope'])
+(: if @NotThreadSafe no checking :)
 and not (ancestor::TypeDeclaration/Annotation/MarkerAnnotation/Name[@Image='NotThreadSafe'])
+(: no checking if @ConfigurationProperties and no @Setter :)
 and not ((ancestor::TypeDeclaration/Annotation//Name[@Image='ConfigurationProperties'])
          and not (ancestor::TypeDeclaration/Annotation/MarkerAnnotation/Name[@Image='Setter']))]
+(: assignment to a field :)
 /../../..//ClassOrInterfaceDeclaration[@Static=false()]/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDeclaration/Block/BlockStatement/Statement//StatementExpression/AssignmentOperator/../PrimaryExpression//*[@Image=
+(: non-final, non-volatile, non-GuardedBy fields :)
 ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Final=false() and @Volatile=false() and not (../Annotation//Name[@Image='GuardedBy'])]/VariableDeclarator/VariableDeclaratorId/@Image
+(: field not on accessor method with assignment, annotated with framework annotation :)
 and not (ancestor::ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='Autowired' or @Image='PostConstruct' or @Image='BeforeStep' or @Image='Value' or @Image='Inject']
+(: field not assigned in non-public accessor method annotated with VisibleForTesting :)
 or (ancestor::ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='VisibleForTesting'] and ancestor::MethodDeclaration[@Public=false()]))]
 ]]>
                 </value>
@@ -1249,12 +1256,12 @@ or (ancestor::ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='VisibleFo
     </rule>
 
     <rule name="AvoidUnguardedMutableFieldsInObjectsUsingSynchronized"
-          message="Avoid unguarded non-final or mutable fields in objects using synchronized."
+          message="Avoid unguarded non-final or mutable fields in objects using synchronized. Make final immutable or access thread-safely and use @GuardedBy."
           class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
           typeResolution="true" externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-TUTC07">
         <description>
             Problem: Multiple threads typically access fields of an object using synchronized. If a field or its reference is mutable, access is thread-unsafe and may cause corruption or visibility problems. To make this thread-safe, that is, guard the field e.g. with synchronized methods, may cause contention.&#13;
-            Solution: Make the fields final and unmodifiable. If they really need to be mutable, make access thread-safe: use synchronized and @GuardedBy or use volatile.&#13;
+            Solution: Make the fields final and unmodifiable. If they really need to be mutable, make access thread-safe: use synchronized and jcip @GuardedBy or use volatile.&#13;
             Notes&#13;
             1. Instances of Date, StringBuilder, URL and File are examples of mutable objects and should be avoided (or else guarded) as fields of shared objects. In case mutable fields are final and not modified after initialization (read-only) they are thread safe, however any modification to it is thread-unsafe. Since field modification is easily coded, avoid this situation.
             &#13;2. Instances of classes like ArrayList, HashMap and HashSet are also mutable and should be properly wrapped with e.g. Collections.unmodifiableList after initialization (see TUTC03), or accessed thread-safely with e.g. Collections.synchronizedList or thread-safe implementations like ConcurrentHashMap.
@@ -1295,12 +1302,12 @@ or (VariableDeclarator/VariableInitializer/Expression/PrimaryExpression/PrimaryP
     </rule>
 
     <rule name="AvoidUnguardedMutableFieldsInSharedObjects"
-          message="Avoid unguarded non-final or mutable fields in objects shared among threads."
+          message="Avoid unguarded non-final or mutable fields in objects shared among threads. Make final immutable or access thread-safely and use @GuardedBy."
           class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
           typeResolution="true" externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-TUTC07">
         <description>
             Problem: Multiple threads typically access fields of a singleton or may access fields in session scoped objects. If a field or its reference is mutable, access is thread-unsafe and may cause corruption or visibility problems. To make this thread-safe, that is, guard the field e.g. with synchronized methods, may cause contention.&#13;
-            Solution: Make the fields final and unmodifiable. If they really need to be mutable, make access thread-safe: use synchronized and @GuardedBy or use volatile.&#13;
+            Solution: Make the fields final and unmodifiable. If they really need to be mutable, make access thread-safe: use synchronized and jcip @GuardedBy or use volatile.&#13;
             Notes&#13;
             1. Instances of Date, StringBuilder, URL and File are examples of mutable objects and should be avoided (or else guarded) as fields of shared objects. In case mutable fields are final and not modified after initialization (read-only) they are thread safe, however any modification to it is thread-unsafe. Since field modification is easily coded, avoid this situation.
             &#13;2. Instances of classes like ArrayList, HashMap and HashSet are also mutable and should be properly wrapped with e.g. Collections.unmodifiableList after initialization (see TUTC03), or accessed thread-safely with e.g. Collections.synchronizedList or thread-safe implementations like ConcurrentHashMap.
