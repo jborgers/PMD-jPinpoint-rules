@@ -18,6 +18,26 @@
             </plugin>
 
             <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>1.6.0</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>java</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <mainClass>com.jpinpoint.perf.tools.RulesetMerger</mainClass>
+                    <arguments>
+                    </arguments>
+                    <systemProperties>
+                    </systemProperties>
+                </configuration>
+            </plugin>
+
+            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-dependency-plugin</artifactId>
                 <executions>
@@ -82,7 +102,7 @@
                 <version>2.5.3</version>
             </plugin>
 
-        </plugins>
+         </plugins>
     </build>
 
     <packaging>jar</packaging>

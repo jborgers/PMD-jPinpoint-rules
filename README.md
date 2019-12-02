@@ -135,8 +135,7 @@ construct the unit test files:
 
  If the merger tool is run as follows:
 
-    cd target
-    java -jar rulesets-merger-1.0-SNAPSHOT.jar
+    mvn exec:java
 
  It will just merge the rules from ``src/main/resources/category/java/*.xml`` to create the jpinpoint-rules.xml file which can be used in your IDE.
 
@@ -150,8 +149,7 @@ Copy rulesets-merger to your company specific rules directory and adjust a few c
     
  After building, the merger tool can be run with:
  
-    cd target
-    java -jar rulesets-merger-1.0-SNAPSHOT.jar PMD-jPinpoint-rules rulesets/java jpinpoint-rules.xml 
+     mvn exec:java
 
  This will attempt to lookup the PMD-jPinpoint-rules project (next to your own project)
  and merge rulesets/java/jpinpoint-rules.xml together with your rule files (from ``src/main/resources/category/java/*.xml``)     
@@ -172,8 +170,9 @@ Copy rulesets-merger to your company specific rules directory and adjust a few c
   These files can be used in your IDE. The former only contains the company specific rules. 
   The latter contains all rules combined and will only be generated if the optional PMD-jPinpoint-rules repo is available.
  
-  You can also specify the external repo to merge with explicitely:
+  You can also do it yourself and specify the external repo to merge with explicitly:
    
+      cd target
       java -jar rulesets-merger-1.0-SNAPSHOT.jar PMD-jPinpoint-rules rulesets/java jpinpoint-rules.xml 
    
 
