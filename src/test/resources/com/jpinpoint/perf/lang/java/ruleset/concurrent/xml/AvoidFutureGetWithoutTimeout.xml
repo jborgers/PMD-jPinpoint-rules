@@ -5,92 +5,40 @@
         xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
     <test-code>
         <description>Avoid Future Get Without Timeout</description>
-        <expected-problems>7</expected-problems>
+        <expected-problems>6</expected-problems>
+        <expected-linenumbers>14,15,16,17,18,19</expected-linenumbers>
         <code><![CDATA[
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.*;
 
 public class AvoidFutureGetWithoutTimeoutTest {
+    private static Future<List<T>> futureField1 = null;
+    private static Future<List<T>> futureField2 = null;
+    private static final long timeout = 10;
 
-    private static Future<List<T>> futureField = null;
-
-    /**
-     * This method is used to wrap the reply of each thread into one as response
-     * content.
-     *
-     * @param responseCollector
-     *            the response content collector
-     * @param listOfFutures
-     *            list of all thread's Future returns
-     */
-    public static <T> void collectAllCollectionReplyFromThreads(CompletableFuture<List<T>> complFuture, List<T> responseCollector,
-                                                                List<Future<List<T>>> listOfFutures, CompletionService<List<T>> completionService) {
-        for (int index = 0; index < listOfFutures.size(); index++) {
-            try {
-                Future<List<T>> futureLocal = completionService.take();
-		        Future<List<T>> futureLocal2 = completionService.take();
-                RunnableFuture<List<T>> runFutLocal = new FutureTask<List<T>>(()-> Collections.emptyList());
-                long timeout = 10;
-                responseCollector.addAll(complFuture.get()); // violation
-                responseCollector.addAll(complFuture.get(10, TimeUnit.SECONDS)); // OK
-                responseCollector.addAll(futureLocal.get()); // violation
-		        responseCollector.addAll(futureLocal2.get()); // should be violation; shortage: multiple futures in scope: multiple arguments in concat
-                responseCollector.addAll(futureLocal.get(timeout, TimeUnit.SECONDS)); // OK
-                responseCollector.addAll(runFutLocal.get()); // should be violation; shortage: multiple futures in scope: multiple arguments in concat
-                responseCollector.addAll(runFutLocal.get(timeout, TimeUnit.SECONDS)); // OK
-                responseCollector.addAll(futureField.get()); // violation
-                responseCollector.addAll(futureField.get(timeout, TimeUnit.SECONDS)); // OK
-            } catch (InterruptedException | ExecutionException e) {
-                //LOGGER.error("Error in Thread : {}", e);
-            } catch (TimeoutException e) {
-                e.printStackTrace();
-            }
-        }
-
+    public static void bad(CompletableFuture<List> complFutureParam1, CompletableFuture<List> complFutureParam2, List col,
+                               CompletionService<List> complService) throws Exception {
+            Future<List> futureLocal1 = complService.take();
+		    Future<List> futureLocal2 = complService.take();
+            RunnableFuture<List> runFutLocal = new FutureTask<List>(()-> Collections.emptyList());
+            col.addAll(complFutureParam2.get()); // bad
+            col.addAll(futureLocal1.get()); // bad
+		    col.addAll(futureLocal2.get()); // bad;
+            col.addAll(runFutLocal.get()); // bad
+            col.addAll(futureField1.get()); // bad
+            col.addAll(futureField2.get()); // bad
     }
 
-    public static <T> void collectAllCollectionReplyFromThreads(List<T> responseCollector,
-                                                                List<Future<List<T>>> listOfFutures, CompletionService<List<T>> completionService) {
-        for (int index = 0; index < listOfFutures.size(); index++) {
-            try {
-                Future<List<T>> future = completionService.take();
-                responseCollector.addAll(future.get()); // should violate
-            } catch (InterruptedException | ExecutionException e) {
-                //LOGGER.error("Error in Thread : {}", e);
-            }
-        }
-    }
-
-    private <Input, Output> Map<Input, Output> getResults(final Map<Input, Future<Output>> futures) throws ExecutionException, InterruptedException {
-        Map<Input, Output> outputs = new LinkedHashMap<>();
-        for (Map.Entry<Input, Future<Output>> entry : futures.entrySet()) {
-            Input input = entry.getKey();
-            Future<Output> future = entry.getValue();
-            outputs.put(input, future.get()); // should violate
-        }
-
-        return outputs;
-    }
-
-    private void logExecutionDetails(final List<Future<String>> futures) throws InterruptedException, ExecutionException {
-        int totalWorkflows = 0;
-        int succeededWorkflows = 0;
-        int failedWorkflows = 0;
-
-        for (final Future<String> future : futures) {
-            String workflowDetails = future.get(); // should violate
-            //log.info("Workflow " + workflowDetails.getWorkflowName() + " completed with status : " + workflowDetails);
-            totalWorkflows++;
-            if ("success".equals(future.get())) { // should violate
-                succeededWorkflows++;
-            } else {
-                failedWorkflows++;
-            }
-        }
-
+    public static void good(CompletableFuture<List> complFutureParam1, CompletableFuture<List> complFutureParam2, List col,
+                               CompletionService<List> complService) throws Exception {
+            Future<List> futureLocal1 = complService.take();
+		    Future<List> futureLocal2 = complService.take();
+            RunnableFuture<List> runFutLocal = new FutureTask<List>(()-> Collections.emptyList());
+            col.addAll(complFutureParam1.get(10, TimeUnit.SECONDS)); // good
+            col.addAll(futureLocal1.get(timeout, TimeUnit.SECONDS)); // good
+            col.addAll(runFutLocal.get(timeout, TimeUnit.SECONDS)); // good
+            col.addAll(futureField1.get(timeout, TimeUnit.SECONDS)); // good
+            col.addAll(futureField2.get(timeout, TimeUnit.SECONDS)); // good
     }
 }
      ]]></code>
