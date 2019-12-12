@@ -89,7 +89,7 @@ class ASingletonBean {
     //private String stringOk = new String(); // same
     private final String string3Ok = new String(); //
 
-    private String url;
+    private String url; // bad
 
     public void setUrlViolate(final String url) {
         this.url = url;
@@ -99,7 +99,7 @@ class ASingletonBean {
 @Component
 @Scope(value = SCOPE_APPLICATION, proxyMode = TARGET_CLASS)
 class AComponent2 {
-    private String _url;
+    private String _url; // bad
     public void setUrlViolate(final String url) {
         _url = url;
     } // violation: unguarded accessor method
@@ -137,7 +137,7 @@ class AComponent5_Ok {
 
 @Component
 class AnotherComponent {
-    private String url;
+    private String url; // bad
     private volatile String volatileOk;
     private String wiredOk;
 
@@ -160,7 +160,7 @@ class AnotherComponent {
 @Scope(value = WebApplicationContext.SCOPE_SESSION, proxyMode = INTERFACES)
         // sessions need to be thread safe, too; they are shared among threads
 class ASessionScopedComponent {
-    private String _url;
+    private String _url; // bad
     public void setUrlViolate(final String url) {
         _url = url;
     } // violation: unguarded accessor method
@@ -320,7 +320,7 @@ class BbEventSender {
 @ConcurrencyManagement(value = ConcurrencyManagementType.BEAN)
 class APayRequestOutSender {
     private int databaseQueryMaxResultsOk;
-    private int databaseQueryMaxResultsViolation;
+    private int databaseQueryMaxResultsViolation; // bad
 
     @PostConstruct
     private void postConstruct() {
@@ -340,7 +340,7 @@ class APayRequestOutSender {
 @Service("InitializeRCDCTaskletViolate")
 abstract class AInitializeTaskletViolate implements Tasklet, InitializingBean {
     // Work directory for this instance only.
-    protected String workDirectoryViolate;
+    protected String workDirectoryViolate; // bad
     public void setWorkDirectory(final String workDirectory) {
         this.workDirectoryViolate = workDirectory;
     }
@@ -385,40 +385,36 @@ class Foo {
     String CONTEXT_ATTRIBUTES_BEAN_NAME = "contextAttributes";
 */
 
-/* -WIP-XPATH-Rule-definition
-
-Experimental/to test:
-
-Pieces:
-//TypeDeclaration/Annotation//Name[(@Image='Component' or @Image='Service' or @Image='Controller' or @Image='Repository' or
-(@Image='Singleton' and ancestor::TypeDeclaration/Annotation/NormalAnnotation/MemberValuePairs//Name[@Image='ConcurrencyManagementType.BEAN']))
-and not (ancestor::TypeDeclaration/Annotation/NormalAnnotation/Name[@Image='Scope']/..//Literal[@Image='"request"' or @Image='"prototype"'])
-and not (ancestor::TypeDeclaration/Annotation/MarkerAnnotation/Name[@Image='NotThreadSafe'])]
-
-/../../..//ClassOrInterfaceDeclaration[@Static='false']/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDeclaration/Block/BlockStatement/Statement//StatementExpression/AssignmentOperator/../PrimaryExpression//@Image=
-./VariableDeclarator/VariableDeclaratorId/@Image)
-
-FieldDeclaration[@Final='false' and @Volatile='false'
-and not (../../ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='Autowired' or @Image='PostConstruct' or @Image='BeforeStep']
-
-/../../../
-or (../../ClassOrInterfaceBodyDeclaration[count (./Annotation//Name[@Image='Autowired' or @Image='PostConstruct' or @Image='VisibleForTesting' or @Image='BeforeStep'])=0]
-/MethodDeclaration/Block/BlockStatement/Statement//StatementExpression/AssignmentOperator/../PrimaryExpression//@Image=
-./VariableDeclarator/VariableDeclaratorId/@Image)
-]
-
-Working for first cases:
-//TypeDeclaration/Annotation//Name[(@Image='Component' or @Image='Service' or @Image='Controller' or @Image='Repository' or
-(@Image='Singleton' and ancestor::TypeDeclaration/Annotation/NormalAnnotation/MemberValuePairs//Name[@Image='ConcurrencyManagementType.BEAN']))
-and not (ancestor::TypeDeclaration/Annotation/NormalAnnotation/Name[@Image='Scope']/..//Literal[@Image='"request"' or @Image='"prototype"'])
-and not (ancestor::TypeDeclaration/Annotation/MarkerAnnotation/Name[@Image='NotThreadSafe'])]
-
-/../../..//ClassOrInterfaceDeclaration[@Static='false']/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDeclaration/Block/BlockStatement/Statement//StatementExpression/AssignmentOperator/../PrimaryExpression//*[@Image=
-ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Final='false' and @Volatile='false']/VariableDeclarator/VariableDeclaratorId/@Image]
-
-
-Thought: what about getter access? Also wrong. Yet, if not assigned-to, no problem? Maybe for non-primitives, non-atomics, how to check? return a List or HashMap? Known mutable field types?
-
-*/     ]]></code>
+    ]]></code>
     </test-code>
+
+    <test-code>
+        <description>Avoid unguarded mutable fields in shared objects, fields of known mutable types initialized in constructor</description>
+        <expected-problems>4</expected-problems>
+        <expected-linenumbers>4,5, 10,11</expected-linenumbers>
+        <code><![CDATA[
+    import java.util.*;
+@Component
+class Bad {
+    private Map<String, String> map1 = new HashMap<>(); // bad, reference and map is mutable
+    private final Map<String, String> map2 = new HashMap<>(); // bad, map is mutable
+    private final Map<String, String> map3 = new ConcurrentHashMap<>(); // good, concurrenthashmap is thread-safe
+    @GuardedBy("this")
+    private Map<String, String> map4 = new HashMap<>(); // good, guarded
+
+    private Map<String, String> mapCtor1; // bad, reference and map is mutable
+    private final Map<String, String> mapCtor2; // bad, constructed with known mutable type
+    private final Map<String, String> mapCtor3; // good, concurrenthashmap is thread-safe
+    @GuardedBy("this")
+    private Map<String, String> mapCtor4; // good, guarded
+
+    public Bad() {
+        mapCtor1 = new HashMap<>();
+        mapCtor2 = new HashMap<>();
+        mapCtor3 = new ConcurrentHashMap<>();
+        mapCtor4 = new HashMap<>();
+    }
+}
+        ]]></code>
+</test-code>
 </test-data>

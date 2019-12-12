@@ -167,7 +167,6 @@ public class Good {
 package com.jpinpoint.tryout;
 
 import net.jcip.annotations.GuardedBy;
-
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -190,7 +189,40 @@ public class GoodForThisRule {
         staticMapField = smf;
     }
 }
-
         ]]></code>
     </test-code>
+
+    <test-code>
+        <description>Avoid unguarded mutable fields in objects using synchronized, fields of known mutable types initialized in constructor</description>
+        <expected-problems>4</expected-problems>
+        <expected-linenumbers>4,5, 10,11</expected-linenumbers>
+        <code><![CDATA[
+    import java.util.*;
+
+class Bad {
+    private Map<String, String> map1 = new HashMap<>(); // bad, reference and map is mutable
+    private final Map<String, String> map2 = new HashMap<>(); // bad, map is mutable
+    private final Map<String, String> map3 = new ConcurrentHashMap<>(); // good, concurrenthashmap is thread-safe
+    @GuardedBy("this")
+    private Map<String, String> map4 = new HashMap<>(); // good, guarded
+
+    private Map<String, String> mapCtor1; // bad, reference and map is mutable
+    private final Map<String, String> mapCtor2; // bad, constructed with known mutable type
+    private final Map<String, String> mapCtor3; // good, concurrenthashmap is thread-safe
+    @GuardedBy("this")
+    private Map<String, String> mapCtor4; // good, guarded
+
+    public Bad() {
+        mapCtor1 = new HashMap<>();
+        mapCtor2 = new HashMap<>();
+        mapCtor3 = new ConcurrentHashMap<>();
+        mapCtor4 = new HashMap<>();
+    }
+
+    public synchronized void syncedMethod() {
+    }
+}
+        ]]></code>
+    </test-code>
+
 </test-data>

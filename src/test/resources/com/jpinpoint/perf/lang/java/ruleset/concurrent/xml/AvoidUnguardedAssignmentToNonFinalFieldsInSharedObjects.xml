@@ -392,41 +392,6 @@ class Foo {
     String CONTEXT_ATTRIBUTES_BEAN_NAME = "contextAttributes";
 */
 
-/* -WIP-XPATH-Rule-definition
-
-Experimental/to test:
-
-Pieces:
-//TypeDeclaration/Annotation//Name[(@Image='Component' or @Image='Service' or @Image='Controller' or @Image='Repository' or
-(@Image='Singleton' and ancestor::TypeDeclaration/Annotation/NormalAnnotation/MemberValuePairs//Name[@Image='ConcurrencyManagementType.BEAN']))
-and not (ancestor::TypeDeclaration/Annotation/NormalAnnotation/Name[@Image='Scope']/..//Literal[@Image='"request"' or @Image='"prototype"'])
-and not (ancestor::TypeDeclaration/Annotation/MarkerAnnotation/Name[@Image='NotThreadSafe'])]
-
-/../../..//ClassOrInterfaceDeclaration[@Static='false']/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDeclaration/Block/BlockStatement/Statement//StatementExpression/AssignmentOperator/../PrimaryExpression//@Image=
-./VariableDeclarator/VariableDeclaratorId/@Image)
-
-FieldDeclaration[@Final='false' and @Volatile='false'
-and not (../../ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='Autowired' or @Image='PostConstruct' or @Image='BeforeStep']
-
-/../../../
-or (../../ClassOrInterfaceBodyDeclaration[count (./Annotation//Name[@Image='Autowired' or @Image='PostConstruct' or @Image='VisibleForTesting' or @Image='BeforeStep'])=0]
-/MethodDeclaration/Block/BlockStatement/Statement//StatementExpression/AssignmentOperator/../PrimaryExpression//@Image=
-./VariableDeclarator/VariableDeclaratorId/@Image)
-]
-
-Working for first cases:
-//TypeDeclaration/Annotation//Name[(@Image='Component' or @Image='Service' or @Image='Controller' or @Image='Repository' or
-(@Image='Singleton' and ancestor::TypeDeclaration/Annotation/NormalAnnotation/MemberValuePairs//Name[@Image='ConcurrencyManagementType.BEAN']))
-and not (ancestor::TypeDeclaration/Annotation/NormalAnnotation/Name[@Image='Scope']/..//Literal[@Image='"request"' or @Image='"prototype"'])
-and not (ancestor::TypeDeclaration/Annotation/MarkerAnnotation/Name[@Image='NotThreadSafe'])]
-
-/../../..//ClassOrInterfaceDeclaration[@Static='false']/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDeclaration/Block/BlockStatement/Statement//StatementExpression/AssignmentOperator/../PrimaryExpression//*[@Image=
-ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Final='false' and @Volatile='false']/VariableDeclarator/VariableDeclaratorId/@Image]
-
-
-Thought: what about getter access? Also wrong. Yet, if not assigned-to, no problem? Maybe for non-primitives, non-atomics, how to check? return a List or HashMap? Known mutable field types?
-
-*/
         ]]></code>
     </test-code>
 </test-data>
