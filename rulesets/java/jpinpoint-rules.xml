@@ -1299,14 +1299,16 @@ or (ancestor::ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='VisibleFo
 (: field not annotated with framework annotation or GuardedBy :)
 and not (../Annotation//Name[@Image='Autowired' or @Image='PersistenceContext' or @Image='EJB' or @Image='Resource' or @Image='Inject' or @Image='Value' or @Image='GuardedBy'])
 (: field not on accessor method with assignment, annotated with framework annotation :)
-and not (../../ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='Autowired' or @Image='PostConstruct' or @Image='BeforeStep' or @Image='Value' or 'Inject']
+and not (../../ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='Autowired' or @Image='PostConstruct' or @Image='BeforeStep' or @Image='Value' or @Image='Inject']
 /../../..//BlockStatement/Statement//StatementExpression/AssignmentOperator/../PrimaryExpression//@Image=
 ./VariableDeclarator/VariableDeclaratorId/@Image)
 (: or field of known mutable types including array :)
 or ((Type/ReferenceType/ClassOrInterfaceType[(pmd-java:typeIs('java.util.Date') or pmd-java:typeIs('java.lang.StringBuilder') or pmd-java:typeIs('java.lang.StringBuffer') or pmd-java:typeIs('java.net.URL') or pmd-java:typeIs('java.io.File')) or
 (ancestor::FieldDeclaration/VariableDeclarator/VariableInitializer[ArrayInitializer and count(ArrayInitializer/VariableInitializer) > 0])])
-(: or allocation of known mutable collection types :)
-or (VariableDeclarator/VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/AllocationExpression/ClassOrInterfaceType[pmd-java:typeIs('java.lang.ArrayList') or pmd-java:typeIs('java.lang.HashMap') or pmd-java:typeIs('java.lang.HashSet')] )
+(: or in-line allocation of known mutable collection types :)
+or (VariableDeclarator/VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/AllocationExpression/ClassOrInterfaceType[pmd-java:typeIs('java.util.ArrayList') or pmd-java:typeIs('java.util.HashMap') or pmd-java:typeIs('java.util.HashSet')] )
+(: or in-constructor allocation of known mutable collection types :)
+or (VariableDeclarator/VariableDeclaratorId/@Image = ancestor::ClassOrInterfaceBody//ConstructorDeclaration//StatementExpression/Expression[pmd-java:typeIs('java.util.ArrayList') or pmd-java:typeIs('java.util.HashMap') or pmd-java:typeIs('java.util.HashSet')]/../..//Name/@Image)
 (: mutable types not annotated with GuardedBy :)
 ) and not (../Annotation//Name[@Image='GuardedBy'])
 ]
@@ -1352,16 +1354,19 @@ and not ((ancestor::TypeDeclaration/Annotation//Name[@Image='ConfigurationProper
 (: field not annotated with framework annotation or GuardedBy :)
 and not (../Annotation//Name[@Image='Autowired' or @Image='PersistenceContext' or @Image='EJB' or @Image='Resource' or @Image='Inject' or @Image='Value' or @Image='GuardedBy'])
 (: field not on accessor method with assignment level annotated with framework annotation :)
-and not (../../ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='Autowired' or @Image='PostConstruct' or @Image='BeforeStep' or @Image='Value' or 'Inject']
+and not (../../ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='Autowired' or @Image='PostConstruct' or @Image='BeforeStep' or @Image='Value' or @Image='Inject']
 /../../..//BlockStatement/Statement//StatementExpression/AssignmentOperator/../PrimaryExpression//@Image=
 ./VariableDeclarator/VariableDeclaratorId/@Image)
 (: or field of known mutable types including array :)
 or ((Type/ReferenceType/ClassOrInterfaceType[(pmd-java:typeIs('java.util.Date') or pmd-java:typeIs('java.lang.StringBuilder') or pmd-java:typeIs('java.lang.StringBuffer') or pmd-java:typeIs('java.net.URL') or pmd-java:typeIs('java.io.File')) or
 (ancestor::FieldDeclaration/VariableDeclarator/VariableInitializer[ArrayInitializer and count(ArrayInitializer/VariableInitializer) > 0])])
-(: or allocation of known mutable collection types :)
-or (VariableDeclarator/VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/AllocationExpression/ClassOrInterfaceType[pmd-java:typeIs('java.lang.ArrayList') or pmd-java:typeIs('java.lang.HashMap') or pmd-java:typeIs('java.lang.HashSet')] )
+(: or in-line allocation of known mutable collection types :)
+or (VariableDeclarator/VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/AllocationExpression[pmd-java:typeIs('java.util.ArrayList') or pmd-java:typeIs('java.util.HashMap') or pmd-java:typeIs('java.util.HashSet')] )
+(: or in-constructor allocation of known mutable collection types :)
+or (VariableDeclarator/VariableDeclaratorId/@Image = ancestor::ClassOrInterfaceBody//ConstructorDeclaration//StatementExpression/Expression[pmd-java:typeIs('java.util.ArrayList') or pmd-java:typeIs('java.util.HashMap') or pmd-java:typeIs('java.util.HashSet')]/../..//Name/@Image)
 (: not annotated GuardedBy :)
-     and not (../Annotation//Name[@Image='GuardedBy']))
+)
+and not (../Annotation//Name[@Image='GuardedBy'])
 ]
 ]]>
                 </value>
