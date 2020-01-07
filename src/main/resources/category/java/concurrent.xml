@@ -351,4 +351,174 @@ or (VariableDeclarator/VariableDeclaratorId/@Image = ancestor::ClassOrInterfaceB
         </properties>
     </rule>
 
+    <rule name="NotProperlySynchronizingOnThisWhileUsingGuardedBy"
+          message="Not properly synchronizing access of field while using @GuardedBy(this)"
+          class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
+          typeResolution="true" externalInfoUrl="https://jcip.net/annotations/doc/index.html">
+        <description>
+            Problem: The field to which this annotation is applied should only be accessed when holding the built-in 'this' lock by using synchronized.&#13;
+            Solution: Make access thread-safe: synchronize access by method modifier or a synchronized(this) block.&#13;
+            (jpinpoint-rules)</description>
+        <priority>3</priority>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value>
+                    <![CDATA[
+//MethodDeclaration[@Synchronized=false()]//PrimaryPrefix/Name[@Image =
+ancestor::ClassOrInterfaceBody//Annotation//Name[@Image='GuardedBy']/..//Literal[@Image='"this"']/
+ancestor::ClassOrInterfaceBodyDeclaration/FieldDeclaration//VariableDeclaratorId/@Image
+and (
+not (ancestor::SynchronizedStatement)
+or ancestor::SynchronizedStatement/Expression//Name)]
+]]>
+                </value>
+            </property>
+        </properties>
+    </rule>
 </ruleset>
+<!--
+
+
+
+tests:
+
+package com.jpinpoint.tryout;
+
+import net.jcip.annotations.GuardedBy;
+
+public class GuardedByThisTryout {
+
+     class Bad1 {
+        @GuardedBy("this")
+        private String txt;
+
+        public String getText() {
+            return txt; // bad
+        }
+
+        public void setText(String t) {
+            txt = t; // bad
+        }
+    }
+
+    class Bad2 {
+        @GuardedBy("this")
+        private String txt;
+
+        public String getText() {
+            return txt; // bad
+        }
+
+        public synchronized void setText(String t) {
+            txt = t;
+        }
+    }
+
+    class Bad3 {
+        @GuardedBy("this")
+        private String txt;
+
+        public synchronized String getText() {
+            return txt;
+        }
+
+        public void setText(String t) {
+            txt = t; // bad
+        }
+    }
+
+    class Bad4 {
+        @GuardedBy("this")
+        private String txt;
+
+        public synchronized String getText() {
+            return txt;
+        }
+
+        public void setText(String t) {
+            txt = t; // bad
+        }
+    }
+
+    class Bad5 {
+        @GuardedBy("this")
+        private String txt;
+
+        public String getText() {
+            synchronized(this) {
+                return txt;
+            }
+        }
+
+        public void setText(String t) {
+            txt = t; // bad
+        }
+    }
+
+    class Bad6 {
+        @GuardedBy("this")
+        private String txt;
+
+        public String getText() {
+            return txt; // bad
+        }
+
+        public void setText(String t) {
+            synchronized(this) {
+                txt = t;
+            }
+        }
+    }
+
+    class Bad7 {
+        @GuardedBy("this")
+        private String txt;
+        private Object LOCK;
+
+        public String getText() {
+            synchronized(LOCK) {
+                return txt; // bad
+            }
+        }
+
+        public String setText(String t) {
+            synchronized(LOCK) {
+                txt = t; // bad
+            }
+        }
+    }
+
+    class Good1 {
+        @GuardedBy("this")
+        private String txt;
+
+        public synchronized String getText() {
+            return txt;
+        }
+
+        public synchronized void setText(String t) {
+            txt = t;
+        }
+    }
+
+    class Good2 {
+        @GuardedBy("this")
+        private String txt;
+
+        public String getText() {
+            synchronized(this) {
+                return txt;
+            }
+        }
+
+        public void setText(String t) {
+            synchronized(this) {
+                txt = t;
+            }
+        }
+    }
+
+}
+
+-->

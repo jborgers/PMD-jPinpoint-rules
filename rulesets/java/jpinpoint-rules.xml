@@ -1374,6 +1374,32 @@ and not (../Annotation//Name[@Image='GuardedBy'])
         </properties>
     </rule>
 
+    <rule name="NotProperlySynchronizingOnThisWhileUsingGuardedBy"
+          message="Not properly synchronizing access of field while using @GuardedBy(this)"
+          class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
+          typeResolution="true" externalInfoUrl="https://jcip.net/annotations/doc/index.html">
+        <description>
+            Problem: The field to which this annotation is applied should only be accessed when holding the built-in 'this' lock by using synchronized.&#13;
+            Solution: Make access thread-safe: synchronize access by method modifier or a synchronized(this) block.&#13;
+            (jpinpoint-rules)</description>
+        <priority>3</priority>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value>
+                    <![CDATA[
+//MethodDeclaration[@Synchronized=false()]//PrimaryPrefix/Name[@Image =
+ancestor::ClassOrInterfaceBody//Annotation//Name[@Image='GuardedBy']/..//Literal[@Image='"this"']/
+ancestor::ClassOrInterfaceBodyDeclaration/FieldDeclaration//VariableDeclaratorId/@Image
+and (
+not (ancestor::SynchronizedStatement)
+or ancestor::SynchronizedStatement/Expression//Name)]
+]]>
+                </value>
+            </property>
+        </properties>
+    </rule>
+
 <!-- END Included file 'concurrent.xml' -->
 <!-- BEGIN Included file 'spring.xml' -->
     <rule name="AvoidImproperAnnotationCombinations"

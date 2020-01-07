@@ -75,6 +75,10 @@ the rules. The next paragraph "Adding new rules" will describe in more detail wh
 To run the unit tests run the following command from the project home directory of:
 
     mvn clean test  
+    
+or simply:
+
+    ./test
 
 ## Adding new rules
 
@@ -135,7 +139,11 @@ construct the unit test files:
 
  If the merger tool is run as follows:
 
-    mvn exec:java
+    rulesets-merger/mvn exec:java
+    
+ or simply
+ 
+    ./merge
 
  It will just merge the rules from ``src/main/resources/category/java/*.xml`` to create the jpinpoint-rules.xml file which can be used in your IDE.
 
@@ -149,7 +157,10 @@ Copy rulesets-merger to your company specific rules directory and adjust a few c
     
  After building, the merger tool can be run with:
  
-     mvn exec:java
+     rulesets-merger/mvn exec:java
+or simply
+
+    ./merge
 
  This will attempt to lookup the PMD-jPinpoint-rules project (next to your own project)
  and merge rulesets/java/jpinpoint-rules.xml together with your rule files (from ``src/main/resources/category/java/*.xml``)     

@@ -1,0 +1,4 @@
+#!/bin/sh
+cd rulesets-merger
+mvn exec:java
+cd ..
