@@ -807,9 +807,9 @@ ancestor::MethodDeclaration//PrimarySuffix/@Image="disableConnectionState")]
         <priority>4</priority>
         <properties>
             <property name="ruleIdMatches" type="String" value=".*"
-                      description="Regex for inclusion of high risk rules"/>
+                      description="Regex for inclusion of rules"/>
             <property name="ruleIdNotMatches" type="String" value="^$"
-                      description="Regex for exclusion of high risk rules"/>
+                      description="Regex for exclusion of rules"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
