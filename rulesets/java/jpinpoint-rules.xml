@@ -790,9 +790,9 @@ ClassOrInterfaceBodyDeclaration/MethodDeclaration//Block/BlockStatement//Stateme
         <priority>4</priority>
         <properties>
             <property name="ruleIdMatches" type="String" value=".*"
-                      description="Regex for inclusion of high risk rules"/>
+                      description="Regex for inclusion of rules"/>
             <property name="ruleIdNotMatches" type="String" value="^$"
-                      description="Regex for exclusion of high risk rules"/>
+                      description="Regex for exclusion of rules"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
@@ -1375,12 +1375,13 @@ and not (../Annotation//Name[@Image='GuardedBy'])
     </rule>
 
     <rule name="NotProperlySynchronizingOnThisWhileUsingGuardedBy"
-          message="Not properly synchronizing access of field while using @GuardedBy(this)"
+          message="Not properly synchronizing access of field while using @GuardedBy('this')"
           class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
           typeResolution="true" externalInfoUrl="https://jcip.net/annotations/doc/index.html">
         <description>
             Problem: The field to which this annotation is applied should only be accessed when holding the built-in 'this' lock by using synchronized.&#13;
             Solution: Make access thread-safe: synchronize access by method modifier or a synchronized(this) block.&#13;
+            Note that methods with annotations @Autowired, @PostConstruct, @BeforeStep, @Value and @Inject are ignored.
             (jpinpoint-rules)</description>
         <priority>3</priority>
         <properties>
@@ -1388,7 +1389,9 @@ and not (../Annotation//Name[@Image='GuardedBy'])
             <property name="xpath">
                 <value>
                     <![CDATA[
-//MethodDeclaration[@Synchronized=false()]//PrimaryPrefix/Name[@Image =
+//MethodDeclaration[@Synchronized=false()
+and not (../Annotation//Name[@Image='Autowired' or @Image='PostConstruct' or @Image='BeforeStep' or @Image='Value' or @Image='Inject'])]
+//PrimaryPrefix/Name[substring-before(concat(@Image,'.'), '.') =
 ancestor::ClassOrInterfaceBody//Annotation//Name[@Image='GuardedBy']/..//Literal[@Image='"this"']/
 ancestor::ClassOrInterfaceBodyDeclaration/FieldDeclaration//VariableDeclaratorId/@Image
 and (
@@ -1398,6 +1401,25 @@ or ancestor::SynchronizedStatement/Expression//Name)]
                 </value>
             </property>
         </properties>
+        <example>
+            <![CDATA[
+    class Bad1 {
+        @GuardedBy("this")
+        private String txt;
+
+        public String getText() { return txt; } // bad
+        public void setText(String t) { txt = t; } // bad
+    }
+
+    class Good1 {
+        @GuardedBy("this")
+        private String txt;
+
+        public synchronized String getText() { return txt; }
+        public synchronized void setText(String t) { txt = t; }
+    }
+            ]]>
+        </example>
     </rule>
 
 <!-- END Included file 'concurrent.xml' -->

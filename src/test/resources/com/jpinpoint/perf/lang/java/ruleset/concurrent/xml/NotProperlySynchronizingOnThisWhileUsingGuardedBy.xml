@@ -4,7 +4,7 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
     <test-code>
-        <description>NotProperlySynchronizingOnThisWhileUsingGuardedBy</description>
+        <description>NotProperlySynchronizingOnThisWhileUsingGuardedBy, bad, no synchronized</description>
         <expected-problems>2</expected-problems>
         <expected-linenumbers>7,10</expected-linenumbers>
         <code><![CDATA[
@@ -24,7 +24,7 @@
     </test-code>
 
     <test-code>
-        <description>NotProperlySynchronizingOnThisWhileUsingGuardedBy</description>
+        <description>NotProperlySynchronizingOnThisWhileUsingGuardedBy, bad with modifier, getter not synced</description>
         <expected-problems>1</expected-problems>
         <expected-linenumbers>6</expected-linenumbers>
         <code><![CDATA[
@@ -43,7 +43,7 @@
     </test-code>
 
    <test-code>
-        <description>NotProperlySynchronizingOnThisWhileUsingGuardedBy</description>
+        <description>NotProperlySynchronizingOnThisWhileUsingGuardedBy, bad with modifier, setter not synced</description>
         <expected-problems>1</expected-problems>
         <expected-linenumbers>9</expected-linenumbers>
         <code><![CDATA[
@@ -62,7 +62,7 @@
    </test-code>
 
    <test-code>
-        <description>NotProperlySynchronizingOnThisWhileUsingGuardedBy</description>
+        <description>NotProperlySynchronizingOnThisWhileUsingGuardedBy, bad with modifier, setter not synced</description>
         <expected-problems>1</expected-problems>
         <expected-linenumbers>9</expected-linenumbers>
         <code><![CDATA[
@@ -81,7 +81,7 @@
    </test-code>
 
    <test-code>
-        <description>NotProperlySynchronizingOnThisWhileUsingGuardedBy</description>
+        <description>NotProperlySynchronizingOnThisWhileUsingGuardedBy, bad with block, setter not synced</description>
         <expected-problems>1</expected-problems>
         <expected-linenumbers>11</expected-linenumbers>
         <code><![CDATA[
@@ -102,7 +102,7 @@
    </test-code>
 
    <test-code>
-        <description>NotProperlySynchronizingOnThisWhileUsingGuardedBy</description>
+        <description>NotProperlySynchronizingOnThisWhileUsingGuardedBy bad with block, getter not synced</description>
         <expected-problems>1</expected-problems>
         <expected-linenumbers>6</expected-linenumbers>
         <code><![CDATA[
@@ -123,14 +123,14 @@
    </test-code>
 
    <test-code>
-        <description>NotProperlySynchronizingOnThisWhileUsingGuardedBy</description>
+        <description>NotProperlySynchronizingOnThisWhileUsingGuardedBy bad with blocks, wrong lock</description>
         <expected-problems>2</expected-problems>
         <expected-linenumbers>8,13</expected-linenumbers>
         <code><![CDATA[
     public class Bad7 {
         @GuardedBy("this")
         private String txt;
-        private Object LOCK;
+        private final Object LOCK = new Object();
 
         public String getText() {
             synchronized(LOCK) {
@@ -146,8 +146,29 @@
     ]]></code>
    </test-code>
 
+    <test-code>
+        <description>NotProperlySynchronizingOnThisWhileUsingGuardedBy bad, modify and consume</description>
+        <expected-problems>2</expected-problems>
+        <expected-linenumbers>7,11</expected-linenumbers>
+        <code><![CDATA[
+    class Bad8 {
+        @GuardedBy("this")
+        private String txt;
+        private final AtomicBoolean ab = new AtomicBoolean();
+
+        public void modifyText() {
+            txt += "-appended"; //bad
+        }
+
+        public void consumeText() {
+            ab.set(txt.equals("bla")); //bad
+        }
+    }
+    ]]></code>
+    </test-code>
+
    <test-code>
-        <description>NotProperlySynchronizingOnThisWhileUsingGuardedBy</description>
+        <description>NotProperlySynchronizingOnThisWhileUsingGuardedBy good sync modifier</description>
         <expected-problems>0</expected-problems>
         <code><![CDATA[
     public class Good1 {
@@ -165,7 +186,7 @@
    </test-code>
 
    <test-code>
-        <description>NotProperlySynchronizingOnThisWhileUsingGuardedBy</description>
+        <description>NotProperlySynchronizingOnThisWhileUsingGuardedBy good sync block</description>
         <expected-problems>0</expected-problems>
         <code><![CDATA[
     public class Good2 {
@@ -185,4 +206,34 @@
     }
      ]]></code>
     </test-code>
+
+    <test-code>
+        <description>NotProperlySynchronizingOnThisWhileUsingGuardedBy good modify/consume/Autowired</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+   class Good3 {
+        @GuardedBy("this")
+        private String txt;
+        private final AtomicBoolean ab = new AtomicBoolean();
+
+        public void modifyText() {
+            synchronized(this) {
+                txt += "-appended";
+            }
+        }
+
+        public void consumeText() {
+            synchronized(this) {
+                ab.set(txt.equals("bla"));
+            }
+        }
+
+        @Autowired
+        public void setText(String t) {
+            txt = t;
+        }
+    }
+     ]]></code>
+    </test-code>
+
 </test-data>
