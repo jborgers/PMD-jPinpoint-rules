@@ -83,7 +83,7 @@ and (
 
     <rule name="AvoidSpringMVCMemoryLeaks" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
           message="Spring Controller returns an additive expression or a ModelAndView object which may cause a MemoryLeak" typeResolution="true"
-          externalInfoUrl="https://confluence.dev.rabobank.nl/display/PCC/Java+Code+Performance">
+          externalInfoUrl="https://www.jpinpoint.com/doc/Java+Code+Performance">
         <description>Avoid to return an additive expression for a Spring Controller because it may cause a MemoryLeak.
             Each new value returned will create a new entry in the View Cache.
             Also avoid to return a ModelAndView object created using non-static and non-final methods because it may
