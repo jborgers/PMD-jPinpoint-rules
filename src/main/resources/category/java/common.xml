@@ -7,7 +7,7 @@
           message="Explicit CDI references need to be destroyed otherwise they leak."
           class="net.sourceforge.pmd.lang.rule.XPathRule"
           typeResolution="true"
-          externalInfoUrl="${pmd.website.baseurl}/pmd_rules_performance.html#AvoidCDIReferenceLeak">
+          externalInfoUrl="http://www.jpinpoint.com/doc/pmd_rules_performance.html#AvoidCDIReferenceLeak">
         <description>Problem: A proxy object is created by CDI for explicit references, they are not de-referenced implicitely and become a memory leak. &#13;
             Solution: Destroy the reference explicitely.
         </description>
