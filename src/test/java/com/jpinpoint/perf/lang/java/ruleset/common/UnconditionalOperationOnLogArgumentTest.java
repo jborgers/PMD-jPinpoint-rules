@@ -2,5 +2,5 @@ package com.jpinpoint.perf.lang.java.ruleset.common;
 
 import net.sourceforge.pmd.testframework.PmdRuleTst;
 
-public class UnconditionalStringOperationOnLogArgumentTest extends PmdRuleTst {
+public class UnconditionalOperationOnLogArgumentTest extends PmdRuleTst {
 }

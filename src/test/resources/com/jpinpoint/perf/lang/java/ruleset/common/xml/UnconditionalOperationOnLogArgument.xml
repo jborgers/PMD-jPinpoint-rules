@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>Unconditional operation in log statement: bad situations</description>
+        <expected-problems>6</expected-problems>
+        <expected-linenumbers>12,13,14, 20,21, 25</expected-linenumbers>
+        <code><![CDATA[
+import org.apache.commons.logging.*;
+import org.slf4j.*;
+import javax.servlet.http.HttpServletRequest;
+import java.util.*;
+
+public class Bad {
+    private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(Bad.class);
+    private static final java.util.logging.Logger JUTIL_LOG = java.util.logging.Logger.getLogger(Bad.class.toString());
+    private static final Log COMMONS_LOG = LogFactory.getLog(Bad.class);
+
+    public String testBad(String faultCode) {
+        LOG.debug("Trying to get [{}]", faultCode.toUpperCase(Locale.US)); // bad
+        JUTIL_LOG.info("Getting [" + faultCode.toUpperCase(Locale.US) + "]"); // bad
+        COMMONS_LOG.debug("Trying to get [{}]", faultCode.replaceAll("_", "-")); // bad
+        return faultCode.toUpperCase(Locale.US);
+    }
+
+    public void testBadStringOps(String total) {
+        StringBuilder sb = new StringBuilder();
+        LOG.debug("buffer = {}", sb.toString()); // bad
+        LOG.debug(String.format("Total= %s", total)); // bad
+    }
+
+    public void operationsBad(String s) {
+        LOG.debug("Response : {}", testBad(s)); // bad
+    }
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>Unconditional operation in log statement: good situations</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import org.apache.commons.logging.*;
+import org.slf4j.*;
+import javax.servlet.http.HttpServletRequest;
+import java.util.*;
+
+public class Good {
+    private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(Good.class);
+    private static final java.util.logging.Logger JUTIL_LOG = java.util.logging.Logger.getLogger(Good.class.toString());
+    private static final Log COMMONS_LOG = LogFactory.getLog(TryoutUnconditionalOperationOnLogArgument.class);
+
+    public void testGood(String faultCode) {
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Getting [{}]", faultCode.toUpperCase(Locale.US));
+        }
+        if (JUTIL_LOG.isLoggable(Level.INFO)) {
+            JUTIL_LOG.info("Getting [" + faultCode.toUpperCase(Locale.US) + "]");
+        }
+    }
+
+    public void operationsGood(Map m, String key) {
+        LOG.debug("Response : {}", m.get(key), op()); // good
+    }
+
+    public void op() {
+    }
+}
+     ]]></code>
+    </test-code>
+</test-data>

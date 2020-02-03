@@ -721,26 +721,23 @@ ClassOrInterfaceBodyDeclaration/MethodDeclaration//Block/BlockStatement//Stateme
         </properties>
     </rule>
 
-    <rule name="UnconditionalStringOperationOnLogArgument" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="String operation is executed regardless of log level and can be expensive" typeResolution="true"
+    <rule name="UnconditionalOperationOnLogArgument" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="Operation is executed regardless of log level and can be expensive" typeResolution="true"
           externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-IL03">
-        <description>Problem: A String operation like toString() or String.format is executed regardless of log level. This may include formatting, reflection and other wasteful processing.&#13;
-            Solution: Remove the operation and utilize SLF4J formatting with {}-placeholders, or log and format conditionally.  (jpinpoint-rules)</description>
+        <description>Problem: An operation is executed regardless of log level. This could be much processing while the result is typically not used. Detected are obj.toString() and operations with one or more arguments except usually cheap obj.get(arg).&#13;
+            Solution: Execute the operation only conditionally and utilize SLF4J formatting with {}-placeholders.  (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
-            <property name="version" value="1.0"/>
+            <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
-            //PrimaryPrefix/Name
+          //PrimaryPrefix/Name
+            (: log levels typically/often not enabled :)
             [
             	ends-with(@Image,'.trace')
             	or ends-with(@Image,'.debug')
             	or ends-with(@Image,'.info')
             ]
-            /../../PrimarySuffix/Arguments/ArgumentList/Expression//PrimaryExpression/PrimaryPrefix/Name
-            [
-            	ends-with(@Image,'.toString')
-            	or starts-with(@Image,'String.')
-            ]
+            (: no violation if conditionally: only executed if level enabled is okay :)
             [not(ancestor::IfStatement/Expression//PrimaryPrefix/Name
             	[
 					ends-with(@Image,'.isTraceEnabled')
@@ -749,10 +746,32 @@ ClassOrInterfaceBodyDeclaration/MethodDeclaration//Block/BlockStatement//Stateme
 					or ends-with(@Image,'.isLoggable')
 				])
 			]
+			(: in the log method :)
+            /../../PrimarySuffix/Arguments/ArgumentList/Expression//PrimaryExpression
+            [
+                (: toString on argument :)
+                PrimaryPrefix/Name[ends-with(@Image,'.toString')]
+                or
+                (: a method call with an argument list :)
+                (PrimarySuffix/Arguments/ArgumentList)
+                (: exclude a simple get(i), like list.get(0) or map.get(key), assumed to be fast :)
+                and not (PrimaryPrefix/Name[ends-with(@Image,'.get')])
+            ]
 			]]>
                 </value>
             </property>
         </properties>
+        <example>
+            <![CDATA[
+            LOG.debug("customer = {}", customer.toString()); // bad
+            LOG.debug("Complete Soap response: {}", getSoapMsgAsString(context.getMessage())); // bad
+
+            LOG.debug("customer = {}", customer); // good
+            if (LOG.isDebugEnabled()) { // good
+                LOG.debug("Complete Soap response: {}", getSoapMsgAsString(context.getMessage()));
+            }
+            ]]>
+        </example>
     </rule>
 
     <rule name="HttpClientBuilderWithoutDisableConnectionState" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="A HttpClient builder is used and disableConnectionState is not called. HTTP client tracks connection state while using TLS" typeResolution="true"
