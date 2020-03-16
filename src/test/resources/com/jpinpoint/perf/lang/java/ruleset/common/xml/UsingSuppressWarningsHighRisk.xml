@@ -21,7 +21,7 @@ class Bad1 {
     </test-code>
 
     <test-code>
-        <description>violation: high risk suppressed warnings</description>
+        <description>violation: 6 high risk suppressed warnings</description>
         <expected-problems>6</expected-problems>
         <expected-linenumbers>3,4,6,9,9,10</expected-linenumbers>
         <code><![CDATA[
@@ -35,6 +35,8 @@ class Bad1 {
 class Bad {
     @SuppressWarnings({"PMD.AvoidUnguardedMutableFieldsInSharedObjects", "pmd:AvoidUnguardedAssignmentToNonFinalFieldsInSharedObjects"}) // 2x bad
     @SuppressWarnings("PMD.AvoidMutableStaticFields")  // bad
+    @SuppressWarnings("pmd:ObjectMapperCreatedForEachMethodCall")
+    @SuppressWarnings("pmd:MDCPutWithoutRemove")
     public void bad() {}
 }
      ]]></code>

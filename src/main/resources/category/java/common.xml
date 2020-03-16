@@ -805,7 +805,7 @@ ancestor::MethodDeclaration//PrimarySuffix/@Image="disableConnectionState")]
             Solution: Suppress warnings judiciously based on full knowledge and report reasons to suppress (false positives) to the rule maintainers so these can be fixed. (jpinpoint-rules)</description>
         <priority>4</priority>
         <properties>
-            <property name="ruleIdMatches" type="String" value="AvoidUnguardedMutableFieldsInSharedObjects|AvoidUnguardedAssignmentToNonFinalFieldsInSharedObjects|AvoidMutableStaticFields|ALL|all|PMD[^\.]|pmd[^:]"
+            <property name="ruleIdMatches" type="String" value="AvoidUnguardedMutableFieldsInSharedObjects|AvoidUnguardedAssignmentToNonFinalFieldsInSharedObjects|AvoidMutableStaticFields|[^\w]ALL[^\w]|[^\w]all[^\w]|PMD[^\.]|pmd[^:]"
                       description="Regex for inclusion of high risk rules"/>
             <property name="ruleIdNotMatches" type="String" value="^$"
                       description="Regex for exclusion of high risk rules"/>

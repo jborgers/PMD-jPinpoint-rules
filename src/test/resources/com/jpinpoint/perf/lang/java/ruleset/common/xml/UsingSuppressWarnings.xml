@@ -21,9 +21,9 @@ class Bad {
     </test-code>
 
     <test-code>
-        <description>violation: matched also in other rule - HighRisky</description>
-        <expected-problems>6</expected-problems>
-        <expected-linenumbers>3,4,6,9,9,10</expected-linenumbers>
+        <description>violation: 8 matches of which 6  also in other rule - HighRisky</description>
+        <expected-problems>8</expected-problems>
+        <expected-linenumbers>3,4,6,9,9,10,11,12</expected-linenumbers>
         <code><![CDATA[
 @Component
 @Provider
@@ -35,6 +35,8 @@ class Bad {
 class Bad {
     @SuppressWarnings({"PMD.AvoidUnguardedMutableFieldsInSharedObjects", "pmd:AvoidUnguardedAssignmentToNonFinalFieldsInSharedObjects"}) // 2x bad
     @SuppressWarnings("PMD.AvoidMutableStaticFields")  // bad
+    @SuppressWarnings("pmd:ObjectMapperCreatedForEachMethodCall") // bad
+    @SuppressWarnings("pmd:MDCPutWithoutRemove") //bad
     public void bad() {}
 }
      ]]></code>

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>Avoid improper annotation combinations</description>
+        <expected-problems>2</expected-problems>
+        <expected-linenumbers>5, 13</expected-linenumbers>
+        <code><![CDATA[
+import org.springframework.cache.annotation.Cacheable;
+import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
+
+class Bad1 {
+    @Cacheable(value = "Cache1", key = "#key1") // bad
+    public String bad1(final String key1) {
+        return getRemote(key1);
+    }
+}
+
+class Bad2 {
+    @HystrixCommand(fallbackMethod = "fb", commandKey = "cmd")
+    @Cacheable(value = "Cache2", key = "#key2", keyGenerator = "keyGen") // bad
+    public String bad2(final String key2) {
+        return getRemote(key2);
+    }
+}
+
+class Good1 {
+    @Cacheable(value = "Cache1", keyGenerator = "#key1")
+    public String good1(final String key1) {
+        return getRemote(key1);
+    }
+}
+
+]]></code>
+    </test-code>
+</test-data>

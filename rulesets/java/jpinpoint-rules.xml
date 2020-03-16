@@ -828,7 +828,7 @@ ClassOrInterfaceBodyDeclaration/MethodDeclaration//Block/BlockStatement//Stateme
             Solution: Suppress warnings judiciously based on full knowledge and report reasons to suppress (false positives) to the rule maintainers so these can be fixed. (jpinpoint-rules)</description>
         <priority>4</priority>
         <properties>
-            <property name="ruleIdMatches" type="String" value="AvoidUnguardedMutableFieldsInSharedObjects|AvoidUnguardedAssignmentToNonFinalFieldsInSharedObjects|AvoidMutableStaticFields|ALL|all|PMD[^\.]|pmd[^:]"
+            <property name="ruleIdMatches" type="String" value="AvoidUnguardedMutableFieldsInSharedObjects|AvoidUnguardedAssignmentToNonFinalFieldsInSharedObjects|AvoidMutableStaticFields|[^\w]ALL[^\w]|[^\w]all[^\w]|PMD[^\.]|pmd[^:]"
                       description="Regex for inclusion of high risk rules"/>
             <property name="ruleIdNotMatches" type="String" value="^$"
                       description="Regex for exclusion of high risk rules"/>
@@ -1443,6 +1443,32 @@ or ancestor::SynchronizedStatement/Expression//Name)]
 
 <!-- END Included file 'concurrent.xml' -->
 <!-- BEGIN Included file 'spring.xml' -->
+    <rule name="AvoidExpressionsInCacheable" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="Avoid SpEL-expression for computing Cacheable key" typeResolution="true"
+          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-TMSU12">
+        <description>Spring Expression Language (SpEL) expression is used for computing the key dynamically. Problem: evaluating the expression language is expensive, on every call.&#13;
+            Solution: use a custom KeyGenerator: keyGenerator=... instead of key=...
+            (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="version" value="1.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+//ClassOrInterfaceBodyDeclaration//Annotation/NormalAnnotation[Name/@Image='Cacheable']/MemberValuePairs/MemberValuePair[@MemberName='key']
+	]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+class Bad1 {
+    @Cacheable(value = "Cache1", key = "#key1") // bad
+    public String bad1(final String key1) {
+        return getRemote(key1);
+    }
+}
+            ]]>
+        </example>
+    </rule>
+
     <rule name="AvoidImproperAnnotationCombinations"
           language="java"
           message="Don't combine these annotations"
@@ -1578,6 +1604,7 @@ and (
             2. In case you are sure the Component is used in single threaded context only (e.g. a Tasklet), annotate the class with @NotThreadSafe to make this explicit. &#13;
             3. Use package-private and @VisibleForTesting for methods (e.g. setters) used for JUnit only.
             (jpinpoint-rules)</description>
+        <priority>4</priority>
         <properties>
             <property name="version" value="1.0"/>
             <property name="xpath">
@@ -1599,7 +1626,6 @@ and  (../../ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='Autowired']
                 </value>
             </property>
         </properties>
-        <priority>4</priority>
     </rule>
 
     <rule name="MinimizeActionModelMapInSession" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="ModelMap in action method is not cleared. This may bloat the session." typeResolution="true"
