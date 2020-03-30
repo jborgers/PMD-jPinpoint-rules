@@ -5,20 +5,21 @@
         xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
     <test-code>
         <description>Avoid improper annotation combinations</description>
-        <expected-problems>9</expected-problems>
+        <expected-problems>11</expected-problems>
+        <expected-linenumbers>7, 12, 25, 32, 43, 53, 58, 63,63, 70, 75</expected-linenumbers>
         <code><![CDATA[
 import lombok.*;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.*;
-
 import javax.persistence.Entity;
+import org.aspectj.lang.annotation.Aspect;
 
-@Controller
+@Controller // bad 1
 @Repository
 public class AvoidImproperAnnotationCombinations {
 
     // Spring: Don't combine any of: @Component, @Service, @Configuration, @Repository, @Controller
-    @Component
+    @Component // bad 2
     @Configuration
     class StringAnnotationsViolation1 {
     }
@@ -31,14 +32,14 @@ public class AvoidImproperAnnotationCombinations {
     class StringAnnotationsOk2 {
     }
 
-    @Component
+    @Component // bad 3
     @Service
     @Repository
     class StringAnnotationsViolation2 {
     }
 
     // JPA with Spring: Don't combine @Entity with one of: @Component, @Service, @Configuration, @Repository, @Controller
-    @Entity
+    @Entity // bad 4
     @Component
     class JPASpringAnnotationsViolation1 {
     }
@@ -49,7 +50,7 @@ public class AvoidImproperAnnotationCombinations {
 
     // Lombok: Don't combine 1. @Data with @Value;
     // 2. @Data or @Value with bare/marker annotation one of: @EqualsAndHashCode, @ToString, @Getter, @Setter and @RequiredArgsConstructor
-    @Data
+    @Data // bad 5
     @Value
     class LombokAnnotationsViolation1 {
     }
@@ -59,20 +60,40 @@ public class AvoidImproperAnnotationCombinations {
     class LombokAnnotationsOk1 {
     }
 
-    @ToString
+    @ToString // bad 6
     @Data
     class LombokAnnotationsViolation2 {
     }
 
-    @Getter
+    @Getter // bad 7
     @Value
     class LombokAnnotationsViolation3 {
     }
 
-    @EqualsAndHashCode
+    @EqualsAndHashCode // bad 8,9
     @Data
     @Value
     class LombokAnnotationsViolation4 {
+    }
+
+    // AspectJ: Don't combine @Aspect with one of [@Component, @Service, @Configuration, @Repository, @Controller, @Entity]
+    @Aspect // bad 10
+    @Component
+    class AspectAnnotationViolation1 {
+    }
+
+    @Aspect // bad 11
+    @Entity
+    class AspectAnnotationViolation2 {
+    }
+
+    @Aspect
+    class AspectAnnotationOk1 {
+    }
+
+    @Aspect
+    @Value
+    class AspectAnnotationOk2 {
     }
 
 }     ]]></code>

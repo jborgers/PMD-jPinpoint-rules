@@ -10,29 +10,42 @@
         <description>
             Improper combination of annotations. Problem: these annotations are not meant to be combined and may cause unexpected and unwanted behavior.&#13;
             Solution: remove the inappropriate annotation. &#13;
-            Don't combine 2+ of [@Component, @Service, @Configuration, @Controller, @Repository, @Entity] (Spring/JPA)
+            Don't combine 2+ of [@Component, @Service, @Configuration, @Controller, @Repository, @Entity, @Aspect] (Spring/JPA/AspectJ)
             Don't combine [@Data with @Value] and [@Data or @Value] with any of [@ToString, @EqualsHashCode, @Getter, @Setter, @RequiredArgsConstructor] (Lombok)
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
+            <property name="version" value="2.0"/>
             <property name="xpath">
                 <value>
                     <![CDATA[
-//TypeDeclaration[count(./Annotation/MarkerAnnotation/Name[@Image='Component' or @Image='Service' or @Image='Configuration' or @Image='Controller' or @Image='Repository' or @Image='Entity']) > 1]
-|
-//ClassOrInterfaceBodyDeclaration[count(./Annotation/MarkerAnnotation/Name[@Image='Component' or @Image='Service' or @Image='Configuration' or @Image='Controller' or @Image='Repository' or @Image='Entity']) > 1]
-|
+//TypeDeclaration[count(./Annotation/MarkerAnnotation/Name[@Image='Component' or @Image='Service' or @Image='Configuration' or @Image='Controller' or @Image='Repository' or @Image='Entity' or @Image='Aspect']) > 1]
+,
+//ClassOrInterfaceBodyDeclaration[count(./Annotation/MarkerAnnotation/Name[@Image='Component' or @Image='Service' or @Image='Configuration' or @Image='Controller' or @Image='Repository' or @Image='Entity' or @Image='Aspect']) > 1]
+,
 //TypeDeclaration[count(./Annotation/MarkerAnnotation/Name[@Image='Data' or @Image='Value']) > 1]
-|
+,
 //ClassOrInterfaceBodyDeclaration[count(./Annotation/MarkerAnnotation/Name[@Image='Data' or @Image='Value']) > 1]
-|
+,
 //TypeDeclaration[./Annotation/MarkerAnnotation/Name[@Image='Data' or @Image='Value'] and ./Annotation/MarkerAnnotation/Name[@Image='ToString' or @Image='EqualsAndHashCode' or @Image='Getter' or @Image='Setter' or @Image='RequiredArgsConstructor']]
-|
+,
 //ClassOrInterfaceBodyDeclaration[./Annotation/MarkerAnnotation/Name[@Image='Data' or @Image='Value'] and ./Annotation/MarkerAnnotation/Name[@Image='ToString' or @Image='EqualsAndHashCode' or @Image='Getter' or @Image='Setter' or @Image='RequiredArgsConstructor']]
                     ]]>
                 </value>
             </property>
         </properties>
+        <example>
+            <![CDATA[
+@Component
+@Aspect
+class Bad {
+}
+
+@Component
+class Good {
+}
+            ]]>
+        </example>
     </rule>
 
     <rule name="AvoidModelMapAsRenderParameter" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="A ModelMap or @ModelAttribute is used as parameter of a portlet render method and implicitely put in the session." typeResolution="true"
