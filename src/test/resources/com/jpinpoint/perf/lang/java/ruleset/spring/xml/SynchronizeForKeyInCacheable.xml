@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>Synchronize access for each key in @Cacheable</description>
+        <expected-problems>2</expected-problems>
+        <expected-linenumbers>5, 12</expected-linenumbers>
+        <code><![CDATA[
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CacheConfig;
+
+public class Bad1 {
+    @Cacheable(value = "Cache1") // bad
+    public String bad1() {
+    }
+}
+
+@CacheConfig(cacheNames = {"Cache2"})
+class Bad2 {
+    @Cacheable // bad
+    public String bad2() {
+    }
+}
+
+class Good1 {
+    @Value("val1")
+    private String val;
+
+    @Cacheable(value = "Cache1", sync = "true")
+    public String good1() {
+    }
+}
+
+@CacheConfig(cacheNames = {"Cache2"})
+class Good2 {
+    @Cacheable(sync = "true")
+    public String good2() {
+    }
+}
+
+class Good3 {
+    @Cacheable(value = "Cache3", sync = "false")
+    public String good3() {
+    }
+}
+]]></code>
+    </test-code>
+</test-data>

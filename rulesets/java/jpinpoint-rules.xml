@@ -1662,6 +1662,38 @@ count(.//PrimaryExpression/PrimaryPrefix/Name[ends-with(@Image,'.clear')])=0]
         </properties>
     </rule>
 
+    <rule name="SynchronizeForKeyInCacheable" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="Synchronize access for each key in @Cacheable" typeResolution="true"
+          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-TMSU12">
+        <description>The cache by default allows multiple threads accessing by the same key. Problem: if the value of the key is not available from the cache, it will be fetched/computed by multiple threads while only one time is needed.&#13;
+            Solution: Let only the first accessing thread fetch/compute the value and block others until the value is in the cache. Add attribute sync = "true" to achieve this. (Assuming the cache implementation supports it.)
+            (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+(//ClassOrInterfaceBodyDeclaration//Annotation/NormalAnnotation[Name/@Image='Cacheable']
+,
+//ClassOrInterfaceBodyDeclaration//Annotation/MarkerAnnotation[Name/@Image='Cacheable'])[count(MemberValuePairs/MemberValuePair[@MemberName='sync']) = 0]
+	]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+public class Bad1 {
+    @Cacheable(value = "Cache1") // bad
+    public String bad1() {
+    }
+}
+class Good1 {
+    @Cacheable(value = "Cache1", sync = "true")
+    public String good1() {
+    }
+}
+            ]]>
+        </example>
+    </rule>
+
 <!-- END Included file 'spring.xml' -->
 <!-- BEGIN Included file 'sql.xml' -->
     <rule name="AvoidHugeQueryFetchSize"
