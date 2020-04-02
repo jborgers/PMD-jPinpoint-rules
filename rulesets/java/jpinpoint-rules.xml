@@ -424,6 +424,46 @@ ancestor::MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter/Va
         </properties>
     </rule>
 
+    <rule name="AvoidStaticXmlFactories" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="Avoid static XML Factories" typeResolution="true"
+          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-IUOXAR09">
+        <description>An XML Factory like DocumentBuilderFactory, TransformerFactory, MessageFactory is used as static field. Problem: These factory objects are typically not thread-safe and rather expensive to create because of class loading. &#13;
+            Solution: Create the Factories as local variables and use command line arguments to specify the implementation class. (jpinpoint-rules)</description>
+        <priority>1</priority>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+    //ClassOrInterfaceBodyDeclaration//FieldDeclaration[@Static=true() and (
+    pmd-java:typeIs('javax.xml.parsers.DocumentBuilderFactory') or
+    pmd-java:typeIs('javax.xml.parsers.SAXParserFactory') or
+    pmd-java:typeIs('javax.xml.stream.XMLInputFactory') or
+    pmd-java:typeIs('javax.xml.stream.XMLOutputFactory') or
+    pmd-java:typeIs('javax.xml.stream.XMLEventFactory') or
+    pmd-java:typeIs('javax.xml.transform.TransformerFactory') or
+    pmd-java:typeIs('javax.xml.validation.SchemaFactory') or
+    pmd-java:typeIs('javax.xml.datatype.DatatypeFactory') or
+    pmd-java:typeIs('javax.xml.soap.MessageFactory')
+    )]
+			]]>
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+ public class Bad {
+    private static final DocumentBuilderFactory DB_FACTORY = DocumentBuilderFactory.newInstance(); // shared, bad
+ }
+
+ public class Good {
+    public build() {
+        DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance(); // local var, good
+        // use dbFactory
+    }
+ }
+            ]]>
+        </example>
+    </rule>
+
     <rule name="AvoidStringBuffer" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="StringBuffer is used. It introduces locking overhead, use StringBuilder." typeResolution="true"
           externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-ISU01" >
         <description>Problem: StringBuffer introduces locking overhead because it is thread safe. Its thread-safety is rarely needed.&#13;

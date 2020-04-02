@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>Avoid static XML Factories</description>
+        <expected-problems>8</expected-problems>
+        <expected-linenumbers>12,13,14,15,16,17,18,19</expected-linenumbers>
+        <code><![CDATA[
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.SAXParserFactory;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLOutputFactory;
+import javax.xml.stream.XMLEventFactory;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.soap.MessageFactory;
+import javax.xml.validation.SchemaFactory;
+import javax.xml.datatype.DatatypeFactory;
+
+public class Bad1 {
+    private static final DocumentBuilderFactory DB_FACTORY = DocumentBuilderFactory.newInstance(); // bad
+    private static SAXParserFactory sp_factory; // bad
+    static MessageFactory M_FACTORY; // bad
+    static final TransformerFactory T_FACTORY = TransformerFactory.newInstance(); // bad
+    protected static final XMLInputFactory XI_FACTORY = XMLInputFactory.newInstance(); //bad
+    static XMLOutputFactory XO_Factory; //bad
+    static XMLEventFactory XE_Factory; //bad
+    static DatatypeFactory DT_Factory; //bad
+
+    SchemaFactory S_FACTORY = SchemaFactory.newInstance(); // good
+    private static CustomerFactory C_FACTORY; // good
+
+    public static void build() {
+        DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance(); // good
+        // use dbFactory
+    }
+}
+
+class CustomerFactory {
+}
+            ]]></code>
+    </test-code>
+</test-data>
