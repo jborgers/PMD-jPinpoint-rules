@@ -398,4 +398,120 @@ or ancestor::SynchronizedStatement/Expression//Name)]
             ]]>
         </example>
     </rule>
+
+    <rule name="NotProperlySynchronizingOnFieldWhileUsingGuardedBy"
+          message="Not properly synchronizing access of field while using @GuardedBy(field)"
+          class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
+          typeResolution="true" externalInfoUrl="https://jcip.net/annotations/doc/index.html">
+        <description>
+            Problem: The field to which the GuardedBy annotation is applied is not accessed thread-safely as described by GuardedBy.&#13;
+            Solution: Make access thread-safe: synchronize access by a synchronized(LOCK) block with LOCK being a final field.&#13;
+            Note that methods with annotations @Autowired, @PostConstruct, @BeforeStep, @Value and @Inject are ignored.
+            (jpinpoint-rules)</description>
+        <priority>3</priority>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value>
+                    <![CDATA[
+    //MethodDeclaration[
+    not (../Annotation//Name[@Image='Autowired' or @Image='PostConstruct' or @Image='BeforeStep' or @Image='Value' or @Image='Inject'])]
+    (: a variable which should (potentially) be guarded :)
+    //PrimaryPrefix/Name[substring-before(concat(@Image,'.'), '.') =
+    (: used in a class with guarded-by literal *IS* a field (should be private final) :)
+    ancestor::ClassOrInterfaceBody//Annotation//Name[@Image='GuardedBy']/..//Literal[substring(@Image, 2, (string-length(@Image) - 2))=
+    ancestor::ClassOrInterfaceBody//FieldDeclaration//VariableDeclaratorId/@Image
+    ]/
+    (: is defined as field :)
+    ancestor::ClassOrInterfaceBodyDeclaration//FieldDeclaration//VariableDeclaratorId/@Image
+    (: and *IS NOT* in a synchronized block with the GuardedBy literal:)
+    and (not(concat('"', ancestor::SynchronizedStatement/Expression//Name/@Image, '"') =
+    ancestor::ClassOrInterfaceBody//Annotation//Name[@Image='GuardedBy']/..//Literal/@Image)
+    )]
+    ,
+    //MethodDeclaration[
+    not (../Annotation//Name[@Image='Autowired' or @Image='PostConstruct' or @Image='BeforeStep' or @Image='Value' or @Image='Inject'])]
+    (: a variable which should (potentially) be guarded :)
+    //PrimaryPrefix/Name[substring-before(concat(@Image,'.'), '.') =
+    (: used in a class with guarded by literal *IS NOT* a field :)
+    ancestor::ClassOrInterfaceBody//Annotation//Name[@Image='GuardedBy']/..//Literal[not (substring(@Image, 2, (string-length(@Image) - 2)) =
+    ancestor::ClassOrInterfaceBody//FieldDeclaration//VariableDeclaratorId/@Image)
+    ]/
+    (: is defined as field :)
+    ancestor::ClassOrInterfaceBodyDeclaration//FieldDeclaration//VariableDeclaratorId/@Image
+    (: and *IS* in a synchronized block with the GuardedBy literal:)
+    and (
+    (concat('"', ancestor::SynchronizedStatement/Expression//Name/@Image, '"') =
+    ancestor::ClassOrInterfaceBody//Annotation//Name[@Image='GuardedBy']/..//Literal/@Image)
+    )]
+]]>
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+    class Bad1 {
+        private final Object LOCK = new Object();
+        @GuardedBy("LOCK")
+        private String txt;
+
+        public String getText() { return txt; } // bad
+        public synchronized void setText(String t) { txt = t; } // bad
+    }
+
+    class Good1 {
+        private final Object LOCK = new Object();
+        @GuardedBy("LOCK")
+        private String txt;
+
+        public String getText() {
+            synchronized(LOCK) { return txt; }
+        }
+        public void setText(String t) {
+            synchronized(LOCK) { txt = t; }
+        }
+    }
+            ]]>
+        </example>
+    </rule>
+
+    <rule name="AvoidStaticXmlFactories" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="Avoid static XML Factories" typeResolution="true"
+          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-IUOXAR09">
+        <description>An XML Factory like DocumentBuilderFactory, TransformerFactory, MessageFactory is used as static field. Problem: These factory objects are typically not thread-safe and rather expensive to create because of class loading. &#13;
+            Solution: Create the Factories as local variables and use command line arguments to specify the implementation class. (jpinpoint-rules)</description>
+        <priority>1</priority>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+    //ClassOrInterfaceBodyDeclaration//FieldDeclaration[@Static=true() and (
+    pmd-java:typeIs('javax.xml.parsers.DocumentBuilderFactory') or
+    pmd-java:typeIs('javax.xml.parsers.SAXParserFactory') or
+    pmd-java:typeIs('javax.xml.stream.XMLInputFactory') or
+    pmd-java:typeIs('javax.xml.stream.XMLOutputFactory') or
+    pmd-java:typeIs('javax.xml.stream.XMLEventFactory') or
+    pmd-java:typeIs('javax.xml.transform.TransformerFactory') or
+    pmd-java:typeIs('javax.xml.validation.SchemaFactory') or
+    pmd-java:typeIs('javax.xml.datatype.DatatypeFactory') or
+    pmd-java:typeIs('javax.xml.soap.MessageFactory')
+    )]
+			]]>
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+ public class Bad {
+    private static final DocumentBuilderFactory DB_FACTORY = DocumentBuilderFactory.newInstance(); // shared, bad
+ }
+
+ public class Good {
+    public build() {
+        DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance(); // local var, good
+        // use dbFactory
+    }
+ }
+            ]]>
+        </example>
+    </rule>
 </ruleset>
