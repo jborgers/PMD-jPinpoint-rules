@@ -5,46 +5,42 @@
         xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
     <test-code>
         <description>Atributes in session objects take up heap space</description>
-        <expected-problems>5</expected-problems>
+        <expected-problems>6</expected-problems>
+        <expected-linenumbers>11, 41, 70, 99, 103, 161</expected-linenumbers>
         <code><![CDATA[
-import org.springframework.web.context.request.RequestAttributes;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.portlet.context.PortletRequestAttributes;
-import org.springframework.web.portlet.util.PortletUtils;
-
 import javax.portlet.PortletSession;
 import javax.portlet.ResourceRequest;
+import javax.servlet.http.HttpSession;
+import org.springframework.web.portlet.util.PortletUtils;
 
-/**
- * If a .setAttribute occurs in a method in a certain class, a .removeAttribute must occur in a method of the same class
- */
 public class MinimizeAttributesInSessionTest {
+	private PortletSession ps;
 
-
-	static class Test1_Flag {
-		public void setAttribute(final String sessionAttributeName,
-				final Object object) {
-			getPortletSession().setAttribute(sessionAttributeName, object);
+	class Bad {
+		public void setAttribute(final String name, final Object obj) {
+			getPortletSession().setAttribute(name, obj);                 // bad
 		}
-
 		public Object getAttribute(final String sessionAttributeName) {
 			return getPortletSession().getAttribute(sessionAttributeName);
 		}
-
-		public void removeAttribute(final String sessionAttributeName) {
-			// getPortletSession().removeAttribute(sessionAttributeName);
-		}
+	        PortletSession getPortletSession() {
+		    return ps;
+	        }
 	}
 
-	static class Test1_Ok {
-		public void setAttribute(final String sessionAttributeName,
-				final Object object) {
-			getPortletSession().setAttribute(sessionAttributeName, object);
+	class Good {
+		public void setAttribute(final String name, final Object obj) {
+			getPortletSession().setAttribute(name, obj);
 		}
-
-		public void removeAttribute(final String sessionAttributeName) {
-			getPortletSession().removeAttribute(sessionAttributeName);
+		public Object getAttribute(final String sessionAttributeName) {
+			return getPortletSession().getAttribute(sessionAttributeName);
 		}
+		public void removeAttribute(final String name) {
+			getPortletSession().removeAttribute(name);
+		}
+                PortletSession getPortletSession() {
+		    return ps;
+	        }
 	}
 
 	static class Test2_Flag {
@@ -52,7 +48,7 @@ public class MinimizeAttributesInSessionTest {
 
 		public void setAttribute(final String sessionAttributeName,
 				final Object object) {
-			ses.setAttribute(sessionAttributeName, object);
+			ses.setAttribute(sessionAttributeName, object);         // bad
 		}
 
 		public Object getAttribute(final String sessionAttributeName) {
@@ -77,11 +73,11 @@ public class MinimizeAttributesInSessionTest {
 		}
 	}
 
-	static class Test3_Flag {
+	 class Test3_Flag {
 
 		public void setAttribute(final String sessionAttributeName,
 				final Object object) {
-			getPortletSession().setAttribute(sessionAttributeName, object);
+			getPortletSession().setAttribute(sessionAttributeName, object); // bad
 		}
 
 		public void removeAttributes(final String... sessionAttributeNames) {
@@ -92,7 +88,7 @@ public class MinimizeAttributesInSessionTest {
 		}
 	}
 
-	static class Test3_Ok {
+	 class Test3_Ok {
 
 		public void setAttribute(final String sessionAttributeName,
 				final Object object) {
@@ -107,14 +103,14 @@ public class MinimizeAttributesInSessionTest {
 		}
 	}
 
-	static class Test4_Flag {
+	 class Test4_Flag {
 
 		private void setUploadStatus(final ResourceRequest request) {
-			PortletUtils.setSessionAttribute(request, "status", "value");
+			PortletUtils.setSessionAttribute(request, "status", "value"); // bad
 		}
 
 		public void removeUploadStatus(final ResourceRequest request) {
-			PortletUtils.setSessionAttribute(request, "status", "");
+			PortletUtils.setSessionAttribute(request, "status", ""); // bad
 		}
 	}
 
@@ -129,15 +125,16 @@ public class MinimizeAttributesInSessionTest {
 		}
 	}
 
-	// TODO: case: /*(ActionRequest)*/ request.getPortletSession().setAttribute(SIGN_SPARKLE_SESSION_KEY, signSparkle);
 
-	/**
-	 * Get the {@link PortletSession} from the current request.
-	 *
-	 * @return {@link PortletSession}
-	 * @see org.springframework.web.portlet.context.PortletApplicationContextUtils
-	 */
-	public static PortletSession getPortletSession() {
+    // TODO: case: /*(ActionRequest)*/ request.getPortletSession().setAttribute(SIGN_SPARKLE_SESSION_KEY, signSparkle);
+
+    /**
+     * Get the {@link PortletSession} from the current request.
+     *
+     * @return {@link PortletSession}
+     * @see org.springframework.web.portlet.context.PortletApplicationContextUtils
+     */
+/*	public static PortletSession getPortletSession() {
 		final RequestAttributes requestAttr = RequestContextHolder
 				.currentRequestAttributes();
 		if (!(requestAttr instanceof PortletRequestAttributes)) {
@@ -146,9 +143,50 @@ public class MinimizeAttributesInSessionTest {
 		}
 		return ((PortletRequestAttributes) requestAttr).getRequest()
 				.getPortletSession();
-	}
+	}*/
 
 }
-     ]]></code>
+ class Test5_Ok {
+	public void setAttribute(final String sessionAttributeName,
+							 final Object object) {
+		getOther().setAttribute(sessionAttributeName, object); // good, no [Http/Portlet]Session]
+	}
+
+	public Object getAttribute(final String sessionAttributeName) {
+		return getOther().getAttribute(sessionAttributeName);
+	}
+
+	Other getOther() {
+		return new Other();
+	}
+}
+ class Other {
+	void setAttribute(String n, Object o) {}
+	Object getAttribute(String n) {}
+}
+
+class Bad2 {
+	private HttpSession hs;
+	public void setAttribute(final String name, final Object obj) {
+		hs.setAttribute(name, obj);                 // bad
+	}
+	public Object getAttribute(final String sessionAttributeName) {
+		return hs.getAttribute(sessionAttributeName);
+	}
+}
+
+class Good2 {
+	private HttpSession hs;
+	public void setAttribute(final String name, final Object obj) {
+		hs.setAttribute(name, obj); // good
+	}
+	public Object getAttribute(final String sessionAttributeName) {
+		return hs.getAttribute(sessionAttributeName);
+	}
+	public void removeAttribute(final String name) {
+		hs.removeAttribute(name);
+	}
+}
+]]></code>
     </test-code>
 </test-data>

@@ -651,34 +651,51 @@ and not(ancestor::MethodDeclaration//TryStatement/FinallyStatement//StatementExp
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
-            <property name="version" value="1.0"/>
+            <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
-//ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDeclaration//Block/BlockStatement/Statement[
-./StatementExpression/PrimaryExpression/PrimarySuffix[ends-with(@Image, 'setAttribute')]
-/ancestor::ClassOrInterfaceBodyDeclaration//ClassOrInterfaceBody[not(
-ClassOrInterfaceBodyDeclaration/MethodDeclaration//Block/BlockStatement/Statement/StatementExpression/PrimaryExpression/PrimarySuffix[ends-with(@Image, 'removeAttribute')]
-or
-ClassOrInterfaceBodyDeclaration/MethodDeclaration//Block/BlockStatement/Statement/StatementExpression/PrimaryExpression/PrimaryPrefix/Name[ends-with(@Image, 'removeAttribute')]
+//ClassOrInterfaceBodyDeclaration/MethodDeclaration[../..//(VariableDeclaratorId |ReturnStatement/Expression)[pmd-java:typeIs('javax.portlet.PortletSession') or pmd-java:typeIs('javax.servlet.http.HttpSession')]]
+/Block/BlockStatement/Statement[
+./StatementExpression/PrimaryExpression/(PrimaryPrefix/Name|PrimarySuffix)[ends-with(@Image, 'setAttribute')]
+/ancestor::ClassOrInterfaceBody[not(
+ClassOrInterfaceBodyDeclaration//MethodDeclaration/Block//PrimaryExpression/(PrimaryPrefix/Name|PrimarySuffix)[ends-with(@Image, 'removeAttribute')]
 )]]
-|
-//ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDeclaration//Block/BlockStatement/Statement[
-./StatementExpression/PrimaryExpression/PrimaryPrefix/Name[ends-with(@Image, 'setAttribute')]
-/ancestor::ClassOrInterfaceBodyDeclaration//ClassOrInterfaceBody[not(
-ClassOrInterfaceBodyDeclaration/MethodDeclaration//Block/BlockStatement/Statement/StatementExpression/PrimaryExpression/PrimarySuffix[ends-with(@Image, 'removeAttribute')]
-or
-ClassOrInterfaceBodyDeclaration/MethodDeclaration//Block/BlockStatement/Statement/StatementExpression/PrimaryExpression/PrimaryPrefix/Name[ends-with(@Image, 'removeAttribute')]
-)]]
-|
-//ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDeclaration//Block/BlockStatement/Statement[
+,
+//ClassOrInterfaceBodyDeclaration/MethodDeclaration/Block/BlockStatement/Statement[
 .//StatementExpression/PrimaryExpression/PrimaryPrefix/Name[@Image = 'PortletUtils.setSessionAttribute']
-/ancestor::ClassOrInterfaceBodyDeclaration//ClassOrInterfaceBody[not(
-ClassOrInterfaceBodyDeclaration/MethodDeclaration//Block/BlockStatement//Statement/StatementExpression/PrimaryExpression/PrimaryPrefix/Name[@Image = 'PortletUtils.setSessionAttribute']
+/ancestor::ClassOrInterfaceBody[not(
+ClassOrInterfaceBodyDeclaration//MethodDeclaration/Block//PrimaryExpression/PrimaryPrefix/Name[@Image = 'PortletUtils.setSessionAttribute']
 /../../PrimarySuffix/Arguments/ArgumentList/Expression/PrimaryExpression/PrimaryPrefix/Literal/NullLiteral
 )]]
-	]]></value>
+]]></value>
             </property>
         </properties>
+        <example>
+            <![CDATA[
+class Bad {
+    PortletSession session; // same for HttpSession
+    public void setAttribute(String name, Object obj) {
+	    session.setAttribute(name, obj);                 // bad
+	}
+	public Object getAttribute(String name) {
+		return session.getAttribute(name);
+	}
+}
+
+class Good {
+    PortletSession session; // same for HttpSession
+	public void setAttribute(String name, final Object obj) {
+		session.setAttribute(name, obj);
+	}
+	public Object getAttribute(String name) {
+		return session.getAttribute(name);
+	}
+	public void removeAttribute(String name) {
+		session.removeAttribute(name);
+	}
+}
+            ]]>
+        </example>
     </rule>
 
     <rule name="ObjectMapperCreatedForEachMethodCall" message="An ObjectMapper is created for each method call, which is expensive." class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"   typeResolution="true" externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-IUOJAR01">
