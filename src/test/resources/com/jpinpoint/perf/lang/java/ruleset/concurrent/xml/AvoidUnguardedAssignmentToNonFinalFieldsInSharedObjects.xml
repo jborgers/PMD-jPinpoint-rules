@@ -5,7 +5,8 @@
         xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
     <test-code>
         <description>Avoid unguarded assignment to non-final fields in shared objects</description>
-        <expected-problems>10</expected-problems>
+        <expected-problems>11</expected-problems>
+        <expected-linenumbers>55, 87, 96, 137, 138, 157, 198, 223, 328, 338, 395</expected-linenumbers>
         <code><![CDATA[
 import com.google.common.annotations.VisibleForTesting;
 import lombok.Data;
@@ -61,7 +62,7 @@ class AService1 {
     private String url; // violation on next line, of additional unguarded accessor method
 
     public void setUrlViolate(final String url) {
-        this.url = url;
+        this.url = url;                                         // bad
     } // violation: unguarded accessor method
 }
 
@@ -93,7 +94,7 @@ class ASingletonBean {
     private String url;
 
     public void setUrlViolate(final String url) {
-        this.url = url;
+        this.url = url;                                       // bad
     } // violation: unguarded accessor method
 }
 
@@ -102,7 +103,7 @@ class ASingletonBean {
 class AComponent2 {
     private String _url;
     public void setUrlViolate(final String url) {
-        _url = url;
+        _url = url;                                                // bad
     } // violation: unguarded accessor method
 }
 
@@ -143,8 +144,8 @@ class AnotherComponent {
     private String wiredOk;
 
     public void setUrlViolate(String url) {
-        url += "/";
-        this.url = url;
+        url += "/";                                          // bad
+        this.url = url;                                      // bad
     } // violation: unguarded accessor method
 
     public void setVolatileOk(String vol) {
@@ -163,7 +164,7 @@ class AnotherComponent {
 class ASessionScopedComponent {
     private String _url;
     public void setUrlViolate(final String url) {
-        _url = url;
+        _url = url;                                           // bad
     } // violation: unguarded accessor method
 }
 
@@ -204,7 +205,7 @@ class ASyncedSingletonConcurrencyBean {
 
     @VisibleForTesting
     public void setUrlForTestingOnlyViolate(String urlForTestingOnly) {
-        this.url = urlForTestingOnly;
+        this.url = urlForTestingOnly;                                             // bad
     }
 }
 
@@ -229,7 +230,7 @@ class AComponentMaoValidation {
     }
 
     public void doRestTemplateViolate() {
-        restTemplateViolate = null;
+        restTemplateViolate = null;                                 // bad
     }
 
     @Data
@@ -334,7 +335,7 @@ class APayRequestOutSender {
     }
     private void setMax() {
         try {
-            databaseQueryMaxResultsViolation = 5000;
+            databaseQueryMaxResultsViolation = 5000;                           // bad
         } catch (RuntimeException e) {}
     }
 }
@@ -344,7 +345,7 @@ abstract class AInitializeTaskletViolate implements Tasklet, InitializingBean {
     // Work directory for this instance only.
     protected String workDirectoryViolate;
     public void setWorkDirectory(final String workDirectory) {
-        this.workDirectoryViolate = workDirectory;
+        this.workDirectoryViolate = workDirectory;                              // bad
     }
 
 }
@@ -391,6 +392,37 @@ class Foo {
     String CONTEXT_PARAMETERS_BEAN_NAME = "contextParameters";
     String CONTEXT_ATTRIBUTES_BEAN_NAME = "contextAttributes";
 */
+
+// inherited field used
+@Component
+class SubClassBad extends Base {
+
+    SubClassBad() {
+        baseField = ""; // good, could be final
+    }
+
+    public void setBaseField(final String val) {
+        baseField = val;                                        // bad
+    } // violation: unguarded accessor method
+}
+
+// inherited field used
+@Component
+class SubClassGood extends Base {
+    private final Object LOCK = new Object();
+    SubClassGood() {
+        baseField = ""; // good, could be final
+    }
+
+    public synchronized void setBaseField1(final String val) {
+        baseField = val; // assumed good
+    }
+    public  void setBaseField2(final String val) {
+        synchronized(LOCK) {
+            baseField = val; // assumed good
+        }
+    }
+}
 
         ]]></code>
     </test-code>

@@ -701,23 +701,25 @@ ClassOrInterfaceBodyDeclaration//MethodDeclaration/Block//PrimaryExpression/Prim
         <example>
             <![CDATA[
 class Bad {
+    PortletSession session; // same for HttpSession
     public void setAttribute(String name, Object obj) {
-	    getPortletSession().setAttribute(name, obj);                 // bad
+	    session.setAttribute(name, obj);                 // bad
 	}
-	public Object getAttribute(String sessionAttributeName) {
-		return getPortletSession().getAttribute(sessionAttributeName);
+	public Object getAttribute(String name) {
+		return session.getAttribute(name);
 	}
 }
 
 class Good {
+    PortletSession session; // same for HttpSession
 	public void setAttribute(String name, final Object obj) {
-		getPortletSession().setAttribute(name, obj);
+		session.setAttribute(name, obj);
 	}
-	public Object getAttribute(String sessionAttributeName) {
-		return getPortletSession().getAttribute(sessionAttributeName);
+	public Object getAttribute(String name) {
+		return session.getAttribute(name);
 	}
 	public void removeAttribute(String name) {
-		getPortletSession().removeAttribute(name);
+		session.removeAttribute(name);
 	}
 }
             ]]>
@@ -1314,6 +1316,7 @@ or (ancestor::ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='VisibleFo
             1. Autowiring/injection is thread safe, yet make sure no other thread-unsafe assignment is made to that field.&#13;
             2. In case you are sure the Component is used in single threaded context only (e.g. a Tasklet), annotate the class with @NotThreadSafe to make this explicit. &#13;
             3. Use package-private and @VisibleForTesting for methods (e.g. setters) used for JUnit only.
+            4. Use synchronized for accessors to inherited fields, or better: make field private and use proper accessors on base class level using @GuardedBy.
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
@@ -1331,9 +1334,16 @@ and not (ancestor::TypeDeclaration/Annotation/MarkerAnnotation/Name[@Image='NotT
 and not ((ancestor::TypeDeclaration/Annotation//Name[@Image='ConfigurationProperties'])
          and not (ancestor::TypeDeclaration/Annotation/MarkerAnnotation/Name[@Image='Setter']))]
 (: assignment to a field :)
-/../../..//ClassOrInterfaceDeclaration[@Static=false()]/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDeclaration/Block/BlockStatement/Statement//StatementExpression/AssignmentOperator/../PrimaryExpression//*[@Image=
+/../../..//ClassOrInterfaceDeclaration[@Static=false()]/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDeclaration/Block/BlockStatement/Statement//StatementExpression/AssignmentOperator/../PrimaryExpression//*[(@Image=
 (: non-final, non-volatile, non-GuardedBy fields :)
 ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Final=false() and @Volatile=false() and not (../Annotation//Name[@Image='GuardedBy'])]/VariableDeclarator/VariableDeclaratorId/@Image
+or
+(: not 'this' and extends a base class :)
+((@Image != '') and ancestor::ClassOrInterfaceDeclaration/ExtendsList and
+(: not a field of this class, param or local :)
+not (exists(index-of((ancestor::ClassOrInterfaceBody//VariableDeclaratorId/@Image), @Image))))
+and not (ancestor::SynchronizedStatement or ancestor::MethodDeclaration[@Synchronized = true()])
+)
 (: field not on accessor method with assignment, annotated with framework annotation :)
 and not (ancestor::ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='Autowired' or @Image='PostConstruct' or @Image='BeforeStep' or @Image='Value' or @Image='Inject']
 (: field not assigned in non-public accessor method annotated with VisibleForTesting :)
