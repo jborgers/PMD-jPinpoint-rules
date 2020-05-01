@@ -14,7 +14,7 @@ environment with a PMD-plugin, or in SonarQube after packaging them as Sonar plu
 ## See also
 - Jeroen Borgers presented at Amsterdam JUG about the why, what and how of these code checking rules: [Performance problem prevention](https://www.meetup.com/nl-NL/Amsterdam-Java-User-Group/events/256497068/)
 | [slides](http://jpinpoint.com/resources/Automated-and-learning-performance-problem-prevention-AMS-JUG.pdf)
-- Documentation of the pitfalls will arrive later.
+- We are looking for sponsorship for the full documentation of the pitfalls.
 
 # Usage
 
