@@ -6,7 +6,7 @@ found in code, tests and production situations.
 
 We didn't find these checks in other places, like the the standard PMD, FindBugs/Spotbugs, Checkstyle or Sonar rules.
 If you find duplicates of existing ones, please let us know. 
-We offered these rules to the PMD-team for inclusion in the standard rules and we were warmly welcomed. We have been working with them to upgrade and merge (some of) the jpinpoint rules in the standard and looking for sponsorship to contiue with that.
+We offered these rules to the PMD-team for inclusion in the standard rules and we were warmly welcomed. We have been working with them to upgrade and merge (some of) the jpinpoint rules in the standard and looking for sponsorship to continue with that.
 You don't have to wait for that, you can already use these as custom rules right now.
 The jpinpoint rules can be run from the command-line using the PMD tool, from your favorite development
 environment with a PMD-plugin, or in SonarQube after packaging them as Sonar plugin.
