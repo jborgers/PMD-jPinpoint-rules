@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>violation: time unit missing in method parameter</description>
+        <expected-problems>2</expected-problems>
+        <expected-linenumbers>3,5</expected-linenumbers>
+        <code><![CDATA[
+public class RetrieveCache {
+    @Autowired
+    public RetrieveCache(final long timeToLive) { // bad
+    }
+    public void confuse(int expiryTime) { // bad
+    }
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>violation: time unit missing in @Value member</description>
+        <expected-problems>2</expected-problems>
+        <expected-linenumbers>3,5</expected-linenumbers>
+        <code><![CDATA[
+public class RetrieveCache {
+    @Autowired
+    public RetrieveCache(final @Value("${cache.expiryTime}") long timeToLiveSeconds) { // 1x bad
+    }
+    public confuse(@Value("${cache.timeOut}") int expiryTimeHours) { // 1x bad
+    }
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>no violation: time unit present</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+public class RetrieveCache {
+    @Autowired
+    public RetrieveCache(final @Value("${cache.expiryTimeSeconds}") long timeToLiveSeconds) { // good
+    }
+    public void confuse(@Value("${cache.expiryTimeHours}") int expiryTimeHours) { // good
+    }
+}
+     ]]></code>
+    </test-code>
+</test-data>

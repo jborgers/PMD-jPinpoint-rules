@@ -856,5 +856,35 @@ ancestor::MethodDeclaration//PrimarySuffix/@Image="disableConnectionState")]
         </properties>
     </rule>
 
+    <rule name="AvoidTimeUnitConfusion" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="A variable identifier or @Value member ends with timeToLive, expiryTime or timeout, time unit is missing." typeResolution="true"
+          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance">
+        <description>Problem: Time unit like hours, seconds, milliseconds is not specified and may be assumed differently by readers.
+            Different assumptions will lead to errors or hidden problems like ineffective caches.&#13;
+            Solution: Specify the time unit in the identifier. (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+//VariableDeclaratorId[ends-with(lower-case(@Image), 'timetolive') or ends-with(lower-case(@Image), 'expirytime')
+or ends-with(lower-case(@Image), 'timeout')]
+,
+//SingleMemberAnnotation/Name[@Image='Value']/..//Literal[ends-with(lower-case(@Image), 'timetolive') or ends-with(lower-case(@Image), 'expirytime}"')
+or ends-with(lower-case(@Image), 'timeout}"')]
+			]]>
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+@Autowired
+public RetrieveCache(final @Value("${cache.expiryTime}") long timeToLive) { // 2x bad
+
+@Autowired
+public RetrieveCache(final @Value("${cache.expiryTimeSeconds}") long timeToLiveSeconds) { // 2x good
+
+            ]]>
+        </example>
+    </rule>
 
 </ruleset>
