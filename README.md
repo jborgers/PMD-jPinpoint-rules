@@ -6,7 +6,7 @@ found in code, tests and production situations.
 
 We didn't find these checks in other places, like the the standard PMD, FindBugs/Spotbugs, Checkstyle or Sonar rules.
 If you find duplicates of existing ones, please let us know. 
-We offered these rules to the PMD-team for inclusion in the standard rules and we were warmly welcomed. We are currently working with them to merge the jpinpoint rules. 
+We offered these rules to the PMD-team for inclusion in the standard rules and we were warmly welcomed. We have been working with them to upgrade and merge (some of) the jpinpoint rules in the standard and looking for sponsorship to continue with that.
 You don't have to wait for that, you can already use these as custom rules right now.
 The jpinpoint rules can be run from the command-line using the PMD tool, from your favorite development
 environment with a PMD-plugin, or in SonarQube after packaging them as Sonar plugin.
@@ -14,7 +14,7 @@ environment with a PMD-plugin, or in SonarQube after packaging them as Sonar plu
 ## See also
 - Jeroen Borgers presented at Amsterdam JUG about the why, what and how of these code checking rules: [Performance problem prevention](https://www.meetup.com/nl-NL/Amsterdam-Java-User-Group/events/256497068/)
 | [slides](http://jpinpoint.com/resources/Automated-and-learning-performance-problem-prevention-AMS-JUG.pdf)
-- Documentation of the pitfalls will arrive later.
+- We are looking for sponsorship for the full documentation of the pitfalls.
 
 # Usage
 
