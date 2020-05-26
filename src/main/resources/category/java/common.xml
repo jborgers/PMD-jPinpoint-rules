@@ -207,7 +207,8 @@ and not(../PrimarySuffix)
 and not (
 Name/@Image=ancestor::MethodDeclaration//VariableDeclaratorId/@Image)
 and not (
-Name[@Image=ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration/VariableDeclarator[
+(:--- not (if foreign field (with .), or field with short String or without regex char) ---:)
+Name[contains(@Image, '.') or @Image=ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration/VariableDeclarator[
 VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/Literal[string-length(@Image) < 6 or not
 (matches(@Image, '[\.\$\|\(\)\[\]\{\}\^\?\*\+\\]+'))]
 ]/VariableDeclaratorId/@Image])

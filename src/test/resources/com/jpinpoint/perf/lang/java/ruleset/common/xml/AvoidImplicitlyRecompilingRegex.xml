@@ -272,4 +272,22 @@ public class Bar {
 }
      ]]></code>
     </test-code>
+
+    <test-code>
+        <description>violation: Avoid implicit recompiling of regular expressions, assume external fields as good</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>7</expected-linenumbers>
+        <code><![CDATA[
+public class Try {
+    private static final String SMALL = "-.";
+    private static final String LARGE = "------.-";
+    public static void foo(String query) {
+        query.split(Constants.SEP); //assumed good, external
+        query.split(SMALL); //good
+        query.split(LARGE); //bad
+    }
+}
+            ]]></code>
+    </test-code>
+
 </test-data>
