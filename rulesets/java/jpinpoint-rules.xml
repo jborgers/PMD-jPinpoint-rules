@@ -1372,8 +1372,10 @@ ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration[
 or
 (: not 'this' and extends a base class :)
 ((@Image != '') and ancestor::ClassOrInterfaceDeclaration/ExtendsList and
-(: not a field of this class, param or local :)
-not (exists(index-of((ancestor::ClassOrInterfaceBody//VariableDeclaratorId/@Image), @Image))))
+(: not a field of this class :)
+not (exists(index-of((ancestor::ClassOrInterfaceBody/FieldDeclaration//VariableDeclaratorId/@Image), @Image))
+(: not a param or local :)
+     or exists(index-of((ancestor::ClassOrInterfaceBodyDeclaration//VariableDeclaratorId/@Image), @Image))))
 and not (ancestor::SynchronizedStatement or ancestor::MethodDeclaration[@Synchronized = true()])
 )
 (: field not on accessor method with assignment, annotated with framework annotation :)

@@ -423,7 +423,25 @@ class SubClassGood extends Base {
         }
     }
 }
+        ]]></code>
+    </test-code>
 
+    <test-code>
+        <description>Avoid unguarded assignment to non-final fields in shared objects, inherited used as param in other method</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>5</expected-linenumbers>
+        <code><![CDATA[
+@Component
+public class Try extends Parent {
+
+    void bad() {
+        inherited = new Object();
+    }
+    void good(Object objParam, Object inherited) {
+        inherited = new Object(); //good, shadowing
+        objParam = new Object(); //good
+    }
+}
         ]]></code>
     </test-code>
 </test-data>
