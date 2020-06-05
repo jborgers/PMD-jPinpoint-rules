@@ -429,10 +429,11 @@ class SubClassGood extends Base {
     <test-code>
         <description>Avoid unguarded assignment to non-final fields in shared objects, inherited used as param in other method</description>
         <expected-problems>1</expected-problems>
-        <expected-linenumbers>5</expected-linenumbers>
+        <expected-linenumbers>6</expected-linenumbers>
         <code><![CDATA[
 @Component
 public class Try extends Parent {
+    volatile Object field;
 
     void bad() {
         inherited = new Object();
@@ -440,6 +441,7 @@ public class Try extends Parent {
     void good(Object objParam, Object inherited) {
         inherited = new Object(); //good, shadowing
         objParam = new Object(); //good
+        field = new Object(); //good
     }
 }
         ]]></code>

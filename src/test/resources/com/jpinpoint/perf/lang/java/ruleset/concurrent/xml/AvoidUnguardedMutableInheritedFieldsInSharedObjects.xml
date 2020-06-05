@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>Avoid unguarded mutable (found mutated) inherited fields in shared objects</description>
+        <expected-problems>4</expected-problems>
+        <expected-linenumbers>16, 21,22,23</expected-linenumbers>
+        <code><![CDATA[
+package com.jpinpoint.tryout;
+
+import org.springframework.stereotype.Component;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
+@Component
+public class MutateInheritedFieldTryout extends SynchronizedTryout {
+    final Map mapField = getMap();
+
+    public String getDateString() {
+        return date.toString();
+    }
+    public void mutateDateBad() {
+        date.setTime(100); //bad 1
+    }
+
+    public void mutateMap(String key, String val) {
+        Collections.sort(null);
+        map.clear(); //bad 2
+        map.put(key, val); //bad 3
+        map.remove("invalidKey"); //bad 4
+    }
+    public Object readMap(String key) {
+        return map.get(key);
+    }
+    public synchronized void mutateSyncMap(String key, String val) {
+        map.put(key, val);
+    }
+    public void mutateMapField(String key, String val) {
+        mapField.put(key, val); // good, fields checked in other rule
+    }
+    public void mutateMapParam(Map map, String key, String val) {
+        map.put(key, val); // good, param map shadows inherited field
+    }
+    public void mutateMapLocal(String key, String val) {
+        Map map = new HashMap();
+        map.put(key, val); // good, local map shadows inherited field
+    }
+}
+        ]]></code>
+    </test-code>
+</test-data>
