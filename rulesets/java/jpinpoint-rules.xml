@@ -1696,10 +1696,10 @@ and (count(ancestor::TypeDeclaration//MethodDeclaration[@Public=true() and not(e
     </properties>
     <example>
         <![CDATA[
-@Singleton
-class SingletonBad { // bad - @ConcurrencyManagement missing
+@Singleton // bad - 1. @ConcurrencyManagement missing 2. @Lock missing on public method
+class SingletonBad {
     private String state;
-    public String getState() { // bad - @Lock missing
+    public String getState() {
         return state;
     }
     @Lock(LockType.WRITE)
@@ -1987,6 +1987,7 @@ class Good1 {
             Problem: if huge numbers of result rows are fetched these are all stored in memory and this may introduce long gc times and out of memory risk.&#13;
             Solution: Set fetch size to 100 maximally. Only set it higher than 100 yet still max 500, if you are sure there is only little data returned per row, like 3 rather short columns.
             (jpinpoint-rules)</description>
+        <priority>2</priority>
         <properties>
             <property name="version" value="1.0"/>
             <property name="xpath">
@@ -2003,7 +2004,6 @@ ancestor::ClassOrInterfaceBody//VariableDeclarator/VariableDeclaratorId/@Image
                 </value>
             </property>
         </properties>
-        <priority>2</priority>
     </rule>
 
     <rule name="AvoidMultipleRoundtripsForQuery"
@@ -2014,6 +2014,7 @@ ancestor::ClassOrInterfaceBody//VariableDeclarator/VariableDeclaratorId/@Image
             Problem: Time is taken by the unnecessary roundtrip(s). Unnecessary work is performed.&#13;
             Solution: Execute the query only once.
             (jpinpoint-rules)</description>
+        <priority>2</priority>
         <properties>
             <property name="version" value="2.0"/>
             <property name="xpath">
@@ -2029,7 +2030,6 @@ count(.//PrimaryExpression/PrimaryPrefix/Name[ends-with(@Image, '.getSingleResul
                 </value>
             </property>
         </properties>
-        <priority>2</priority>
     </rule>
 
     <rule name="AvoidSqlInExpression"
@@ -2040,12 +2040,12 @@ count(.//PrimaryExpression/PrimaryPrefix/Name[ends-with(@Image, '.getSingleResul
             Problem: The number of values for the IN-argument list is limited, in Oracle to 1000. An error occurs when exceeding this limit. Additionally, a large IN list takes much time to transport to the database and be parsed. Moreover, each number of IN values used in a query results in a separate cache entry in e.g. the Prepared Statement Cache of the application server and in the Hibernate Query Plan Cache, resulting in higher memory usage and/or low cache hit ratio.&#13;
             Solution: Rewrite the query by replacing the IN-argument list by a sub query using the criteria used to fetch the IN arguments. Or often even better performing, an inner join using these criteria (depending on indexes etc. - recommended to test to be sure.) This way, the select and update are combined into one, which will also save one roundtrip.
             (jpinpoint-rules)</description>
+        <priority>2</priority>
         <properties>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value>
                     <![CDATA[
-
 //ClassOrInterfaceDeclaration/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDeclaration/Block
 //Expression/PrimaryExpression/PrimaryPrefix/Name[@Image='InExpression.in']
 |
@@ -2063,11 +2063,29 @@ and
 ancestor::MethodDeclaration//BlockStatement//PrimaryPrefix/Name[ends-with(@Image, '.setParameter')]
 /../../PrimarySuffix/Arguments/ArgumentList/Expression/PrimaryExpression/PrimaryPrefix/Name[@Image != 'Arrays.asList']
 ]
+,
+(: Criteria API: cust.get("postalCode").in(codes) :)
+//PrimaryExpression/PrimaryPrefix[pmd-java:typeIs('javax.persistence.criteria.Root')]/..//PrimarySuffix//ArgumentList/ancestor::Expression//PrimarySuffix[@Image='in']
+,
+(: criteria API: builder.in(cust.get("postalCode") :)
+//Expression//PrimarySuffix//Expression//PrimaryPrefix[pmd-java:typeIs('javax.persistence.criteria.Root')]/..//PrimarySuffix//ArgumentList/
+ancestor::BlockStatement//PrimaryExpression/PrimaryPrefix/Name[ends-with(@Image, '.in') and
+(: good: builder.in(cust.get("postalCode")).value(subquery) :)
+(not(exists(ancestor::PrimaryExpression/PrimarySuffix/Arguments//Expression[pmd-java:typeIs('javax.persistence.criteria.Subquery')])))]
 ]]>
                 </value>
             </property>
         </properties>
-        <priority>2</priority>
+        <example>
+            <![CDATA[
+    private void bad(CriteriaQuery cq, Root<Customer> cust) {
+        cq.select(cust).where(cust.get("postalCode").in(codes)); // bad
+    }
+    private void good(CriteriaBuilder builder, CriteriaQuery cq, Root<Customer> cust, SubQuery<PostalCode> subquery) {
+        cq.select(cust).where(builder.in(cust.get("postalCode")).value(subquery));
+    }
+            ]]>
+        </example>
     </rule>
 
 <!-- END Included file 'sql.xml' -->

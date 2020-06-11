@@ -185,4 +185,34 @@ class PolicyEggStatementRepository {
 }
      ]]></code>
     </test-code>
+    <test-code>
+        <description>violation: Avoid sql in expressions with Criteria API</description>
+        <expected-problems>4</expected-problems>
+        <expected-linenumbers>5, 8, 11, 18</expected-linenumbers>
+        <code><![CDATA[
+import javax.persistence.criteria.*;
+public class Tryout {
+    private void bad1(Root<Object> root, List<Long> ids) {
+        List<Predicate> predicateList = new ArrayList<Predicate>();
+        predicateList.add(root.<Information>get("current").<Long>get("id").in(ids)); // bad
+    }
+    private void bad2(Root<Customer> cust, List<Long> ids) {
+        Predicate p = cust.<Customer>get("current").<Long>get("id").in(ids); // bad
+    }
+    private void bad3(CriteriaBuilder builder, Root<Book> book, List<String> titles) {
+        In<String> inClause = builder.in(book.get("title")); // bad
+        for (String title : titles) {
+            inClause.value(title);
+        }
+        criteriaQuery.select(book).where(inClause);
+    }
+    private void bad4(CriteriaQuery cq, Root<Book> book, List<String> titles) {
+        cq.select(book).where(book.get("title").in(titles)); // bad
+    }
+    private void good(CriteriaBuilder builder, CriteriaQuery cq, Root<Customer> cust, Subquery<PostalCode> subquery) {
+        cq.select(cust).where(builder.in(cust.get("postalCode")).value(subquery));
+    }
+}
+     ]]></code>
+    </test-code>
 </test-data>
