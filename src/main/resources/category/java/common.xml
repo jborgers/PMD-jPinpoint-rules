@@ -888,4 +888,76 @@ public RetrieveCache(final @Value("${cache.expiryTimeSeconds}") long timeToLiveS
         </example>
     </rule>
 
+    <rule name="InconsistentEqualsAndHashCode" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="Equals and hashCode are not based on the same fields or use inconsistent conversion." typeResolution="true"
+          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-IncorrectequalsandhashCode">
+        <description>Problem: If equals and hashCode are inconsistent, strange things can happen like adding the object to a Set and not being able to find it back.&#13;
+            Solution: Use the same fields in equals and hashCode and if conversions are needed, use identical conversions in both. So don't use equalsIgnoreCase. (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+//FieldDeclaration//VariableDeclaratorId[(@Image = ancestor::ClassOrInterfaceBody//MethodDeclarator[@Image='equals']/../Block//Name/@Image) !=
+(@Image = ancestor::ClassOrInterfaceBody//MethodDeclarator[@Image='hashCode']/../Block//Name/@Image)
+]
+,
+//MethodDeclarator[@Image='equals']/../Block//Name[ends-with(@Image, 'equalsIgnoreCase')]
+			]]>
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+class Good {
+    String field1, field2;
+
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        EqHashTryout2 that = (EqHashTryout2) o;
+        return Objects.equals(field1, that.field1) &&
+                Objects.equals(field2, that.field2);
+    }
+    public int hashCode() {
+        return Objects.hash(field1, field2);
+    }
+}
+
+class Bad1 {
+    String field1;
+    String field2; //bad
+
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        EqHashTryoutBad3 that = (EqHashTryoutBad3) o;
+        return Objects.equals(field1, that.field1) &&
+                Objects.equals(field2, that.field2);
+    }
+    public int hashCode() {
+        return Objects.hash(field1); // field2 missing
+    }
+}
+
+class Bad2 {
+    String field1;
+    String field2; //bad
+
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        EqHashTryoutBad2 that = (EqHashTryoutBad2) o;
+        if (field1 != null ? !field1.equals(that.field1) : that.field1 != null) return false;
+        return field2 != null ? field2.equalsIgnoreCase(that.field2) : that.field2 == null; // ignore case
+    }
+    public int hashCode() {
+        int result = field1 != null ? field1.hashCode() : 0;
+        result = 31 * result + (field2 != null ? field2.hashCode() : 0);
+        return result;
+    }
+}
+            ]]>
+        </example>
+    </rule>
+
 </ruleset>

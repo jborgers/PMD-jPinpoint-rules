@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>no violation: equals and hashCode consistent</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+public class EqHashTryout {
+    String field1;
+    String field2;
+
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        EqHashTryout that = (EqHashTryout) o;
+        if (field1 != null ? !field1.equals(that.field1) : that.field1 != null) return false;
+        return field2 != null ? field2.equals(that.field2) : that.field2 == null;
+    }
+    public int hashCode() {
+        int result = field1 != null ? field1.hashCode() : 0;
+        result = 31 * result + (field2 != null ? field2.hashCode() : 0);
+        return result;
+    }
+}
+class EqHashTryout2 {
+    String field1;
+    String field2;
+
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        EqHashTryout2 that = (EqHashTryout2) o;
+        return Objects.equals(field1, that.field1) &&
+                Objects.equals(field2, that.field2);
+    }
+    public int hashCode() {
+        return Objects.hash(field1, field2);
+    }
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>violation: field2 missing in hashCode</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>3</expected-linenumbers>
+        <code><![CDATA[
+class EqHashTryoutBad1 {
+    String field1;
+    String field2; //bad
+
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        EqHashTryoutBad1 that = (EqHashTryoutBad1) o;
+        if (field1 != null ? !field1.equals(that.field1) : that.field1 != null) return false;
+        return field2 != null ? field2.equals(that.field2) : that.field2 == null;
+    }
+    public int hashCode() {
+        int result = field1 != null ? field1.hashCode() : 0;
+        //result = 31 * result + (field2 != null ? field2.hashCode() : 0);
+        return result;
+    }
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>violation: field2 missing in equals</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>3</expected-linenumbers>
+        <code><![CDATA[
+class EqHashTryoutBad2 {
+    String field1;
+    String field2; //bad
+
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        EqHashTryoutBad2 that = (EqHashTryoutBad2) o;
+
+        return field1 != null ? field1.equals(that.field1) : that.field1 == null;
+    }
+
+    public int hashCode() {
+        int result = field1 != null ? field1.hashCode() : 0;
+        result = 31 * result + (field2 != null ? field2.hashCode() : 0);
+        return result;
+    }
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>violation: field2 missing in hashCode java7 notation</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>3</expected-linenumbers>
+        <code><![CDATA[
+class EqHashTryoutBad3 {
+    String field1;
+    String field2; //bad
+
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        EqHashTryoutBad3 that = (EqHashTryoutBad3) o;
+        return Objects.equals(field1, that.field1) &&
+                Objects.equals(field2, that.field2);
+    }
+
+    public int hashCode() {
+        return Objects.hash(field1);
+    }
+}
+    ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>violation: field2 missing in equals java7 notation</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>3</expected-linenumbers>
+        <code><![CDATA[
+class EqHashTryoutBad4 {
+    String field1;
+    String field2; //bad
+
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        EqHashTryoutBad3 that = (EqHashTryoutBad3) o;
+        return Objects.equals(field1, that.field1);
+    }
+    public int hashCode() {
+        return Objects.hash(field1, field2);
+    }
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>violation: field1 missing in hashCode java7 notation</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>2</expected-linenumbers>
+        <code><![CDATA[
+class EqHashTryoutBad5 {
+    String field1; //bad
+    String field2;
+
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        EqHashTryoutBad3 that = (EqHashTryoutBad3) o;
+        return Objects.equals(field1, that.field1) &&
+                Objects.equals(field2, that.field2);
+    }
+    public int hashCode() {
+        return Objects.hash(field2);
+    }
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>violation: lowercase field2 only in equals, java7 notation</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>3</expected-linenumbers>
+        <code><![CDATA[
+class EqHashTryoutBad6 {
+    String field1;
+    String field2;// bad
+
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        EqHashTryoutBad3 that = (EqHashTryoutBad3) o;
+        return Objects.equals(field1, that.field1) &&
+                Objects.equals((field2.toLowerCase()), that.field2.toLowerCase());
+    }
+    public int hashCode() {
+        return Objects.hash(field1, field2);
+    }
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>violation: equalsIgnoreCase field2 only in equals</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>10</expected-linenumbers>
+        <code><![CDATA[
+class EqHashTryoutBad7 { // equalsIgnoreCase
+    String field1;
+    String field2; //bad
+
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        EqHashTryoutBad2 that = (EqHashTryoutBad2) o;
+        if (field1 != null ? !field1.equals(that.field1) : that.field1 != null) return false;
+        return field2 != null ? field2.equalsIgnoreCase(that.field2) : that.field2 == null; // ignore case
+    }
+    public int hashCode() {
+        int result = field1 != null ? field1.hashCode() : 0;
+        result = 31 * result + (field2 != null ? field2.hashCode() : 0);
+        return result;
+    }
+}
+     ]]></code>
+    </test-code>
+
+</test-data>
