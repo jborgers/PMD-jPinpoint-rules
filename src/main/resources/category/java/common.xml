@@ -960,4 +960,56 @@ class Bad2 {
         </example>
     </rule>
 
+    <rule name="MissingFieldInEquals" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="Field simply assigned to is missing in equals method." typeResolution="true"
+          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-IncorrectequalsandhashCode">
+        <description>Problem: If a field which can be assigned separately (independent of other fields) is missing in the equals method, then changing the field in one object has no effect on the equality with another object.
+            However, if a field of one of two equal objects is changed, the expectation is that they are no longer equal.&#13;
+            Solution: include the missing field in the equals and hashCode method. (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+(: non-static fields :)
+//FieldDeclaration[@Static=false()]//VariableDeclaratorId[
+(: with an equals method defined at that level :)
+ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDeclaration/MethodDeclarator[@Image='equals']
+(: where names used in equals method matching fields are non-equal to :)
+and (@Image = ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDeclaration/MethodDeclarator[@Image='equals']/../Block//Name/@Image) !=
+(: names used as left hand side in simple assignments in methods or constructor matching fields:)
+ (@Image = ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/(MethodDeclaration|ConstructorDeclaration)
+/..//BlockStatement//StatementExpression[exists(AssignmentOperator) and not(exists(Expression/PrimaryExpression/PrimarySuffix))
+and exists(Expression/PrimaryExpression/PrimaryPrefix/Name) and not(contains(Expression/PrimaryExpression/PrimaryPrefix/Name/@Image,".")) ]
+/PrimaryExpression/(PrimaryPrefix/Name|PrimarySuffix)/@Image)
+]
+			]]>
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+class Bad1 {
+    String field1;
+    String field2; // bad, missing in equals
+
+    public Bad1(String arg2) {
+        field2 = arg2;
+    }
+    public void setField1(String arg1) {
+        field1 = arg1;
+    }
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        EqHashTryout2 that = (EqHashTryout2) o;
+        return Objects.equals(field1, that.field1);
+    }
+    public int hashCode() {
+        return Objects.hash(field1);
+    }
+}
+            ]]>
+        </example>
+    </rule>
+
 </ruleset>
