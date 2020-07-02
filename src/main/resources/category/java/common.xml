@@ -1012,4 +1012,43 @@ class Bad1 {
         </example>
     </rule>
 
+    <rule name="AvoidCalendar"
+          language="java"
+          message="A Calendar is inefficient in memory usage."
+          class="net.sourceforge.pmd.lang.rule.XPathRule"
+          typeResolution="true"
+          externalInfoUrl="${pmd.website.baseurl}/pmd_rules_performance.html#AvoidCalendarDateCreation">
+        <description>Problem: A Calendar is a heavyweight object and expensive to create. &#13;
+            Solution: Use Date, Java 8+ java.time.[Local/Zoned]DateTime or joda time [Local]DateTime.
+        </description>
+        <priority>2</priority>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+//(Type)[pmd-java:typeIs('java.util.Calendar')]
+,
+//Name[starts-with(@Image, 'Calendar.')]
+	         ]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+public class CalendarStuff {
+    Calendar field1; // bad
+
+    private Calendar bad1() {
+        return Calendar.getInstance();
+    }
+    private Date good1a() {
+        return new Date(); // now
+    }
+    private LocalDateTime good1b() {
+        return LocalDateTime.now();
+    }
+}
+            ]]>
+        </example>
+    </rule>
+
 </ruleset>
