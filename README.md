@@ -1,13 +1,14 @@
 # PMD-jpinpoint-rules
 PMD rule set for performance aware Java coding, sponsored by Rabobank. The project is meant for creating and managing 
 automatic java code checks. 
-These checks are based on what we have learnt in several years of analyzing performance problems and other defects and failures 
+These checks are based on what we have learned in several years of analyzing performance problems and other defects and failures 
 found in code, tests and production situations.
 
 We didn't find these checks in other places, like the the standard PMD, FindBugs/Spotbugs, Checkstyle or Sonar rules.
 If you find duplicates of existing ones, please let us know. 
 We offered these rules to the PMD-team for inclusion in the standard rules and we were warmly welcomed. We have been working with them to upgrade and merge (some of) the jpinpoint rules in the standard and looking for sponsorship to continue with that.
 You don't have to wait for that, you can already use these as custom rules right now.
+
 The jpinpoint rules can be run from the command-line using the PMD tool, from your favorite development
 environment with a PMD-plugin, or in SonarQube after packaging them as Sonar plugin.
 
@@ -27,8 +28,8 @@ To use the ruleset you can install:
 
 After installing the tool you can run `pmd.sh` or `pmd.bat` similar to the following
 
-    pmd.bat \
-        -R PMD-jPinpoint-rules/rulesets/java/jpinpoint-rules.xml 
+    pmd.sh \
+        -R PMD-jPinpoint-rules/rulesets/java/jpinpoint-rules.xml \
         -d $your-project-src \
         -f text
 
@@ -67,6 +68,10 @@ Download it from the [PMD project at github](https://pmd.github.io/) and install
 After installation and configuration you can start the designer from the command prompt:
 
     designer.bat
+   
+or
+
+    ./run.sh designer
 
 ## Rules and unit tests
 
@@ -102,7 +107,7 @@ Or to add only a Test class and unit test xml file (steps 1 and 3).
 
 ### Conventions for XML Unit test files
 
-Following are some conventions and reccomendations on how to
+Following are some conventions and recommendations on how to
 construct the unit test files:
 
 - separate test code *(create separate ``<test-code>`` blocks)*
