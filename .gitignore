@@ -4,3 +4,4 @@ target/
 .idea/**
 *.iml
 _config.yml
+.DS_Store
