@@ -82,6 +82,41 @@ class EqTryoutNested {
         }
     }
 }
+
+class EqTryoutOtherEquals {
+    String field1o;
+    String field2o;
+
+    public EqTryout2(String arg2) {
+        field2o = arg2;
+    }
+    public void setField1(String arg1) {
+        field1o = arg1;
+    }
+    public boolean equals() {
+        field1o = "";
+        return false;
+    }
+}
+
+class EqTryoutUnsupported {
+    String field1;
+    String field2;
+
+    public EqTryout2(String arg2) {
+        field2 = arg2;
+    }
+    public void setField1(String arg1) {
+        field1 = arg1;
+    }
+    @SuppressFBWarnings("EQ_UNUSUAL")
+    public final boolean equals(Object other) {
+       throw new UnsupportedOperationException("equals not designed.");
+    }
+    public final int hashCode() {
+       throw new UnsupportedOperationException("hashCode not designed.");
+    }
+}
      ]]></code>
     </test-code>
 
