@@ -117,6 +117,26 @@ class EqTryoutUnsupported {
        throw new UnsupportedOperationException("hashCode not designed.");
     }
 }
+
+class EqTryoutThisThat {
+    final String name1;
+    final String name2;
+
+    public EqTryoutThisThat(String n1, String n2) {
+        name1 = n1;
+        this.name2 = n2;
+    }
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        EqTryoutThisThat that = (EqTryoutThisThat) o;
+        return this.name1.equals(that.name1) && name2.equals(that.name2);
+    }
+}
      ]]></code>
     </test-code>
 

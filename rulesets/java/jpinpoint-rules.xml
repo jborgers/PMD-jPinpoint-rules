@@ -883,12 +883,11 @@ class Good {
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
-(: non-static fields :)
 //FieldDeclaration[@Static=false()]//VariableDeclaratorId[
 (: with an equals method defined at that level with 1 argument and not having a throw statement :)
 ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDeclaration/MethodDeclarator[@Image='equals' and @ParameterCount=1 and not (../Block/BlockStatement/Statement/ThrowStatement)]
 (: where names used in equals method matching fields are non-equal to :)
-and (@Image = ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDeclaration/MethodDeclarator[@Image='equals' and @ParameterCount=1]/../Block//(Name|PrimarySuffix)/@Image) !=
+and (@Image = ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDeclaration/MethodDeclarator[@Image='equals' and @ParameterCount=1]/../Block//(Name|PrimarySuffix)/(substring-before(concat(@Image, '.'), '.'))) !=
 (: names used as left hand side in simple assignments in methods or constructor matching fields:)
  (@Image = ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/(MethodDeclaration|ConstructorDeclaration)
 /..//BlockStatement//StatementExpression[exists(AssignmentOperator) and not(exists(Expression/PrimaryExpression/PrimarySuffix))
