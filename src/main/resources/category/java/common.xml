@@ -1020,7 +1020,7 @@ class Bad1 {
           message="A Calendar is inefficient in memory usage."
           class="net.sourceforge.pmd.lang.rule.XPathRule"
           typeResolution="true"
-          externalInfoUrl="${pmd.website.baseurl}/pmd_rules_performance.html#AvoidCalendarDateCreation">
+          externalInfoUrl="${pmd.website.baseurl}/pmd_rules_performance.html#AvoidCalendar">
         <description>Problem: A Calendar is a heavyweight object and expensive to create. &#13;
             Solution: Use Date, Java 8+ java.time.[Local/Zoned]DateTime or joda time [Local]DateTime.
         </description>
@@ -1053,5 +1053,72 @@ public class CalendarStuff {
             ]]>
         </example>
     </rule>
+
+    <rule name="AvoidMutableLists"
+          language="java"
+          message="List is not modified, make it immutable or unmodifiable"
+          class="net.sourceforge.pmd.lang.rule.XPathRule"
+          typeResolution="true"
+          externalInfoUrl="${pmd.website.baseurl}/Java+Code+Performance#JavaCodePerformance-PML01">
+        <description>Problem: A list which is unnecessarily mutable may accidentally be added to and cause a memory leak. &#13;
+            Solution: Make it impossible to modify the list after initialization: use Java 9 List.of, Collections.unmodifiableList or Guava ImmutableList.
+        </description>
+        <priority>2</priority>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+    (: a field of type List :)
+    //FieldDeclaration[pmd-java:typeIs('java.util.List')]//VariableDeclaratorId[
+    (: with a method defined at that level that does not use the field with a modify operation (case field.modOp) :)
+    not(@Image = ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDeclaration//PrimaryExpression/PrimaryPrefix/Name[
+    starts-with(substring-after(@Image, '.'), 'add') or
+    starts-with(substring-after(@Image, '.'), 'remove') or
+    substring-after(@Image, '.') = 'set' or
+    substring-after(@Image, '.') = 'clear' or
+    substring-after(@Image, '.') = 'replaceAll' or
+    substring-after(@Image, '.') = 'retainAll'
+    ]/(substring-before(concat(@Image, '.'), '.')))]
+    [ (: and case this.field.modOp() :)
+not(@Image = ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDeclaration//PrimaryExpression
+/PrimarySuffix[starts-with(@Image, 'add') or starts-with(@Image, 'remove') or @Image = 'set' or @Image = 'clear' or @Image = 'replaceAll' or @Image = 'retainAll']
+/preceding-sibling::PrimarySuffix/@Image)
+    ]     (: and :)
+    [( (: field is initialized with List allocation :)
+    ../VariableInitializer/Expression//AllocationExpression[pmd-java:typeIs('java.util.List')]
+    or
+    (: or static block / constructor has field initialized with List allocation :)
+    ancestor::ClassOrInterfaceBody//(Initializer|ConstructorDeclaration)//AssignmentOperator[exists(../Expression/PrimaryExpression/PrimaryPrefix/AllocationExpression[pmd-java:typeIs('java.util.List')])]/..//Name/@Image = @Image
+    or
+    (: or constructor has a simple assignment to the field, param of literal: no arguments :)
+    ancestor::ClassOrInterfaceBody//ConstructorDeclaration//AssignmentOperator[exists(../Expression[pmd-java:typeIs('java.util.List')]) and not(exists(../Expression/PrimaryExpression/PrimarySuffix))]/..//Name/@Image = @Image
+    )]
+	         ]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+public class Bad {
+    List unmutated = new ArrayList(Arrays.asList("one", "two")); // bad
+    List mutated = new ArrayList();
+
+    private void mutate() {
+        mutated.add("one");
+    }
+}
+public class Good {
+    List unmutated1 = Collections.unmodifiableList(Arrays.asList("one", "two")); // Java 8
+    List unmutated2 = List.of("one, "two"); // Java 9+
+    List mutated = new ArrayList();
+
+    private void mutate() {
+        mutated.add("one");
+    }
+}
+            ]]>
+        </example>
+    </rule>
+
+
 
 </ruleset>
