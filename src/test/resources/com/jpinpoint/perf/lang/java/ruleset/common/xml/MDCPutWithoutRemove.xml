@@ -81,4 +81,27 @@ public class Foo {
     }
 }     ]]></code>
     </test-code>
+
+    <test-code>
+        <description>no violation: MDC Values are removed with a clear in afterCompletion for Spring WebRequestInterceptor </description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import org.slf4j.MDC;
+import org.springframework.web.context.request.*;
+
+public class Foo implements WebRequestInterceptor {
+    private static final String USER_TYPE_KEY1 = "userTypeKey1Field";
+
+    public void good() {
+        MDC.put("levelKey1", "levelName");
+        MDC.put(USER_TYPE_KEY1, "userTypeNameField");
+        MDC.put("levelKey2", "levelName2");
+        MDC.put("focusIdKey1", "focusIdValue");
+    }
+    public void afterCompletion(WebRequest webRequest, Exception e) {
+        MDC.clear();
+    }
+}
+     ]]></code>
+    </test-code>
 </test-data>

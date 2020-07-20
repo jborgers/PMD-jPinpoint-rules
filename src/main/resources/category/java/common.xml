@@ -634,6 +634,7 @@ count(ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDecla
 ancestor::MethodDeclaration//TryStatement/FinallyStatement//StatementExpression//Name[@Image='MDC.remove']
 /../../PrimarySuffix/Arguments/ArgumentList/Expression[1]/PrimaryExpression/PrimaryPrefix/Literal/@Image)
 and not(ancestor::MethodDeclaration//TryStatement/FinallyStatement//StatementExpression//Name[@Image='MDC.clear'])
+and not(ancestor::ClassOrInterfaceBody//MethodDeclarator[@Image='afterCompletion']/../Block//Name[@Image='MDC.clear'])
 ]
 |
 //MethodDeclaration//StatementExpression//Name[@Image='MDC.put']
@@ -641,6 +642,7 @@ and not(ancestor::MethodDeclaration//TryStatement/FinallyStatement//StatementExp
 ancestor::MethodDeclaration//TryStatement/FinallyStatement//StatementExpression//Name[@Image='MDC.remove']
 /../../PrimarySuffix/Arguments/ArgumentList/Expression[1]/PrimaryExpression/PrimaryPrefix/Name/@Image)
 and not(ancestor::MethodDeclaration//TryStatement/FinallyStatement//StatementExpression//Name[@Image='MDC.clear'])
+and not(ancestor::ClassOrInterfaceBody//MethodDeclarator[@Image='afterCompletion']/../Block//Name[@Image='MDC.clear'])
 ]
 ]]>
                 </value>
