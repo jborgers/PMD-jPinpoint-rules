@@ -253,4 +253,39 @@ class Good1 {
         </example>
     </rule>
 
+    <rule name="AvoidSimpleCaches" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="Avoid simple caching in production" typeResolution="true"
+          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-IC08">
+        <description>Simple caches are used. Problem: Simple caching is meant for testing and prototyping and it lacks manageability and monitorability.&#13;
+            Solution: Use a proper cache implementation like ehcache or a cloud cache.
+            (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+    //AllocationExpression/ClassOrInterfaceType[pmd-java:typeIs('org.springframework.cache.support.SimpleCacheManager') or pmd-java:typeIs('org.springframework.cache.concurrent.ConcurrentMapCache')]
+	]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+@EnableCaching
+@Configuration
+class Bad {
+    @Bean public CacheManager cacheManager() {
+        return new SimpleCacheManager().setCaches(Arrays.asList(new ConcurrentMapCache("ourCache")));
+    }
+}
+
+@EnableCaching
+@Configuration
+class Good {
+    @Bean public CacheManager cacheManager() {
+		return new EhCacheCacheManager(ehCacheCacheManagerFactory().getObject());
+	}
+}
+            ]]>
+        </example>
+    </rule>
+
 </ruleset>
