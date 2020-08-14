@@ -62,16 +62,20 @@ The most important factor of application performance is the number of back-end s
 **Problem:** The default maximum connections per route is by default set to 2. This throttles the number of connections to the back-end usually much more than required, such that many requests have to wait for a connection and response times get much higher than needed.The connection timeout is usually set to a low number (e.g. 300 ms), in that case connection timeout exceptions will occur.  
 **Solution:** Set the default maximum connections per route to a higher number, e.g. 20. Also increase the Max Total to at least the DefaultMaxPerRoute or a multiple in case of multiple routes. Example for only one host:
 
+```java
 PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
 cm.setMaxTotal(maxFileTransferConnections);
 cm.setDefaultMaxPerRoute(maxFileTransferConnections);
+```
 
 or for asynchronous connections using nio:
 
+```java
     private HttpAsyncClientBuilder createHttpClientConfigCallback(final HttpAsyncClientBuilder clientBuilder) {
         clientBuilder
-            .setMaxConnPerRoute(MAX\_CONNECTIONS\_PER\_ROUTE)
-            .setMaxConnTotal(MAX\_CONNECTIONS\_TOTAL);
+            .setMaxConnPerRoute(MAX_CONNECTIONS_PER_ROUTE)
+            .setMaxConnTotal(MAX_CONNECTIONS_TOTAL);
+```
 
 Note that class PoolingClientConnectionManager and several othersare deprecated and [PoolingHttpClientConnectionManager](http://hc.apache.org/httpcomponents-client-ga/httpclient/apidocs/org/apache/http/impl/conn/PoolingHttpClientConnectionManager.html) is the one to use for synchronous calls and NHttpClientConnectionManager (e.g. by HttpAsyncClientBuilder) for asynchronous calls.
 
@@ -81,7 +85,9 @@ Note that class PoolingClientConnectionManager and several othersare deprecated 
 **Problem:** It cannot deal with hanging threads. Threads may get stuck in database, a remote system, because of a network hiccup, in error or other exceptional situations.  
 **Solution:** Use the version with timeout and handle a timeout situation.
 
+```java
 future.get(long timeout, TimeUnit unit)
+```
 
 See: [Monix Best Practice](https://monix.io/docs/2x/best-practices/blocking.html)
 
@@ -112,6 +118,7 @@ Other deprecated ones to remove: SimpleHttpConnectionManager, ClientConnectionMa
 
 Example (correct):
 
+```java
     @Bean(name = "saveObjectReferencesHttpClient")
     public HttpClient httpClient(@Qualifier("saveObjectReferencesConnectionManager") PoolingHttpClientConnectionManager connectionManager,
                                  SaveObjectReferenceConnectionProperties connectionProperties) {
@@ -121,7 +128,7 @@ Example (correct):
                 .disableConnectionState() // allow re-use of mutual authenticated TLS connections
                 .build();
     }
-
+```
   
 
 Improper caching  
@@ -145,16 +152,18 @@ See our [presentation on Java Performance Pitfall: improper caching.](https://yo
 
 *   Make all cache keys explicit and specific. Do _not_ use the default keys.
 *   Do not use toString for a cache key, instead create an explicit, separate method to generate (part of) the cache key, named for example getKey:
-    
+
+```java
     public String getKey() {
        return userId;
     }
-    
+```    
 
 *   Explain design decisions and conditions around the key definition in a document and/or in javadoc.
 *   The DefaultCacheKeyGenerator must _not_ be used anymore and should be deprecated. To be changed in ServiceCache.
 *   An efficient implementation would be a CompositeKey composed of all arguments to use as key in Ehcache Element:
-    
+
+```java
     public class CompositeKey {
        private String userKey;
        private String siteKey;
@@ -171,7 +180,8 @@ See our [presentation on Java Performance Pitfall: improper caching.](https://yo
           // similar to equals, using hashCode
        }
     }
-    
+```
+
 *   This is efficient because it prevents String concatenation of the arguments when accessing the cache.
 
 **perf-code-check:** partly implemented: AvoidDefaultCacheKeyGenerator.
@@ -194,18 +204,21 @@ See our [presentation on Java Performance Pitfall: improper caching.](https://yo
 **Problem:** Every 5 seconds, for every template file, the application hits the file system to find out if there is a new version of the template file. Since these don’t change in production, this is unnecessary load on the system.  
 **Solution:** Increase the time to live for the freemarker template cache to a reasonable, much higher value, possibly indefinite. Project has configured the following to be in file initiate-direct-debit-portlet.xml:
 
+```xml
  <property name="freemarkerSettings">
   <props>
     <prop key="template\_update\_delay">2500000</prop>
   </props>
 </property>
+```
 
 Note that this delay is specified in **seconds.**
 
 Or via configuration (e.g. in Spring):
 
+```java
 freemarker.template.Configuration.setTemplateUpdateDelayMilliseconds(2\_500\_000\_000L);
-
+```
   
 
 #### IC05
@@ -214,9 +227,10 @@ freemarker.template.Configuration.setTemplateUpdateDelayMilliseconds(2\_500\_000
 **Problem:** Circumstances may change and make the cache configuration invalid, to be updated.  
 **Solution:** Add a motivation for each configuration value. For example:
 
+```xml
 <cache maxEntriesLocalHeap="1" /> <!-- only one entry needed for all countries in one ArrayList-->
 <cache timeToLiveSeconds="7200" /> <!-- business: change to country table needs to be live within 2 hours-->
-
+```
   
 
 #### IC06
@@ -237,14 +251,17 @@ freemarker.template.Configuration.setTemplateUpdateDelayMilliseconds(2\_500\_000
 **Problem:** If we cannot see if the cache has hits, if the hit ratio is like we expect, we don't know if the cache is useful at all.  
 **Solution:** Make all caches monitorable by exposing them as MBeans. Name the CacheManager. Ehcache provides those mbeans with statistics. Like:
 
+```java
 cacheManager.setName("Mobile App CacheManager");
 ...
 final MBeanServer mbeanServer = ManagementFactory.getPlatformMBeanServer();
 ManagementService.registerMBeans(cacheManager, mbeanServer, true, true, true, true);
 LOG.info("MBean registration is done.");
+```
 
-Bu use of Spring:
+In Spring config:
 
+```xml
  <beans>
    <bean id="exporter" class="org.springframework.jmx.export.MBeanExporter" lazy-init="false">
        <property name="beans">
@@ -258,7 +275,7 @@ Bu use of Spring:
        <property name="age" value="100"/>
    </bean>
 </beans>
-
+```
 
 #### IC09
 
@@ -295,24 +312,32 @@ The application often puts much data in the user session to keep state at the se
 
 **Observation: Attributes are not removed from the session.** They are set in the session like:
 
+```java
 actionRequest.getPortletSession().setAttribute(DOWNLOAD\_INFORMATION\_FORM, downloadInformationForm);
+```
 
 and they are never removed or not removed in all flows, being happy or unhappy.
 
 **Problem:** Attributes unnecessarily occupy heap space.  
 **Solution:** Remove attributes from the session if not really needed, and as soon as possible in all controllable flows, including for instance technical exception cases, like as follows.
 
+```java
 actionRequest.getPortletSession().removeAttribute(DOWNLOAD\_INFORMATION\_FORM);
+```
 
 Spring has a PortletUtils to facilitate session attribute usage. It however does not provide a remove method. Removing can be achieved as in:
 
+```java
 PortletUtils.setSessionAttribute(request, SESSION\_ATTRIBUTE\_NAME, null);
+```
 
 Spring will than invoke removeAttribute on the portlet session.
 
 It might also be an option to use render parameters instead, for example, in the action method:
 
+```java
 response.setRenderParameter("page", "initiatePayment");
+```
 
 **perf-code-check:** Available. Assumes removeAttribute occurs in same class as setAttribute. Also deals with Spring PortletUtils.
 
@@ -351,11 +376,10 @@ response.setRenderParameter("page", "initiatePayment");
 *   Use an array instead of an ArrayList, it has less space overhead.
 *   Use primitives instead of wrappers, e.g. a long instead of a Long.
 *   String.substring() always shares the backing char\[\] with the original String. This holds for both the IBM and the Hotspot JRE. If you create small String(s) out of a big String with substring (a rare case) and you only want to retain a small part of the whole char\[\] by small one(s), prevent retaining the original big char\[\] by:
-    
-    leanString = new String(substring.toCharArray()); // only to be considered if substring is created by String.substring
-    
 
-  
+```java
+    leanString = new String(substring.toCharArray()); // only to be considered if substring is created by String.substring
+```    
 
 Note that for StringBuilder.substring this is not needed, since it does make a copy of the sub part of the char array. Also note we use a JVM option (\-Djava.lang.string.create.unique=true see [IBM APAR](http://www-01.ibm.com/support/docview.wss?uid=swg1IZ92080)) to achieve this, to remove waste by stringBuilder.toString(). This removes most String waste seen before on the IBM JVM. Defensively making Strings lean before putting them in a session or memory cache is therefore no longer needed. It actually introduces extra time overhead, therefore it is discouraged now.
 
@@ -371,6 +395,7 @@ Note that for StringBuilder.substring this is not needed, since it does make a c
 
 **Observation: ModelMaps are implicitly added to the session.** Spring BindingAwareModelMaps are implicitely and automagically added to the portlet session by Spring MVC under certain conditions. A Controller with the following code is problematic:
 
+```java
 @ActionMapping
 public void action(ModelMap model) {
     ...
@@ -379,6 +404,7 @@ public void action(ModelMap model) {
 public String render(ModelMap model) {
     ...
 }  
+```
 
 Spring will inject the proper data types. The problem is that with portlets, a browser redirect always happens in between the action and the render. A HTTP POST-Redirect-GET happens in the browser and where can Spring get the model from to inject in the render method? Right, from the session!
 
@@ -392,6 +418,7 @@ Render parameters might be an option, see [TMSU01](#TMSU01).
 **Problem:** ModelMaps are rather large objects and still take heap space while they are not needed anymore.  
 **Solution:** use the ModelAttribute in the validation error flow and clear the ModelMap right after validation in the normal/happy flow, which then also happens when the user has resolved the input validation errors and continues in the happy flow. This is the approach the OI project has taken. See the following example code:
 
+```java
 @ActionMapping
 public void action(@ModelAttribute SomeForm form, BindingResult errors, ActionResponse response, ModelMap map) {
   // Validate the form, on error fill the BindingResult errors object and return the name of the render
@@ -412,7 +439,7 @@ public String renderErrorPage(…) {
   // Make use of the implicit model of Spring. This model contains the original model as well as the error binding (for each field)
   return "page.ftl";
 }
-
+```
   
 
 Reloading lists of values
@@ -460,6 +487,7 @@ XML/SOAP/MQ is used for remoting as well as XML/SOAP/HTTP.
 **Problem:** JAXBContext creation is expensive because it does classloading and other expensive things.  
 **Solution:** Since JAXBContext objects are thread safe, they can be shared between requests and reused. So, reuse created instances, e.g. as one singleton per application.
 
+```java
 private static final JAXBContext JAXB\_CONTEXT;
 static {
     try {
@@ -468,6 +496,7 @@ static {
         throw new YException(e);
     }
 }
+```
 
 **perf-code-check:** implemented, will give false positives: any construction in a method will be flagged. Construction in a static block, the safe way, will not be flagged.
 
@@ -478,28 +507,33 @@ static {
 **Solution:** Add a converter for alternative date handling with joda-time LocalDateTime or [java.time.LocalDateTime](https://docs.oracle.com/javase/8/docs/api/index.html?java/time/LocalDateTime.html) instead of default XMLGregorianCalendar.  
 Example:
 
+```java
  import org.joda.time.LocalDateTime;
  import org.joda.time.format.DateTimeFormatter;
  import org.joda.time.format.ISODateTimeFormat;
 
  public class DateConverter {
-    private static final DateTimeFormatter DATE\_FORMATTER = ISODateTimeFormat.date();
+    private static final DateTimeFormatter DATE_FORMATTER = ISODateTimeFormat.date();
 
     public static LocalDateTime parseDate(final String date) {
-        return DATE\_FORMATTER.parseLocalDateTime(date);
+        return DATE_FORMATTER.parseLocalDateTime(date);
     }
 
     public static String printDate(final LocalDateTime date) {
-        return DATE\_FORMATTER.print(date);
+        return DATE_FORMATTER.print(date);
     }
  }
+```
 
 corresponding JAXB binding configuration:
+
+```xml
 <jxb:globalBindings>
    <jxb:javaType name="org.joda.time.LocalDateTime" xmlType="xs:date"
          parseMethod="com.company.package.DateConverter.parseDate"
          printMethod="com.company.package.DateConverter.printDate" />
 </jxb:globalBindings>
+```
 
 Note that LocalDateTime is faster than DateTime, however, be aware of its time zone (none) and daylight saving (DST) properties.
 
@@ -531,17 +565,21 @@ Note that LocalDateTime is faster than DateTime, however, be aware of its time z
 2.  If many threads access often, consider using ThreadLocals, or a pooling factory solution with for instance a BlockingQueue of a few factories.
 3.  Simple alternative: use jvm system properties to specify your default implementation class. This at least prevents the biggest bottleneck: class path scanning. Examples:
 
-\-Djavax.xml.parsers.DocumentBuilderFactory=org.apache.xerces.jaxp.DocumentBuilderFactoryImpl 
+```
+-Djavax.xml.parsers.DocumentBuilderFactory=org.apache.xerces.jaxp.DocumentBuilderFactoryImpl 
 -Djavax.xml.transform.TransformerFactory=org.apache.xalan.processor.TransformerFactoryImpl //old
 -Djavax.xml.transform.TransformerFactory=net.sf.saxon.TransformerFactoryImpl //newer
 -Djavax.xml.soap.MessageFactory=org.apache.axis.soap.MessageFactoryImpl
 -Djavax.xml.validation.SchemaFactory=com.saxonica.ee.jaxp.SchemaFactoryImpl
+```
 
 **Note:** More on TransformerFactory and caching compiled templates, see IBM's [XSLT transformations cause high CPU and slow performance](http://www-01.ibm.com/support/docview.wss?uid=swg21641274).
 
 Example code ThreadLocal for TransformerFactory:
 
+```java
 private static final ThreadLocal<TransformerFactory> TRANSFORMER = ThreadLocal.withInitial(TransformerFactory::newInstance);
+```
 
 #### IUOXAR10
 
@@ -573,7 +611,9 @@ Using XPath
 
 **Observation: The XPathExpression is created and compiled every time.**
 
+```java
 XPathFactory.newInstance().newXPath().compile(xPathExpression).evaluate(..) 
+```
 
 is used. The new factory, new XPath, and the compiled expression are hard to cache, because those objects are not thread-safe.
 
@@ -588,12 +628,13 @@ is used. The new factory, new XPath, and the compiled expression are hard to cac
 1\. Avoid the use of XPath.  
 2\. If avoiding XPath turns out to be very difficult, check if the reference applies to the application situation concerning implementation / versions and if so, consider to adopt the presented solution and benchmark before and after the fix. That solution being: use JVM option:
 
-\-Dcom.sun.org.apache.xml.internal.dtm.DTMManager=com.sun.org.apache.xml.internal.dtm.ref.DTMManagerDefault
-
+```
+-Dcom.sun.org.apache.xml.internal.dtm.DTMManager=com.sun.org.apache.xml.internal.dtm.ref.DTMManagerDefault
+```
 or
-
-\-Dorg.apache.xml.dtm.DTMManager=org.apache.xml.dtm.ref.DTMManagerDefault 
-
+```
+-Dorg.apache.xml.dtm.DTMManager=org.apache.xml.dtm.ref.DTMManagerDefault 
+```
 Depending on e.g. which one shows up in your Java stack traces / javacore file.  
 3\. Use CachedXPathAPI, see [Ways to increase the performance of XML processing in Java](http://www.ictforu.com/index.php/programming/java/27-xml-performance) - Case 2. Be aware of higher memory usage. Note that CachedXPathAPI object is thread-unsafe.  
 **Alternative approach:** If XPath evaluation still turns out to be a bottleneck by profiling, consider to switch to [VTD-XML](http://vtd-xml.sourceforge.net/)
@@ -615,12 +656,16 @@ See our [presentation on Java Performance Pitfall: improper logging.](https://yo
 
 **Observation: Concatenation is used in unconditionally executed logging statements:**
 
+```java
 LOG.debug("Length: " + length + ", currency: " + currency);
+```
 
 **Problem:** Concatenation happens before the debug, trace or info method executes, so independent of the need to actually log. Concatenation is relatively expensive.  
 **Solution:** Use SLF4J with the {} pattern and pass the variables without concatenating them
 
+```java
 LOG.debug("Length: {}, currency: {}", length, currency);
+```
 
 **perf-code-check:** UnconditionalConcatInLogArgument.
 
@@ -629,13 +674,13 @@ LOG.debug("Length: {}, currency: {}", length, currency);
 **Observation: A logging String is built unconditionally:**
 
   
-
+```java
 while(..) {
     ...
     logStatement.append("Found page parameter with key '" + key + "' and value '" + value + "'\\n");
 }
 LOG.debug("Note: {}", logStatement);
-
+```
   
 
 **Problem:** String building, concatenation and/or other operations happen before the debug, trace or info method executes, so independent of the need to actually log. Concatenation is relatively expensive.  
@@ -646,17 +691,20 @@ LOG.debug("Note: {}", logStatement);
 
 **Observation: An operation is executed on a log argument, irrespective of log level.** Like:
 
+```java
 LOG.debug("ACTUAL DOWNLOAD: EndDate Download Date: {}", String.format("%1$tR", endDateDownloadDate); // bad
 
 LOG.trace("StepExecution: \\n{}", stepExecution.toString()); // bad
 
 LOG.debug("Complete Soap response: {}", getSoapMsgAsString(context.getMessage())); // bad
+```
 
 **Problem:** toString(), String.format or some other operation or method call is executed irrespective of log level. This may include formatting, concatenation, reflection and other wasteful processing. For example, the above line with toString seems rather harmless, however, you might change your mind if you see the toString implementation of [StepExecution](https://github.com/spring-projects/spring-batch/blob/master/spring-batch-core/src/main/java/org/springframework/batch/core/StepExecution.java) (at the bottom of the page.)
 
   
 **Solution:** Remove the toString() since this is already invoked conditionally inside SLF4J. If formatting is really needed, execute it conditionally or in its toString method.
 
+```java
 LOG.debug("ACTUAL DOWNLOAD: EndDate Download Date: {}", endDateDownloadDate); // good
 
 LOG.trace("StepExecution: \\n{}", stepExecution); // good
@@ -664,6 +712,7 @@ LOG.trace("StepExecution: \\n{}", stepExecution); // good
 if (LOG.isDebugEnabled()) { // good
     LOG.debug("Complete Soap response: {}", getSoapMsgAsString(context.getMessage()));
 }
+```
 
 **perf-code-check:** UnconditionalOperationOnLogArgument.
 
@@ -674,11 +723,15 @@ MDC = Mapped Diagnostic Context, used to provide context information (e.g. userI
 **Problem:** MDC values can leak to other user transactions (requests) and log incorrect information. This can happen because MDC is implemented with ThreadLocals and a thread holding the ThreadLocal is reused for another user transaction after it has finished its current transaction. Additionally, memory is wasted by leaked MDC values.  
 E.g.:
 
+```java
 MDC.put("UserId", userId);
+```
 
 with no corresponding
 
+```java
 MDC.remove("UserId");
+```
 
 **Solution:** Determine the MDC-value lifecycle and remove the MDC value in the proper place. Put the remove in a finally clause so it is also removed in case of exceptions. See also [Automating access to the MDC](http://logback.qos.ch/manual/mdc.html).
 
@@ -697,9 +750,11 @@ Improper Streaming I/O
 
 Improper streaming may result in unwanted large object allocations. The IBM JVM has the possibility to log large object allocations to analyse this. Large object allocation logging can be enabled by using the following jvm argument with an appropriate filter value:
 
-\-Xdump:stack:events=allocation,filter=#6m
+```
+-Xdump:stack:events=allocation,filter=#6m
+```
 
-Logging of the allocation stack traces will be in native\_stderr.log.
+Logging of the allocation stack traces will be in native_stderr.log.
 
 **Observation: ByteArrayOutputStream or StringWriter default constructor is used for large strings/streams.**  
 **Problem:** This creates an initial buffer of 32 bytes or 16 characters respectively. If this is not enough, a new byte/char array will be allocated and contents will be copied into the new array. The old array becomes garbage to be collected and copying takes processing time. If you know what the minimum or typical size will be, this garbage and processing time are wasted.  
@@ -712,9 +767,11 @@ If the buffer is send/received through I/O, then the size should be 8192 bytes o
 **Problem:** Each write() or read() call is a system call which is relatively expensive. Doing a system call for every byte or char is very inefficient.  
 **Solution:** By buffering, a bunch of data is given to the system call at once to process, making the work per byte much less and the total much more efficient. Examples:
 
+```java
 BufferedReader in = new BufferedReader(new FileReader("IOStreamDemo.java"));
 
 BufferedOutputStream bufferedOutput = new BufferedOutputStream(new FileOutputStream("yourFile.txt"));
+```
 
 This especially applies to direct file streaming. Access through ClassLoader.getResourceAsStream / URL.openStream where URL is of FILE or HTTP protocol, is buffered by the implementing class, e.g. [sun.net](http://sun.net).www.protocol.file.FileURLConnection.
 
@@ -725,22 +782,26 @@ This especially applies to direct file streaming. Access through ClassLoader.get
 
 In the next example, there are two large byte arrays in memory: one in baos and the other is the returned byte array since a copy is made in toByteArray().
 
+```java
    private byte\[\] zipData() {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         ZipOutputStream zos = new ZipOutputStream(baos);
         // stream 1 GB data from input to output stream (zos) here
         return baos.toByteArray();
    }
+```
 
 **Solution:** Use streaming all the way, don't use byte arrays. A mime type is determined from the first few bytes of the file, don't read in all 50 MB - 1 GB for that. Often, functionality can be achieved in a streaming way, i.e. [a digest can be computed in a streaming way](http://www.mkyong.com/java/java-sha-hashing-example/).
 
 The previous example improved:
 
+```java
    private void zipData() {
         FileOutputStream dest = new FileOutputStream(file);
 		ZipOutputStream zos = new ZipOutputStream(new BufferedOutputStream(dest));
         // stream 1 GB data from input to output stream (zos) here, which will be written to file
    }
+```
 
 #### ISIO04
 
@@ -753,7 +814,9 @@ The previous example improved:
 
 Validate with large object allocation logging that no large objects are allocated and buffered streaming is working correctly, by using a jvm argument like:
 
-\-Xdump:stack:events=allocation,filter=#6m
+```
+-Xdump:stack:events=allocation,filter=#6m
+```
 
 Logging of allocation stack traces will be in native\_stderr.log.
 
@@ -783,9 +846,11 @@ Unnecessary use of reflection
 
 **Observation: Reflection is used unnecessarily**, for instance like:
 
+```java
 public boolean equals(final Object arg0) {
     return EqualsBuilder.reflectionEquals(this, arg0);
 }
+```
 
 **Problem:** Reflection is relatively expensive.
 
@@ -807,6 +872,7 @@ When multiple threads access the same object, access it in a thread safe way. Ge
 
 **Observation: The broken [double checked locking idiom](http://en.wikipedia.org/wiki/Double-checked_locking) is used.** Example:
 
+```java
 // "Double-Checked Locking" idiom - Broken / Wrong!
 class Foo {
     private Helper helper = null;
@@ -821,10 +887,12 @@ class Foo {
         return helper;
     }
 }
+```
 
 **Problem:** Other threads may not see the initialized helper set by one thread. They could also see a partly initialized helper, leading to corruption. Sometimes. See **[double checked locking idiom](http://en.wikipedia.org/wiki/Double-checked_locking).**  
 **Solution:** Use a volatile reference to make sure the assignment to it is published to all threads in a thread-safe way. For example for a lazy initialized, immutable map:
 
+```java
 class Foo {
     private volatile Map map = null;
     public Map getMap() {
@@ -843,6 +911,7 @@ class Foo {
     // 4. only read-access of map, so thread-safe
     // 5. make sure keys and values are thread-safe, too
 }
+```
 
 This solution is usually good enough. A more optimized version using a local variable, yet more complicated can be found [on wikipedia](http://en.wikipedia.org/wiki/Double-checked_locking). See also: [double-checked-locking--clever--but-broken-by-Brian-Goetz](https://www.javaworld.com/article/2074979/double-checked-locking--clever--but-broken.html).
 
@@ -869,7 +938,7 @@ For all three solutions holds that the data structure itself does not need to be
 **Solution:** Utilize the annotations: @GuardedBy, @Immutable, @ThreadSafe and possibly @NotThreadSafe, as well. These will communicate the intended thread-safety promises to both users and maintainers. In addition, IDE's and FindBugs/Sonar use these annotations to check thread-safety. For example:
 
   
-
+```java
 @Immutable
 public class String { 
 ...
@@ -891,7 +960,7 @@ public class StringBuilder {
         }
     }        
  }
-
+```
   
 
 #### TUTC05
@@ -924,6 +993,7 @@ public class StringBuilder {
 
 **Example with issues**
 
+```java
 @Component
 @Scope(WebApplicationContext.SCOPE\_SESSION) // similar for e.g. default SCOPE\_APPLICATION
 public class ReportController extends AbstractController {
@@ -941,9 +1011,11 @@ public class ReportController extends AbstractController {
 	public void setRestTemplate(final RestTemplate restTemplate) { // autowiring is safe
     	this.restTemplateOk = restTemplate;
 	}
+```
 
 **Example with issues solved**
 
+```java
 @Component
 @Scope(WebApplicationContext.SCOPE\_SESSION) // similar for e.g. default SCOPE\_APPLICATION
 public class ReportController extends AbstractController {
@@ -962,6 +1034,7 @@ public class ReportController extends AbstractController {
 	public void setRestTemplate(final RestTemplate restTemplate) { // autowiring is safe
     	this.restTemplateOk = restTemplate;
 	}
+```
 
 **perf-code-checks:** AvoidUnguardedMutableFieldsInSharedObjects, AvoidUnguardedAssignmentToNonFinalFieldsInSharedObjects
 
@@ -972,27 +1045,37 @@ public class ReportController extends AbstractController {
 
 The next examples show non-final fields:
 
+```java
 private static String fileName = "<none>"; // likely a concurrency bug
 
-private static Logger log \= new Logger(); // potential concurrency bug
+private static Logger log = new Logger(); // potential concurrency bug
+```
 
 Here the first likely is a concurrency bug (agree?) and the second probably not. The reference is mutable. Usually 'final' can just be added to prevent concurrency problems.
 
 The following example is less obvious, an array is by many considered immutable, which is a wrong assumption: elements can be replaced. Therefore, it has the same risk as the above examples.
 
+```java
 private static final String\[\] QUALIFIERS\_Violate \= {"alpha", "beta", "milestone"}; // mutable
+```
 
 **Solution:** Make the fields final and unmodifiable. How to make a static final List or Set unmodifiable, see example of [PML01](#PML01). The immutable version of the literal String array:
 
+```java
 private static final List QUALIFIERS\_Ok \= Collections.unmodifiableList(Arrays.asList("alpha", "beta", "milestone"));
+```
 
 With Java 9 this can be much more compact:
 
+```java
 private static final List QUALIFIERS\_Ok \= List.of("alpha", "beta", "milestone");
+```
 
 or by using Guava immutable collections like [ImmutableList](https://google.github.io/guava/releases/21.0/api/docs/com/google/common/collect/ImmutableList.html):
 
+```java
 private static final List QUALIFIERS\_Ok \= ImmutableList.of("alpha", "beta", "milestone");
+```
 
 Note that for primitives Guava has: [ImmutableIntArray](http://google.github.io/guava/releases/22.0/api/docs/com/google/common/primitives/ImmutableIntArray.html), [ImmutableLongArray](http://google.github.io/guava/releases/22.0/api/docs/com/google/common/primitives/ImmutableLongArray.html) and [ImmutableDoubleArray](http://google.github.io/guava/releases/22.0/api/docs/com/google/common/primitives/ImmutableDoubleArray.html).
 
@@ -1008,21 +1091,29 @@ Unnecessary execution
 **Observation: A Calendar is unnecessarily created for a Date or time**  
 **Problem:** A Calendar is a heavyweight object and expensive to create. For example, to copy a Date:
 
+```java
 Calendar dateCalendar = Calendar.getInstance();
 dateCalendar.setTime(date);
 return dateCalendar.getTime();
+```
 
 or
 
+```java
 long time = Calendar.getInstance().getTimeInMillis();
+```
 
 **Solution:** Avoid use of Calendar, in this example by:
 
+```java
 new Date(otherDate.getTime());
+```
 
 or
 
+```java
 long time = System.currentTimeMillis();
+```
 
 Or better yet instead of Date, use a [org.joda.time.LocalDateTime](http://joda-time.sourceforge.net/apidocs/org/joda/time/LocalDateTime.html) or [java.time.LocalDateTime](https://docs.oracle.com/javase/8/docs/api/index.html?java/time/LocalDateTime.html), which also has the advantage over java.util.Date that it is immutable.  
 **perf-code-check**: prototype ready, hit on Calendar.getInstance().getTime() usage and on two steps in same block.
@@ -1040,14 +1131,14 @@ subCategoryId is unboxed to an int to work in the Integer.toString(int) method t
 
 Example 2: categoryId is of type int, valuesAsList is of type List<Integer>:
 
+```java
 if (valuesAsList.contains(categoryId)) {
      valuesAsList.remove((Integer) categoryId);
 } else {
      valuesAsList.add(categoryId);
 }
-
+```
   
-
 categoryId of type int will be boxed to Integer for the contains() and add() and remove() calls on valuesAsList.
 
   
@@ -1079,7 +1170,9 @@ Improper use of collections
 **Problem:** A ConcurrentHashMap is particularly greedy in heap usage because of its segments and locks.  
 **Solution:** Only use ConcurrentHashMap with multiple threads and when modified. Otherwise, for read-write access by a single thread just use HashMap en with multiple threads and read-only use:
 
+```java
 Collections.unmodifiableMap(initializeHashMap())
+```
 
 #### IUOC03
 
@@ -1087,7 +1180,9 @@ Collections.unmodifiableMap(initializeHashMap())
 **Problem:** A HashMap and HashSet are rather greedy in memory usage.  
 **Solution:** Use an EnumMap or EnumSet. It is represented internally with arrays which is extremely compact and efficient.
 
+```java
 Map<YourEnumType, String> map = new EnumMap<>(YourEnumType.class);
+```
 
 #### IUOC04
 
@@ -1125,10 +1220,11 @@ Inefficient String usage
 
 **Observation: Multiple statements are executed to concatenate to the same String with the +-operator. Example:**
 
+```java
 for (String val : values) {
     logStatement += val;
 }
-
+```
   
 
 **Problem:** Each statement with one or more +-operators creates a hidden temporary StringBuilder, a char\[\] and a new String object, which all have to be garbage collected.  
@@ -1141,7 +1237,9 @@ for (String val : values) {
 ****Problem:** The default initial capacity of StringBuilder is 16 characters. If more is appended, a new char\[\] will be allocated with: new-capacity = 2 \* capacity + 2. The contents will be copied into the new char\[\] and the old char\[\] can be garbage collected. This allocation, copying and garbage collection takes time.  
 **Solution:** Construct the StringBuilder with an initial capacity explicitely:
 
+```java
 StringBuilder builder = new StringBuilder(2048);
+```
 
 Choose the value such that it will fit without resizing in most cases. And of course, you might want to define a constant field for the size.
 
@@ -1150,12 +1248,16 @@ Choose the value such that it will fit without resizing in most cases. And of co
 **Observation: Concatenation of Strings is used inside an StringBuilder.append argument.  
 **Example:
 
+```java
 builder.append("ExceptionType: " + ex.getClass().getName() + ", ");
+```
 
 **Problem:** Concatenating one or more Strings creates a hidden temporary StringBuilder, a char\[\] and a new String object, which all have to be garbage collected. This generated StringBuilder is created in addition to the explicitly used StringBuilder.  
 **Solution:** Use one or more extra append on the explicit StringBuilder. Example:
 
+```java
 builder.append("ExceptionType: ").append(ex.getClass().getName()).append(", ");
+```
 
 **perf-code-check:** AvoidConcatInAppend
 
@@ -1168,12 +1270,12 @@ Inefficient date time formatting
 ****Problem:** java.util.SimpleDateFormat is thread-unsafe. The usual solution is to create a new one when needed in a method. Creating SimpleDateFormat is relatively expensive.  
 **Solution:** Use a [Joda-Time](http://joda-time.sourceforge.net/index.html) [DateTimeFormat](http://joda-time.sourceforge.net/api-release/org/joda/time/format/DateTimeFormat.html) to create a specific [DateTimeFormatter](http://joda-time.sourceforge.net/api-release/org/joda/time/format/DateTimeFormatter.html) or use [java.time.DateTimeFormatter](https://docs.oracle.com/javase/8/docs/api/index.html?java/time/format/DateTimeFormatter.html). These classes are immutable, thus thread-safe and can be made static final. Example:
 
-private static final DateTimeFormatter DATE\_FORMATTER = DateTimeFormat.forPattern("yyyy-MM-dd");
-\[...\]
-LocalDateTime lastDate = DATE\_FORMATTER.parseLocalDateTime(lastDateString);
-
-  
-
+```java
+private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormat.forPattern("yyyy-MM-dd");
+[...]
+LocalDateTime lastDate = DATE_FORMATTER.parseLocalDateTime(lastDateString);
+```
+ 
 Like SimpleDateFormat, java.util.Date and -Calendar are mutable and flawed in other ways. Joda-Time is the better alternative and when Java 8 is available, [java.time](https://docs.oracle.com/javase/8/docs/api/index.html?java/time/package-summary.html) is the way to go .  
 **perf-code-check:** AvoidSimpleDateFormat.
 
@@ -1201,17 +1303,21 @@ Inefficient regular expression usage
 **Solution:** Use a matcher with the constant compiled regular expression pattern. Example:  
 old:
 
+```java
 String getFileNameWithCount() {
     return filename.replaceAll("(.\*)\\\\.(\[^\\\\.\]\*)", "$1\\\\(" + count + "\\\\).$2");
 }
+```
 
 new:
 
-private static final Pattern AROUND\_LAST\_DOT\_PATTERN = Pattern.compile("(.\*)\\\\.(\[^\\\\.\]\*)");
+```java
+private static final Pattern AROUND_LAST_DOT_PATTERN = Pattern.compile("(.\*)\\\\.(\[^\\\\.\]\*)");
 ..
 String getFileNameWithCount() {
-    return AROUND\_LAST\_DOT\_PATTERN.matcher(filename).replaceAll("$1\\\\(" + count + "\\\\).$2");
+    return AROUND_LAST_DOT_PATTERN.matcher(filename).replaceAll("$1\\\\(" + count + "\\\\).$2");
 }
+```
 
 **perf-code-check:** AvoidImplicitlyRecompilingPatterns, improved: AvoidImplicitlyRecompilingRegex
 
@@ -1246,6 +1352,7 @@ Potential memory leaks
 **Problem:** The field can unintentionally be added to, so grow and become a memory leak.  
 **Solution:** Make the field immutable and final. In a constructor, defensively copy the modifiable argument, so also the caller is not able to modify the object referenced by the field anymore. In case of an unmodifiable wrapped collection, make sure the inner collection is not directly reachable anymore after initialization. For example:
 
+```java
 class Conf {
   private final List configurationItems;
   
@@ -1264,6 +1371,7 @@ class PaymentUtil {
 		BRANCH\_NAMES = Collections.unmodifiableSet(branches);
     }    
 }
+```
 
 #### PML02
 
@@ -1278,7 +1386,9 @@ class PaymentUtil {
 Unexpected leaks could occur when initialized from a static context, which are unaware of lifecycle events.  
 **Solution:** Make your component scans as narrow as possible. You can also provide classes from the packages to scan, see example:
 
+```java
 @EntityScan(basePackageClasses = {Job.class, ReportJob.class, ScheduleJob.class, Jsr310JpaConverters.class})
+```
 
 #### PML05
 
@@ -1286,12 +1396,14 @@ Unexpected leaks could occur when initialized from a static context, which are u
 **Problem**: We found a memory leak with this use of CDI. Two objects of type [com.ibm.ws](http://com.ibm.ws).cdi.impl.CDIImpl appear in the heap. One is small and the other is very large. See <TODO> and see more info: [dont-get-trapped-into-a-memory-leak-using-cdi-instance-injection](https://blog.akquinet.de/2017/01/04/dont-get-trapped-into-a-memory-leak-using-cdi-instance-injection/)  
 **Solution**: use destroy to cleanup:
 
+```java
 MyClass myObject= CDI.current().select(MyClass.class).get();
 try {
 	....//do stuff
 } finally {
 	CDI.current().destroy(myObject);
 }
+```
 
 **perf-code-check:** [PMD-jPinpoint-rules/issues/28](https://github.com/jborgers/PMD-jPinpoint-rules/issues/28)
 
