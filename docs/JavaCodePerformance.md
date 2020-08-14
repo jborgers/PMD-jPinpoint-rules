@@ -129,7 +129,6 @@ Example (correct):
                 .build();
     }
 ```
-  
 
 Improper caching  
 -------------------
@@ -220,7 +219,6 @@ Or via configuration (e.g. in Spring):
 freemarker.template.Configuration.setTemplateUpdateDelayMilliseconds(2\_500\_000\_000L);
 ```
   
-
 #### IC05
 
 **Observation: Cache configuration is not motivated.**  
@@ -231,7 +229,6 @@ freemarker.template.Configuration.setTemplateUpdateDelayMilliseconds(2\_500\_000
 <cache maxEntriesLocalHeap="1" /> <!-- only one entry needed for all countries in one ArrayList-->
 <cache timeToLiveSeconds="7200" /> <!-- business: change to country table needs to be live within 2 hours-->
 ```
-  
 
 #### IC06
 
@@ -313,7 +310,7 @@ The application often puts much data in the user session to keep state at the se
 **Observation: Attributes are not removed from the session.** They are set in the session like:
 
 ```java
-actionRequest.getPortletSession().setAttribute(DOWNLOAD\_INFORMATION\_FORM, downloadInformationForm);
+actionRequest.getPortletSession().setAttribute(DOWNLOAD_INFORMATION_FORM, downloadInformationForm);
 ```
 
 and they are never removed or not removed in all flows, being happy or unhappy.
@@ -322,13 +319,13 @@ and they are never removed or not removed in all flows, being happy or unhappy.
 **Solution:** Remove attributes from the session if not really needed, and as soon as possible in all controllable flows, including for instance technical exception cases, like as follows.
 
 ```java
-actionRequest.getPortletSession().removeAttribute(DOWNLOAD\_INFORMATION\_FORM);
+actionRequest.getPortletSession().removeAttribute(DOWNLOAD_INFORMATION_FORM);
 ```
 
 Spring has a PortletUtils to facilitate session attribute usage. It however does not provide a remove method. Removing can be achieved as in:
 
 ```java
-PortletUtils.setSessionAttribute(request, SESSION\_ATTRIBUTE\_NAME, null);
+PortletUtils.setSessionAttribute(request, SESSION_ATTRIBUTE_NAME, null);
 ```
 
 Spring will than invoke removeAttribute on the portlet session.
@@ -488,10 +485,10 @@ XML/SOAP/MQ is used for remoting as well as XML/SOAP/HTTP.
 **Solution:** Since JAXBContext objects are thread safe, they can be shared between requests and reused. So, reuse created instances, e.g. as one singleton per application.
 
 ```java
-private static final JAXBContext JAXB\_CONTEXT;
+private static final JAXBContext JAXB_CONTEXT;
 static {
     try {
-        JAXB\_CONTEXT = JAXBContext.newInstance(X.class.getPackage().getName());
+        JAXB_CONTEXT = JAXBContext.newInstance(X.class.getPackage().getName());
     } catch (JAXBException e) {
         throw new YException(e);
     }
@@ -677,7 +674,7 @@ LOG.debug("Length: {}, currency: {}", length, currency);
 ```java
 while(..) {
     ...
-    logStatement.append("Found page parameter with key '" + key + "' and value '" + value + "'\\n");
+    logStatement.append("Found page parameter with key '" + key + "' and value '" + value + "'\n");
 }
 LOG.debug("Note: {}", logStatement);
 ```
@@ -694,7 +691,7 @@ LOG.debug("Note: {}", logStatement);
 ```java
 LOG.debug("ACTUAL DOWNLOAD: EndDate Download Date: {}", String.format("%1$tR", endDateDownloadDate); // bad
 
-LOG.trace("StepExecution: \\n{}", stepExecution.toString()); // bad
+LOG.trace("StepExecution: \n{}", stepExecution.toString()); // bad
 
 LOG.debug("Complete Soap response: {}", getSoapMsgAsString(context.getMessage())); // bad
 ```
@@ -707,7 +704,7 @@ LOG.debug("Complete Soap response: {}", getSoapMsgAsString(context.getMessage())
 ```java
 LOG.debug("ACTUAL DOWNLOAD: EndDate Download Date: {}", endDateDownloadDate); // good
 
-LOG.trace("StepExecution: \\n{}", stepExecution); // good
+LOG.trace("StepExecution: \n{}", stepExecution); // good
 
 if (LOG.isDebugEnabled()) { // good
     LOG.debug("Complete Soap response: {}", getSoapMsgAsString(context.getMessage()));
@@ -783,7 +780,7 @@ This especially applies to direct file streaming. Access through ClassLoader.get
 In the next example, there are two large byte arrays in memory: one in baos and the other is the returned byte array since a copy is made in toByteArray().
 
 ```java
-   private byte\[\] zipData() {
+   private byte[] zipData() {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         ZipOutputStream zos = new ZipOutputStream(baos);
         // stream 1 GB data from input to output stream (zos) here
@@ -926,12 +923,9 @@ This solution is usually good enough. A more optimized version using a local var
 3.  use the double checked volatile locking idiom, see solution of the previous item.
 
 For all three solutions holds that the data structure itself does not need to be thread-safe, only that is must be fully constructed and not changed after assignment to its reference. So, it better be immutable to guarantee this. [See Java Concurrency In Practice, Chapter 3.5](https://books.google.nl/books?id=EK43StEVfJIC&pg=PA344&lpg=PA344&dq=See+Java+Concurrency+In+Practice,+Chapter+3.5&source=bl&ots=uo0Cw2rRmy&sig=3bythgbuQ6ijOY3vT2oVCGVhd5E&hl=en&sa=X&ved=0ahUKEwi9-8DqyPbTAhVPZlAKHWVBAMMQ6AEITTAH#v=onepage&q=See%20Java%20Concurrency%20In%20Practice%2C%20Chapter%203.5&f=false).
-
-####   
+ 
 
 #### TUTC04
-
-  
 
 **Observation: Java Concurrency In Practice annotations are not used.** ([net.jcip version with full documentation](http://jcip.net/annotations/doc/net/jcip/annotations/package-summary.html)) ([new package location: javax.annotation.concurrent](https://static.javadoc.io/com.google.code.findbugs/jsr305/3.0.1/javax/annotation/concurrent/package-summary.html))  
 **Problem:** Often, the intended thread-safety policies of a class are unclear, leading to hard-to-find concurrency bugs. These annotations describe this intent.  
@@ -995,7 +989,7 @@ public class StringBuilder {
 
 ```java
 @Component
-@Scope(WebApplicationContext.SCOPE\_SESSION) // similar for e.g. default SCOPE\_APPLICATION
+@Scope(WebApplicationContext.SCOPE_SESSION) // similar for e.g. default SCOPE_APPLICATION
 public class ReportController extends AbstractController {
     private Report data;
     private boolean contacted;
@@ -1007,7 +1001,7 @@ public class ReportController extends AbstractController {
 	public Report getData() { return data; }  // unsafe 
 	public boolean getContacted() { return contacted; } // unsafe
 	public void setContacted(boolean contacted) { this.contacted = contacted; } // unsafe
-    @Autowired
+        @Autowired
 	public void setRestTemplate(final RestTemplate restTemplate) { // autowiring is safe
     	this.restTemplateOk = restTemplate;
 	}
@@ -1017,7 +1011,7 @@ public class ReportController extends AbstractController {
 
 ```java
 @Component
-@Scope(WebApplicationContext.SCOPE\_SESSION) // similar for e.g. default SCOPE\_APPLICATION
+@Scope(WebApplicationContext.SCOPE_SESSION) // similar for e.g. default SCOPE_APPLICATION
 public class ReportController extends AbstractController {
 	@GuardedBy("this") // needed to remove pmd/Sonar violation, enables extra checks
     private Report data;
@@ -1030,7 +1024,7 @@ public class ReportController extends AbstractController {
 	public Report synchronized getData() { return data; }  // safe like previous if data is immutable, or if a copy is retured
 	public boolean getContacted() { return contacted; } // safe because volatile
 	public void setContacted(boolean contacted) { this.contacted = contacted; } // safe because volatile
-    @Autowired
+        @Autowired
 	public void setRestTemplate(final RestTemplate restTemplate) { // autowiring is safe
     	this.restTemplateOk = restTemplate;
 	}
@@ -1056,13 +1050,13 @@ Here the first likely is a concurrency bug (agree?) and the second probably not.
 The following example is less obvious, an array is by many considered immutable, which is a wrong assumption: elements can be replaced. Therefore, it has the same risk as the above examples.
 
 ```java
-private static final String\[\] QUALIFIERS\_Violate \= {"alpha", "beta", "milestone"}; // mutable
+private static final String[] QUALIFIERS_Violate = {"alpha", "beta", "milestone"}; // mutable
 ```
 
 **Solution:** Make the fields final and unmodifiable. How to make a static final List or Set unmodifiable, see example of [PML01](#PML01). The immutable version of the literal String array:
 
 ```java
-private static final List QUALIFIERS\_Ok \= Collections.unmodifiableList(Arrays.asList("alpha", "beta", "milestone"));
+private static final List QUALIFIERS_Ok = Collections.unmodifiableList(Arrays.asList("alpha", "beta", "milestone"));
 ```
 
 With Java 9 this can be much more compact:
@@ -1125,7 +1119,9 @@ Or better yet instead of Date, use a [org.joda.time.LocalDateTime](http://joda-t
 **Solution:** Avoid auto boxing and unboxing.  
 Example 1: subcategoryId is of type Integer:
 
-response.setRenderParameter(RENDER\_PARAMETER\_SUB\_CATEGORY\_ID, Integer.toString(subCategoryId));
+```java
+response.setRenderParameter(RENDER_PARAMETER_SUB_CATEGORY_ID, Integer.toString(subCategoryId));
+```
 
 subCategoryId is unboxed to an int to work in the Integer.toString(int) method that expects only a primitive int. Use subcategoryId.toString() to avoid unboxing.
 
