@@ -701,46 +701,6 @@ Improper streaming may result in unwanted large object allocations. The IBM JVM 
 
 Logging of the allocation stack traces will be in native\_stderr.log.
 
-#### Table of contents
-   
-   - [Introduction](#introduction)
-   - [Improper back-end interaction / remote service calls](#improper-back-end-interaction--remote-service-calls)
-   - [Too much session usage](#too-much-session-usage)
-     - [Explicit session attributes](#explicit-session-attributes)
-     - [Spring ModelMaps](#spring-modelmaps)
-   - [Reloading lists of values](#reloading-lists-of-values)
-   - [Inefficient database access](#inefficient-database-access)
-   - [Improper use of XML and remoting](#improper-use-of-xml-and-remoting)
-   - [Improper use of JSON and remoting](#improper-use-of-json-and-remoting)
-   - [Using XPath](#using-xpath)
-   - [Improper logging](#improper-logging)
-   - [Improper Streaming I/O](#improper-streaming-io)
-     - [ISIO01](#isio01)
-     - [ISIO02](#isio02)
-     - [ISIO03](#isio03)
-     - [ISIO04](#isio04)
-   - [Extensive use of classpath scanning](#extensive-use-of-classpath-scanning)
-     - [EUOCS01](#euocs01)
-     - [EUOCS02](#euocs02)
-   - [Unnecessary use of reflection](#unnecessary-use-of-reflection)
-     - [UUOR01](#uuor01)
-   - [Thread unsafety and lock contention](#thread-unsafety-and-lock-contention)
-   - [Unnecessary execution](#unnecessary-execution)
-     - [UE01](#ue01)
-     - [UE02](#ue02)
-   - [Inefficient memory usage](#inefficient-memory-usage)
-   - [Improper use of collections](#improper-use-of-collections)
-   - [Inefficient String usage](#inefficient-string-usage)
-   - [Inefficient date time formatting](#inefficient-date-time-formatting)
-   - [Inefficient regular expression usage](#inefficient-regular-expression-usage)
-   - [Use of slow library calls](#use-of-slow-library-calls)
-   - [Potential memory leaks](#potential-memory-leaks)
-     - [PML01](#pml01)
-     - [PML02](#pml02)
-     - [PML03](#pml03)
-     - [PML05](#pml05)
-   - [Violation of Encapsulation, DRY or SRP](#violation-of-encapsulation-dry-or-srp) ISIO01
-
 **Observation: ByteArrayOutputStream or StringWriter default constructor is used for large strings/streams.**  
 **Problem:** This creates an initial buffer of 32 bytes or 16 characters respectively. If this is not enough, a new byte/char array will be allocated and contents will be copied into the new array. The old array becomes garbage to be collected and copying takes processing time. If you know what the minimum or typical size will be, this garbage and processing time are wasted.  
 **Solution:** Presize the ByteArrayOutputStream or StringWriter with an initial capacity such that a resize is not needed in most cases. By using the [ByteArrayOutputStream](http://docs.oracle.com/javase/6/docs/api/java/io/ByteArrayOutputStream.html#ByteArrayOutputStream%28int%29) or [StringWriter](http://docs.oracle.com/javase/6/docs/api/java/io/StringWriter.html#StringWriter%28int%29) alternative constructor.  
