@@ -888,8 +888,8 @@ This solution is usually good enough. A more optimized version using a local var
 
 #### TUTC03
 
-**Observation: A data structure like a Collection or Map or object like applicationContext is constructed once by one thread and consecutively read-only by one or more other threads. No thread-safety is used.  
-****Problem:** It is not guaranteed that the other threads will ever see the constructed data structure, and they may see a partially constructed version, leading to corruption of data. Sometimes.  
+**Observation: A data structure like a Collection or Map or object like applicationContext is constructed once by one thread and consecutively read-only by one or more other threads. No thread-safety is used.**  
+**Problem:** It is not guaranteed that the other threads will ever see the constructed data structure, and they may see a partially constructed version, leading to corruption of data. Sometimes.  
 **Solution:** There are three options:
 
 1.  use a static final variable and assign the fully constructed immutable datastructure to it during class loading;
@@ -904,8 +904,8 @@ For all three solutions holds that the data structure itself does not need to be
 
   
 
-**Observation: Java Concurrency In Practice annotations are not used. ([net.jcip version with full documentation](http://jcip.net/annotations/doc/net/jcip/annotations/package-summary.html)) ([new package location: javax.annotation.concurrent](https://static.javadoc.io/com.google.code.findbugs/jsr305/3.0.1/javax/annotation/concurrent/package-summary.html))  
-****Problem:** Often, the intended thread-safety policies of a class are unclear, leading to hard-to-find concurrency bugs. These annotations describe this intent.  
+**Observation: Java Concurrency In Practice annotations are not used.** ([net.jcip version with full documentation](http://jcip.net/annotations/doc/net/jcip/annotations/package-summary.html)) ([new package location: javax.annotation.concurrent](https://static.javadoc.io/com.google.code.findbugs/jsr305/3.0.1/javax/annotation/concurrent/package-summary.html))  
+**Problem:** Often, the intended thread-safety policies of a class are unclear, leading to hard-to-find concurrency bugs. These annotations describe this intent.  
 **Solution:** Utilize the annotations: @GuardedBy, @Immutable, @ThreadSafe and possibly @NotThreadSafe, as well. These will communicate the intended thread-safety promises to both users and maintainers. In addition, IDE's and FindBugs/Sonar use these annotations to check thread-safety. For example:
 
   
@@ -936,24 +936,20 @@ public class StringBuilder {
 
 #### TUTC05
 
-**Observation: A class has setters with the only purpose to initialize it.  
-****Problem:** Setters make the class mutable while it may otherwise be immutable. Immutability eases multithreading.  
+**Observation: A class has setters with the only purpose to initialize it.**  
+**Problem:** Setters make the class mutable while it may otherwise be immutable. Immutability eases multithreading.  
 **Solution:** Use the [builder pattern](http://www.informit.com/articles/article.aspx?p=1216151&seqNum=2) instead of setter methods and make sure it is immutable.
 
 #### TUTC06
 
-**Observation: Mutable objects are used in HttpSession or PortletSession.  
-****Problem:** Objects in the HttpSession are accessed by multiple threads, for example consecutive threads from the thread pool, or concurrent portlet threads. HttpSession.getAttribute, setAttribute and removeAttribute are synchronized. A call to setAttribute is needed after modifications: it will make the reference to the object visible to other threads, as well as all modifications to the object itself which happened before that. However, there is no atomicity of the modification operations on the object itself, it may be interrupted by other threads and become in inconsistent state.  
+**Observation: Mutable objects are used in HttpSession or PortletSession.**   
+**Problem:** Objects in the HttpSession are accessed by multiple threads, for example consecutive threads from the thread pool, or concurrent portlet threads. HttpSession.getAttribute, setAttribute and removeAttribute are synchronized. A call to setAttribute is needed after modifications: it will make the reference to the object visible to other threads, as well as all modifications to the object itself which happened before that. However, there is no atomicity of the modification operations on the object itself, it may be interrupted by other threads and become in inconsistent state.  
 **Solution:** Objects used in HttpSessions should be immutable. If modification is needed, a new version of the object should be put in session with setAttribute. If this is not possible (why?), be sure to access the the object in session in a thread-safe way, using a lock around access and modification. Warning: This is difficult to get right and error prone. This problem and solution is described in [full detail by Brian Goetz](https://www.ibm.com/developerworks/library/j-jtp09238/).
-
-####   
 
 #### TUTC07
 
-  
-
-**Observation: A singleton, or more general: an object shared among threads, is used with non-final and/or mutable fields and the fields are not guarded (e.g. accessor methods are not synchronized), while typically fields are not intended to change after initialization. This includes Spring @Component, @Controller, @Service and @Repository annotated classes for application and session scope and **JavaEE bean-managed** @Singleton annotated classes.  
-****Problem:** Multiple threads typically access fields of a singleton or may access fields in session scoped objects. If a field or its reference is mutable, access is thread-unsafe and may cause corruption or visibility problems. To make this thread-safe, that is, guard the field e.g. with synchronized methods, may cause contention.  
+**Observation: A singleton, or more general: an object shared among threads, is used with non-final and/or mutable fields and the fields are not guarded**   (e.g. accessor methods are not synchronized), while typically fields are not intended to change after initialization. This includes Spring @Component, @Controller, @Service and @Repository annotated classes for application and session scope and **JavaEE bean-managed** @Singleton annotated classes.  
+**Problem:** Multiple threads typically access fields of a singleton or may access fields in session scoped objects. If a field or its reference is mutable, access is thread-unsafe and may cause corruption or visibility problems. To make this thread-safe, that is, guard the field e.g. with synchronized methods, may cause contention.  
 **Solution**: Make the fields final and unmodifiable. If they really need to be mutable, make access thread-safe. Thread-safety can be achieved e.g. by proper synchronization and use the [@GuardedBy](#TUTC04) annotation or use of [volatile](https://www.ibm.com/developerworks/library/j-jtp06197/).
 
 **Notes**
