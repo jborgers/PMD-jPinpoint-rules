@@ -90,6 +90,7 @@ or simply:
 You can add new rules using the following steps below. The steps basically tell you to create 3 files. 
 As an example you can copy existing files and change the content according to your needs.
 
+- document the pitfall in the proper page in docs/ and [regenerate the ToC](https://luciopaiva.com/markdown-toc/)
 - add the Test class in `src/test/java/com/.../perf/lang/java/ruleset/yourruleset/YourRule.java` 
 elements from the package structure are used to lookup the rules xml file you add next. 
 The relevant items based on the example given are the following: lang/**java**/ruleset/**yourruleset** 
