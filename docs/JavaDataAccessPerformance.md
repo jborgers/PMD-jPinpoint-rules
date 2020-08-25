@@ -1,46 +1,23 @@
 
-Java Data Access Performance
+Java Data Access Performance - performance pitfalls and best practices
 ===================================================================
 
 By Jeroen Borgers (jPinpoint) and Peter Paul Bakker (Stokpop)
 
-Java database access performance pitfalls and best practices
-============================================================
+# Table of contents
 
-*   [Java database access performance pitfalls and best practices](#JavaDataAccessPerformance-Javadatabaseaccessperformancepitfallsandbestpractices)
-    *   [Introduction](#JavaDataAccessPerformance-Introduction)
-        *   [IDA: Inefficient Data Access - Pitfall identifiers](#JavaDataAccessPerformance-IDA:InefficientDataAccess-Pitfallidentifiers)
-    *   [Too many Rows in Memory](#JavaDataAccessPerformance-ToomanyRowsinMemory)
-        *   [IDA-TRM01](#JavaDataAccessPerformance-IDA-TRM01)
-        *   [IDA-TRM02](#JavaDataAccessPerformance-IDA-TRM02)
-        *   [IDA-TRM03](#JavaDataAccessPerformance-IDA-TRM03)
-    *   [Power of the Database Not utilized](#JavaDataAccessPerformance-PoweroftheDatabaseNotutilized)
-        *   [IDA-PDN01](#JavaDataAccessPerformance-IDA-PDN01)
-    *   [Power of the Framework is Not utilized](#JavaDataAccessPerformance-PoweroftheFrameworkisNotutilized)
-        *   [IDA-PFN01](#JavaDataAccessPerformance-IDA-PFN01)
-    *   [Too many returned Rows or Roundtrips](#JavaDataAccessPerformance-ToomanyreturnedRowsorRoundtrips)
-        *   [IDA-TRR01](#JavaDataAccessPerformance-IDA-TRR01)
-        *   [IDA-TRR02](#JavaDataAccessPerformance-IDA-TRR02)
-        *   [IDA-TRR03](#JavaDataAccessPerformance-IDA-TRR03)
-        *   [IDA-TRR04](#JavaDataAccessPerformance-IDA-TRR04)
-        *   [IDA-TRR05](#JavaDataAccessPerformance-IDA-TRR05)
-    *   [Too many Columns Transferred](#JavaDataAccessPerformance-ToomanyColumnsTransferred)
-        *   [IDA-TCT01](#JavaDataAccessPerformance-IDA-TCT01)
-        *   [IDA-TCT02](#JavaDataAccessPerformance-IDA-TCT02)
-        *   [IDA-TCT03](#JavaDataAccessPerformance-IDA-TCT03)
-    *   [Batch and Mass Statements not utilized](#JavaDataAccessPerformance-BatchandMassStatementsnotutilized)
-        *   [IDA-BMS01](#JavaDataAccessPerformance-IDA-BMS01)
-        *   [IDA-BMS02](#JavaDataAccessPerformance-IDA-BMS02)
-        *   [IDA-BMS03](#JavaDataAccessPerformance-IDA-BMS03)
-    *   [IN-operator with many or a varying number of values](#JavaDataAccessPerformance-IN-operatorwithmanyoravaryingnumberofvalues)
-        *   [IDA-INO01](#JavaDataAccessPerformance-IDA-INO01)
-    *   [JDBC/database resource leaks](#JavaDataAccessPerformance-JDBC/databaseresourceleaks)
-        *   [IDA-JRL01](#JavaDataAccessPerformance-IDA-JRL01)
-    *   [Incorrect Use of database Statements](#JavaDataAccessPerformance-IncorrectUseofdatabaseStatements)
-        *   [IDA-IUS01](#JavaDataAccessPerformance-IDA-IUS01)
-    *   [Entity Equals and HashCode not properly defined](#JavaDataAccessPerformance-EntityEqualsandHashCodenotproperlydefined)
-        *   [IDA-EEH01](#JavaDataAccessPerformance-IDA-EEH01)
-
+- [Introduction](#introduction)
+- [Too many Rows in Memory](#too-many-rows-in-memory)
+- [Power of the Database Not utilized](#power-of-the-database-not-utilized)
+- [Power of the Framework is Not utilized](#power-of-the-framework-is-not-utilized)
+- [Too many returned Rows or Roundtrips](#too-many-returned-rows-or-roundtrips)
+- [Too many Columns Transferred](#too-many-columns-transferred)
+- [Batch and Mass Statements not utilized](#batch-and-mass-statements-not-utilized)
+- [IN-operator with many or a varying number of values](#in-operator-with-many-or-a-varying-number-of-values)
+- [JDBC/database resource leaks](#jdbcdatabase-resource-leaks)
+- [Incorrect Use of database Statements](#incorrect-use-of-database-statements)
+- [Entity Equals and HashCode not properly defined](#entity-equals-and-hashcode-not-properly-defined)
+  
 Introduction
 ------------
 
