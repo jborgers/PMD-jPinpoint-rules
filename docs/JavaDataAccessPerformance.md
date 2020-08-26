@@ -38,7 +38,7 @@ Too many Rows in Memory
 
 **Observation: All query results are fetched at once.**  
 **Problem:** All result rows and generated entities are stored in memory and this may take much space introducing long gc times and risk of an out of memory situation.  
-**Solution:** Use an iterator to iterate through the set of result rows while processing them, and utilize setFetchSize. Set fetch size for each query such that in most cases the the number of rows actually returned/processed just fits in that size. Note that for sizes larger than one hundred, memory usage may become an issue, depending on how much data is in the returned columns/rows. So, only set it higher than 100 if you know there is only little data returned per row, like 3 rather short columns.
+**Solution:** Use an iterator to iterate through the set of result rows while processing them, and utilize setFetchSize. Set fetch size for each query such that in most cases the number of rows actually returned/processed just fits in that size. Note that for sizes larger than one hundred, memory usage may become an issue, depending on how much data is in the returned columns/rows. So, only set it higher than 100 if you know there is only little data returned per row, like 3 rather short columns.
 
   
 
@@ -65,7 +65,7 @@ ResultHandler<T> {
 ````
 See [MyBatis SqlSession documentation](http://www.mybatis.org/mybatis-3/java-api.html#SqlSession).
 
-[This Stack overflow answer](http://stackoverflow.com/questions/6546136/handling-very-large-amount-of-data-in-mybatis) (2nd answer, remark) suggests to add an annotation:
+[This Stack overflow answer](https://stackoverflow.com/questions/6546136/handling-very-large-amount-of-data-in-mybatis#comment-18653467) (2nd answer, remark) suggests to add an annotation:
 ````java
 @Options(fetchSize = Integer.MIN_VALUE)
 ````
@@ -106,7 +106,7 @@ private static final COMMIT_INTERVAL = 10000; // too much
 ### IDA-TRM03
 
 **Observation: A query fetch size of >100 is used.**  
-**Problem:** >100 result rows are stored in memory and depending on how much data is in the returned columns/rows, this takse much space introducing long gc times and risk of an out of memory situation.  
+**Problem:** >100 result rows are stored in memory and depending on how much data is in the returned columns/rows, this takes much space introducing long gc times and risk of an out of memory situation.  
 **Solution:** Set fetch size to <=100. Only set it higher than 100 yet still <= 500, if you are sure there is only little data returned per row, like 3 rather short columns.
 
 Power of the Database Not utilized
@@ -234,7 +234,7 @@ This can be an easy general performance improvement to change for a whole persis
 
 #### JPA details
 
-Unfotunately, JPA does not (yet) support setFetchSize directly: queries created from EntityManager do not provide the method. 
+Unfortunately, JPA does not (yet) support setFetchSize directly: queries created from EntityManager do not provide the method. 
 It needs to be called in an implementation-specific way. For JPA implemented by Hibernate, you can use the following way to get to the Hibernate session:
 ````java
  Session session = entityManager.unwrap(Session.class);
@@ -278,7 +278,7 @@ See [Javadoc](http://docs.oracle.com/javase/7/docs/api/java/sql/Statement.html#s
 ````java
  prepStmt.setMaxRows(25);
 ````
-Note that the setMaxRows only limits/affects the clients side JDBC Object. To also optimize the database query itself, use database specific SQL, ROWNUM for Oracle to create a different query, like:
+Note that the setMaxRows only limits/affects the client's side JDBC Object. To also optimize the database query itself, use database specific SQL, ROWNUM for Oracle to create a different query, like:
 ````sql
 SELECT * FROM employees WHERE ROWNUM < 11;
 ````
@@ -582,7 +582,7 @@ A [WebSphere specific alternative configuration](https://www.ibm.com/support/kno
 ````
   
 
-We found in project that it is not working. Solved with a BatchHandler class based on Hibernate to deal with this in a proper way.
+We found in a project that it is not working. Solved with a BatchHandler class based on Hibernate to deal with this in a proper way.
 
   
 
@@ -595,7 +595,7 @@ We found in project that it is not working. Solved with a BatchHandler class bas
 *   preferably one **mass update** (aka bulk update) statement. This only needs one roundtrip to the database and one statement to be executed by the database. Simple arithmetic like +1 is also possible in such a mass update.
 *   In case the bind variable(s) need to be different for different rows, this may not be possible. In that case, use a batch update: many statements in one round trip. (Or actually 1 prepared statement with bind variables which are different for different rows.)
 
-**Caution!:** Be aware that a mass update bypasses the Object Relational Mapper (JPA/Hibernate). This may result in stale objects in sessions/caches, these should be properly flushed before the mass update. In addition, in case of optimistic locking, the version column is not updated. Therefore, it needs to be updated as part of the bulk update. Moreover, the bulk update does not do optimistic locking by itself, so updates of other threads during the mass update are not taken into account and may be overritten/get lost.
+**Caution!:** Be aware that a mass update bypasses the Object Relational Mapper (JPA/Hibernate). This may result in stale objects in sessions/caches, these should be properly flushed before the mass update. In addition, in case of optimistic locking, the version column is not updated. Therefore, it needs to be updated as part of the bulk update. Moreover, the bulk update does not do optimistic locking by itself, so updates of other threads during the mass update are not taken into account and may be overwritten/get lost.
 
 #### JPA details
 
@@ -663,7 +663,7 @@ try {
 ````
 Note that in this example we don't catch and handle exceptions, which would be needed for real life code.
 
-Java 7+ try-with-resources and AutoClosable makes this example much easier:
+Java 7+ try-with-resources and AutoCloseable makes this example much easier:
 ````java
  try(Connection con = dataSource.getConnection(); Statement stmt = con.createStatement(); 
     ResultSet rs = stmt.executeQuery("some query")) {
@@ -680,7 +680,7 @@ Incorrect Use of database Statements
 ### IDA-IUS01
 
 **Observation: JDBC Prepared Statements or Callable Statements are built with concatenating variables.**  
-**Problem:** PreparedStatements (and CallableStatements) are meant to be used with bind variables only. Using cancatenation will generate multiple entries in the Statement cache of the app server, increasing cache misses and increasing memory usage of the cache. Additionally for security, enables SQL-injection.  
+**Problem:** PreparedStatements (and CallableStatements) are meant to be used with bind variables only. Using concatenation will generate multiple entries in the Statement cache of the app server, increasing cache misses and increasing memory usage of the cache. Additionally for security, enables SQL-injection.  
 **Solution:** Use proper bind variables only.
 
 #### JDBC details
