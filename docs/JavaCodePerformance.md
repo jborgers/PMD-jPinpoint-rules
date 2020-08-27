@@ -289,7 +289,7 @@ In Spring config:
 #### IC11
 
 **Observation: ehcache default cache configuration is used.**  
-**Problem:** Default configuration is confusing: it only applies to programmatically created caches by addCache(). These caches can be created and used without explicit configuration, yet implicitely with the default configuration, which can be wrong. Caches need to be tuned individually.  
+**Problem:** Default configuration is confusing: it only applies to programmatically created caches by addCache(). These caches can be created and used without explicit configuration, yet implicitly with the default configuration, which can be wrong. Caches need to be tuned individually.  
 **Solution:** Remove the default cache configuration. This way, an error is generated if caches are created by name (programmatically) with no defaultCache loaded. This is clear and fail-fast. Configure each ehcache declaratively in ehcache.xml.
 
 #### IC12
@@ -369,7 +369,7 @@ response.setRenderParameter("page", "initiatePayment");
 
 *   Remove collections dynamic growth overhead.
 *   For instance, an ArrayList has the default initial capacity of 10 elements. This memory overhead can be avoided with use of the [constructor with capacity argument](http://docs.oracle.com/javase/6/docs/api/java/util/ArrayList.html#ArrayList%28int%29) or removed with [trimToSize()](http://docs.oracle.com/javase/6/docs/api/java/util/ArrayList.html#trimToSize%28%29).
-*   A HashMap can be presized with initial capacity and load factor, however it has more space overhead than ArrayList. For not too many elements (<50) consider to use an ArrayList instead. Operations like contains() looping over 50 elements is usually fast enough.
+*   A HashMap can be pre-sized with initial capacity and load factor, however it has more space overhead than ArrayList. For not too many elements (<50) consider to use an ArrayList instead. Operations like contains() looping over 50 elements is usually fast enough.
 *   Use an array instead of an ArrayList, it has less space overhead.
 *   Use primitives instead of wrappers, e.g. a long instead of a Long.
 *   String.substring() always shares the backing char\[\] with the original String. This holds for both the IBM and the Hotspot JRE. If you create small String(s) out of a big String with substring (a rare case) and you only want to retain a small part of the whole char\[\] by small one(s), prevent retaining the original big char\[\] by:
@@ -390,7 +390,7 @@ Note that for StringBuilder.substring this is not needed, since it does make a c
 
 #### TMSU11
 
-**Observation: ModelMaps are implicitly added to the session.** Spring BindingAwareModelMaps are implicitely and automagically added to the portlet session by Spring MVC under certain conditions. A Controller with the following code is problematic:
+**Observation: ModelMaps are implicitly added to the session.** Spring BindingAwareModelMaps are implicitly and automagically added to the portlet session by Spring MVC under certain conditions. A Controller with the following code is problematic:
 
 ```java
 @ActionMapping
@@ -555,7 +555,7 @@ Note that LocalDateTime is faster than DateTime, however, be aware of its time z
 #### IUOXAR09
 
 **Observation: XML related XXXFactory.newInstance() is called repeatedly.**  
-**Problem:** Upon instance creation of javax.xml.transform.TransformerFactory, javax.xml.parsers.DocumentBuilderFactory, javax.xml.soap.MessageFactory or javax.xml.validation.SchemaFactory, a.o. the file system is searched for an implementing class in a jar file. This is expensive. The factories are not thread-safe, so they cannot simply be made static and/or shared among threads.  
+**Problem:** Upon instance creation of javax.xml.transform.TransformerFactory, javax.xml.parsers.DocumentBuilderFactory, javax.xml.soap.MessageFactory or javax.xml.validation.SchemaFactory, i.a. the file system is searched for an implementing class in a jar file. This is expensive. The factories are not thread-safe, so they cannot simply be made static and/or shared among threads.  
 **Solution:**
 
 1.  Preferably create the factory once. Use a lock to guard the factory, preferably with a synchronizing wrapper. Be aware of possible contention. Or use a ThreadLocal.
@@ -740,7 +740,7 @@ MDC.remove("UserId");
 
 **Problem:** Logging is I/O which can take much time away from the user request/response.
 
-**Solution:** Use Asynchronous logging. In logback you can use: _ch.qos.logback.classic.AsyncAppender._ Log lines are put in a queue and the user does not have to wait for the actual logging, which is handled in a separate thread. You need to think about a.o. maximum queue size, data loss and what information to transfer to the logging thread (MDC).
+**Solution:** Use Asynchronous logging. In logback you can use: _ch.qos.logback.classic.AsyncAppender._ Log lines are put in a queue and the user does not have to wait for the actual logging, which is handled in a separate thread. You need to think about i.a. maximum queue size, data loss and what information to transfer to the logging thread (MDC).
 
 Improper Streaming I/O
 ----------------------
@@ -830,7 +830,7 @@ Extensive use of classpath scanning
 
 #### EUOCS02
 
-**Observation: A Spring component scan is used explicitely** (to complete with example)
+**Observation: A Spring component scan is used explicitly** (to complete with example)
 
 **Problem:** A component scan uses extensive class path scanning which is expensive.
 
@@ -967,7 +967,7 @@ public class StringBuilder {
 
 **Observation: Mutable objects are used in HttpSession or PortletSession.**   
 **Problem:** Objects in the HttpSession are accessed by multiple threads, for example consecutive threads from the thread pool, or concurrent portlet threads. HttpSession.getAttribute, setAttribute and removeAttribute are synchronized. A call to setAttribute is needed after modifications: it will make the reference to the object visible to other threads, as well as all modifications to the object itself which happened before that. However, there is no atomicity of the modification operations on the object itself, it may be interrupted by other threads and become in inconsistent state.  
-**Solution:** Objects used in HttpSessions should be immutable. If modification is needed, a new version of the object should be put in session with setAttribute. If this is not possible (why?), be sure to access the the object in session in a thread-safe way, using a lock around access and modification. Warning: This is difficult to get right and error prone. This problem and solution is described in [full detail by Brian Goetz](https://www.ibm.com/developerworks/library/j-jtp09238/).
+**Solution:** Objects used in HttpSessions should be immutable. If modification is needed, a new version of the object should be put in session with setAttribute. If this is not possible (why?), be sure to access the object in session in a thread-safe way, using a lock around access and modification. Warning: This is difficult to get right and error prone. This problem and solution is described in [full detail by Brian Goetz](https://www.ibm.com/developerworks/library/j-jtp09238/).
 
 #### TUTC07
 
@@ -982,7 +982,7 @@ public class StringBuilder {
 3.  Autowiring/injection is thread safe, yet make sure no other thread-unsafe assignment is made to that field.
 4.  In case you are sure the Component is used in single threaded context only (e.g. a Tasklet), annotate the class with @NotThreadSafe to make this explicit.
 5.  Use package private and @VisibleForTesting for methods used for JUnit only.
-6.  [Documentation on o.a. using final for threads-safety](https://www.securecoding.cert.org/confluence/display/java/TSM03-J.+Do+not+publish+partially+initialized+objects) and from the [JLS](http://docs.oracle.com/javase/specs/jls/se8/html/jls-17.html#jls-17.5): An object is considered to be _completely initialized_ when its constructor finishes. A thread that can only see a reference to an object after that object has been completely initialized is guaranteed to see the correctly initialized values for that object's `final` fields.
+6.  [Documentation on a.i. using final for threads-safety](https://www.securecoding.cert.org/confluence/display/java/TSM03-J.+Do+not+publish+partially+initialized+objects) and from the [JLS](http://docs.oracle.com/javase/specs/jls/se8/html/jls-17.html#jls-17.5): An object is considered to be _completely initialized_ when its constructor finishes. A thread that can only see a reference to an object after that object has been completely initialized is guaranteed to see the correctly initialized values for that object's `final` fields.
 7.  Also [See Java Concurrency In Practice, Chapter 3.5](https://books.google.nl/books?id=EK43StEVfJIC&pg=PA344&lpg=PA344&dq=See+Java+Concurrency+In+Practice,+Chapter+3.5&source=bl&ots=uo0Cw2rRmy&sig=3bythgbuQ6ijOY3vT2oVCGVhd5E&hl=en&sa=X&ved=0ahUKEwi9-8DqyPbTAhVPZlAKHWVBAMMQ6AEITTAH#v=onepage&q=See%20Java%20Concurrency%20In%20Practice%2C%20Chapter%203.5&f=false).
 
 **Example with issues**
@@ -1231,7 +1231,7 @@ for (String val : values) {
 
 **Observation: A StringBuilder used to build long strings is constructed with default capacity.  
 ****Problem:** The default initial capacity of StringBuilder is 16 characters. If more is appended, a new char\[\] will be allocated with: new-capacity = 2 \* capacity + 2. The contents will be copied into the new char\[\] and the old char\[\] can be garbage collected. This allocation, copying and garbage collection takes time.  
-**Solution:** Construct the StringBuilder with an initial capacity explicitely:
+**Solution:** Construct the StringBuilder with an initial capacity explicitly:
 
 ```java
 StringBuilder builder = new StringBuilder(2048);
@@ -1412,7 +1412,7 @@ Violation of Encapsulation, DRY or SRP
 
 **Observation: Object exposes internal mutable state**, a field like an ArrayList or a java.util.Date.  
 **Problem:** The state can be modified outside of the object, e.g. in case of a list it can be modified, added to, removed from or cleared, outside of object. No encapsulation.  
-**Solution:** If not really needed, remove the exposing method. Use proper encapsulation. Apply the object oriented: [Tell, don’t ask](http://pragprog.com/articles/tell-dont-ask) principle: tell the object to do something with the state it owns, instead of asking for the internal state and do something with it outside of the object. If you think you have to expose the object, think again. If you then still have to expose, expose the object only unmodifyably using e.g. java.util.Collections.unmodifyableList() or create a copy in case of a mutable object like java.util.Date (or replace by an immutable type [org.joda.time.LocalDateTime](http://joda-time.sourceforge.net/apidocs/org/joda/time/LocalDateTime.html) or [java.time.LocalDateTime](https://docs.oracle.com/javase/8/docs/api/index.html?java/time/LocalDateTime.html))
+**Solution:** If not really needed, remove the exposing method. Use proper encapsulation. Apply the object oriented: [Tell, don’t ask](http://pragprog.com/articles/tell-dont-ask) principle: tell the object to do something with the state it owns, instead of asking for the internal state and do something with it outside of the object. If you think you have to expose the object, think again. If you then still have to expose, expose the object only unmodifyable using e.g. java.util.Collections.unmodifyableList() or create a copy in case of a mutable object like java.util.Date (or replace by an immutable type [org.joda.time.LocalDateTime](http://joda-time.sourceforge.net/apidocs/org/joda/time/LocalDateTime.html) or [java.time.LocalDateTime](https://docs.oracle.com/javase/8/docs/api/index.html?java/time/LocalDateTime.html))
 
 #### VOEDOS02
 
