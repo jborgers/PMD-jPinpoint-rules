@@ -5,7 +5,7 @@
     <rule name="AvoidImproperAnnotationCombinations"
           language="java"
           message="Don't combine these annotations"
-          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-Annotations"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#Annotations"
           class="net.sourceforge.pmd.lang.rule.XPathRule">
         <description>
             Improper combination of annotations. Problem: these annotations are not meant to be combined and may cause unexpected and unwanted behavior.&#13;
@@ -49,7 +49,7 @@ class Good {
     </rule>
 
     <rule name="AvoidModelMapAsRenderParameter" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="A ModelMap or @ModelAttribute is used as parameter of a portlet render method and implicitely put in the session." typeResolution="true"
-          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-TMSU11">
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#TMSU11">
         <description>Problem: ModelMaps are rather large objects containing explicitly added data and administrative data from Spring. They are added to the Portlet session implicitly. They stay in the session for some time: during session activity and 30 minutes (HTTP timeout) after it, in case the user does not exit explicitly. They occupy heap space during that time, for every user.&#13;
             Solution: Remove the ModelMap from the render method parameter list and create a new local ModelMap to use in the render request scope.
             (jpinpoint-rules)</description>
@@ -72,7 +72,7 @@ Annotation//Name[@Image='RenderMapping'])]
     <rule name="AvoidSpringApplicationContextRecreation"
           message="Avoid re-creation of Spring application context"
           class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
-          typeResolution="true" externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-EUOCS01">
+          typeResolution="true" externalInfoUrl="${doc_root}/JavaCodePerformance.md#EUOCS01">
         <description>
             Problem: When a XXXApplicationContext is created, all Spring beans are initialized, wired and component scanning may take place. Component scanning involves extensive class path scanning which is expensive.&#13;
             Solution: Create the ApplicationContext only once in the application deployed/live time.
@@ -96,7 +96,7 @@ and (
 
     <rule name="AvoidSpringMVCMemoryLeaks" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
           message="Spring Controller returns an additive expression or a ModelAndView object which may cause a MemoryLeak" typeResolution="true"
-          externalInfoUrl="https://www.jpinpoint.com/doc/Java+Code+Performance">
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md">
         <description>Avoid to return an additive expression for a Spring Controller because it may cause a MemoryLeak.
             Each new value returned will create a new entry in the View Cache.
             Also avoid to return a ModelAndView object created using non-static and non-final methods because it may
@@ -141,7 +141,7 @@ and (
     <rule name="MakeAutoWiredConstructedFieldFinal"
           message="Make autowired, constructed field final in objects shared among threads."
           class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
-          typeResolution="true" externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-TUTC07">
+          typeResolution="true" externalInfoUrl="${doc_root}/JavaCodePerformance.md#TUTC07">
         <description>
             Problem: Multiple threads typically access fields of a singleton or may access fields in session scoped objects. If a field or its reference is mutable, non-autowired access is thread-unsafe and may cause corruption or visibility problems. To make this thread-safe, that is, guard the field e.g. with synchronized methods, may cause contention. &#13;
             Solution: Make the fields final and unmodifiable to defend against mutation. If they really need to be mutable (which is strange for autowired fields), make access thread-safe. Thread-safety can be achieved e.g. by proper synchronization and use the @GuardedBy annotation or use of volatile.&#13;
@@ -175,7 +175,7 @@ and  (../../ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='Autowired']
     </rule>
 
     <rule name="MinimizeActionModelMapInSession" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="ModelMap in action method is not cleared. This may bloat the session." typeResolution="true"
-          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-TMSU12">
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#TMSU12">
         <description>A ModelMap is used in an action method typically for form validation and not cleared. Problem: the ModelMap is put in the session by Spring. This is typically a large object which may bloat the session.&#13;
             Solution: clear the ModelMap right after the validation in the happy flow.
             (jpinpoint-rules)</description>
@@ -196,7 +196,7 @@ count(.//PrimaryExpression/PrimaryPrefix/Name[ends-with(@Image,'.clear')])=0]
     </rule>
 
     <rule name="AvoidExpressionsInCacheable" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="Avoid SpEL-expression for computing Cacheable key" typeResolution="true"
-          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-TMSU12">
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#TMSU12">
         <description>Spring Expression Language (SpEL) expression is used for computing the key dynamically. Problem: evaluating the expression language is expensive, on every call.&#13;
             Solution: use a custom KeyGenerator: keyGenerator=... instead of key=...
             (jpinpoint-rules)</description>
@@ -222,7 +222,7 @@ class Bad1 {
     </rule>
 
     <rule name="SynchronizeForKeyInCacheable" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="Synchronize access for each key in @Cacheable" typeResolution="true"
-          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-TMSU12">
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#TMSU12">
         <description>The cache by default allows multiple threads accessing by the same key. Problem: if the value of the key is not available from the cache, it will be fetched/computed by multiple threads while only one time is needed.&#13;
             Solution: Let only the first accessing thread fetch/compute the value and block others until the value is in the cache. Add attribute sync = "true" to achieve this. (Assuming the cache implementation supports it.)
             (jpinpoint-rules)</description>
@@ -254,7 +254,7 @@ class Good1 {
     </rule>
 
     <rule name="AvoidSimpleCaches" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="Avoid simple caching in production" typeResolution="true"
-          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-IC08">
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#IC08">
         <description>Simple caches are used. Problem: Simple caching is meant for testing and prototyping and it lacks manageability and monitorability.&#13;
             Solution: Use a proper cache implementation like ehcache or a cloud cache.
             (jpinpoint-rules)</description>
