@@ -66,7 +66,7 @@ public class CDIStuff {
           message="A Calendar is inefficient in memory usage."
           class="net.sourceforge.pmd.lang.rule.XPathRule"
           typeResolution="true"
-          externalInfoUrl="${pmd.website.baseurl}/pmd_rules_performance.html#AvoidCalendar">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#imu01">
         <description>Problem: A Calendar is a heavyweight object and expensive to create. &#13;
             Solution: Use Date, Java 8+ java.time.[Local/Zoned]DateTime or joda time [Local]DateTime.
         (jpinpoint-rules)</description>
@@ -351,7 +351,7 @@ and
           message="List is not modified, make it immutable or unmodifiable"
           class="net.sourceforge.pmd.lang.rule.XPathRule"
           typeResolution="true"
-          externalInfoUrl="${pmd.website.baseurl}/Java+Code+Performance#JavaCodePerformance-PML01">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#PML01">
         <description>Problem: A list which is unnecessarily mutable may accidentally be added to and cause a memory leak. &#13;
             Solution: Make it impossible to modify the list after initialization: use Java 9 List.of, Collections.unmodifiableList or Guava ImmutableList.
         (jpinpoint-rules)</description>
@@ -768,7 +768,7 @@ count(ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDecla
     </rule>
 
     <rule name="InconsistentEqualsAndHashCode" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="Equals and hashCode are not based on the same fields or use inconsistent conversion." typeResolution="true"
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#IncorrectequalsandhashCode">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodeQuality.md#IncorrectequalsandhashCode">
         <description>Problem: If equals and hashCode are inconsistent, strange things can happen like adding the object to a Set and not being able to find it back.&#13;
             Solution: Use the same fields in equals and hashCode and if conversions are needed, use identical conversions in both. So don't use equalsIgnoreCase. (jpinpoint-rules)</description>
         <priority>2</priority>
@@ -1131,7 +1131,7 @@ class Bad1 {
           message="Avoid memory intensive FileItem.get and FileItem.getString"
           class="net.sourceforge.pmd.lang.rule.XPathRule"
           typeResolution="true"
-          externalInfoUrl="${pmd.website.baseurl}/pmd_rules_performance.html#AvoidApacheCommonsFileItemNonStreaming">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#isio03">
         <description>
             Problem: Use of FileItem.get and FileItem.getString could exhaust memory since they load the entire file into memory&#13;
             Solution: Use streaming methods and buffering.
@@ -1182,7 +1182,7 @@ public class FileStuff {
           message="A Calendar is used to create a Date or DateTime, this is expensive."
           class="net.sourceforge.pmd.lang.rule.XPathRule"
           typeResolution="true"
-          externalInfoUrl="${pmd.website.baseurl}/pmd_rules_performance.html#AvoidCalendarDateCreation">
+          externalInfoUrl="{doc_root}/JavaCodePerformance.md#ue01">
         <description>Problem: A Calendar is a heavyweight object and expensive to create. &#13;
             Solution: Use 'new Date()', Java 8+ java.time.[Local/Zoned]DateTime.now() or joda time '[Local]DateTime.now()'.
         (jpinpoint-rules)</description>
@@ -1228,7 +1228,7 @@ public class DateStuff {
           message="Concatenation inside append. Use extra append."
           class="net.sourceforge.pmd.lang.rule.XPathRule"
           typeResolution="true"
-          externalInfoUrl="${pmd.website.baseurl}/pmd_rules_performance.html#AvoidConcatInAppend">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#isu04">
         <description>Concatenation of Strings is used inside an StringBuilder.append argument. Problem: Each statement with one or more +-operators creates a hidden temporary StringBuilder, a char[] and a new String object, which all have to be garbage collected.&#13;
             Solution: Use an extra fluent append instead of concatenation.
             (jpinpoint-rules)</description>
@@ -1276,7 +1276,7 @@ public class StringStuff {
           message="A String is concatenated in a loop. Use StringBuilder.append."
           class="net.sourceforge.pmd.lang.rule.XPathRule"
           typeResolution="true"
-          externalInfoUrl="${pmd.website.baseurl}/pmd_rules_performance.html#AvoidConcatInLoop">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#isu02">
         <description>A String is built in a loop by concatenation. Problem: Each statement with one or more +-operators creates a hidden temporary StringBuilder, a char[] and a new String object, which all have to be garbage collected. &#13;
             Solution: Use the StringBuilder append method.
         (jpinpoint-rules)</description>
@@ -1288,7 +1288,6 @@ public class StringStuff {
 (//ForStatement | //WhileStatement | //DoStatement)//AssignmentOperator[
     (: a += ...;  -- a being a string :)
     @Image='+=' and preceding-sibling::*[1]/PrimaryPrefix/Name[pmd-java:typeIs('java.lang.String')]
-
     (: a = ... + a + ...; -- a being a string :)
     or @Image='=' and following-sibling::*[1]/AdditiveExpression/PrimaryExpression/PrimaryPrefix/Name[
         pmd-java:typeIs('java.lang.String')

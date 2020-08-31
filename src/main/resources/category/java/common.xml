@@ -895,7 +895,7 @@ public RetrieveCache(final @Value("${cache.expiryTimeSeconds}") long timeToLiveS
     </rule>
 
     <rule name="InconsistentEqualsAndHashCode" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="Equals and hashCode are not based on the same fields or use inconsistent conversion." typeResolution="true"
-          externalInfoUrl="${doc_root}/JavaCodePerformance.md#IncorrectequalsandhashCode">
+          externalInfoUrl="${doc_root}/JavaCodeQuality.md#IncorrectequalsandhashCode">
         <description>Problem: If equals and hashCode are inconsistent, strange things can happen like adding the object to a Set and not being able to find it back.&#13;
             Solution: Use the same fields in equals and hashCode and if conversions are needed, use identical conversions in both. So don't use equalsIgnoreCase. (jpinpoint-rules)</description>
         <priority>2</priority>
@@ -1022,7 +1022,7 @@ class Bad1 {
           message="A Calendar is inefficient in memory usage."
           class="net.sourceforge.pmd.lang.rule.XPathRule"
           typeResolution="true"
-          externalInfoUrl="${pmd.website.baseurl}/pmd_rules_performance.html#AvoidCalendar">
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#imu01">
         <description>Problem: A Calendar is a heavyweight object and expensive to create. &#13;
             Solution: Use Date, Java 8+ java.time.[Local/Zoned]DateTime or joda time [Local]DateTime.
         </description>
@@ -1061,7 +1061,7 @@ public class CalendarStuff {
           message="List is not modified, make it immutable or unmodifiable"
           class="net.sourceforge.pmd.lang.rule.XPathRule"
           typeResolution="true"
-          externalInfoUrl="${pmd.website.baseurl}/Java+Code+Performance#JavaCodePerformance-PML01">
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#PML01">
         <description>Problem: A list which is unnecessarily mutable may accidentally be added to and cause a memory leak. &#13;
             Solution: Make it impossible to modify the list after initialization: use Java 9 List.of, Collections.unmodifiableList or Guava ImmutableList.
         </description>
