@@ -3,6 +3,17 @@ Java code quality - pitfalls and best practices
 =============================================
 By Jeroen Borgers ([jPinpoint](www.jpinpoint.com)) and Peter Paul Bakker ([Stokpop](www.stokpop.com)), sponsered by Rabobank
 
+# Table of contents
+
+- [Introduction](#introduction)
+- [Improper use of BigDecimal](#improper-use-of-bigdecimal)
+- [Improper amount representation](#improper-amount-representation)
+- [Incorrect equals and hashCode](#incorrect-equals-and-hashcode)
+- [Potential Session Data Mix-up](#potential-session-data-mix-up)
+- [Suspicious code constructs](#suspicious-code-constructs)
+
+Introduction 
+------------
 We categorized many performance and quality issues based on performance code reviews, load tests, heap analyses, profiling and production problems of various applications. Several of these items are automated into PMD-jPinpoint-rules code checks.
 The next items do have performance implications. However, they are actually more concerning general software quality or security.
 
