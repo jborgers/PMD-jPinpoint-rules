@@ -10,7 +10,7 @@
           message="Explicit CDI references need to be destroyed otherwise they leak."
           class="net.sourceforge.pmd.lang.rule.XPathRule"
           typeResolution="true"
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#AvoidCDIReferenceLeak">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#pml05">
         <description>Problem: A proxy object is created by CDI for explicit references, they are not de-referenced implicitly and become a memory leak. &#13;
             Solution: Destroy the reference explicitly.
         (jpinpoint-rules)</description>
@@ -188,7 +188,7 @@ or typeIs('org.apache.http.conn.ClientConnectionManager')
     <rule name="AvoidDuplicateAssignmentsInCases"
           message="Avoid duplicate assignments in different switch cases"
           class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
-          typeResolution="true" externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodeQuality#CSC01">
+          typeResolution="true" externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodeQuality.md#SSC01">
         <description>
             Problem: Potential bug: expected are different assignments in different cases.&#13;
             Solution: assign different values in different cases, common assignments should be taken out of the switch.
@@ -716,7 +716,7 @@ ancestor::MethodDeclaration//PrimarySuffix/@Image="disableConnectionState")]
     <rule name="ImplementEqualsHashCodeOnValueObjects"
           message="Equals and/or hashCode is missing for a value object."
           class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
-          typeResolution="true" externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#IncorrectequalsandhashCode">
+          typeResolution="true" externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodeQuality.md#incorrect-equals-and-hashcode">
         <description>
             Problem: If equals and hashCode are not defined, they don't meet the programmer's expectations and the requirements for use with the collections API. It may result in unexpected, undesired behavior.&#13;
             Solution: Add proper equals and hashCode methods that meet the equals-hashCode contract to all objects which might anyhow be put in a Map, Set or other collection. If the object should never be checked for equality or used in a collection, also add those methods and let them throw UnsupportedOperationException to fail fast. @Xml... and @Entity objects are ignored because they are assumed to be not used as value objects.
@@ -768,7 +768,7 @@ count(ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDecla
     </rule>
 
     <rule name="InconsistentEqualsAndHashCode" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="Equals and hashCode are not based on the same fields or use inconsistent conversion." typeResolution="true"
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodeQuality.md#IncorrectequalsandhashCode">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodeQuality.md#incorrect-equals-and-hashcode">
         <description>Problem: If equals and hashCode are inconsistent, strange things can happen like adding the object to a Set and not being able to find it back.&#13;
             Solution: Use the same fields in equals and hashCode and if conversions are needed, use identical conversions in both. So don't use equalsIgnoreCase. (jpinpoint-rules)</description>
         <priority>2</priority>

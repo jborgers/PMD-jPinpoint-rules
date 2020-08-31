@@ -149,7 +149,7 @@ Session data mixup is one of the worst problems that can occur. Customers seeing
 Suspicious code constructs
 --------------------------
 
-### CSC01
+### SSC01
 
 **Observation: Multiple switch cases contain the same assignment**  
 **Problem:** Identical assignments to the same variable are very likely a bug. It lead to a production incident in a project.  
