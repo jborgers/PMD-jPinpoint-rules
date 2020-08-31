@@ -1,15 +1,17 @@
 # PMD-jpinpoint-rules
-PMD rule set for performance aware Java coding, sponsored by Rabobank. The project is meant for creating and managing 
-automatic java code checks. 
-These checks are based on what we have learned in several years of analyzing performance problems and other defects and failures 
+PMD rule set for performance aware Java coding, sponsored by Rabobank. 
+
+The purpose of this project is to create and manage automatic java code checks.
+ 
+We have distilled these code checks from what we learned in several years of analyzing performance problems and other defects and failures 
 found in code, tests and production situations.
 
-We didn't find these checks in other places, like the the standard PMD, FindBugs/Spotbugs, Checkstyle or Sonar rules.
+We didn't find these checks in other places, like the standard PMD, FindBugs/Spotbugs, Checkstyle or Sonar rules.
 If you find duplicates of existing ones, please let us know. 
 We offered these rules to the PMD-team for inclusion in the standard rules and we were warmly welcomed. We have been working with them to upgrade and merge (some of) the jpinpoint rules in the standard and looking for sponsorship to continue with that.
 You don't have to wait for that, you can already use these as custom rules right now.
 
-The jpinpoint rules can be run from the command-line using the PMD tool, from your favorite development
+Run the jPinpoint rules from the command-line using the PMD tool, from your favorite development
 environment with a PMD-plugin, or in SonarQube after packaging them as Sonar plugin.
 
 ## See also
@@ -34,7 +36,7 @@ After installing the tool you can run `pmd.sh` or `pmd.bat` similar to the follo
 
 ## IntelliJ IDEA
 
-- You need a recent version of IntelliJ, 2018+. Community Edition is fine
+- You need a recent version of IntelliJ. The Community Edition is fine.
 - Install PMDPlugin: 
 
       Settings/Preferences > Plugins > Browse Repositories > Search 'PMDPlugin' > Select 'PMDPlugin' > Install > Close > OK > Restart
@@ -52,7 +54,7 @@ After installing the tool you can run `pmd.sh` or `pmd.bat` similar to the follo
  
       Run PMD > Custom rules > jpinpoint-rules
 
-- If you want more information on a violation: hover over a violation title to get a details popup. 
+- If you want more information on a violation: hover over a violation title to get a popup with details. 
 
 *Known Bug: the jpinpoint-rules can be listed multiple times in the PMD Plugin: this is a bug and should be resolved by restarting IntelliJ*
 
@@ -90,13 +92,15 @@ or simply:
 
 ## Adding new rules
 
-You can add new rules using the following steps below. The steps basically tell you to create 3 files. 
+You can add new rules using the steps below. 
+
+The steps basically tell you to create 3 files. 
 As an example you can copy existing files and change the content according to your needs.
 
 - document the pitfall in the proper page in docs/ and [regenerate the ToC](https://luciopaiva.com/markdown-toc/)
 - add the Test class in `src/test/java/com/.../perf/lang/java/ruleset/yourruleset/YourRule.java` 
 elements from the package structure are used to lookup the rules xml file you add next. 
-The relevant items based on the example given are the following: lang/**java**/ruleset/**yourruleset** 
+The relevant items based on the example given are: lang/**java**/ruleset/**yourruleset** 
 - rules go into xml files found in `src/main/resources/category/` in this case 
 src/main/resources/category/**java**/**yourruleset.xml**. Also add a rule with name `YourRule` 
 since that is what the framework expects.
@@ -128,7 +132,7 @@ construct the unit test files:
 
 ## Code Style Indentation
 
-- Indentation: Use spaces aka **Disable Tabs**: *Settings>Editor>Code Style>Java>Use tab character [disable]*
+- Indentation: Use spaces a.k.a. **Disable Tabs**: *Settings>Editor>Code Style>Java>Use tab character [disable]*
 
 ## Contents of the project
 - `rulesets/java/jpinpoint-rules.xml` contains the pmd custom rule definitions
@@ -146,15 +150,15 @@ construct the unit test files:
 
 ### Merging from different categories
 
- If the merger tool is run as follows:
+ Run the merger tool as follows:
 
     rulesets-merger/mvn exec:java
     
- or simply
+ or simply:
  
     ./merge
 
- It will just merge the rules from ``src/main/resources/category/java/*.xml`` to create the jpinpoint-rules.xml file which can be used in your IDE.
+ It will merge the rules from ``src/main/resources/category/java/*.xml`` to create the jpinpoint-rules.xml file which can be used in your IDE.
 
 ### Merging with company specific rules
 
