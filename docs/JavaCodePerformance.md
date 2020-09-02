@@ -1019,7 +1019,8 @@ public class ReportController extends AbstractController {
 
 #### TUTC08
 
-**Observation: A static field is mutable or non-final.:** Multiple threads typically access static fields. Unguarded assignment to a mutable or non-final static field is thread-unsafe and may cause corruption or visibility problems. To make this thread-safe, that is, guard the field e.g. with synchronized methods, may cause contention.
+**Observation: A static field is mutable or non-final.**  
+**Problem:** Multiple threads typically access static fields. Unguarded assignment to a mutable or non-final static field is thread-unsafe and may cause corruption or visibility problems. To make this thread-safe, that is, guard the field e.g. with synchronized methods, may cause contention.
 
 The next examples show non-final fields:
 
