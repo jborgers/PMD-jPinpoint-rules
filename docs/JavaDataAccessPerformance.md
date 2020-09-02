@@ -2,7 +2,7 @@
 Java Data Access Performance - performance pitfalls and best practices
 ===================================================================
 
-By Jeroen Borgers ([jPinpoint](www.jpinpoint.com)) and Peter Paul Bakker ([Stokpop](www.stokpop.com)), sponsered by Rabobank
+By Jeroen Borgers ([jPinpoint](www.jpinpoint.com)) and Peter Paul Bakker ([Stokpop](www.stokpop.com)), sponsored by Rabobank
 
 # Table of contents
 
