@@ -11,13 +11,25 @@
 import javax.xml.bind.JAXB;
 public class Foo {
     public <T> T bad1(Source response, Class<T> clazz) {
-            return JAXB.unmarshal(response, clazz); // violation
+        return JAXB.unmarshal(response, clazz); // bad
     }
     public void bad2(Object response, StringWriter stringWriter) {
-        javax.xml.bind.JAXB.marshal(response, stringWriter); // violation
+        javax.xml.bind.JAXB.marshal(response, stringWriter); // bad
     }
-        public void good(Object response, StringWriter stringWriter) {
-        my.other.JAXB.marshal(response, stringWriter); // no violation: other class
+}
+     ]]></code>
+    </test-code>
+    <test-code>
+        <description>no violation: other JAXB class</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import my.other.JAXB;
+public class Foo {
+    public void good(Object response, StringWriter stringWriter) {
+        JAXB.marshal(response, stringWriter); // good: other class
+    }
+    public void good2(Object response, StringWriter stringWriter) {
+        my.other.JAXB.marshal(response, stringWriter); // good: other class
     }
 }
      ]]></code>
