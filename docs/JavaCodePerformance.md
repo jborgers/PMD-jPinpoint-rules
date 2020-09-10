@@ -200,7 +200,7 @@ See our [presentation on Java Performance Pitfall: improper caching.](https://yo
 ```xml
  <property name="freemarkerSettings">
   <props>
-    <prop key="template\_update\_delay">2500000</prop>
+    <prop key="template_update_delay">2500000</prop>
   </props>
 </property>
 ```
@@ -210,7 +210,7 @@ Note that this delay is specified in **seconds.**
 Or via configuration (e.g. in Spring):
 
 ```java
-freemarker.template.Configuration.setTemplateUpdateDelayMilliseconds(2\_500\_000\_000L);
+freemarker.template.Configuration.setTemplateUpdateDelayMilliseconds(2_500_000_000L);
 ```
   
 #### IC05
@@ -493,9 +493,9 @@ static {
 
 #### IUOXAR05
 
-**Observation: XMLGregorianCalendar and GregorianCalendar are used with JAXB for dates.**  
-**Problem:** XMLGregorianCalendar and GregorianCalendar are large objects on the heap, involving substantial processing. To create a new XMLGregorianCalendar, the [poorly performing DatatypeFactory](http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6466177) is used. A DatatypeFactory.newInstance() is executed, which goes through the complete service look up mechanism, involving class loading.  
-**Solution:** Add a converter for alternative date handling with joda-time LocalDateTime or [java.time.LocalDateTime](https://docs.oracle.com/javase/8/docs/api/index.html?java/time/LocalDateTime.html) instead of default XMLGregorianCalendar.  
+**Observation: `XMLGregorianCalendar` and `GregorianCalendar` are used with JAXB for dates.**  
+**Problem:** `XMLGregorianCalendar` and `GregorianCalendar` are large objects on the heap, involving substantial processing. To create a new `XMLGregorianCalendar`, the [poorly performing DatatypeFactory](http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6466177) is used. A `DatatypeFactory.newInstance()` is executed, which goes through the complete service look up mechanism, involving class loading.  
+**Solution:** Add a converter for alternative date handling with joda-time `LocalDateTime` or [java.time.LocalDateTime](https://docs.oracle.com/javase/8/docs/api/index.html?java/time/LocalDateTime.html) instead of default `XMLGregorianCalendar`.  
 Example:
 
 ```java
@@ -526,34 +526,34 @@ corresponding JAXB binding configuration:
 </jxb:globalBindings>
 ```
 
-Note that LocalDateTime is faster than DateTime, however, be aware of its time zone (none) and daylight saving (DST) properties.
+Note that `LocalDateTime` is faster than `DateTime`, however, be aware of its time zone (none) and daylight saving (DST) properties.
 
 #### IUOXAR06
 
-**Observation: many JAXBContextImpl instances are used.**  
-**Problem:** JAXBContextImpl objects are large objects on the heap, wasting memory  
-**Solution:** Handle as many XSDs per JAXBContextImpl as possible. Ideally just one per application. See: [stackoverflow](http://stackoverflow.com/questions/13399567/multiple-jaxbcontext-instances)
+**Observation: many `JAXBContextImpl` instances are used.**  
+**Problem:** `JAXBContextImpl` objects are large objects on the heap, wasting memory  
+**Solution:** Handle as many XSDs per `JAXBContextImpl` as possible. Ideally just one per application. See: [stackoverflow](http://stackoverflow.com/questions/13399567/multiple-jaxbcontext-instances)
 
 #### IUOXAR07
 
-**Observation: JAXB Marshaller, Unmarshaller or Validator is shared by threads.**  
-**Problem:** JAXB Marshaller, Unmarshaller and Validator are not thread-safe.  
+**Observation: JAXB `Marshaller`, `Unmarshaller` or `Validator` is shared by threads.**  
+**Problem:** JAXB `Marshaller`, `Unmarshaller` and `Validator` are not thread-safe.  
 **Solution:** Create a new instance every time you need to marshall, unmarshall or validate a document. If it turns out to be a bottleneck in profiling, consider to pool the instances. More details [here.](https://jaxb.java.net/guide/Performance_and_thread_safety.html)
 
 #### IUOXAR08
 
 **Observation: XML messages between internal systems are validated in production.**  
-**Problem:** XML validation is expensive, comparable to parsing. (javax.xml.validation.Validator.validate or org.springframework.xml.validation.XmlValidator)  
+**Problem:** XML validation is expensive, comparable to parsing. (`javax.xml.validation.Validator.validate` or `org.springframework.xml.validation.XmlValidator`)  
 **Solution:** Validate messages produced during testing, and once the message format and semantics are valid, switch off validation. Note that load tests should be run production like, so with validation switched off like in production.
 
 #### IUOXAR09
 
-**Observation: XML related XXXFactory.newInstance() is called repeatedly.**  
-**Problem:** Upon instance creation of javax.xml.transform.TransformerFactory, javax.xml.parsers.DocumentBuilderFactory, javax.xml.soap.MessageFactory or javax.xml.validation.SchemaFactory, i.a. the file system is searched for an implementing class in a jar file. This is expensive. The factories are not thread-safe, so they cannot simply be made static and/or shared among threads.  
+**Observation: XML related `XXXFactory.newInstance()` is called repeatedly.**  
+**Problem:** Upon instance creation of `javax.xml.transform.TransformerFactory`, `javax.xml.parsers.DocumentBuilderFactory`, `javax.xml.soap.MessageFactory` or `javax.xml.validation.SchemaFactory`, i.a. the file system is searched for an implementing class in a jar file. This is expensive. The factories are not thread-safe, so they cannot simply be made static and/or shared among threads.  
 **Solution:**
 
-1.  Preferably create the factory once. Use a lock to guard the factory, preferably with a synchronizing wrapper. Be aware of possible contention. Or use a ThreadLocal.
-2.  If many threads access often, consider using ThreadLocals, or a pooling factory solution with for instance a BlockingQueue of a few factories.
+1.  Preferably create the factory once. Use a lock to guard the factory, preferably with a synchronizing wrapper. Be aware of possible contention. Or use a `ThreadLocal`.
+2.  If many threads access often, consider using `ThreadLocal`s, or a pooling factory solution with for instance a `BlockingQueue` of a few factories.
 3.  Simple alternative: use jvm system properties to specify your default implementation class. This at least prevents the biggest bottleneck: class path scanning. Examples:
 
 ```
@@ -564,9 +564,9 @@ Note that LocalDateTime is faster than DateTime, however, be aware of its time z
 -Djavax.xml.validation.SchemaFactory=com.saxonica.ee.jaxp.SchemaFactoryImpl
 ```
 
-**Note:** More on TransformerFactory and caching compiled templates, see IBM's [XSLT transformations cause high CPU and slow performance](http://www-01.ibm.com/support/docview.wss?uid=swg21641274).
+**Note:** More on `TransformerFactory` and caching compiled templates, see IBM's [XSLT transformations cause high CPU and slow performance](http://www-01.ibm.com/support/docview.wss?uid=swg21641274).
 
-Example code ThreadLocal for TransformerFactory:
+Example code `ThreadLocal` for `TransformerFactory`:
 
 ```java
 private static final ThreadLocal<TransformerFactory> TRANSFORMER = ThreadLocal.withInitial(TransformerFactory::newInstance);
@@ -574,9 +574,22 @@ private static final ThreadLocal<TransformerFactory> TRANSFORMER = ThreadLocal.w
 
 #### IUOXAR10
 
-**Observation: javax.xml.bind.JAXB utility class is used for marshalling or unmarshalling**  
-**Problem:** the JAXB class is not optimised for performance and multi-threaded usage. For instance, if multiple types are marshalled, with multiple JAXBContext's, the JAXBContext's are not reused. When URLs are supplied, the context is fetched outside of http connection pools with proper timeout properties and connection sharing. No validation is performed (if you need that, better skip validation when you can for better performance).  
-**Solution:** use JAXB API directly for marshalling and unmarshalling to gain all the performance benefits as described in IUOXAR04 and IUOXAR06
+**Observation: `javax.xml.bind.JAXB` utility class is used for marshalling or unmarshalling**  
+**Problem:** the `JAXB` class is not optimised for performance and multi-threaded usage. For instance, if multiple types are marshalled, with multiple `JAXBContext`'s, the `JAXBContext`'s are not reused. When URLs are supplied, the context is fetched outside of http connection pools with proper timeout properties and connection sharing. No validation is performed (if you need that, better skip validation when you can for better performance).  
+**Solution:** use JAXB API directly for marshalling and unmarshalling to gain all the performance benefits as described in IUOXAR04 and IUOXAR06.
+
+Instead of using this:
+```java
+JAXB.unmarshal(response, X.class)
+```
+
+create a reusable `JAXB_CONTEXT` via `JAXBContext.newInstance(new Class[]{X.class})` (as described in IUOXAR04)
+and use as follows:
+
+```java
+Unmarshaller u = JAXB_CONTEXT.createUnmarshaller();
+u.unmarshal(...);
+```
 
 Improper use of JSON and remoting
 ---------------------------------
@@ -1343,13 +1356,13 @@ class Conf {
 }
  
 class PaymentUtil {
-    private static final Set<String> BRANCH\_NAMES;
+    private static final Set<String> BRANCH_NAMES;
     static {
-		final Set<String> branches = new HashSet<String>();
+		final Set<String> branches = new HashSet<>();
         branches.add("Company Antwerp Branch");
         branches.add("Company Frankfurt Branch");
         branches.add("Company London Branch");
-		BRANCH\_NAMES = Collections.unmodifiableSet(branches);
+		BRANCH_NAMES = Collections.unmodifiableSet(branches);
     }    
 }
 ```

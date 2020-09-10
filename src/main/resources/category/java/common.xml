@@ -1121,6 +1121,36 @@ public class Good {
         </example>
     </rule>
 
-
+    <rule name="AvoidJAXBUtil"
+          language="java"
+          message="The JAXB utility class is not optimized for performance."
+          class="net.sourceforge.pmd.lang.rule.XPathRule"
+          typeResolution="true"
+          externalInfoUrl="${pmd.website.baseurl}/pmd_rules_performance.html#AvoidJAXBUtil">
+        <description>Problem: JAXB utility methods do not reuse JAXBContext when more that on context is used. &#13;
+            Solution: use JAXB API directly for marshalling and unmarshalling to gain all the performance benefits as described in IUOXAR04 and IUOXAR06.
+        </description>
+        <priority>2</priority>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+//PrimaryExpression[pmd-java:typeIs('javax.xml.bind.JAXB')]
+	         ]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+public class XMLConversion {
+    public <T> T myUnmarshal(final Source response, final Class<T> clazz) {
+            return JAXB.unmarshal(response, clazz); // bad
+    }
+    public void myMarshal(final Object response, StringWriter stringWriter) {
+        JAXB.marshal(response, stringWriter); // bad
+    }
+}
+            ]]>
+        </example>
+    </rule>
 
 </ruleset>
