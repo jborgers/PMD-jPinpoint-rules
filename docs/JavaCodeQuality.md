@@ -210,7 +210,7 @@ class Bad2 {
 
 **Observation: A field simply assigned to is missing in the equals method**  
 **Problem:**  If a field which can be assigned separately (independent of other fields) is missing in the equals method, then changing the field in one object has no effect on the equality with another object.
-However, if a field of one of two equal objects is changed, the expectation is that they are no longer equal. 
+However, if a field of one of two equal objects is changed, the expectation is that they are no longer equal.  
 **Solution:** include the missing field in the equals and hashCode method.  
 **Examples:**
 ````java
@@ -227,7 +227,7 @@ class Bad1 {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        EqHashTryout2 that = (EqHashTryout2) o;
+        Bad1 that = (Bad1) o;
         return Objects.equals(field1, that.field1);
     }
     public int hashCode() {
