@@ -177,7 +177,7 @@ See our [presentation on Java Performance Pitfall: improper caching.](https://yo
 
 *   This is efficient because it prevents String concatenation of the arguments when accessing the cache.
 
-**perf-code-check:** partly implemented: AvoidDefaultCacheKeyGenerator.
+**Rule name:** partly implemented: AvoidDefaultCacheKeyGenerator.
 
 #### IC02
 
@@ -330,7 +330,7 @@ It might also be an option to use render parameters instead, for example, in the
 response.setRenderParameter("page", "initiatePayment");
 ```
 
-**perf-code-check:** Available. Assumes removeAttribute occurs in same class as setAttribute. Also deals with Spring PortletUtils.
+**Rule name:** Available. Assumes removeAttribute occurs in same class as setAttribute. Also deals with Spring PortletUtils.
 
 #### TMSU02
 
@@ -489,7 +489,7 @@ static {
 }
 ```
 
-**perf-code-check:** implemented, will give false positives: any construction in a method will be flagged. Construction in a static block, the safe way, will not be flagged.
+**Rule name:** implemented, will give false positives: any construction in a method will be flagged. Construction in a static block, the safe way, will not be flagged.
 
 #### IUOXAR05
 
@@ -669,7 +669,7 @@ LOG.debug("Length: " + length + ", currency: " + currency);
 LOG.debug("Length: {}, currency: {}", length, currency);
 ```
 
-**perf-code-check:** UnconditionalConcatInLogArgument.
+**Rule name:** UnconditionalConcatInLogArgument.
 
 #### IL02
 
@@ -687,7 +687,7 @@ LOG.debug("Note: {}", logStatement);
 
 **Problem:** String building, concatenation and/or other operations happen before the debug, trace or info method executes, so independent of the need to actually log. Concatenation is relatively expensive.  
 **Solution:** Built the String conditionally on the log level, within an if statement.  
-**Perf-code-check:**: AvoidUnconditionalBuiltLogStrings
+**Rule name:**: AvoidUnconditionalBuiltLogStrings
 
 #### IL03
 
@@ -716,7 +716,7 @@ if (LOG.isDebugEnabled()) { // good
 }
 ```
 
-**perf-code-check:** UnconditionalOperationOnLogArgument.
+**Rule name:** UnconditionalOperationOnLogArgument.
 
 #### IL04
 
@@ -737,7 +737,7 @@ MDC.remove("UserId");
 
 **Solution:** Determine the MDC-value lifecycle and remove the MDC value in the proper place. Put the remove in a finally clause so it is also removed in case of exceptions. See also [Automating access to the MDC](http://logback.qos.ch/manual/mdc.html).
 
-**perf-code-check:** MDCPutWithoutRemove.
+**Rule name:** MDCPutWithoutRemove.
 
 #### IL05
 
@@ -850,7 +850,7 @@ public boolean equals(final Object arg0) {
 
 **Problem:** Reflection is relatively expensive.  
 **Solution:** Avoid to use reflection. Use the non-reflective, explicit way, see equals and hashCode section below.  
-**perf-code-check:** prototype ready, hits on EqualsBuilder.reflectionEquals and HashCodeBuilder.reflectionHashCode of Apache commons lang.
+**Rule name:** prototype ready, hits on EqualsBuilder.reflectionEquals and HashCodeBuilder.reflectionHashCode of Apache commons lang.
 
 Thread unsafety and lock contention
 -----------------------------------
@@ -1028,7 +1028,7 @@ public class ReportController extends AbstractController {
 	}
 ```
 
-**perf-code-checks:** AvoidUnguardedMutableFieldsInSharedObjects, AvoidUnguardedAssignmentToNonFinalFieldsInSharedObjects
+**Rule names:** AvoidUnguardedMutableFieldsInSharedObjects, AvoidUnguardedAssignmentToNonFinalFieldsInSharedObjects
 
 #### TUTC08
 
@@ -1073,7 +1073,7 @@ Note that for primitives Guava has: [ImmutableIntArray](http://google.github.io/
 
 If they really need to be mutable, make access thread-safe. Thread-safety can be achieved e.g. by proper synchronization and use the [@GuardedBy](#TUTC04) annotation or use of volatile. Consider lock contention.
 
-**Perf-code-check:** AvoidMutableStaticFields
+**Rule name:** AvoidMutableStaticFields
 
 Unnecessary execution
 ---------------------
@@ -1108,7 +1108,7 @@ long time = System.currentTimeMillis();
 ```
 
 Or better yet instead of Date, use a [org.joda.time.LocalDateTime](http://joda-time.sourceforge.net/apidocs/org/joda/time/LocalDateTime.html) or [java.time.LocalDateTime](https://docs.oracle.com/javase/8/docs/api/index.html?java/time/LocalDateTime.html), which also has the advantage over java.util.Date that it is immutable.  
-**perf-code-check**: prototype ready, hit on Calendar.getInstance().getTime() usage and on two steps in same block.
+**Rule name**: prototype ready, hit on Calendar.getInstance().getTime() usage and on two steps in same block.
 
 #### UE02
 
@@ -1208,7 +1208,7 @@ Inefficient String usage
 **Observation: A StringBuffer is used.**  
 **Problem:** StringBuffer is thread-safe and has locking overhead.  
 **Solution:** Thread-safety not needed if only accessed by one thread. Use StringBuilder instead.  
-**perf-code-check:** AvoidStringBuffer.
+**Rule name:** AvoidStringBuffer.
 
 #### ISU02
 
@@ -1223,7 +1223,7 @@ for (String val : values) {
 
 **Problem:** Each statement with one or more +-operators creates a hidden temporary StringBuilder, a char\[\] and a new String object, which all have to be garbage collected.  
 **Solution:** If you have multiple statements which concatenate to the same String with the +-operator in a method, it is more efficient to explicitly use a StringBuilder, append to it and use one toString at the exit of the method. This is especially true for concatenation within a loop.  
-**perf-code-check:** AvoidConcatInLoop, AvoidMultipleConcatStatements
+**Rule name:** AvoidConcatInLoop, AvoidMultipleConcatStatements
 
 #### ISU03
 
@@ -1253,7 +1253,7 @@ builder.append("ExceptionType: " + ex.getClass().getName() + ", ");
 builder.append("ExceptionType: ").append(ex.getClass().getName()).append(", ");
 ```
 
-**perf-code-check:** AvoidConcatInAppend
+**Rule name:** AvoidConcatInAppend
 
 Inefficient date time formatting
 --------------------------------
@@ -1271,14 +1271,14 @@ LocalDateTime lastDate = DATE_FORMATTER.parseLocalDateTime(lastDateString);
 ```
  
 Like SimpleDateFormat, java.util.Date and -Calendar are mutable and flawed in other ways. Joda-Time is the better alternative and when Java 8 is available, [java.time](https://docs.oracle.com/javase/8/docs/api/index.html?java/time/package-summary.html) is the way to go .  
-**perf-code-check:** AvoidSimpleDateFormat.
+**Rule name:** AvoidSimpleDateFormat.
 
 #### IDTF02
 
 **Observation: A DateTimeFormatter is created from a pattern on every parse or print.**  
 **Problem:** Recreating a DateTimeFormatter is relatively expensive.  
 **Solution:** org.joda.time.format.DateTimeFormatter or [java.time.DateTimeFormatter](https://docs.oracle.com/javase/8/docs/api/index.html?java/time/format/DateTimeFormatter.html) is thread-safe and can be shared among threads. Create the formatter from a pattern only once, to initialize a static field. See previous example.  
-**perf-code-check:** AvoidRecreatingDateTimeFormatter
+**Rule name:** AvoidRecreatingDateTimeFormatter
 
 #### IDTF03
 
@@ -1313,14 +1313,14 @@ String getFileNameWithCount() {
 }
 ```
 
-**perf-code-check:** AvoidImplicitlyRecompilingPatterns, improved: AvoidImplicitlyRecompilingRegex
+**Rule name:** AvoidImplicitlyRecompilingPatterns, improved: AvoidImplicitlyRecompilingRegex
 
 IREU02
 
 **Observation: A regular expression is compiled in a method.**  
 **Problem:** A regular expression is compiled on every invocation, which can be expensive, depending on the length of the regular expression.  
 **Solution:** Compile the pattern only once and assign it to a private static field. java.util.Pattern objects are thread-safe so they can be shared among threads.  
-**perf-code-check:** AvoidRecompilingPatterns
+**Rule name:** AvoidRecompilingPatterns
 
 Use of slow library calls
 -------------------------
@@ -1399,7 +1399,7 @@ try {
 }
 ```
 
-**perf-code-check:** [PMD-jPinpoint-rules/issues/28](https://github.com/jborgers/PMD-jPinpoint-rules/issues/28)
+**Rule name:** [PMD-jPinpoint-rules/issues/28](https://github.com/jborgers/PMD-jPinpoint-rules/issues/28)
 
 Violation of Encapsulation, DRY or SRP
 --------------------------------------
@@ -1429,7 +1429,7 @@ Violation of Encapsulation, DRY or SRP
 **Observation: An interface is used to define constants.**  
 **Problem:** Constants are often implementation details. Putting constants in an interface makes them part of the public API of all implementing classes. Doing this for constants which are implementation details is bad OO practice. It is a [documented anti-pattern](http://en.wikipedia.org/wiki/Constant_interface).  
 **Solution:** Make it a Class which cannot be instantiated, or an Enum. Use static imports.  
-**Perf-code-check:** AvoidConstantsInInterface.
+**Rule name:** AvoidConstantsInInterface.
 
 #### VOEDOS05
 

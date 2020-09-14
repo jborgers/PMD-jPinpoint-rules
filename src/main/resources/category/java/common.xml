@@ -895,7 +895,7 @@ public RetrieveCache(final @Value("${cache.expiryTimeSeconds}") long timeToLiveS
     </rule>
 
     <rule name="InconsistentEqualsAndHashCode" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="Equals and hashCode are not based on the same fields or use inconsistent conversion." typeResolution="true"
-          externalInfoUrl="${doc_root}/JavaCodeQuality.md#incorrect-equals-and-hashcode">
+          externalInfoUrl="${doc_root}/JavaCodeQuality.md#IEAH03">
         <description>Problem: If equals and hashCode are inconsistent, strange things can happen like adding the object to a Set and not being able to find it back.&#13;
             Solution: Use the same fields in equals and hashCode and if conversions are needed, use identical conversions in both. So don't use equalsIgnoreCase. (jpinpoint-rules)</description>
         <priority>2</priority>
@@ -967,7 +967,7 @@ class Bad2 {
     </rule>
 
     <rule name="MissingFieldInEquals" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="Field simply assigned to is missing in equals method." typeResolution="true"
-          externalInfoUrl="${doc_root}/JavaCodePerformance.md#IncorrectequalsandhashCode">
+          externalInfoUrl="${doc_root}/JavaCodeQuality.md#IEAH04">
         <description>Problem: If a field which can be assigned separately (independent of other fields) is missing in the equals method, then changing the field in one object has no effect on the equality with another object.
             However, if a field of one of two equal objects is changed, the expectation is that they are no longer equal.&#13;
             Solution: include the missing field in the equals and hashCode method. (jpinpoint-rules)</description>

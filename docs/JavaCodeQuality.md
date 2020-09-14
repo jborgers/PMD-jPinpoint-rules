@@ -65,7 +65,7 @@ Incorrect equals and hashCode
 
 #### IEAH01
 
-**Observation: Objects don’t have well-defined equals and hashCode methods.** Often the equals and/or the hashCode methods are missing or incompatible. If equals and hashCode are not well-defined, this means that comparing (with equals) references to these objects is equivalent to finding out whether they refer to the same object, instead of finding out whether the objects are logically equivalent.  
+**Observation: Object does not implement equals nor hashCode method.** Often the equals and/or the hashCode methods are missing or incompatible. If equals and hashCode are not well-defined, this means that comparing (with equals) references to these objects is equivalent to finding out whether they refer to the same object, instead of finding out whether the objects are logically equivalent.  
 **Problem:** Does not meet programmer expectations and when instances of the class are used as map keys, set elements or certain List operations, this results in unpredictable, undesirable behavior.  
 Example where Amount does not define equals nor hashCode method:
 ````java
@@ -140,13 +140,102 @@ Tip 1: with the [MeanBean](http://meanbean.sourceforge.net/) test library and [E
 
 Tip 2: [Project Lombok](https://projectlombok.org/features/index.html) provides annotations for boilerplate code like equals and hashCode. Often no need to maintain the methods on field changes.
 
-**Perf-code-check:** [ImplementEqualsHashCodeOnValueObjects](https://jira.rabobank.nl/browse/JPCC-21).
+**Rule-name:** [ImplementEqualsHashCodeOnValueObjects](https://jira.rabobank.nl/browse/JPCC-21).
 
 #### IEAH02
 
 **Observation: Comparable classes don't override equals()**  
 **Problem:** If equals() is not overridden, the equals() implementation is not consistent with the compareTo() implementation. If an object of such a class is added to a collection such as java.util.SortedSet, this collection will violate the contract of java.util.Set, which is defined in terms of equals().  
 **Solution:** Implement equals consistent with compareTo.
+
+#### IEAH03
+
+**Observation: Equals and hashCode are inconsistent: they are not based on the same fields or use inconsistent conversion.**  
+**Problem:** If equals and hashCode are inconsistent, strange things can happen like adding the object to a Set and not being able to find it back.  
+**Solution:** Use the same fields in equals and hashCode and if conversions are needed, use identical conversions in both. So don't use equalsIgnoreCase.  
+**Examples:**  
+````java
+class Good {
+    String field1, field2;
+
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Good that = (Good) o;
+        return Objects.equals(field1, that.field1) &&
+                Objects.equals(field2, that.field2);
+    }
+    public int hashCode() {
+        return Objects.hash(field1, field2);
+    }
+}
+
+class Bad1 {
+    String field1;
+    String field2; //bad
+
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Bad1 that = (Bad1) o;
+        return Objects.equals(field1, that.field1) &&
+                Objects.equals(field2, that.field2);
+    }
+    public int hashCode() {
+        return Objects.hash(field1); // field2 missing
+    }
+}
+
+class Bad2 {
+    String field1;
+    String field2; //bad
+
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Bad2 that = (Bad2) o;
+        if (field1 != null ? !field1.equals(that.field1) : that.field1 != null) return false;
+        return field2 != null ? field2.equalsIgnoreCase(that.field2) : that.field2 == null; // ignore case
+    }
+    public int hashCode() {
+        int result = field1 != null ? field1.hashCode() : 0;
+        result = 31 * result + (field2 != null ? field2.hashCode() : 0);
+        return result;
+    }
+}
+````
+**Rule-name:** InconsistentEqualsAndHashCode
+
+#### IEAH04
+
+**Observation: A field simply assigned to is missing in the equals method**  
+**Problem:**  If a field which can be assigned separately (independent of other fields) is missing in the equals method, then changing the field in one object has no effect on the equality with another object.
+However, if a field of one of two equal objects is changed, the expectation is that they are no longer equal. 
+**Solution:** include the missing field in the equals and hashCode method.  
+**Examples:**
+````java
+class Bad1 {
+    String field1;
+    String field2; // bad, missing in equals
+
+    public Bad1(String arg2) {
+        field2 = arg2;
+    }
+    public void setField1(String arg1) {
+        field1 = arg1;
+    }
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        EqHashTryout2 that = (EqHashTryout2) o;
+        return Objects.equals(field1, that.field1);
+    }
+    public int hashCode() {
+        return Objects.hash(field1);
+    }
+}
+````
+**Rule-name:** MissingFieldInEquals
 
 Potential Session Data Mix-up
 -----------------------------
