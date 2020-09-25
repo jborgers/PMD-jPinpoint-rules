@@ -1060,13 +1060,13 @@ private static final List QUALIFIERS_Ok = Collections.unmodifiableList(Arrays.as
 With Java 9 this can be much more compact:
 
 ```java
-private static final List QUALIFIERS\_Ok \= List.of("alpha", "beta", "milestone");
+private static final List QUALIFIERS_Ok = List.of("alpha", "beta", "milestone");
 ```
 
 or by using Guava immutable collections like [ImmutableList](https://google.github.io/guava/releases/21.0/api/docs/com/google/common/collect/ImmutableList.html):
 
 ```java
-private static final List QUALIFIERS\_Ok \= ImmutableList.of("alpha", "beta", "milestone");
+private static final List QUALIFIERS_Ok = ImmutableList.of("alpha", "beta", "milestone");
 ```
 
 Note that for primitives Guava has: [ImmutableIntArray](http://google.github.io/guava/releases/22.0/api/docs/com/google/common/primitives/ImmutableIntArray.html), [ImmutableLongArray](http://google.github.io/guava/releases/22.0/api/docs/com/google/common/primitives/ImmutableLongArray.html) and [ImmutableDoubleArray](http://google.github.io/guava/releases/22.0/api/docs/com/google/common/primitives/ImmutableDoubleArray.html).
