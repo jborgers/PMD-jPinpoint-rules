@@ -54,7 +54,9 @@ After installing the tool you can run `pmd.sh` or `pmd.bat` similar to the follo
  
       Run PMD > Custom rules > jpinpoint-rules
 
-- If you want more information on a violation: hover over a violation title to get a popup with details. 
+- If you want a short description on a violation: hover over a violation title to get a popup with a description. 
+
+- If you want more details on a violation: right click and choose 'Details' to get to the documentation page with problem and solution details.
 
 *Known Bug: the jpinpoint-rules can be listed multiple times in the PMD Plugin: this is a bug and should be resolved by restarting IntelliJ*
 
