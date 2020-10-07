@@ -540,11 +540,13 @@ MethodDeclaration//LocalVariableDeclaration/Type/ReferenceType/ClassOrInterfaceT
             (jpinpoint-rules)</description>
         <priority>3</priority>
         <properties>
-            <property name="version" value="1.0"/>
+            <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
-//TypeDeclaration/ClassOrInterfaceDeclaration/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration
+//TypeDeclaration/ClassOrInterfaceDeclaration/ClassOrInterfaceBody/
+ClassOrInterfaceBodyDeclaration
 //PrimaryExpression/PrimaryPrefix/Name[@Image='XPathFactory.newInstance']
+[not (ancestor::FieldDeclaration//ClassOrInterfaceType/@Image = 'ThreadLocal')]
 	]]></value>
             </property>
         </properties>
