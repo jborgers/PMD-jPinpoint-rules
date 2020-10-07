@@ -622,6 +622,12 @@ is used. The new factory, new XPath, and the compiled expression are hard to cac
 **Problem:** Execution of the same code on the same expression is performed on every node retrieval, several times per user request. This takes CPU cycles, unnecessarily.  
 **Solution:** There is no easy solution, other than not using XPath. Caching in a ThreadLocal might be an option, however, this introduces some complexity.
 
+Example code `ThreadLocal` for `XPathFactory`:
+
+```java
+private static final ThreadLocal<XPath> parser = ThreadLocal.withInitial(() -> XPathFactory.newInstance().newXPath());
+```
+
 #### UX03
 
 **Observation: XPath is used, implemented by Xalan. XPath implementation has bad performance.**  
