@@ -638,7 +638,7 @@ or
 -Dorg.apache.xml.dtm.DTMManager=org.apache.xml.dtm.ref.DTMManagerDefault 
 ```
 Depending on e.g. which one shows up in your Java stack traces / javacore file.  
-3\. Use CachedXPathAPI, see [Ways to increase the performance of XML processing in Java](http://www.ictforu.com/index.php/programming/java/27-xml-performance) - Case 2. Be aware of higher memory usage. Note that CachedXPathAPI object is thread-unsafe.  
+3\. Use CachedXPathAPI, see [Ways to increase the performance of XML processing in Java](https://xml.apache.org/xalan-j/apidocs/org/apache/xpath/CachedXPathAPI.html) - Case 2. Be aware of higher memory usage. Note that CachedXPathAPI object is thread-unsafe.  
 **Alternative approach:** If XPath evaluation still turns out to be a bottleneck by profiling, consider to switch to [VTD-XML](http://vtd-xml.sourceforge.net/)
 
 #### UX04
