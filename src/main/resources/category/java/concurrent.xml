@@ -577,4 +577,41 @@ or ancestor::SynchronizedStatement/Expression//Name)]
             ]]>
         </example>
     </rule>
+
+    <rule name="AvoidIncrementOrDecrementForVolatileField" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="Avoid ++, --, +=, -= for volatile fields" typeResolution="true"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#tutc09">
+        <description>A compound statement like i++, i--, i += 1 or i -= 1 may seem one statement and thread-safe for a volatile field. Problem: The operation is actually two separate statements executed non-atomically and therefore not thread-safe. &#13;
+            Solution: Guard the field properly with synchronized or use atomics like AtomicInteger. (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+//StatementExpression/(AssignmentOperator[@Image='+=' or @Image='-=']/..|
+(PreIncrementExpression|PostfixExpression[@Image='++' or @Image='--']))/PrimaryExpression/(PrimaryPrefix/Name|PrimarySuffix)[@Image =
+//FieldDeclaration[@Volatile = true()]/VariableDeclarator/VariableDeclaratorId/@Name]			]]>
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+ public class Foo {
+    private volatile int i;
+    private volatile String str = "";
+
+    public int bad() {
+        i++; // bad
+        --i; // bad
+        i += 1; // bad
+        str += "a"; // bad
+    }
+    public int good(int v) {
+        i = 5; // good
+        i = v + 5; // good
+        str = "other"; // good
+    }
+}
+            ]]>
+        </example>
+    </rule>
 </ruleset>

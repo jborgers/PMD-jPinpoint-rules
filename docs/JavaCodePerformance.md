@@ -1081,6 +1081,12 @@ If they really need to be mutable, make access thread-safe. Thread-safety can be
 
 **Rule name:** AvoidMutableStaticFields
 
+#### TUTC09
+**Observation: A compound statement like ``i++`` or ``i-=1`` is used for a volatile field**  
+**Problem:** A compound statement like ``i++``, ``i--``, ``i += 1`` or  ``i -= 1`` may seem one statement and thread-safe for a volatile field. 
+However, the operation actually comprises two separate statements executed non-atomically and therefore *not* thread-safe.  
+**Solution:** In stead of volatile, guard the field properly with synchronized or use atomics like AtomicInteger.  
+
 Unnecessary execution
 ---------------------
 
