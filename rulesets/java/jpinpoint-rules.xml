@@ -1216,7 +1216,7 @@ public class FileStuff {
           message="A Calendar is used to create a Date or DateTime, this is expensive."
           class="net.sourceforge.pmd.lang.rule.XPathRule"
           typeResolution="true"
-          externalInfoUrl="{doc_root}/JavaCodePerformance.md#ue01">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#ue01">
         <description>Problem: A Calendar is a heavyweight object and expensive to create. &#13;
             Solution: Use 'new Date()', Java 8+ java.time.[Local/Zoned]DateTime.now() or joda time '[Local]DateTime.now()'.
         (jpinpoint-rules)</description>
@@ -1461,7 +1461,7 @@ public class StringStuff {
 
     <rule name="AvoidIncrementOrDecrementForVolatileField" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="Avoid ++, --, +=, -= for volatile fields" typeResolution="true"
           externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#tutc09">
-        <description>A compound statement like i++, i--, i += 1 or i -= 1 may seem one statement and thread-safe for a volatile field. Problem: The operation is actually two sepatate statements executed non-atomically and therefore not thread-safe. &#13;
+        <description>A compound statement like i++, i--, i += 1 or i -= 1 may seem one statement and thread-safe for a volatile field. Problem: The operation is actually two separate statements executed non-atomically and therefore not thread-safe. &#13;
             Solution: Guard the field properly with synchronized or use atomics like AtomicInteger. (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
@@ -1470,7 +1470,8 @@ public class StringStuff {
                 <value><![CDATA[
 //StatementExpression/(AssignmentOperator[@Image='+=' or @Image='-=']/..|
 (PreIncrementExpression|PostfixExpression[@Image='++' or @Image='--']))/PrimaryExpression/(PrimaryPrefix/Name|PrimarySuffix)[@Image =
-//FieldDeclaration[@Volatile = true()]/VariableDeclarator/VariableDeclaratorId/@Name]			]]>
+//FieldDeclaration[@Volatile = true()]/VariableDeclarator/VariableDeclaratorId/@Name]
+                        ]]>
                 </value>
             </property>
         </properties>
@@ -1846,6 +1847,39 @@ or (ancestor::ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='VisibleFo
                 </value>
             </property>
         </properties>
+    </rule>
+
+    <rule name="AvoidVolatileInPrototypeScope" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="No need for volatile in prototype scope" typeResolution="true"
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#tutc09">
+        <description>A field is defined as volatile while the class has prototype scope. Problem: volatile has some overhead, especially for writes. When getting the bean from the Spring applicationContext, prototype scope means that each invocation creates a new object so the field is not shared. &#13;
+            Solution: Since only one thread can access the field, there is no need for violatile and it can be removed. (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+    //FieldDeclaration[@Volatile = true() and
+    ancestor::TypeDeclaration/Annotation//Name[@Image='Scope']/..//PrimaryPrefix/
+    (Name[ends-with(@Image,'SCOPE_PROTOTYPE')]|Literal[contains(@Image, 'prototype')])]
+                        ]]>
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+@Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+@Component
+class Bad {
+    private volatile String id;
+}
+
+@Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+@Component
+class Good {
+    private String id;
+}
+            ]]>
+        </example>
     </rule>
 
     <rule name="NotProperlySynchronizingOnFieldWhileUsingGuardedBy"

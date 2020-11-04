@@ -1085,13 +1085,20 @@ If they really need to be mutable, make access thread-safe. Thread-safety can be
 **Observation: A compound statement like ``i++`` or ``i-=1`` is used for a volatile field**  
 **Problem:** A compound statement like ``i++``, ``i--``, ``i += 1`` or  ``i -= 1`` may seem one statement and thread-safe for a volatile field. 
 However, the operation actually comprises two separate statements executed non-atomically and therefore *not* thread-safe.  
-**Solution:** In stead of volatile, guard the field properly with synchronized or use atomics like AtomicInteger.  
+**Solution:** In stead of volatile, guard the field properly with synchronized, atomics like AtomicInteger or java.util.concurrent locks.  
+**Rule name:** AvoidIncrementOrDecrementForVolatileField
+
+#### TUTC10
+**Observation: A field is defined as volatile while the class has prototype scope.**  
+**Problem:** Volatile has some overhead, especially for writes. When getting the bean from the Spring applicationContext, 
+prototype scope means that each invocation creates a new object so the field is not shared.  
+**Solution:** Since only one thread can access the field, there is no need for volatile and it can be removed.  
+**Rule name:** AvoidVolatileInPrototypeScope  
 
 Unnecessary execution
 ---------------------
 
 #### UE01
-
 **Observation: A Calendar is unnecessarily created for a Date or time**  
 **Problem:** A Calendar is a heavyweight object and expensive to create. For example, to copy a Date:
 

@@ -58,7 +58,7 @@ public class FileStuff {
           message="A Calendar is used to create a Date or DateTime, this is expensive."
           class="net.sourceforge.pmd.lang.rule.XPathRule"
           typeResolution="true"
-          externalInfoUrl="{doc_root}/JavaCodePerformance.md#ue01">
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ue01">
         <description>Problem: A Calendar is a heavyweight object and expensive to create. &#13;
             Solution: Use 'new Date()', Java 8+ java.time.[Local/Zoned]DateTime.now() or joda time '[Local]DateTime.now()'.
         </description>

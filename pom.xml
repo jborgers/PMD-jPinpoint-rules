@@ -9,6 +9,9 @@
 
     <packaging>jar</packaging>
 
+    <name>PMD-jPinpoint-rules</name>
+    <url>https://github.com/jborgers/PMD-jPinpoint-rules</url>
+
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <pmd.version>6.27.0</pmd.version>
