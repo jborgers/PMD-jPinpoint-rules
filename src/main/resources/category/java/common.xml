@@ -764,15 +764,24 @@ class Good {
             	or ends-with(@Image,'.info')
             ]
             (: no violation if conditionally: only executed if level enabled is okay :)
-            [not(ancestor::IfStatement/Expression//PrimaryPrefix/Name
+            [not(ancestor::IfStatement//Name
             	[
 					ends-with(@Image,'.isTraceEnabled')
 					or ends-with(@Image,'.isDebugEnabled')
 					or ends-with(@Image,'.isInfoEnabled')
 					or ends-with(@Image,'.isLoggable')
-				])
-			]
-			(: in the log method :)
+		        ])
+	        ]
+            (: no violation if return conditionally before :)
+            [not(ancestor::BlockStatement/preceding-sibling::BlockStatement//IfStatement//ReturnStatement/ancestor::IfStatement//Name
+                [
+					ends-with(@Image,'.isTraceEnabled')
+					or ends-with(@Image,'.isDebugEnabled')
+					or ends-with(@Image,'.isInfoEnabled')
+					or ends-with(@Image,'.isLoggable')
+		        ])
+            ]
+	        (: in the log method :)
             /../../PrimarySuffix/Arguments/ArgumentList/Expression//PrimaryExpression
             [
                 (: toString on argument :)
