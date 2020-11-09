@@ -22,15 +22,15 @@
 [ends-with(@Image, '.get') or ends-with(@Image, '.getString')]
 [
 	starts-with(@Image, concat(
-		ancestor::MethodDeclaration//FormalParameter/Type/ReferenceType/ClassOrInterfaceType[typeIs('org.apache.commons.fileupload.FileItem')]/../../..//VariableDeclaratorId/@Image,
+		ancestor::MethodDeclaration//FormalParameter/Type/ReferenceType/ClassOrInterfaceType[typeIs('org.apache.commons.fileupload.FileItem')]/../../..//VariableDeclaratorId/@Name,
 		'.')
 	) or
 	starts-with(@Image, concat(
-		ancestor::MethodDeclaration//LocalVariableDeclaration/Type/ReferenceType/ClassOrInterfaceType[typeIs('org.apache.commons.fileupload.FileItem')]/../../..//VariableDeclaratorId/@Image,
+		ancestor::MethodDeclaration//LocalVariableDeclaration/Type/ReferenceType/ClassOrInterfaceType[typeIs('org.apache.commons.fileupload.FileItem')]/../../..//VariableDeclaratorId/@Name,
 		'.')
 	) or
 	starts-with(@Image, concat(
-		ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration/Type/ReferenceType/ClassOrInterfaceType[typeIs('org.apache.commons.fileupload.FileItem')]/../../..//VariableDeclaratorId/@Image,
+		ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration/Type/ReferenceType/ClassOrInterfaceType[typeIs('org.apache.commons.fileupload.FileItem')]/../../..//VariableDeclaratorId/@Name,
 		'.')
 )
 ]
@@ -119,12 +119,12 @@ public class DateStuff {
 or
 .//PrimaryExpression/PrimarySuffix/@Image = 'append')
 and
-.//PrimaryExpression/PrimarySuffix/Arguments/ArgumentList/Expression[1]/AdditiveExpression[@Image='+'
+.//PrimaryExpression/PrimarySuffix/Arguments/ArgumentList/Expression[1]/AdditiveExpression[@Operator='+'
 and (count(PrimaryExpression/PrimaryPrefix/Name) > 0)
 and not(PrimaryExpression/PrimaryPrefix/Name/@Image=
-ancestor::ClassOrInterfaceBody//FieldDeclaration[@Final='true']//VariableDeclaratorId/@Image)
+ancestor::ClassOrInterfaceBody//FieldDeclaration[@Final='true']//VariableDeclaratorId/@Name)
 and not(PrimaryExpression/PrimaryPrefix/Name/@Image=
-ancestor::Block//LocalVariableDeclaration[@Final='true']//VariableDeclaratorId/@Image)
+ancestor::Block//LocalVariableDeclaration[@Final='true']//VariableDeclaratorId/@Name)
 ]]
 	]]></value>
             </property>

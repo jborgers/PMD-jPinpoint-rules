@@ -6,10 +6,8 @@
     <test-code>
         <description>violation: concat to String in for/while loop</description>
         <expected-problems>5</expected-problems>
-        <expected-linenumbers>9,13,20,22,29</expected-linenumbers>
+        <expected-linenumbers>7,11,18,20,27</expected-linenumbers>
         <code><![CDATA[
-import java.util.*;
-
 public class ConcatInLoop {
 
     public void bad1() {
@@ -47,8 +45,6 @@ public class ConcatInLoop {
         <description>no violation: add numbers in loop</description>
         <expected-problems>0</expected-problems>
         <code><![CDATA[
-import java.util.*;
-
 public class ConcatInLoop {
     public void good1() {
         int log = 0;
@@ -109,8 +105,6 @@ public class ConcatInLoop {
         <description>no violation: concat in append in loops is caught by other rule</description>
         <expected-problems>0</expected-problems>
         <code><![CDATA[
-import java.util.*;
-
 public class ConcatInLoop {
     public void bad1() {
         StringBuilder logStatement = new StringBuilder();
@@ -127,8 +121,6 @@ public class ConcatInLoop {
         <description>no violation: proper append in loop</description>
         <expected-problems>0</expected-problems>
         <code><![CDATA[
-import java.util.*;
-
 public class ConcatInLoop {
     public void good() {
         StringBuilder logStatement = new StringBuilder();
@@ -145,10 +137,8 @@ public class ConcatInLoop {
     <test-code>
         <description>violation: various concats in loop</description>
         <expected-problems>4</expected-problems>
-        <expected-linenumbers>9,11,13,14</expected-linenumbers>
+        <expected-linenumbers>7,9,11,12</expected-linenumbers>
         <code><![CDATA[
-import java.util.*;
-
 public class ConcatInLoop {
     public String bad() {
         String description = " " + ";";
@@ -172,8 +162,6 @@ public class ConcatInLoop {
         <description>no violation: various concats in loop which do not aggregate</description>
         <expected-problems>0</expected-problems>
         <code><![CDATA[
-import java.util.*;
-
 public class ConcatInLoop {
     private static final String ROLE_PREFIX = "role-";
 
@@ -231,10 +219,8 @@ public class ConcatInLoop {
     <test-code>
         <description>violation: concat to String in do-loop</description>
         <expected-problems>1</expected-problems>
-        <expected-linenumbers>10</expected-linenumbers>
+        <expected-linenumbers>8</expected-linenumbers>
         <code><![CDATA[
-import java.util.*;
-
 public class ConcatInLoop {
 
     public void bad() {
@@ -252,10 +238,8 @@ public class ConcatInLoop {
     <test-code>
         <description>violation: concat to String field in loop</description>
         <expected-problems>1</expected-problems>
-        <expected-linenumbers>10</expected-linenumbers>
+        <expected-linenumbers>8</expected-linenumbers>
         <code><![CDATA[
-import java.util.*;
-
 public class ConcatInLoop {
 
     private String logStatement = "";
@@ -269,6 +253,5 @@ public class ConcatInLoop {
 }
      ]]></code>
     </test-code>
-
 
 </test-data>

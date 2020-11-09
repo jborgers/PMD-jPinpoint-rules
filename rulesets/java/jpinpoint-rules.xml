@@ -33,7 +33,7 @@ and not
 PrimaryPrefix/Name/@Image='CDI.current'][PrimarySuffix/@Image = 'destroy']
 [PrimarySuffix/Arguments/ArgumentList/Expression/PrimaryExpression/PrimaryPrefix/Name/@Image =
 ancestor::MethodDeclaration//VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/Name[@Image='CDI.current']/../../
-PrimarySuffix[@Image = 'select']/ancestor::VariableDeclarator/VariableDeclaratorId/@Image
+PrimarySuffix[@Image = 'select']/ancestor::VariableDeclarator/VariableDeclaratorId/@Name
 ])]
 ]]></value>
             </property>
@@ -212,7 +212,7 @@ and
 .//AssignmentOperator/../../..//StatementExpression/PrimaryExpression/PrimaryPrefix/Name/@Image
 =preceding-sibling::SwitchLabel/preceding-sibling::BlockStatement//AssignmentOperator/../../..//StatementExpression/PrimaryExpression/PrimaryPrefix/Name/@Image
 and
-not(.//AssignmentOperator/../../..//StatementExpression/Expression/PrimaryExpression/PrimarySuffix/Arguments/@ArgumentCount > 0
+not(.//AssignmentOperator/../../..//StatementExpression/Expression/PrimaryExpression/PrimarySuffix/Arguments/@Size > 0
 or preceding-sibling::SwitchLabel[@Default='true'])
 ]
 ]]>
@@ -233,65 +233,65 @@ or preceding-sibling::SwitchLabel[@Default='true'])
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
-(//MethodDeclaration//PrimaryPrefix/Name[ends-with(@Image, '.replaceAll') or ends-with(@Image, '.replaceFirst') or ends-with(@Image, 'Pattern.matches')]/../../PrimarySuffix/Arguments[@ArgumentCount=2]//Expression[1]//PrimaryPrefix[
+(//MethodDeclaration//PrimaryPrefix/Name[ends-with(@Image, '.replaceAll') or ends-with(@Image, '.replaceFirst') or ends-with(@Image, 'Pattern.matches')]/../../PrimarySuffix/Arguments[ArgumentList/@Size=2]//Expression[1]//PrimaryPrefix[
 Literal[string-length(@Image) > 5 and
 (matches(@Image, '[\.\$\|\(\)\[\]\{\}\^\?\*\+\\]+'))] or Name
 and not(../PrimarySuffix)
 and not (
-Name/@Image=ancestor::MethodDeclaration//VariableDeclaratorId/@Image)
+Name/@Image=ancestor::MethodDeclaration//VariableDeclaratorId/@Name)
 and not (
 Name[@Image=ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration/VariableDeclarator[
 VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/Literal[string-length(@Image) < 6 or not
 (matches(@Image, '[\.\$\|\(\)\[\]\{\}\^\?\*\+\\]+'))]
-]/VariableDeclaratorId/@Image])
+]/VariableDeclaratorId/@Name])
 ]
 ,
-//MethodDeclaration//PrimaryPrefix/Name[ends-with(@Image, '.split') or ends-with(@Image, 'getPathMatcher')]/../../PrimarySuffix/Arguments[@ArgumentCount=1]//Expression[1]//PrimaryPrefix[
+//MethodDeclaration//PrimaryPrefix/Name[ends-with(@Image, '.split') or ends-with(@Image, 'getPathMatcher')]/../../PrimarySuffix/Arguments[ArgumentList/@Size=1]//Expression[1]//PrimaryPrefix[
 Literal[string-length(@Image) > 5 and
 matches(@Image, '[\.\$\|\(\)\[\]\{\}\^\?\*\+\\]+')] or Name
 and not(../PrimarySuffix)
 and not (
-Name/@Image=ancestor::MethodDeclaration//VariableDeclaratorId/@Image)
+Name/@Image=ancestor::MethodDeclaration//VariableDeclaratorId/@Name)
 and not (
 (:--- not (if foreign field (with .), or field with short String or without regex char) ---:)
 Name[contains(@Image, '.') or @Image=ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration/VariableDeclarator[
 VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/Literal[string-length(@Image) < 6 or not
 (matches(@Image, '[\.\$\|\(\)\[\]\{\}\^\?\*\+\\]+'))]
-]/VariableDeclaratorId/@Image])
+]/VariableDeclaratorId/@Name])
 ]
 ,
-//MethodDeclaration//PrimarySuffix[@Image='getPathMatcher']/../PrimarySuffix/Arguments[@ArgumentCount=1]/ArgumentList/Expression[1]/PrimaryExpression/PrimaryPrefix[
+//MethodDeclaration//PrimarySuffix[@Image='getPathMatcher']/../PrimarySuffix/Arguments[ArgumentList/@Size=1]/ArgumentList/Expression[1]/PrimaryExpression/PrimaryPrefix[
 Literal[string-length(@Image) > 5] or Name
 and not(../PrimarySuffix)
 and not (
-Name/@Image=ancestor::MethodDeclaration//VariableDeclaratorId/@Image)
+Name/@Image=ancestor::MethodDeclaration//VariableDeclaratorId/@Name)
 and not (
 Name[@Image=ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration/VariableDeclarator[
-VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/Literal[string-length(@Image) < 6]]/VariableDeclaratorId/@Image])
+VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/Literal[string-length(@Image) < 6]]/VariableDeclaratorId/@Name])
 ]
 ,
 (: --- String.matches called on formalparams, locals and fields --- :)
 //MethodDeclaration//PrimaryPrefix/Name[ends-with(@Image, '.matches')]
 [
-(exists(index-of((ancestor::MethodDeclaration//FormalParameter[pmd-java:typeIs('java.lang.String')]/VariableDeclaratorId/@Image), substring-before(@Image,'.')))
+(exists(index-of((ancestor::MethodDeclaration//FormalParameter[pmd-java:typeIs('java.lang.String')]/VariableDeclaratorId/@Name), substring-before(@Image,'.')))
 or
-exists(index-of((ancestor::MethodDeclaration//LocalVariableDeclaration/Type[pmd-java:typeIs('java.lang.String')]/../VariableDeclarator/VariableDeclaratorId/@Image), substring-before(@Image,'.')))
+exists(index-of((ancestor::MethodDeclaration//LocalVariableDeclaration/Type[pmd-java:typeIs('java.lang.String')]/../VariableDeclarator/VariableDeclaratorId/@Name), substring-before(@Image,'.')))
 or
-exists(index-of((ancestor::ClassOrInterfaceBody//FieldDeclaration[pmd-java:typeIs('java.lang.String')]/VariableDeclarator/VariableDeclaratorId/@Image), substring-before(@Image,'.'))))
+exists(index-of((ancestor::ClassOrInterfaceBody//FieldDeclaration[pmd-java:typeIs('java.lang.String')]/VariableDeclarator/VariableDeclaratorId/@Name), substring-before(@Image,'.'))))
 and
 (: for matches param is >5 literal or something named :)
-../../PrimarySuffix/Arguments[@ArgumentCount=1]//Expression[1]//PrimaryPrefix[
+../../PrimarySuffix/Arguments[ArgumentList/@Size=1]//Expression[1]//PrimaryPrefix[
 Literal[string-length(@Image) > 5] or Name
 (: exclude method calls :)
 and not(../PrimarySuffix)
 (: exclude for param is method arg or local :)
 and not (
-Name/@Image=ancestor::MethodDeclaration//VariableDeclaratorId/@Image)
+Name/@Image=ancestor::MethodDeclaration//VariableDeclaratorId/@Name)
 (: exclude for param is short fields :)
 and not (
 Name[@Image=ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration/VariableDeclarator[
 VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/Literal[string-length(@Image) < 6]
-]/VariableDeclaratorId/@Image])
+]/VariableDeclaratorId/@Name])
 ]])
 ]]></value>
             </property>
@@ -361,9 +361,9 @@ public class XMLConversion {
 //MethodDeclaration/Block[
 count(
 ./BlockStatement/Statement//StatementExpression/PrimaryExpression/PrimaryPrefix/Name
-[@Image=./../../../../../../../../../../../..//VariableDeclaratorId/attribute::Image
+[@Image=./../../../../../../../../../../../..//VariableDeclaratorId/@Name
 and
-./../../../../../../..//VariableDeclaratorId/../../Type/ReferenceType/ClassOrInterfaceType[typeIs('java.lang.String')]
+./../../../../../../..//VariableDeclaratorId/../../Type/ReferenceType/ClassOrInterfaceType[pmd-java:typeIs('java.lang.String')]
 ]
 /../../../AssignmentOperator[@Image='+=']/
 ../Expression//PrimaryExpression/PrimaryPrefix/Name) > 1]/BlockStatement[position()=last()]
@@ -374,9 +374,9 @@ count(
 ./PrimaryExpression/PrimaryPrefix/Name[
 @Image = ../../../Expression/AdditiveExpression/PrimaryExpression/PrimaryPrefix/Name/@Image
 and
-@Image = ./../../../../../../../..//VariableDeclaratorId/../../Type/ReferenceType/ClassOrInterfaceType[typeIs('java.lang.String')]/../../../VariableDeclarator/VariableDeclaratorId/attribute::Image
+@Image = ./../../../../../../../..//VariableDeclaratorId/../../Type/ReferenceType/ClassOrInterfaceType[pmd-java:typeIs('java.lang.String')]/../../../VariableDeclarator/VariableDeclaratorId/@Name
 ]
-]) > 1 ]//BlockStatement[position()=last()]//StatementExpression/Expression/AdditiveExpression[@Image = '+']
+]) > 1 ]//BlockStatement[position()=last()]//StatementExpression/Expression/AdditiveExpression[@Operator = '+']
 	]]></value>
             </property>
         </properties>
@@ -399,7 +399,7 @@ and
     (: a field of type List :)
     //FieldDeclaration[pmd-java:typeIs('java.util.List')]//VariableDeclaratorId[
     (: with a method defined at that level that does not use the field with a modify operation (case field.modOp) :)
-    not(@Image = ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDeclaration//PrimaryExpression/PrimaryPrefix/Name[
+    not(@Name = ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDeclaration//PrimaryExpression/PrimaryPrefix/Name[
     starts-with(substring-after(@Image, '.'), 'add') or
     starts-with(substring-after(@Image, '.'), 'remove') or
     substring-after(@Image, '.') = 'set' or
@@ -408,7 +408,7 @@ and
     substring-after(@Image, '.') = 'retainAll'
     ]/(substring-before(concat(@Image, '.'), '.')))]
     [ (: and case this.field.modOp() :)
-not(@Image = ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDeclaration//PrimaryExpression
+not(@Name = ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDeclaration//PrimaryExpression
 /PrimarySuffix[starts-with(@Image, 'add') or starts-with(@Image, 'remove') or @Image = 'set' or @Image = 'clear' or @Image = 'replaceAll' or @Image = 'retainAll']
 /preceding-sibling::PrimarySuffix/@Image)
     ]     (: and :)
@@ -416,10 +416,10 @@ not(@Image = ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/Meth
     ../VariableInitializer/Expression//AllocationExpression[pmd-java:typeIs('java.util.List')]
     or
     (: or static block / constructor has field initialized with List allocation :)
-    ancestor::ClassOrInterfaceBody//(Initializer|ConstructorDeclaration)//AssignmentOperator[exists(../Expression/PrimaryExpression/PrimaryPrefix/AllocationExpression[pmd-java:typeIs('java.util.List')])]/..//Name/@Image = @Image
+    ancestor::ClassOrInterfaceBody//(Initializer|ConstructorDeclaration)//AssignmentOperator[exists(../Expression/PrimaryExpression/PrimaryPrefix/AllocationExpression[pmd-java:typeIs('java.util.List')])]/..//Name/@Image = @Name
     or
     (: or constructor has a simple assignment to the field, param of literal: no arguments :)
-    ancestor::ClassOrInterfaceBody//ConstructorDeclaration//AssignmentOperator[exists(../Expression[pmd-java:typeIs('java.util.List')]) and not(exists(../Expression/PrimaryExpression/PrimarySuffix))]/..//Name/@Image = @Image
+    ancestor::ClassOrInterfaceBody//ConstructorDeclaration//AssignmentOperator[exists(../Expression[pmd-java:typeIs('java.util.List')]) and not(exists(../Expression/PrimaryExpression/PrimarySuffix))]/..//Name/@Image = @Name
     )]
 	         ]]></value>
             </property>
@@ -462,7 +462,7 @@ public class Good {
 count(../../PrimarySuffix/Arguments/ArgumentList/Expression//PrimaryExpression) = 1
 and not (
 ../../PrimarySuffix/Arguments/ArgumentList/Expression/PrimaryExpression/PrimaryPrefix/Name/@Image=
-ancestor::MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter/VariableDeclaratorId/@Image)]
+ancestor::MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter/VariableDeclaratorId/@Name)]
 	]]></value>
             </property>
         </properties>
@@ -530,12 +530,12 @@ class Good {
     //MethodDeclaration/Block/BlockStatement//Expression//AllocationExpression/ClassOrInterfaceType[pmd-java:typeIs('org.joda.time.format.DateTimeFormatter') or pmd-java:typeIs('org.threeten.bp.format.DateTimeFormatter') or pmd-java:typeIs('java.time.format.DateTimeFormatter')],
     //MethodDeclaration/Block/BlockStatement//VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/Name[ends-with(@Image, 'DateTimeFormatter.ofPattern')]
 (: check if parameter is argument of method call :)[not(ancestor::LocalVariableDeclaration//PrimarySuffix/Arguments/ArgumentList/Expression/PrimaryExpression/PrimaryPrefix/Name/@Image=
-ancestor::MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter/VariableDeclaratorId/@Image)],
+ancestor::MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter/VariableDeclaratorId/@Name)],
     //MethodDeclaration/Block/BlockStatement//Expression/PrimaryExpression/PrimaryPrefix/Name[contains(@Image, 'ISODateTimeFormat.')],
     //MethodDeclaration/Block/BlockStatement//Expression/PrimaryExpression/PrimaryPrefix/Name[contains(@Image, 'DateTimeFormat.fullDateTime')],
     //MethodDeclaration/Block/BlockStatement//Expression/PrimaryExpression/PrimaryPrefix/Name[ends-with(@Image, 'DateTimeFormat.forPattern')]
 (: check if parameter is argument of method call :)[not(ancestor::LocalVariableDeclaration//PrimarySuffix/Arguments/ArgumentList/Expression/PrimaryExpression/PrimaryPrefix/Name/@Image=
-ancestor::MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter/VariableDeclaratorId/@Image)],
+ancestor::MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter/VariableDeclaratorId/@Name)],
     //MethodDeclaration/Block/BlockStatement//Expression//AllocationExpression/ClassOrInterfaceType[pmd-java:typeIs('org.joda.time.format.DateTimeFormatterBuilder')][ancestor::PrimaryExpression/PrimarySuffix[@Image="toFormatter"]]
                    ]]>
                 </value>
@@ -616,8 +616,8 @@ ancestor::MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter/Va
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
-//VariableDeclaratorId[ends-with(lower-case(@Image), 'timetolive') or ends-with(lower-case(@Image), 'expirytime')
-or ends-with(lower-case(@Image), 'timeout')]
+//VariableDeclaratorId[ends-with(lower-case(@Name), 'timetolive') or ends-with(lower-case(@Name), 'expirytime')
+or ends-with(lower-case(@Name), 'timeout')]
 ,
 //SingleMemberAnnotation/Name[@Image='Value']/..//Literal[ends-with(lower-case(@Image), 'timetolive') or ends-with(lower-case(@Image), 'expirytime}"')
 or ends-with(lower-case(@Image), 'timeout}"')]
@@ -782,42 +782,42 @@ ancestor::MethodDeclaration//PrimarySuffix/@Image="disableConnectionState")]
             Solution: Add proper equals and hashCode methods that meet the equals-hashCode contract to all objects which might anyhow be put in a Map, Set or other collection. If the object should never be checked for equality or used in a collection, also add those methods and let them throw UnsupportedOperationException to fail fast. @Xml... and @Entity objects are ignored because they are assumed to be not used as value objects.
             (jpinpoint-rules)</description>
         <properties>
-            <property name="version" value="1.0"/>
+            <property name="version" value="2.0"/>
             <property name="xpath">
                 <value>
                     <![CDATA[
 //TypeDeclaration[not(./Annotation//Name[@Image='Data' or @Image='Value' or @Image='EqualsAndHashCode'
 or @Image='Singleton' or @Image='Component' or @Image='Service' or @Image='Repository' or @Image='Configuration' or @Image='Endpoint' or @Image='RestController' or @Image='ControllerAdvice'
 or starts-with(@Image, 'Xml') or @Image='Entity' or @Image='Embeddable' or @Image='MappedSuperclass'])]
-/ClassOrInterfaceDeclaration[@Interface='false' and @Abstract='false']
+/ClassOrInterfaceDeclaration[@Interface=false() and @Abstract=false()]
 [not(./ExtendsList/ClassOrInterfaceType[ends-with(@Image, 'Exception') or ends-with(@Image, 'Throwable')])]
-/ClassOrInterfaceBody[ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Static='false']
+/ClassOrInterfaceBody[ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Static=false()]
 [
 (not (../Annotation//Name[@Image = 'XmlElement']))
 and
 (
 ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDeclaration
-[@Public='true' and @Static='false']/MethodDeclarator[starts-with(@Image, 'get') and string-length(@Image) > 3 or starts-with(@Image, 'is') and string-length(@Image) > 2]
-[../ResultType/Type/ReferenceType/ClassOrInterfaceType/@Image =
-ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Static='false']/Type/ReferenceType/ClassOrInterfaceType/@Image]
+[@Public=true() and @Static=false() and starts-with(@Name, 'get') and string-length(@Name) > 3 or starts-with(@Name, 'is') and string-length(@Name) > 2]
+[ResultType/Type/ReferenceType/ClassOrInterfaceType/@Image =
+ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Static=false()]/Type/ReferenceType/ClassOrInterfaceType/@Image]
 )
 and
 (not (
-ancestor::ClassOrInterfaceBody//MethodDeclaration[@Public='true' and @Static='false']/MethodDeclarator[@Image='equals' or @Image='hashCode'])
+ancestor::ClassOrInterfaceBody//MethodDeclaration[@Public=true() and @Static=false() and @Name='equals' or @Name='hashCode'])
 )
 and
-((ancestor::ClassOrInterfaceBody//MethodDeclaration[@Public='true' and @Static='false']/MethodDeclarator/@Image='toString'
+((ancestor::ClassOrInterfaceBody//MethodDeclaration[@Public=true() and @Static=false() and @Name='toString']
 and
-count(ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Static='false']) <=
+count(ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Static=false()]) <=
 (1 + count(ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDeclaration
-[@Public='true' and @Static='false']/MethodDeclarator[starts-with(@Image, 'get') and string-length(@Image) > 3 or starts-with(@Image, 'is') and string-length(@Image) > 2]))
+[@Public=true() and @Static=false() and starts-with(@Name, 'get') and string-length(@Name) > 3 or starts-with(@Name, 'is') and string-length(@Name) > 2]))
 )
 or
-ancestor::ClassOrInterfaceDeclaration[ends-with(@Image, 'Dto')]
+ancestor::ClassOrInterfaceDeclaration[ends-with(@SimpleName, 'Dto')]
 or
-count(ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Static='false']) =
+count(ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Static=false()]) =
 count(ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDeclaration
-[@Public='true' and @Static='false']/MethodDeclarator[starts-with(@Image, 'get') and string-length(@Image) > 3 or starts-with(@Image, 'is') and string-length(@Image) > 2])
+[@Public=true() and @Static=false() and starts-with(@Name, 'get') and string-length(@Name) > 3 or starts-with(@Name, 'is') and string-length(@Name) > 2])
 )]
 ]
 ]]>
@@ -836,11 +836,11 @@ count(ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDecla
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
-//FieldDeclaration//VariableDeclaratorId[(@Image = ancestor::ClassOrInterfaceBody//MethodDeclarator[@Image='equals']/../Block//Name/@Image) !=
-(@Image = ancestor::ClassOrInterfaceBody//MethodDeclarator[@Image='hashCode']/../Block//Name/@Image)
+//FieldDeclaration//VariableDeclaratorId[(@Name = ancestor::ClassOrInterfaceBody//MethodDeclaration[@Name='equals']/Block//Name/@Image) !=
+(@Name = ancestor::ClassOrInterfaceBody//MethodDeclaration[@Name='hashCode']/Block//Name/@Image)
 ]
 ,
-//MethodDeclarator[@Image='equals']/../Block//Name[ends-with(@Image, 'equalsIgnoreCase')]
+//MethodDeclaration[@Name='equals']/Block//Name[ends-with(@Image, 'equalsIgnoreCase')]
 			]]>
                 </value>
             </property>
@@ -929,7 +929,7 @@ class Bad2 {
 ancestor::MethodDeclaration//TryStatement/FinallyStatement//StatementExpression//Name[@Image='MDC.remove']
 /../../PrimarySuffix/Arguments/ArgumentList/Expression[1]/PrimaryExpression/PrimaryPrefix/Literal/@Image)
 and not(ancestor::MethodDeclaration//TryStatement/FinallyStatement//StatementExpression//Name[@Image='MDC.clear'])
-and not(ancestor::ClassOrInterfaceBody//MethodDeclarator[@Image='afterCompletion']/../Block//Name[@Image='MDC.clear'])
+and not(ancestor::ClassOrInterfaceBody//MethodDeclaration[@Name='afterCompletion']/Block//Name[@Image='MDC.clear'])
 ]
 |
 //MethodDeclaration//StatementExpression//Name[@Image='MDC.put']
@@ -937,7 +937,7 @@ and not(ancestor::ClassOrInterfaceBody//MethodDeclarator[@Image='afterCompletion
 ancestor::MethodDeclaration//TryStatement/FinallyStatement//StatementExpression//Name[@Image='MDC.remove']
 /../../PrimarySuffix/Arguments/ArgumentList/Expression[1]/PrimaryExpression/PrimaryPrefix/Name/@Image)
 and not(ancestor::MethodDeclaration//TryStatement/FinallyStatement//StatementExpression//Name[@Image='MDC.clear'])
-and not(ancestor::ClassOrInterfaceBody//MethodDeclarator[@Image='afterCompletion']/../Block//Name[@Image='MDC.clear'])
+and not(ancestor::ClassOrInterfaceBody//MethodDeclaration[@Name='afterCompletion']/Block//Name[@Image='MDC.clear'])
 ]
 ]]>
                 </value>
@@ -1012,11 +1012,11 @@ class Good {
                 <value><![CDATA[
 //FieldDeclaration[@Static=false()]//VariableDeclaratorId[
 (: with an equals method defined at that level with 1 argument and not having a throw statement :)
-ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDeclaration/MethodDeclarator[@Image='equals' and @ParameterCount=1 and not (../Block/BlockStatement/Statement/ThrowStatement)]
+ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDeclaration[@Name='equals' and MethodDeclarator/FormalParameters/@Size=1 and not (Block/BlockStatement/Statement/ThrowStatement)]
 (: where names used in equals method matching fields are non-equal to :)
-and (@Image = ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDeclaration/MethodDeclarator[@Image='equals' and @ParameterCount=1]/../Block//(Name|PrimarySuffix)/(substring-before(concat(@Image, '.'), '.'))) !=
+and (@Name = ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDeclaration[@Name='equals' and MethodDeclarator/FormalParameters/@Size=1]/Block//(Name|PrimarySuffix)/(substring-before(concat(@Image, '.'), '.'))) !=
 (: names used as left hand side in simple assignments in methods or constructor matching fields:)
- (@Image = ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/(MethodDeclaration|ConstructorDeclaration)
+ (@Name = ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/(MethodDeclaration|ConstructorDeclaration)
 /..//BlockStatement//StatementExpression[exists(AssignmentOperator) and not(exists(Expression/PrimaryExpression/PrimarySuffix))
 and exists(Expression/PrimaryExpression/PrimaryPrefix/Name) and not(contains(Expression/PrimaryExpression/PrimaryPrefix/Name/@Image,".")) ]
 /PrimaryExpression/(PrimaryPrefix/Name|PrimarySuffix)/@Image)
@@ -1215,15 +1215,15 @@ class Bad1 {
 [ends-with(@Image, '.get') or ends-with(@Image, '.getString')]
 [
 	starts-with(@Image, concat(
-		ancestor::MethodDeclaration//FormalParameter/Type/ReferenceType/ClassOrInterfaceType[typeIs('org.apache.commons.fileupload.FileItem')]/../../..//VariableDeclaratorId/@Image,
+		ancestor::MethodDeclaration//FormalParameter/Type/ReferenceType/ClassOrInterfaceType[typeIs('org.apache.commons.fileupload.FileItem')]/../../..//VariableDeclaratorId/@Name,
 		'.')
 	) or
 	starts-with(@Image, concat(
-		ancestor::MethodDeclaration//LocalVariableDeclaration/Type/ReferenceType/ClassOrInterfaceType[typeIs('org.apache.commons.fileupload.FileItem')]/../../..//VariableDeclaratorId/@Image,
+		ancestor::MethodDeclaration//LocalVariableDeclaration/Type/ReferenceType/ClassOrInterfaceType[typeIs('org.apache.commons.fileupload.FileItem')]/../../..//VariableDeclaratorId/@Name,
 		'.')
 	) or
 	starts-with(@Image, concat(
-		ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration/Type/ReferenceType/ClassOrInterfaceType[typeIs('org.apache.commons.fileupload.FileItem')]/../../..//VariableDeclaratorId/@Image,
+		ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration/Type/ReferenceType/ClassOrInterfaceType[typeIs('org.apache.commons.fileupload.FileItem')]/../../..//VariableDeclaratorId/@Name,
 		'.')
 )
 ]
@@ -1311,12 +1311,12 @@ public class DateStuff {
 or
 .//PrimaryExpression/PrimarySuffix/@Image = 'append')
 and
-.//PrimaryExpression/PrimarySuffix/Arguments/ArgumentList/Expression[1]/AdditiveExpression[@Image='+'
+.//PrimaryExpression/PrimarySuffix/Arguments/ArgumentList/Expression[1]/AdditiveExpression[@Operator='+'
 and (count(PrimaryExpression/PrimaryPrefix/Name) > 0)
 and not(PrimaryExpression/PrimaryPrefix/Name/@Image=
-ancestor::ClassOrInterfaceBody//FieldDeclaration[@Final='true']//VariableDeclaratorId/@Image)
+ancestor::ClassOrInterfaceBody//FieldDeclaration[@Final='true']//VariableDeclaratorId/@Name)
 and not(PrimaryExpression/PrimaryPrefix/Name/@Image=
-ancestor::Block//LocalVariableDeclaration[@Final='true']//VariableDeclaratorId/@Image)
+ancestor::Block//LocalVariableDeclaration[@Final='true']//VariableDeclaratorId/@Name)
 ]]
 	]]></value>
             </property>
@@ -1412,17 +1412,17 @@ public class StringStuff {
     [(starts-with(@Image, concat(ancestor::MethodDeclaration//FormalParameter/Type/ReferenceType/ClassOrInterfaceType[
     typeIs('java.util.concurrent.CompletionService')
     or typeIs('java.util.concurrent.ExecutorCompletionService')
-    ]/../../../VariableDeclaratorId/@Image, '.'))
+    ]/../../../VariableDeclaratorId/@Name, '.'))
     or
     starts-with(@Image, concat(ancestor::MethodDeclaration//LocalVariableDeclaration/Type/ReferenceType/ClassOrInterfaceType[
      typeIs('java.util.concurrent.CompletionService')
     or typeIs('java.util.concurrent.ExecutorCompletionService')
-    ]/../../../VariableDeclarator/VariableDeclaratorId/@Image, '.'))
+    ]/../../../VariableDeclarator/VariableDeclaratorId/@Name, '.'))
     or
     starts-with(@Image, concat(ancestor::ClassOrInterfaceBody//FieldDeclaration/Type/ReferenceType/ClassOrInterfaceType[
      typeIs('java.util.concurrent.CompletionService')
     or typeIs('java.util.concurrent.ExecutorCompletionService')
-    ]/../../../VariableDeclarator/VariableDeclaratorId/@Image, '.')))
+    ]/../../../VariableDeclarator/VariableDeclaratorId/@Name, '.')))
 ]    ]]>
                 </value>
             </property>
@@ -1452,7 +1452,7 @@ public class StringStuff {
     or pmd-java:typeIs('java.util.concurrent.RunnableFuture')
     or pmd-java:typeIs('java.util.concurrent.RunnableScheduledFuture')
     or pmd-java:typeIs('java.util.concurrent.ScheduledFuture')
-    ]/VariableDeclaratorId/@Image), substring-before(@Image,'.')))
+    ]/VariableDeclaratorId/@Name), substring-before(@Image,'.')))
     or
     (: future.get or variant called on local var :)
     exists(index-of((ancestor::MethodDeclaration//LocalVariableDeclaration/Type[
@@ -1462,7 +1462,7 @@ public class StringStuff {
     or pmd-java:typeIs('java.util.concurrent.RunnableFuture')
     or pmd-java:typeIs('java.util.concurrent.RunnableScheduledFuture')
     or pmd-java:typeIs('java.util.concurrent.ScheduledFuture')
-    ]/../VariableDeclarator/VariableDeclaratorId/@Image), substring-before(@Image,'.')))
+    ]/../VariableDeclarator/VariableDeclaratorId/@Name), substring-before(@Image,'.')))
     or
     (: future.get or variant called on field :)
     exists(index-of((ancestor::ClassOrInterfaceBody//FieldDeclaration[
@@ -1472,7 +1472,7 @@ public class StringStuff {
     or pmd-java:typeIs('java.util.concurrent.RunnableFuture')
     or pmd-java:typeIs('java.util.concurrent.RunnableScheduledFuture')
     or pmd-java:typeIs('java.util.concurrent.ScheduledFuture')
-    ]/VariableDeclarator/VariableDeclaratorId/@Image), substring-before(@Image,'.')))
+    ]/VariableDeclarator/VariableDeclaratorId/@Name), substring-before(@Image,'.')))
     )
     (: .get without arguments :)
     and not(../../PrimarySuffix/Arguments/ArgumentList)
@@ -1572,7 +1572,7 @@ or
 ClassOrInterfaceType[pmd-java:typeIs('java.util.ArrayList') or pmd-java:typeIs('java.util.HashMap') or pmd-java:typeIs('java.util.HashSet')])
 and
 (: given the field is not @GuardedBy :)
-ancestor::StatementExpression/PrimaryExpression/PrimaryPrefix/Name/@Image = ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration[count(Annotation//Name[@Image='GuardedBy']) = 0]/FieldDeclaration//VariableDeclaratorId/@Image
+ancestor::StatementExpression/PrimaryExpression/PrimaryPrefix/Name/@Image = ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration[count(Annotation//Name[@Image='GuardedBy']) = 0]/FieldDeclaration//VariableDeclaratorId/@Name
 ]
 ]]>
                 </value>
@@ -1665,7 +1665,7 @@ ancestor::StatementExpression/PrimaryExpression/PrimaryPrefix/Name/@Image = ance
 (: assignment to a field :)
 /ClassOrInterfaceBodyDeclaration/MethodDeclaration/Block/BlockStatement/Statement//StatementExpression/AssignmentOperator/../PrimaryExpression//*[@Image=
 (: non-final, non-volatile, non-GuardedBy fields :)
-ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Final=false() and @Volatile=false() and not (../Annotation//Name[@Image='GuardedBy'])]/VariableDeclarator/VariableDeclaratorId/@Image
+ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Final=false() and @Volatile=false() and not (../Annotation//Name[@Image='GuardedBy'])]/VariableDeclarator/VariableDeclaratorId/@Name
 (: field not on accessor method with assignment, annotated with framework annotation :)
 and not (ancestor::ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='Autowired' or @Image='PostConstruct' or @Image='BeforeStep' or @Image='Value' or @Image='Inject']
 (: field not assigned in non-public accessor method annotated with VisibleForTesting :)
@@ -1707,14 +1707,14 @@ and not ((ancestor::TypeDeclaration/Annotation//Name[@Image='ConfigurationProper
 (: assignment to a field :)
 /../../..//ClassOrInterfaceDeclaration[@Static=false()]/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDeclaration/Block/BlockStatement/Statement//StatementExpression/AssignmentOperator/../PrimaryExpression//*[(@Image=
 (: non-final, non-volatile, non-GuardedBy fields :)
-ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Final=false() and @Volatile=false() and not (../Annotation//Name[@Image='GuardedBy'])]/VariableDeclarator/VariableDeclaratorId/@Image
+ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Final=false() and @Volatile=false() and not (../Annotation//Name[@Image='GuardedBy'])]/VariableDeclarator/VariableDeclaratorId/@Name
 or
 (: not 'this' and extends a base class :)
 ((@Image != '') and ancestor::ClassOrInterfaceDeclaration/ExtendsList and
 (: not a field of this class :)
-not (exists(index-of((ancestor::ClassOrInterfaceBody//FieldDeclaration//VariableDeclaratorId/@Image), @Image))
+not (exists(index-of((ancestor::ClassOrInterfaceBody//FieldDeclaration//VariableDeclaratorId/@Name), @Image))
 (: not a param or local :)
-     or exists(index-of((ancestor::ClassOrInterfaceBodyDeclaration//VariableDeclaratorId/@Image), @Image))))
+     or exists(index-of((ancestor::ClassOrInterfaceBodyDeclaration//VariableDeclaratorId/@Name), @Image))))
 and not (ancestor::SynchronizedStatement or ancestor::MethodDeclaration[@Synchronized = true()])
 )
 (: field not on accessor method with assignment, annotated with framework annotation :)
@@ -1758,14 +1758,14 @@ and not (../Annotation//Name[@Image='Autowired' or @Image='PersistenceContext' o
 (: field not on accessor method with assignment, annotated with framework annotation :)
 and not (../../ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='Autowired' or @Image='PostConstruct' or @Image='BeforeStep' or @Image='Value' or @Image='Inject']
 /../../..//BlockStatement/Statement//StatementExpression/AssignmentOperator/../PrimaryExpression//@Image=
-./VariableDeclarator/VariableDeclaratorId/@Image)
+./VariableDeclarator/VariableDeclaratorId/@Name)
 (: or field of known mutable types including array :)
 or ((Type/ReferenceType/ClassOrInterfaceType[(pmd-java:typeIs('java.util.Date') or pmd-java:typeIs('java.lang.StringBuilder') or pmd-java:typeIs('java.lang.StringBuffer') or pmd-java:typeIs('java.net.URL') or pmd-java:typeIs('java.io.File')) or
 (ancestor::FieldDeclaration/VariableDeclarator/VariableInitializer[ArrayInitializer and count(ArrayInitializer/VariableInitializer) > 0])])
 (: or in-line allocation of known mutable collection types :)
 or (VariableDeclarator/VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/AllocationExpression/ClassOrInterfaceType[pmd-java:typeIs('java.util.ArrayList') or pmd-java:typeIs('java.util.HashMap') or pmd-java:typeIs('java.util.HashSet')] )
 (: or in-constructor allocation of known mutable collection types :)
-or (VariableDeclarator/VariableDeclaratorId/@Image = ancestor::ClassOrInterfaceBody//ConstructorDeclaration//StatementExpression/Expression[pmd-java:typeIs('java.util.ArrayList') or pmd-java:typeIs('java.util.HashMap') or pmd-java:typeIs('java.util.HashSet')]/../..//Name/@Image)
+or (VariableDeclarator/VariableDeclaratorId/@Name = ancestor::ClassOrInterfaceBody//ConstructorDeclaration//StatementExpression/Expression[pmd-java:typeIs('java.util.ArrayList') or pmd-java:typeIs('java.util.HashMap') or pmd-java:typeIs('java.util.HashSet')]/../..//Name/@Image)
 (: mutable types not annotated with GuardedBy :)
 ) and not (../Annotation//Name[@Image='GuardedBy'])
 ]
@@ -1813,14 +1813,14 @@ and not (../Annotation//Name[@Image='Autowired' or @Image='PersistenceContext' o
 (: field not on accessor method with assignment level annotated with framework annotation :)
 and not (../../ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='Autowired' or @Image='PostConstruct' or @Image='BeforeStep' or @Image='Value' or @Image='Inject']
 /../../..//BlockStatement/Statement//StatementExpression/AssignmentOperator/../PrimaryExpression//@Image=
-./VariableDeclarator/VariableDeclaratorId/@Image)
+./VariableDeclarator/VariableDeclaratorId/@Name)
 (: or field of known mutable types including array :)
 or ((Type/ReferenceType/ClassOrInterfaceType[(pmd-java:typeIs('java.util.Date') or pmd-java:typeIs('java.lang.StringBuilder') or pmd-java:typeIs('java.lang.StringBuffer') or pmd-java:typeIs('java.net.URL') or pmd-java:typeIs('java.io.File')) or
 (ancestor::FieldDeclaration/VariableDeclarator/VariableInitializer[ArrayInitializer and count(ArrayInitializer/VariableInitializer) > 0])])
 (: or in-line allocation of known mutable collection types :)
 or (VariableDeclarator/VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/AllocationExpression[pmd-java:typeIs('java.util.ArrayList') or pmd-java:typeIs('java.util.HashMap') or pmd-java:typeIs('java.util.HashSet')] )
 (: or in-constructor allocation of known mutable collection types :)
-or (VariableDeclarator/VariableDeclaratorId/@Image = ancestor::ClassOrInterfaceBody//ConstructorDeclaration//StatementExpression/Expression[pmd-java:typeIs('java.util.ArrayList') or pmd-java:typeIs('java.util.HashMap') or pmd-java:typeIs('java.util.HashSet')]/../..//Name/@Image)
+or (VariableDeclarator/VariableDeclaratorId/@Name = ancestor::ClassOrInterfaceBody//ConstructorDeclaration//StatementExpression/Expression[pmd-java:typeIs('java.util.ArrayList') or pmd-java:typeIs('java.util.HashMap') or pmd-java:typeIs('java.util.HashSet')]/../..//Name/@Image)
 (: not annotated GuardedBy :)
 )
 and not (../Annotation//Name[@Image='GuardedBy'])
@@ -1869,9 +1869,9 @@ and not ((ancestor::TypeDeclaration/Annotation//Name[@Image='ConfigurationProper
 (: not starting with a capital, a Class :)
 not (starts-with(@Image, upper-case(substring(@Image, 1, 1)))) and
 (: not a field of this class :)
-not (exists(index-of((ancestor::ClassOrInterfaceBody//FieldDeclaration//VariableDeclaratorId/@Image), substring-before(concat(@Image, '.'), '.')))
+not (exists(index-of((ancestor::ClassOrInterfaceBody//FieldDeclaration//VariableDeclaratorId/@Name), substring-before(concat(@Image, '.'), '.')))
 (: not a param or local :)
-     or exists(index-of((ancestor::ClassOrInterfaceBodyDeclaration//VariableDeclaratorId/@Image), substring-before(concat(@Image, '.'), '.')))))
+     or exists(index-of((ancestor::ClassOrInterfaceBodyDeclaration//VariableDeclaratorId/@Name), substring-before(concat(@Image, '.'), '.')))))
 and not (ancestor::SynchronizedStatement or ancestor::MethodDeclaration[@Synchronized = true()])
 )
 (: expression not on accessor method with assignment, annotated with framework annotation :)
@@ -1938,10 +1938,10 @@ class Good {
     //PrimaryPrefix/Name[substring-before(concat(@Image,'.'), '.') =
     (: used in a class with guarded-by literal *IS* a field (should be private final) :)
     ancestor::ClassOrInterfaceBody//Annotation//Name[@Image='GuardedBy']/..//Literal[substring(@Image, 2, (string-length(@Image) - 2))=
-    ancestor::ClassOrInterfaceBody//FieldDeclaration//VariableDeclaratorId/@Image
+    ancestor::ClassOrInterfaceBody//FieldDeclaration//VariableDeclaratorId/@Name
     ]/
     (: is defined as field :)
-    ancestor::ClassOrInterfaceBodyDeclaration//FieldDeclaration//VariableDeclaratorId/@Image
+    ancestor::ClassOrInterfaceBodyDeclaration//FieldDeclaration//VariableDeclaratorId/@Name
     (: and *IS NOT* in a synchronized block with the GuardedBy literal:)
     and (not(concat('"', ancestor::SynchronizedStatement/Expression//Name/@Image, '"') =
     ancestor::ClassOrInterfaceBody//Annotation//Name[@Image='GuardedBy']/..//Literal/@Image)
@@ -1953,10 +1953,10 @@ class Good {
     //PrimaryPrefix/Name[substring-before(concat(@Image,'.'), '.') =
     (: used in a class with guarded by literal *IS NOT* a field :)
     ancestor::ClassOrInterfaceBody//Annotation//Name[@Image='GuardedBy']/..//Literal[not (substring(@Image, 2, (string-length(@Image) - 2)) =
-    ancestor::ClassOrInterfaceBody//FieldDeclaration//VariableDeclaratorId/@Image)
+    ancestor::ClassOrInterfaceBody//FieldDeclaration//VariableDeclaratorId/@Name)
     ]/
     (: is defined as field :)
-    ancestor::ClassOrInterfaceBodyDeclaration//FieldDeclaration//VariableDeclaratorId/@Image
+    ancestor::ClassOrInterfaceBodyDeclaration//FieldDeclaration//VariableDeclaratorId/@Name
     (: and *IS* in a synchronized block with the GuardedBy literal:)
     and (
     (concat('"', ancestor::SynchronizedStatement/Expression//Name/@Image, '"') =
@@ -2012,7 +2012,7 @@ class Good {
 and not (../Annotation//Name[@Image='Autowired' or @Image='PostConstruct' or @Image='BeforeStep' or @Image='Value' or @Image='Inject'])]
 //PrimaryPrefix/Name[substring-before(concat(@Image,'.'), '.') =
 ancestor::ClassOrInterfaceBody//Annotation//Name[@Image='GuardedBy']/..//Literal[@Image='"this"']/
-ancestor::ClassOrInterfaceBodyDeclaration/FieldDeclaration//VariableDeclaratorId/@Image
+ancestor::ClassOrInterfaceBodyDeclaration/FieldDeclaration//VariableDeclaratorId/@Name
 and (
 not (ancestor::SynchronizedStatement)
 or ancestor::SynchronizedStatement/Expression//Name)]
@@ -2278,16 +2278,16 @@ and (
     ]
     [
         PrimarySuffix/Arguments/ArgumentList//PrimaryPrefix/Name[
-            (@Image = ancestor::MethodDeclaration//VariableDeclaratorId/@Image)
-            or (@Image = ancestor::ClassOrInterfaceBody//FieldDeclaration[@Final='false']//VariableDeclaratorId/@Image)]
+            (@Image = ancestor::MethodDeclaration//VariableDeclaratorId/@Name)
+            or (@Image = ancestor::ClassOrInterfaceBody//FieldDeclaration[@Final='false']//VariableDeclaratorId/@Name)]
     |
             PrimaryPrefix/AllocationExpression/Arguments/ArgumentList/Expression[1]/PrimaryExpression/PrimaryPrefix/Name[
-            (@Image = ancestor::MethodDeclaration//VariableDeclaratorId/@Image)
-            or (@Image = ancestor::ClassOrInterfaceBody//FieldDeclaration[@Final='false']//VariableDeclaratorId/@Image)]
+            (@Image = ancestor::MethodDeclaration//VariableDeclaratorId/@Name)
+            or (@Image = ancestor::ClassOrInterfaceBody//FieldDeclaration[@Final='false']//VariableDeclaratorId/@Name)]
     |
             PrimaryPrefix/AllocationExpression/Arguments/ArgumentList/Expression//Arguments//PrimaryExpression/PrimaryPrefix/Name[
-            (@Image = ancestor::MethodDeclaration//VariableDeclaratorId/@Image)
-            or (@Image = ancestor::ClassOrInterfaceBody//FieldDeclaration[@Final='false']//VariableDeclaratorId/@Image)]
+            (@Image = ancestor::MethodDeclaration//VariableDeclaratorId/@Name)
+            or (@Image = ancestor::ClassOrInterfaceBody//FieldDeclaration[@Final='false']//VariableDeclaratorId/@Name)]
     ]
 )
             ]]></value>
@@ -2323,7 +2323,7 @@ and not ((ancestor::TypeDeclaration/Annotation/NormalAnnotation/Name[@Image='Con
 and not (../Annotation//Name[@Image='Autowired' or @Image='PersistenceContext' or @Image='EJB' or @Image='Resource' or @Image='Inject' or @Image='Value' or @Image='GuardedBy'])
 and  (../../ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='Autowired']
 /../../../ConstructorDeclaration//BlockStatement/Statement//StatementExpression/AssignmentOperator/../PrimaryExpression//@Image=
-./VariableDeclarator/VariableDeclaratorId/@Image)
+./VariableDeclarator/VariableDeclaratorId/@Name)
 ]
 ]]>
                 </value>
@@ -2405,7 +2405,7 @@ class Good1 {
 |
 //MethodDeclaration//PrimaryExpression[PrimaryPrefix/Name[ends-with(@Image, '.setFetchSize')]
 [ancestor::PrimaryExpression/PrimarySuffix/Arguments/ArgumentList/Expression/PrimaryExpression/PrimaryPrefix/Name[@Image =
-ancestor::ClassOrInterfaceBody//VariableDeclarator/VariableDeclaratorId/@Image
+ancestor::ClassOrInterfaceBody//VariableDeclarator/VariableDeclaratorId/@Name
 [ancestor::VariableDeclarator/VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/Literal[@Image > 500]]]]]
 ]]>
                 </value>

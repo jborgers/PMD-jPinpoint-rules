@@ -21,7 +21,7 @@
 |
 //MethodDeclaration//PrimaryExpression[PrimaryPrefix/Name[ends-with(@Image, '.setFetchSize')]
 [ancestor::PrimaryExpression/PrimarySuffix/Arguments/ArgumentList/Expression/PrimaryExpression/PrimaryPrefix/Name[@Image =
-ancestor::ClassOrInterfaceBody//VariableDeclarator/VariableDeclaratorId/@Image
+ancestor::ClassOrInterfaceBody//VariableDeclarator/VariableDeclaratorId/@Name
 [ancestor::VariableDeclarator/VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/Literal[@Image > 500]]]]]
 ]]>
                 </value>

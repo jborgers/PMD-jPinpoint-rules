@@ -121,16 +121,16 @@ and (
     ]
     [
         PrimarySuffix/Arguments/ArgumentList//PrimaryPrefix/Name[
-            (@Image = ancestor::MethodDeclaration//VariableDeclaratorId/@Image)
-            or (@Image = ancestor::ClassOrInterfaceBody//FieldDeclaration[@Final='false']//VariableDeclaratorId/@Image)]
+            (@Image = ancestor::MethodDeclaration//VariableDeclaratorId/@Name)
+            or (@Image = ancestor::ClassOrInterfaceBody//FieldDeclaration[@Final='false']//VariableDeclaratorId/@Name)]
     |
             PrimaryPrefix/AllocationExpression/Arguments/ArgumentList/Expression[1]/PrimaryExpression/PrimaryPrefix/Name[
-            (@Image = ancestor::MethodDeclaration//VariableDeclaratorId/@Image)
-            or (@Image = ancestor::ClassOrInterfaceBody//FieldDeclaration[@Final='false']//VariableDeclaratorId/@Image)]
+            (@Image = ancestor::MethodDeclaration//VariableDeclaratorId/@Name)
+            or (@Image = ancestor::ClassOrInterfaceBody//FieldDeclaration[@Final='false']//VariableDeclaratorId/@Name)]
     |
             PrimaryPrefix/AllocationExpression/Arguments/ArgumentList/Expression//Arguments//PrimaryExpression/PrimaryPrefix/Name[
-            (@Image = ancestor::MethodDeclaration//VariableDeclaratorId/@Image)
-            or (@Image = ancestor::ClassOrInterfaceBody//FieldDeclaration[@Final='false']//VariableDeclaratorId/@Image)]
+            (@Image = ancestor::MethodDeclaration//VariableDeclaratorId/@Name)
+            or (@Image = ancestor::ClassOrInterfaceBody//FieldDeclaration[@Final='false']//VariableDeclaratorId/@Name)]
     ]
 )
             ]]></value>
@@ -166,7 +166,7 @@ and not ((ancestor::TypeDeclaration/Annotation/NormalAnnotation/Name[@Image='Con
 and not (../Annotation//Name[@Image='Autowired' or @Image='PersistenceContext' or @Image='EJB' or @Image='Resource' or @Image='Inject' or @Image='Value' or @Image='GuardedBy'])
 and  (../../ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='Autowired']
 /../../../ConstructorDeclaration//BlockStatement/Statement//StatementExpression/AssignmentOperator/../PrimaryExpression//@Image=
-./VariableDeclarator/VariableDeclaratorId/@Image)
+./VariableDeclarator/VariableDeclaratorId/@Name)
 ]
 ]]>
                 </value>
