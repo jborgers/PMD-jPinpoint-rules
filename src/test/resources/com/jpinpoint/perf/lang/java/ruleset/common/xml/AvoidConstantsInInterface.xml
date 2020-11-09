@@ -6,10 +6,14 @@
     <test-code>
         <description>violation: Avoid Constants in interface</description>
         <expected-problems>1</expected-problems>
-        <expected-linenumbers>1</expected-linenumbers>
+        <expected-linenumbers>2</expected-linenumbers>
         <code><![CDATA[
 public interface Foo {
     static final Object CONST = new Object(); //bad
+
+    @Data
+    class SomeData
+    { Data data; } // good
 }
      ]]></code>
     </test-code>

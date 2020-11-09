@@ -107,16 +107,20 @@ public class CalendarStuff {
             (jpinpoint-rules)</description>
         <priority>3</priority>
         <properties>
-            <property name="version" value="1.0"/>
+            <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
- //ClassOrInterfaceDeclaration[@Interface='true']
-    [
-      count(.//FieldDeclaration)>0
-    ]
+ //ClassOrInterfaceDeclaration[@Interface=true()]/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration
 	]]></value>
             </property>
         </properties>
+        <example>
+            <![CDATA[
+public interface Foo {
+    static final Object CONST = new Object(); //bad
+}
+            ]]>
+        </example>
     </rule>
 
     <rule name="AvoidDecimalAndChoiceFormatAsField" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false"
