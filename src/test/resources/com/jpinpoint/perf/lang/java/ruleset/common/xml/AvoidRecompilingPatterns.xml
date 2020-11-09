@@ -46,8 +46,25 @@ public class Bar {
         list.add(actionSplit);
         return list;
     }
-
 }
      ]]></code>
     </test-code>
+
+    <test-code>
+        <description>no violation: Avoid recompiling patterns, other compile</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+public class GoodHere {
+    void otherCompile() {
+        MyCompiler.compile("stuff");
+    }
+}
+
+class MyCompiler {
+    static void compile(String s) {
+    }
+}
+     ]]></code>
+    </test-code>
+
 </test-data>

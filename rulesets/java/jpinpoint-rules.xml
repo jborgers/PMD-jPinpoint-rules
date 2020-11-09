@@ -454,11 +454,11 @@ public class Good {
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
-            <property name="version" value="1.0"/>
+            <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
 //TypeDeclaration/ClassOrInterfaceDeclaration/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDeclaration
-//PrimaryExpression/PrimaryPrefix/Name[ends-with(@Image, '.compile') and
+//PrimaryExpression/PrimaryPrefix/Name[pmd-java:typeIs('java.util.regex.Pattern') and ends-with(@Image, '.compile') and
 count(../../PrimarySuffix/Arguments/ArgumentList/Expression//PrimaryExpression) = 1
 and not (
 ../../PrimarySuffix/Arguments/ArgumentList/Expression/PrimaryExpression/PrimaryPrefix/Name/@Image=
@@ -466,6 +466,28 @@ ancestor::MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter/Va
 	]]></value>
             </property>
         </properties>
+        <example>
+            <![CDATA[
+lass Bad {
+    public static final String STR_PAT1 = "[A-Z][a-z]+";
+
+    public static void bad() {
+        Pattern p1 = Pattern.compile(STR_PAT1); // bad
+        Pattern p2 = Pattern.compile("(?=\\p{Lu})"); // bad
+        boolean b = p1.matcher("Start ").matches();
+    }
+}
+class Good {
+    public static final Pattern PAT1 = Pattern.compile("[A-Z][a-z]+");
+    public static final Pattern PAT2 = Pattern.compile("(?=\\p{Lu})");
+
+    public static void good() {
+        boolean b = PAT1.matcher("Start ").matches();
+    }
+}
+            ]]>
+        </example>
+
     </rule>
 
     <rule name="AvoidRecompilingXPathExpression" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="XPathExpression is created and compiled every time. Beware it is thread-unsafe." typeResolution="true"
