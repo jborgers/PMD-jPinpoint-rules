@@ -283,6 +283,12 @@ class ErrorInfo {
         ErrorInfo errorInfo = (ErrorInfo) o;
         return errorCode == errorInfo.errorCode;
     }
+    static class Inner {
+        String str;
+        void set(String s) {
+            str = s;
+        }
+    }
 }
     ]]></code>
     </test-code>

@@ -836,8 +836,8 @@ count(ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDecla
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
-//FieldDeclaration//VariableDeclaratorId[(@Name = ancestor::ClassOrInterfaceBody//MethodDeclaration[@Name='equals']/Block//Name/@Image) !=
-(@Name = ancestor::ClassOrInterfaceBody//MethodDeclaration[@Name='hashCode']/Block//Name/@Image)
+//FieldDeclaration//VariableDeclaratorId[(@Name = ancestor::ClassOrInterfaceBody//MethodDeclaration[@Name='equals']/Block//(Name|PrimarySuffix)/@Image) !=
+(@Name = ancestor::ClassOrInterfaceBody//MethodDeclaration[@Name='hashCode']/Block//(Name|PrimarySuffix)/@Image)
 ]
 ,
 //MethodDeclaration[@Name='equals']/Block//Name[ends-with(@Image, 'equalsIgnoreCase')]
