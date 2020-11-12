@@ -262,4 +262,30 @@ public class EqTryoutNested {
     ]]></code>
     </test-code>
 
+    <test-code>
+        <description>no violation: false positive fixed with #74</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+class ErrorInfo {
+
+    private final ErrorCode errorCode;
+
+    public ErrorInfo(final String errorCode) {
+        this.errorCode = ErrorCode.valueOf(errorCode);
+    }
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        ErrorInfo errorInfo = (ErrorInfo) o;
+        return errorCode == errorInfo.errorCode;
+    }
+}
+    ]]></code>
+    </test-code>
+
+
 </test-data>

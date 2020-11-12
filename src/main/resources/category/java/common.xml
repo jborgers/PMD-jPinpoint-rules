@@ -1013,17 +1013,22 @@ class Bad2 {
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
-//FieldDeclaration[@Static=false()]//VariableDeclaratorId[
-(: with an equals method defined at that level with 1 argument and not having a throw statement :)
-ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDeclaration[@Name='equals' and MethodDeclarator/FormalParameters/@Size=1 and not (Block/BlockStatement/Statement/ThrowStatement)]
-(: where names used in equals method matching fields are non-equal to :)
-and (@Name = ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDeclaration[@Name='equals' and MethodDeclarator/FormalParameters/@Size=1]/Block//(Name|PrimarySuffix)/(substring-before(concat(@Image, '.'), '.'))) !=
+//ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Static=false()]//VariableDeclaratorId[
 (: names used as left hand side in simple assignments in methods or constructor matching fields:)
- (@Name = ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/(MethodDeclaration|ConstructorDeclaration)
-/..//BlockStatement//StatementExpression[exists(AssignmentOperator) and not(exists(Expression/PrimaryExpression/PrimarySuffix))
+ (@Name = ancestor::ClassOrInterfaceBody[1]/ClassOrInterfaceBodyDeclaration/(MethodDeclaration|ConstructorDeclaration)
+/..//BlockStatement//StatementExpression
+(: simple assignment :)
+[exists(AssignmentOperator) and not(exists(Expression/PrimaryExpression/PrimarySuffix))
 and exists(Expression/PrimaryExpression/PrimaryPrefix/Name) and not(contains(Expression/PrimaryExpression/PrimaryPrefix/Name/@Image,".")) ]
 /PrimaryExpression/(PrimaryPrefix/Name|PrimarySuffix)/@Image)
-]
+ and (
+(: with an equals method defined at that level with 1 argument and not having a throw statement :)
+ancestor::ClassOrInterfaceBody[1]/ClassOrInterfaceBodyDeclaration/MethodDeclaration[@Name='equals' and MethodDeclarator/FormalParameters/@Size=1 and not (Block/BlockStatement/Statement/ThrowStatement)]
+(: where names used in equals method matching fields are non-equal to :)
+and not(@Name = ancestor::ClassOrInterfaceBody[1]/ClassOrInterfaceBodyDeclaration/MethodDeclaration
+[@Name='equals' and MethodDeclarator/FormalParameters/@Size=1]/Block//
+(: name or this.name and name before dot if present :)
+(Name|PrimarySuffix)/(substring-before(concat(@Image, '.'), '.'))) )]
 			]]>
                 </value>
             </property>
