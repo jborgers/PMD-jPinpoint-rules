@@ -652,31 +652,47 @@ count(ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDecla
         <description>
             MDC values are added for logging, but not removed. Problem: MDC values can leak to other user transactions (requests) and log incorrect information. Solution: remove the MDC value in a finally clause.
             (jpinpoint-rules)</description>
+        <priority>2</priority>
         <properties>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value>
                     <![CDATA[
 //MethodDeclaration//StatementExpression//Name[@Image='MDC.put']
-/../../PrimarySuffix/Arguments/ArgumentList/Expression[1]/PrimaryExpression/PrimaryPrefix/Literal[not(@Image=
-ancestor::MethodDeclaration//TryStatement/FinallyStatement//StatementExpression//Name[@Image='MDC.remove']
-/../../PrimarySuffix/Arguments/ArgumentList/Expression[1]/PrimaryExpression/PrimaryPrefix/Literal/@Image)
-and not(ancestor::MethodDeclaration//TryStatement/FinallyStatement//StatementExpression//Name[@Image='MDC.clear'])
-and not(ancestor::ClassOrInterfaceBody//MethodDeclaration[@Name='afterCompletion']/Block//Name[@Image='MDC.clear'])
-]
-|
-//MethodDeclaration//StatementExpression//Name[@Image='MDC.put']
-/../../PrimarySuffix/Arguments/ArgumentList/Expression[1]/PrimaryExpression/PrimaryPrefix/Name[not(@Image=
-ancestor::MethodDeclaration//TryStatement/FinallyStatement//StatementExpression//Name[@Image='MDC.remove']
-/../../PrimarySuffix/Arguments/ArgumentList/Expression[1]/PrimaryExpression/PrimaryPrefix/Name/@Image)
-and not(ancestor::MethodDeclaration//TryStatement/FinallyStatement//StatementExpression//Name[@Image='MDC.clear'])
-and not(ancestor::ClassOrInterfaceBody//MethodDeclaration[@Name='afterCompletion']/Block//Name[@Image='MDC.clear'])
+/../../PrimarySuffix/Arguments/ArgumentList/Expression[1]/PrimaryExpression/PrimaryPrefix/(Name|Literal)[not(@Image=
+(ancestor::MethodDeclaration//TryStatement/FinallyStatement//StatementExpression|ancestor::ClassOrInterfaceBody//MethodDeclaration[@Name='afterCompletion']/Block)//Name[@Image='MDC.remove']
+/../../PrimarySuffix/Arguments/ArgumentList/Expression[1]/PrimaryExpression/PrimaryPrefix/(Name|Literal)/@Image)
+and not((ancestor::MethodDeclaration//TryStatement/FinallyStatement//StatementExpression|ancestor::ClassOrInterfaceBody//MethodDeclaration[@Name='afterCompletion']/Block)//Name[@Image='MDC.clear'])
 ]
 ]]>
                 </value>
             </property>
         </properties>
-        <priority>2</priority>
+        <example>
+            <![CDATA[
+class Bad {
+    public void bad() {
+        MDC.put("levelKey1", "levelName1"); // bad, not removed in finally
+        MDC.put("levelKey2", "levelName2"); // bad, not removed at all
+        doStuff();
+        MDC.remove("levelKey1");
+    }
+}
+
+class Good {
+    public void good() {
+        try {
+            MDC.put("levelKey1", "levelName1");
+            MDC.put("levelKey2", "levelName2");
+            doStuff();
+        } finally {
+            MDC.remove("levelKey1");
+            MDC.remove("levelKey2");
+        }
+    }
+}
+            ]]>
+        </example>
     </rule>
 
     <rule name="MinimizeAttributesInSession" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="Attribute is set in the session, yet not removed. This may bloat the session." typeResolution="true"

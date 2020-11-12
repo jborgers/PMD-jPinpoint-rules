@@ -104,4 +104,28 @@ public class Foo implements WebRequestInterceptor {
 }
      ]]></code>
     </test-code>
+
+    <test-code>
+        <description>no violation: MDC Value is removed in afterCompletion for Spring WebRequestInterceptor </description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>10</expected-linenumbers>
+        <code><![CDATA[
+import org.slf4j.MDC;
+import org.springframework.web.context.request.*;
+
+public class Foo implements WebRequestInterceptor {
+    private static final String USER_TYPE_KEY1 = "userTypeKey1Field";
+
+    public void good() {
+        MDC.put("levelKey1", "levelName");
+        MDC.put(USER_TYPE_KEY1, "userTypeNameField");
+        MDC.put("levelKey2", "levelName2"); // bad
+    }
+    public void afterCompletion(WebRequest webRequest, Exception e) {
+        MDC.remove("levelKey1");
+        MDC.remove(USER_TYPE_KEY1);
+    }
+}
+     ]]></code>
+    </test-code>
 </test-data>
