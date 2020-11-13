@@ -12,7 +12,7 @@
 4. **Minor**: it is generally a bad practice, it may increase the above risks.
 5. **Informative**: for your information, it might increase the above risks.
 
-| Rule name | current level | proposed level | decided level other than proposed
+| Rule name | current level | proposed level | decided level if other than proposed
 | --------- | ------------- | -------------- | -------
 |AvoidApacheCommonsFileItemNonStreaming| 2| 2|
 |AvoidCDIReferenceLeak| 2| 1|
@@ -50,7 +50,7 @@
 |AvoidStaticXmlFactories| 1| 1|
 |AvoidStringBuffer| 3| 3|
 |AvoidThreadUnsafeJaxbUsage| 1| 1|
-|AvoidTimeUnitConfusion| 2| 3|
+|AvoidTimeUnitConfusion| 2| 3?|3
 |AvoidUnconditionalBuiltLogStrings| 2| 2|
 |AvoidUnguardedAssignmentToNonFinalFieldsInObjectsUsingSynchronized| 2| 1?|1
 |AvoidUnguardedAssignmentToNonFinalFieldsInSharedObjects| 2| 1?|1
@@ -65,18 +65,18 @@
 |DefineConcurrencyForJavaEESingleton|2|3|
 |HttpClientBuilderWithoutDisableConnectionState| 2| 2|
 |ImplementEqualsHashCodeOnValueObjects| 3| 3|
-|InconsistentEqualsAndHashCode| 2| 1?| 1, false positives fixed
+|InconsistentEqualsAndHashCode| 2| 1?| 1 (false positives fixed)
 |JAXBContextCreatedForEachMethodCall| 2| 2|
 |MDCPutWithoutRemove| 2| 2|
 |MakeAutoWiredConstructedFieldFinal|4|3?|3
 |MinimizeActionModelMapInSession| 2| 2|
 |MinimizeAttributesInSession|2|2|
-|MissingFieldInEquals| 2| 3?| 3 (maybe 2 in the future)
+|MissingFieldInEquals| 2| 3?| 3 (maybe later 2)
 |NotProperlySynchronizingOnFieldWhileUsingGuardedBy|3|3|
 |NotProperlySynchronizingOnThisWhileUsingGuardedBy|3|3|
 |ObjectMapperCreatedForEachMethodCall| 2| 2|
 |SynchronizeForKeyInCacheable|2|2|
 |UnconditionalConcatInLogArgument| 2| 2|
 |UnconditionalOperationOnLogArgument| 2| 2|
-|UsingSuppressWarnings| 4| 4?| (maybe 5 in the future)
-|UsingSuppressWarningsHighRisk| 4| 4?| 
+|UsingSuppressWarnings| 4| 4?| 4 (maybe later 5)
+|UsingSuppressWarningsHighRisk| 4| 4?| 4
