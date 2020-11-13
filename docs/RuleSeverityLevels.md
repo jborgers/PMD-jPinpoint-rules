@@ -78,5 +78,5 @@
 |SynchronizeForKeyInCacheable|2|2|
 |UnconditionalConcatInLogArgument| 2| 2|
 |UnconditionalOperationOnLogArgument| 2| 2|
-|UsingSuppressWarnings| 4| 4?| 4 (maybe later 5)
+|UsingSuppressWarnings| 4| 5?| 4 (maybe later 5)
 |UsingSuppressWarningsHighRisk| 4| 4?| 4
