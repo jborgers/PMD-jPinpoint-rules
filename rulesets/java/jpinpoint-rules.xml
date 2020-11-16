@@ -338,7 +338,7 @@ VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/Literal[string-le
             <![CDATA[
 public class XMLConversion {
     public <T> T myUnmarshal(final Source response, final Class<T> clazz) {
-            return JAXB.unmarshal(response, clazz); // bad
+        return JAXB.unmarshal(response, clazz); // bad
     }
     public void myMarshal(final Object response, StringWriter stringWriter) {
         JAXB.marshal(response, stringWriter); // bad
@@ -667,6 +667,66 @@ substring-after(@Image, '.') != 'append')]) = 0
 	]]></value>
             </property>
         </properties>
+    </rule>
+
+    <rule name="AvoidUnnecessaryStringBuilderCreation"
+          language="java"
+          message="Use concatenation (+) instead of new StringBuilder if only one statement."
+          class="net.sourceforge.pmd.lang.rule.XPathRule"
+          typeResolution="true"
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#ISU05">
+        <description>Problem: Creating a StringBuilder and using append is more verbose, less readable and less maintainable than simply using String concatenation (+).
+            For one statement resulting in a String, creating a StringBuilder and using append is not faster than simply using concatenation.&#13;
+            Solution: Simply concatenate Strings in one statement, it is more concise, better readable and more maintainable.
+        (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+(: append used in one chained statement on allocated StringBuilder and with chained toString :)
+//MethodDeclaration//Block//AllocationExpression/ClassOrInterfaceType[@Image="StringBuilder" or @Image = "StringBuffer"]
+/../../../PrimarySuffix[@Image = "toString"]/../PrimarySuffix[@Image = "append"][1] (: only report first append in chain :)
+|
+(: or :)
+(: append on builder var, where var is allocated as builder :)
+//MethodDeclaration//Block//PrimaryPrefix/Name[ends-with(@Image, '.append') and starts-with(@Image,
+ancestor::Block//AllocationExpression/ClassOrInterfaceType[@Image="StringBuilder" or @Image = "StringBuffer"]
+/ancestor::VariableDeclarator/VariableDeclaratorId/@Name)
+and
+(
+(: and either 1. toString is called in a chain after append :)
+../../PrimarySuffix[@Image = 'toString'] or
+(: or 2. toString is called on the var in same block :)
+substring-before(@Image, '.') = substring-before(ancestor::Block//PrimaryPrefix/Name[ends-with(@Image, '.toString')]/@Image, '.'))
+(: and not append on var used in inner block like a ForStatement :)
+and not(ancestor::Block//Block//PrimaryPrefix/Name[ends-with(@Image, '.append')])
+(: and var not passed as argument to method :)
+and not(substring-before(@Image, '.') = ancestor::Block//Statement//PrimarySuffix/Arguments//Name/@Image)
+]
+	         ]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+class Foo {
+    String name;
+    String value;
+
+    public String bad() {
+        return new StringBuilder()
+           .append(name) // bad
+           .append(" = ")// bad
+           .append(value)// bad
+           .toString();
+    }
+
+    public String good() {
+        return name + " = " + value;
+    }
+}
+            ]]>
+        </example>
     </rule>
 
     <rule name="AvoidWideScopeXPathExpression" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="XPathExpression targets a wide scope, this is potentially slow." typeResolution="true"

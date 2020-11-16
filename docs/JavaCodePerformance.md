@@ -1274,6 +1274,34 @@ builder.append("ExceptionType: ").append(ex.getClass().getName()).append(", ");
 
 **Rule name:** AvoidConcatInAppend
 
+#### ISU05
+
+**Observation: A StringBuilder is created and append is used for one statement resulting in a String.**  
+Example:
+
+```java
+    public String bad() {
+        return new StringBuilder()
+                .append(name) // bad 
+                .append(" = ")
+                .append(value)
+                .toString();
+    }
+```
+
+**Problem:** Creating a StringBuilder and using append is more verbose, less readable and less maintainable than simply using String concatenation (+).
+                         For one statement resulting in a String, creating a StringBuilder and using append is not faster than simply using concatenation.  
+**Solution:** Simply concatenate Strings in one statement, it is more concise, better readable and more maintainable. Example:
+
+```java
+    public String good() {
+        return name + " = " + value;
+    }
+```
+
+**Rule name:** AvoidUnnecessaryStringBuilderCreation
+
+
 Inefficient date time formatting
 --------------------------------
 
