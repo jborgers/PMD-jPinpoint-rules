@@ -1446,7 +1446,7 @@ try {
 }
 ```
 
-**Rule name:** [PMD-jPinpoint-rules/issues/28](https://github.com/jborgers/PMD-jPinpoint-rules/issues/28)
+**Rule name:** AvoidCDIReferenceLeak [PMD-jPinpoint-rules/issues/28](https://github.com/jborgers/PMD-jPinpoint-rules/issues/28)
 
 Violation of Encapsulation, DRY or SRP
 --------------------------------------
