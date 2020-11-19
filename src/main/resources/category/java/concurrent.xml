@@ -316,9 +316,9 @@ and not ((ancestor::TypeDeclaration/Annotation//Name[@Image='ConfigurationProper
 (: not starting with a capital, a Class :)
 not (starts-with(@Image, upper-case(substring(@Image, 1, 1)))) and
 (: not a field of this class :)
-not (exists(index-of((ancestor::ClassOrInterfaceBody//FieldDeclaration//VariableDeclaratorId/@Name), substring-before(concat(@Image, '.'), '.')))
+not (exists(index-of((ancestor::ClassOrInterfaceBody//FieldDeclaration//VariableDeclaratorId/@Image), substring-before(concat(@Image, '.'), '.')))
 (: not a param or local :)
-     or exists(index-of((ancestor::ClassOrInterfaceBodyDeclaration//VariableDeclaratorId/@Name), substring-before(concat(@Image, '.'), '.')))))
+     or exists(index-of((ancestor::ClassOrInterfaceBodyDeclaration//VariableDeclaratorId/@Image), substring-before(concat(@Image, '.'), '.')))))
 and not (ancestor::SynchronizedStatement or ancestor::MethodDeclaration[@Synchronized = true()])
 )
 (: expression not on accessor method with assignment, annotated with framework annotation :)
