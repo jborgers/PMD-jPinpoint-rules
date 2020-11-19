@@ -1968,7 +1968,7 @@ or (ancestor::ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='VisibleFo
     <rule name="AvoidVolatileInPrototypeScope" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="No need for volatile in prototype scope" typeResolution="true"
           externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#tutc10">
         <description>A field is defined as volatile while the class has prototype scope. Problem: volatile has some overhead, especially for writes. When getting the bean from the Spring applicationContext, prototype scope means that each invocation creates a new object so the field is not shared. &#13;
-            Solution: Since only one thread can access the field, there is no need for violatile and it can be removed. (jpinpoint-rules)</description>
+            Solution: Since only one thread can access the field, there is no need for volatile and it can be removed. (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
             <property name="version" value="2.0"/>
