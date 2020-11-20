@@ -12,8 +12,8 @@
 4. **Minor**: it is generally a bad practice, it may increase the above risks.
 5. **Informative**: for your information, it might increase the above risks.
 
-| Rule name | current level | proposed level | decided level if other than proposed
-| --------- | ------------- | -------------- | -------
+| Rule name | current level | proposed level | level if different review 1 | level review 2
+| --------- | ------------- | -------------- | ------- | ---
 |AvoidApacheCommonsFileItemNonStreaming| 2| 2|
 |AvoidCDIReferenceLeak| 2| 1|
 |AvoidCalendar| 2| 3|
@@ -26,7 +26,7 @@
 |AvoidDeprecatedHttpConnectors|3 |1? |2 (maybe later to 1)
 |AvoidDuplicateAssignmentsInCases|2 |2 |
 |AvoidExpressionsInCacheable|2|2|
-|AvoidFutureGetWithoutTimeout| 2| 2|
+|AvoidFutureGetWithoutTimeout| 2| 2| |1
 |AvoidHugeQueryFetchSize|2|2|
 |AvoidImplicitlyRecompilingRegex| 2| 2|
 |AvoidImproperAnnotationCombinations|2|3?|3
@@ -42,10 +42,10 @@
 |AvoidRecompilingXPathExpression| 2| 2|
 |AvoidRecreatingDateTimeFormatter| 2| 2|
 |AvoidReflectionInToStringAndHashCode| 2| 2|
-|AvoidSimpleCaches|2|3|
+|AvoidSimpleCaches|2|3| |2
 |AvoidSimpleDateFormat| 2| 2|
 |AvoidSpringApplicationContextRecreation|2|2|
-|AvoidSpringMVCMemoryLeaks|2|2|
+|AvoidSpringMVCMemoryLeaks|2|2| |1
 |AvoidSqlInExpression|2|2|
 |AvoidStaticXmlFactories| 1| 1|
 |AvoidStringBuffer| 3| 3|
@@ -72,11 +72,11 @@
 |MinimizeActionModelMapInSession| 2| 2|
 |MinimizeAttributesInSession|2|2|
 |MissingFieldInEquals| 2| 3?| 3 (maybe later 2)
-|NotProperlySynchronizingOnFieldWhileUsingGuardedBy|3|3|
-|NotProperlySynchronizingOnThisWhileUsingGuardedBy|3|3|
+|NotProperlySynchronizingOnFieldWhileUsingGuardedBy|3|3| |2
+|NotProperlySynchronizingOnThisWhileUsingGuardedBy|3|3| |2
 |ObjectMapperCreatedForEachMethodCall| 2| 2|
 |SynchronizeForKeyInCacheable|2|2|
 |UnconditionalConcatInLogArgument| 2| 2|
 |UnconditionalOperationOnLogArgument| 2| 2|
-|UsingSuppressWarnings| 4| 5?| 4 (maybe later 5)
+|UsingSuppressWarnings| 4| 5?| 4 (maybe later 5)|5
 |UsingSuppressWarningsHighRisk| 4| 4?| 4
