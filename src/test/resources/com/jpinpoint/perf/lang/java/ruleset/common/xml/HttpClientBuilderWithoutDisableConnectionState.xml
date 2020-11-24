@@ -87,10 +87,10 @@ class Bad {
         <code><![CDATA[
 class Good {
     public CloseableHttpClient good(Object conMgr) {
-        HttpClientBuilder httpClientBuilder = HttpClients.custom() // bad
+        HttpClientBuilder httpClientBuilder = HttpClients.custom() // good
+                .disableConnectionState()
                 .setConnectionManager(null)
-                .setRetryHandler(null)
-                .disableConnectionState();
+                .setRetryHandler(null);
         return httpClientBuilder.build();
     }
 }

@@ -4,10 +4,11 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
     <test-code>
-        <description>violation: returning HttpClient built without pool sizes set</description>
+        <description>violation: returning HttpClient without pool sizes set</description>
         <expected-problems>2</expected-problems>
-        <expected-linenumbers>3,3</expected-linenumbers>
+        <expected-linenumbers>4,4</expected-linenumbers>
         <code><![CDATA[
+import org.apache.http.impl.client.HttpClientBuilder;
 class Bad {
     public HttpClient bad(Object conMgr) {
         return HttpClientBuilder.create() // bad, missing setMaxConnPerRoute and setMaxConnTotal
@@ -19,9 +20,10 @@ class Bad {
     </test-code>
 
     <test-code>
-        <description>no violation: returning HttpClient built with pool sizes set</description>
+        <description>no violation: returning HttpClient with pool sizes set</description>
         <expected-problems>0</expected-problems>
         <code><![CDATA[
+import org.apache.http.impl.client.HttpClientBuilder;
 class Good {
     public HttpClient good(Object conMgr) {
         return HttpClientBuilder.create()
@@ -36,8 +38,9 @@ class Good {
     <test-code>
         <description>violation: HttpClient local built without pool sizes set</description>
         <expected-problems>2</expected-problems>
-        <expected-linenumbers>3,3</expected-linenumbers>
+        <expected-linenumbers>4,4</expected-linenumbers>
         <code><![CDATA[
+import org.apache.http.impl.client.HttpClientBuilder;
 class Bad {
     public HttpClient bad(Object conMgr) {
         HttpClient client = HttpClientBuilder.create() // bad
@@ -53,6 +56,7 @@ class Bad {
         <description>no violation: HttpClient local built with pool sizes set</description>
         <expected-problems>0</expected-problems>
         <code><![CDATA[
+import org.apache.http.impl.client.HttpClientBuilder;
 class Bad {
     public HttpClient good(Object conMgr) {
         HttpClient client = HttpClientBuilder.create()
@@ -69,8 +73,10 @@ class Bad {
     <test-code>
         <description>violation: HttpClients.custom local built without pool sizes set</description>
         <expected-problems>2</expected-problems>
-        <expected-linenumbers>3,3</expected-linenumbers>
+        <expected-linenumbers>5,5</expected-linenumbers>
         <code><![CDATA[
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.client.HttpClients;
 class Bad {
     public CloseableHttpClient bad(Object conMgr) {
         HttpClientBuilder httpClientBuilder = HttpClients.custom() // bad
@@ -86,6 +92,7 @@ class Bad {
         <description>no violation: HttpClients.custom local built with pool sizes set</description>
         <expected-problems>0</expected-problems>
         <code><![CDATA[
+import org.apache.http.impl.client.HttpClientBuilder;
 class Good {
     public CloseableHttpClient good(Object conMgr) {
         HttpClientBuilder httpClientBuilder = HttpClients.custom() // bad
@@ -100,10 +107,56 @@ class Good {
     </test-code>
 
     <test-code>
+        <description>violation: HttpClients.custom local built via param without pool sizes set</description>
+        <expected-problems>2</expected-problems>
+        <expected-linenumbers>4,4</expected-linenumbers>
+        <code><![CDATA[
+import org.apache.http.impl.client.HttpClients;
+class Bad {
+    public CloseableHttpClient bad(Object conMgr) {
+    HttpClientBuilder httpClientBuilder = HttpClients.custom(); //bad
+    return httpClientBuilder.build();
+    }
+ }
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>no violation: HttpClients.custom local built via param with pool sizes set</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import org.apache.http.impl.client.HttpClients;
+class Bad {
+    public CloseableHttpClient bad(Object conMgr) {
+    HttpClientBuilder httpClientBuilder = HttpClients.custom(); //bad
+    httpClientBuilder.setMaxConnPerRoute(10);
+    httpClientBuilder.setMaxConnTotal(10);
+    return httpClientBuilder.build();
+    }
+ }
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>no violation: HttpClients of other type</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import nl.mypackage.HttpClients;
+class Good {
+    public CloseableHttpClient good(Object conMgr) {
+        HttpClientBuilder httpClientBuilder = HttpClients.custom();
+        return httpClientBuilder.build();
+    }
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
         <description>violation: HttpAsyncClientBuilder formal param, built without pool sizes set</description>
         <expected-problems>1</expected-problems>
-        <expected-linenumbers>2</expected-linenumbers>
+        <expected-linenumbers>3</expected-linenumbers>
         <code><![CDATA[
+import org.apache.http.impl.nio.client.HttpAsyncClientBuilder;
 class Bad {
     private HttpAsyncClientBuilder bad(final HttpAsyncClientBuilder clientBuilder) {
         clientBuilder
@@ -119,6 +172,7 @@ class Bad {
         <description>no violation: HttpAsyncClientBuilder formal param, built with pool sizes set</description>
         <expected-problems>0</expected-problems>
         <code><![CDATA[
+import org.apache.http.impl.nio.client.HttpAsyncClientBuilder;
 class Good {
     private HttpAsyncClientBuilder good(final HttpAsyncClientBuilder clientBuilder) {
         clientBuilder
@@ -133,9 +187,10 @@ class Good {
 
     <test-code>
         <description>violation: HttpAsyncClientBuilder formal param, and return created built without pool sizes set</description>
-        <expected-problems>4</expected-problems>
-        <expected-linenumbers>2,2,3,3</expected-linenumbers>
+        <expected-problems>2</expected-problems>
+        <expected-linenumbers>3,3</expected-linenumbers>
         <code><![CDATA[
+import org.apache.http.impl.nio.client.HttpAsyncClientBuilder;
 class Bad {
     private HttpAsyncClientBuilder bad(final HttpAsyncClientBuilder clientBuilder) { // bad
         return HttpAsyncClientBuilder.create() //bad
@@ -143,6 +198,36 @@ class Bad {
     }
 }
      ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>violation: PoolingHttpClientConnectionManager created without pool sizes set</description>
+        <expected-problems>2</expected-problems>
+        <expected-linenumbers>4,4</expected-linenumbers>
+        <code><![CDATA[
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+class Bad {
+    private PoolingHttpClientConnectionManager bad() { // bad
+        return new PoolingHttpClientConnectionManager();
+    }
+}
+   ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>no violation: PoolingHttpClientConnectionManager with pool sizes set</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+class Bad {
+    private PoolingHttpClientConnectionManager bad() { // bad
+        PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
+        cm.setMaxTotal(maxConnections);
+        cm.setDefaultMaxPerRoute(maxConnections);
+        return cm;
+    }
+}
+   ]]></code>
     </test-code>
 
 </test-data>
