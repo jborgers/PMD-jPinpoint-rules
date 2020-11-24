@@ -70,4 +70,37 @@ public class Good {
 }
      ]]></code>
     </test-code>
+
+    <test-code>
+        <description>Unconditional operation in log statement: return if debugEnabled before actual log</description>
+        <expected-problems>3</expected-problems>
+        <expected-linenumbers>9,12,18</expected-linenumbers>
+        <code><![CDATA[
+public class UnconOp {
+    public static void good(String to) {
+        if (!LOG.isDebugEnabled()) {
+            return;
+        }
+        LOG.debug("green-> {}", shortenActor1(to));
+    }
+   public static void bad1(String to) {
+        LOG.debug("green-> {}", shortenActor2(to)); //bad
+    }
+   public static void bad2(String to) {
+        LOG.debug("green-> {}", shortenActor3(to)); //bad
+        if (!LOG.isDebugEnabled()) {
+            return;
+        }
+    }
+    public static void bad3(String to) {
+        LOG.debug("green-> {}", shortenActor4(to)); // bad
+        if (!LOG.isDebugEnabled()) {
+            return;
+        }
+        LOG.debug("green-> {}", shortenActor1(to));
+    }
+}
+     ]]></code>
+    </test-code>
+
 </test-data>

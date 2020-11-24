@@ -7,7 +7,7 @@
           message="Avoid memory intensive FileItem.get and FileItem.getString"
           class="net.sourceforge.pmd.lang.rule.XPathRule"
           typeResolution="true"
-          externalInfoUrl="${pmd.website.baseurl}/pmd_rules_performance.html#AvoidApacheCommonsFileItemNonStreaming">
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#isio03">
         <description>
             Problem: Use of FileItem.get and FileItem.getString could exhaust memory since they load the entire file into memory&#13;
             Solution: Use streaming methods and buffering.
@@ -22,15 +22,15 @@
 [ends-with(@Image, '.get') or ends-with(@Image, '.getString')]
 [
 	starts-with(@Image, concat(
-		ancestor::MethodDeclaration//FormalParameter/Type/ReferenceType/ClassOrInterfaceType[typeIs('org.apache.commons.fileupload.FileItem')]/../../..//VariableDeclaratorId/@Image,
+		ancestor::MethodDeclaration//FormalParameter/Type/ReferenceType/ClassOrInterfaceType[typeIs('org.apache.commons.fileupload.FileItem')]/../../..//VariableDeclaratorId/@Name,
 		'.')
 	) or
 	starts-with(@Image, concat(
-		ancestor::MethodDeclaration//LocalVariableDeclaration/Type/ReferenceType/ClassOrInterfaceType[typeIs('org.apache.commons.fileupload.FileItem')]/../../..//VariableDeclaratorId/@Image,
+		ancestor::MethodDeclaration//LocalVariableDeclaration/Type/ReferenceType/ClassOrInterfaceType[typeIs('org.apache.commons.fileupload.FileItem')]/../../..//VariableDeclaratorId/@Name,
 		'.')
 	) or
 	starts-with(@Image, concat(
-		ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration/Type/ReferenceType/ClassOrInterfaceType[typeIs('org.apache.commons.fileupload.FileItem')]/../../..//VariableDeclaratorId/@Image,
+		ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration/Type/ReferenceType/ClassOrInterfaceType[typeIs('org.apache.commons.fileupload.FileItem')]/../../..//VariableDeclaratorId/@Name,
 		'.')
 )
 ]
@@ -58,7 +58,7 @@ public class FileStuff {
           message="A Calendar is used to create a Date or DateTime, this is expensive."
           class="net.sourceforge.pmd.lang.rule.XPathRule"
           typeResolution="true"
-          externalInfoUrl="${pmd.website.baseurl}/pmd_rules_performance.html#AvoidCalendarDateCreation">
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ue01">
         <description>Problem: A Calendar is a heavyweight object and expensive to create. &#13;
             Solution: Use 'new Date()', Java 8+ java.time.[Local/Zoned]DateTime.now() or joda time '[Local]DateTime.now()'.
         </description>
@@ -105,7 +105,7 @@ public class DateStuff {
           message="Concatenation inside append. Use extra append."
           class="net.sourceforge.pmd.lang.rule.XPathRule"
           typeResolution="true"
-          externalInfoUrl="${pmd.website.baseurl}/pmd_rules_performance.html#AvoidConcatInAppend">
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#isu04">
         <description>Concatenation of Strings is used inside an StringBuilder.append argument. Problem: Each statement with one or more +-operators creates a hidden temporary StringBuilder, a char[] and a new String object, which all have to be garbage collected.&#13;
             Solution: Use an extra fluent append instead of concatenation.
             </description>
@@ -119,12 +119,12 @@ public class DateStuff {
 or
 .//PrimaryExpression/PrimarySuffix/@Image = 'append')
 and
-.//PrimaryExpression/PrimarySuffix/Arguments/ArgumentList/Expression[1]/AdditiveExpression[@Image='+'
+.//PrimaryExpression/PrimarySuffix/Arguments/ArgumentList/Expression[1]/AdditiveExpression[@Operator='+'
 and (count(PrimaryExpression/PrimaryPrefix/Name) > 0)
 and not(PrimaryExpression/PrimaryPrefix/Name/@Image=
-ancestor::ClassOrInterfaceBody//FieldDeclaration[@Final='true']//VariableDeclaratorId/@Image)
+ancestor::ClassOrInterfaceBody//FieldDeclaration[@Final='true']//VariableDeclaratorId/@Name)
 and not(PrimaryExpression/PrimaryPrefix/Name/@Image=
-ancestor::Block//LocalVariableDeclaration[@Final='true']//VariableDeclaratorId/@Image)
+ancestor::Block//LocalVariableDeclaration[@Final='true']//VariableDeclaratorId/@Name)
 ]]
 	]]></value>
             </property>
@@ -153,7 +153,7 @@ public class StringStuff {
           message="A String is concatenated in a loop. Use StringBuilder.append."
           class="net.sourceforge.pmd.lang.rule.XPathRule"
           typeResolution="true"
-          externalInfoUrl="${pmd.website.baseurl}/pmd_rules_performance.html#AvoidConcatInLoop">
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#isu02">
         <description>A String is built in a loop by concatenation. Problem: Each statement with one or more +-operators creates a hidden temporary StringBuilder, a char[] and a new String object, which all have to be garbage collected. &#13;
             Solution: Use the StringBuilder append method.
         </description>
@@ -165,7 +165,6 @@ public class StringStuff {
 (//ForStatement | //WhileStatement | //DoStatement)//AssignmentOperator[
     (: a += ...;  -- a being a string :)
     @Image='+=' and preceding-sibling::*[1]/PrimaryPrefix/Name[pmd-java:typeIs('java.lang.String')]
-
     (: a = ... + a + ...; -- a being a string :)
     or @Image='=' and following-sibling::*[1]/AdditiveExpression/PrimaryExpression/PrimaryPrefix/Name[
         pmd-java:typeIs('java.lang.String')

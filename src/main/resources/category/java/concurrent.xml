@@ -5,7 +5,7 @@
     <rule name="AvoidCompletionServiceTake"
           message="Avoid completionService.take, use poll"
           class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
-          typeResolution="true" externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance">
+          typeResolution="true" externalInfoUrl="${doc_root}/JavaCodePerformance.md">
         <description>
             Problem: take() stalls indefinitely in case of hanging threads and consumes a thread.&#13;
             Solution: use poll() with a timeout value and handle the timeout.
@@ -20,17 +20,17 @@
     [(starts-with(@Image, concat(ancestor::MethodDeclaration//FormalParameter/Type/ReferenceType/ClassOrInterfaceType[
     typeIs('java.util.concurrent.CompletionService')
     or typeIs('java.util.concurrent.ExecutorCompletionService')
-    ]/../../../VariableDeclaratorId/@Image, '.'))
+    ]/../../../VariableDeclaratorId/@Name, '.'))
     or
     starts-with(@Image, concat(ancestor::MethodDeclaration//LocalVariableDeclaration/Type/ReferenceType/ClassOrInterfaceType[
      typeIs('java.util.concurrent.CompletionService')
     or typeIs('java.util.concurrent.ExecutorCompletionService')
-    ]/../../../VariableDeclarator/VariableDeclaratorId/@Image, '.'))
+    ]/../../../VariableDeclarator/VariableDeclaratorId/@Name, '.'))
     or
     starts-with(@Image, concat(ancestor::ClassOrInterfaceBody//FieldDeclaration/Type/ReferenceType/ClassOrInterfaceType[
      typeIs('java.util.concurrent.CompletionService')
     or typeIs('java.util.concurrent.ExecutorCompletionService')
-    ]/../../../VariableDeclarator/VariableDeclaratorId/@Image, '.')))
+    ]/../../../VariableDeclarator/VariableDeclaratorId/@Name, '.')))
 ]    ]]>
                 </value>
             </property>
@@ -40,7 +40,7 @@
     <rule name="AvoidFutureGetWithoutTimeout"
           message="Avoid future.get without timeout"
           class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
-          typeResolution="true" externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance">
+          typeResolution="true" externalInfoUrl="${doc_root}/JavaCodePerformance.md">
         <description>
             Problem: Stalls indefinitely in case of hanging threads and consumes a thread.&#13;
             Solution: Provide a timeout value and handle the timeout.
@@ -60,7 +60,7 @@
     or pmd-java:typeIs('java.util.concurrent.RunnableFuture')
     or pmd-java:typeIs('java.util.concurrent.RunnableScheduledFuture')
     or pmd-java:typeIs('java.util.concurrent.ScheduledFuture')
-    ]/VariableDeclaratorId/@Image), substring-before(@Image,'.')))
+    ]/VariableDeclaratorId/@Name), substring-before(@Image,'.')))
     or
     (: future.get or variant called on local var :)
     exists(index-of((ancestor::MethodDeclaration//LocalVariableDeclaration/Type[
@@ -70,7 +70,7 @@
     or pmd-java:typeIs('java.util.concurrent.RunnableFuture')
     or pmd-java:typeIs('java.util.concurrent.RunnableScheduledFuture')
     or pmd-java:typeIs('java.util.concurrent.ScheduledFuture')
-    ]/../VariableDeclarator/VariableDeclaratorId/@Image), substring-before(@Image,'.')))
+    ]/../VariableDeclarator/VariableDeclaratorId/@Name), substring-before(@Image,'.')))
     or
     (: future.get or variant called on field :)
     exists(index-of((ancestor::ClassOrInterfaceBody//FieldDeclaration[
@@ -80,7 +80,7 @@
     or pmd-java:typeIs('java.util.concurrent.RunnableFuture')
     or pmd-java:typeIs('java.util.concurrent.RunnableScheduledFuture')
     or pmd-java:typeIs('java.util.concurrent.ScheduledFuture')
-    ]/VariableDeclarator/VariableDeclaratorId/@Image), substring-before(@Image,'.')))
+    ]/VariableDeclarator/VariableDeclaratorId/@Name), substring-before(@Image,'.')))
     )
     (: .get without arguments :)
     and not(../../PrimarySuffix/Arguments/ArgumentList)
@@ -105,7 +105,7 @@
     <rule name="AvoidMutableStaticFields"
           message="Avoid non-final or mutable static fields. Make final immutable or access thread-safely and use @GuardedBy."
           class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
-          typeResolution="true" externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-TUTC08">
+          typeResolution="true" externalInfoUrl="${doc_root}/JavaCodePerformance.md#TUTC08">
         <description>
             Problem: Multiple threads typically access static fields. Unguarded assignment to a mutable or non-final static field is thread-unsafe and may cause corruption or visibility problems. To make this thread-safe, that is, guard the field e.g. with synchronized methods, may cause contention. &#13;
             Solution: Make the fields final and unmodifiable.  If they really need to be mutable, make access thread-safe: use synchronized and @GuardedBy or use volatile. Consider lock contention.&#13;
@@ -142,7 +142,7 @@ or
 ClassOrInterfaceType[pmd-java:typeIs('java.util.ArrayList') or pmd-java:typeIs('java.util.HashMap') or pmd-java:typeIs('java.util.HashSet')])
 and
 (: given the field is not @GuardedBy :)
-ancestor::StatementExpression/PrimaryExpression/PrimaryPrefix/Name/@Image = ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration[count(Annotation//Name[@Image='GuardedBy']) = 0]/FieldDeclaration//VariableDeclaratorId/@Image
+ancestor::StatementExpression/PrimaryExpression/PrimaryPrefix/Name/@Image = ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration[count(Annotation//Name[@Image='GuardedBy']) = 0]/FieldDeclaration//VariableDeclaratorId/@Name
 ]
 ]]>
                 </value>
@@ -150,7 +150,7 @@ ancestor::StatementExpression/PrimaryExpression/PrimaryPrefix/Name/@Image = ance
         </properties>
     </rule>
 
-    <rule name="AvoidThreadUnsafeJaxbUsage" message="A JAXB Marshaller, Unmarshaller or Validator is used in a thread-unsafe way." class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" typeResolution="true" externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-IUOXAR07">
+    <rule name="AvoidThreadUnsafeJaxbUsage" message="A JAXB Marshaller, Unmarshaller or Validator is used in a thread-unsafe way." class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" typeResolution="true" externalInfoUrl="${doc_root}/JavaCodePerformance.md#IUOXAR07">
         <description>Problem: JAXB Marshaller, Unmarshaller and Validator are not thread-safe.  &#13;
             Solution: Create a new instance every time you need to marshall, unmarshall or validate a document.
             (jpinpoint-rules)</description>
@@ -174,7 +174,7 @@ ancestor::StatementExpression/PrimaryExpression/PrimaryPrefix/Name/@Image = ance
     <rule name="AvoidUnguardedAssignmentToNonFinalFieldsInSharedObjects"
           message="Avoid unguarded assignments to non-final fields in objects shared among threads. Access thread-safely and use @GuardedBy."
           class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
-          typeResolution="true" externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-TUTC07">
+          typeResolution="true" externalInfoUrl="${doc_root}/JavaCodePerformance.md#TUTC07">
         <description>
             Problem: Multiple threads typically access fields of a singleton or may access fields in session scoped objects. Unguarded assignment to a non-final field is thread-unsafe and may cause corruption or visibility problems. It may also unintentionally mixup session data. &#13;
             Solution: Make the fields final and unmodifiable.  If they really need to be mutable, make access thread-safe: use synchronized and jcip @GuardedBy or use volatile.&#13;
@@ -202,14 +202,14 @@ and not ((ancestor::TypeDeclaration/Annotation//Name[@Image='ConfigurationProper
 (: assignment to a field :)
 /../../..//ClassOrInterfaceDeclaration[@Static=false()]/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDeclaration/Block/BlockStatement/Statement//StatementExpression/AssignmentOperator/../PrimaryExpression//*[(@Image=
 (: non-final, non-volatile, non-GuardedBy fields :)
-ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Final=false() and @Volatile=false() and not (../Annotation//Name[@Image='GuardedBy'])]/VariableDeclarator/VariableDeclaratorId/@Image
+ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Final=false() and @Volatile=false() and not (../Annotation//Name[@Image='GuardedBy'])]/VariableDeclarator/VariableDeclaratorId/@Name
 or
 (: not 'this' and extends a base class :)
 ((@Image != '') and ancestor::ClassOrInterfaceDeclaration/ExtendsList and
 (: not a field of this class :)
-not (exists(index-of((ancestor::ClassOrInterfaceBody//FieldDeclaration//VariableDeclaratorId/@Image), @Image))
+not (exists(index-of((ancestor::ClassOrInterfaceBody//FieldDeclaration//VariableDeclaratorId/@Name), @Image))
 (: not a param or local :)
-     or exists(index-of((ancestor::ClassOrInterfaceBodyDeclaration//VariableDeclaratorId/@Image), @Image))))
+     or exists(index-of((ancestor::ClassOrInterfaceBodyDeclaration//VariableDeclaratorId/@Name), @Image))))
 and not (ancestor::SynchronizedStatement or ancestor::MethodDeclaration[@Synchronized = true()])
 )
 (: field not on accessor method with assignment, annotated with framework annotation :)
@@ -225,7 +225,7 @@ or (ancestor::ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='VisibleFo
     <rule name="AvoidUnguardedMutableFieldsInSharedObjects"
           message="Avoid unguarded non-final or mutable fields in objects shared among threads. Make final immutable or access thread-safely and use @GuardedBy."
           class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
-          typeResolution="true" externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-TUTC07">
+          typeResolution="true" externalInfoUrl="${doc_root}/JavaCodePerformance.md#TUTC07">
         <description>
             Problem: Multiple threads typically access fields of a singleton or may access fields in session scoped objects. If a field or its reference is mutable, access is thread-unsafe and may cause corruption or visibility problems. It may also unintentionally mixup session data.&#13;
             Solution: Make the fields final and unmodifiable. If they really need to be mutable, make access thread-safe: use synchronized and jcip @GuardedBy or use volatile.&#13;
@@ -260,14 +260,14 @@ and not (../Annotation//Name[@Image='Autowired' or @Image='PersistenceContext' o
 (: field not on accessor method with assignment level annotated with framework annotation :)
 and not (../../ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='Autowired' or @Image='PostConstruct' or @Image='BeforeStep' or @Image='Value' or @Image='Inject']
 /../../..//BlockStatement/Statement//StatementExpression/AssignmentOperator/../PrimaryExpression//@Image=
-./VariableDeclarator/VariableDeclaratorId/@Image)
+./VariableDeclarator/VariableDeclaratorId/@Name)
 (: or field of known mutable types including array :)
 or ((Type/ReferenceType/ClassOrInterfaceType[(pmd-java:typeIs('java.util.Date') or pmd-java:typeIs('java.lang.StringBuilder') or pmd-java:typeIs('java.lang.StringBuffer') or pmd-java:typeIs('java.net.URL') or pmd-java:typeIs('java.io.File')) or
 (ancestor::FieldDeclaration/VariableDeclarator/VariableInitializer[ArrayInitializer and count(ArrayInitializer/VariableInitializer) > 0])])
 (: or in-line allocation of known mutable collection types :)
 or (VariableDeclarator/VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/AllocationExpression[pmd-java:typeIs('java.util.ArrayList') or pmd-java:typeIs('java.util.HashMap') or pmd-java:typeIs('java.util.HashSet')] )
 (: or in-constructor allocation of known mutable collection types :)
-or (VariableDeclarator/VariableDeclaratorId/@Image = ancestor::ClassOrInterfaceBody//ConstructorDeclaration//StatementExpression/Expression[pmd-java:typeIs('java.util.ArrayList') or pmd-java:typeIs('java.util.HashMap') or pmd-java:typeIs('java.util.HashSet')]/../..//Name/@Image)
+or (VariableDeclarator/VariableDeclaratorId/@Name = ancestor::ClassOrInterfaceBody//ConstructorDeclaration//StatementExpression/Expression[pmd-java:typeIs('java.util.ArrayList') or pmd-java:typeIs('java.util.HashMap') or pmd-java:typeIs('java.util.HashSet')]/../..//Name/@Image)
 (: not annotated GuardedBy :)
 )
 and not (../Annotation//Name[@Image='GuardedBy'])
@@ -281,7 +281,7 @@ and not (../Annotation//Name[@Image='GuardedBy'])
     <rule name="AvoidUnguardedMutableInheritedFieldsInSharedObjects"
           message="Mutator method called on inherited field. Avoid unguarded mutable inherited fields in objects shared among threads. Make final immutable or access thread-safely and use @GuardedBy."
           class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
-          typeResolution="true" externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-TUTC07">
+          typeResolution="true" externalInfoUrl="${doc_root}/JavaCodePerformance.md#TUTC07">
         <description>
             Problem: Multiple threads typically access fields of a singleton or may access fields in session scoped objects. If a (inherited) field or its reference is mutable, access is thread-unsafe and may cause corruption or visibility problems. It may also unintentionally mixup session data. &#13;
             Solution: Make the fields final and unmodifiable. If they really need to be mutable, make access thread-safe: use synchronized and jcip @GuardedBy or use volatile.&#13;
@@ -334,7 +334,7 @@ or (ancestor::ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='VisibleFo
     <rule name="AvoidUnguardedAssignmentToNonFinalFieldsInObjectsUsingSynchronized"
           message="Avoid unguarded assignments to non-final fields in objects using synchronized. Access thread-safely and use @GuardedBy."
           class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
-          typeResolution="true" externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-TUTC07">
+          typeResolution="true" externalInfoUrl="${doc_root}/JavaCodePerformance.md#TUTC07">
         <description>
             Problem: Multiple threads typically access fields of an object using synchronized. Unguarded assignment to a non-final field is thread-unsafe and may cause corruption or visibility problems. To make this thread-safe, that is, guard the field e.g. with synchronized methods, may cause contention. &#13;
             Solution: Make the fields final and unmodifiable.  If they really need to be mutable, make access thread-safe: use synchronized and jcip @GuardedBy or use volatile.&#13;
@@ -355,7 +355,7 @@ or (ancestor::ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='VisibleFo
 (: assignment to a field :)
 /ClassOrInterfaceBodyDeclaration/MethodDeclaration/Block/BlockStatement/Statement//StatementExpression/AssignmentOperator/../PrimaryExpression//*[@Image=
 (: non-final, non-volatile, non-GuardedBy fields :)
-ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Final=false() and @Volatile=false() and not (../Annotation//Name[@Image='GuardedBy'])]/VariableDeclarator/VariableDeclaratorId/@Image
+ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Final=false() and @Volatile=false() and not (../Annotation//Name[@Image='GuardedBy'])]/VariableDeclarator/VariableDeclaratorId/@Name
 (: field not on accessor method with assignment, annotated with framework annotation :)
 and not (ancestor::ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='Autowired' or @Image='PostConstruct' or @Image='BeforeStep' or @Image='Value' or @Image='Inject']
 (: field not assigned in non-public accessor method annotated with VisibleForTesting :)
@@ -369,7 +369,7 @@ or (ancestor::ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='VisibleFo
     <rule name="AvoidUnguardedMutableFieldsInObjectsUsingSynchronized"
           message="Avoid unguarded non-final or mutable fields in objects using synchronized. Make final immutable or access thread-safely and use @GuardedBy."
           class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
-          typeResolution="true" externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-TUTC07">
+          typeResolution="true" externalInfoUrl="${doc_root}/JavaCodePerformance.md#TUTC07">
         <description>
             Problem: Multiple threads typically access fields of an object using synchronized. If a field or its reference is mutable, access is thread-unsafe and may cause corruption or visibility problems. To make this thread-safe, that is, guard the field e.g. with synchronized methods, may cause contention.&#13;
             Solution: Make the fields final and unmodifiable. If they really need to be mutable, make access thread-safe: use synchronized and jcip @GuardedBy or use volatile.&#13;
@@ -397,14 +397,14 @@ and not (../Annotation//Name[@Image='Autowired' or @Image='PersistenceContext' o
 (: field not on accessor method with assignment, annotated with framework annotation :)
 and not (../../ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='Autowired' or @Image='PostConstruct' or @Image='BeforeStep' or @Image='Value' or @Image='Inject']
 /../../..//BlockStatement/Statement//StatementExpression/AssignmentOperator/../PrimaryExpression//@Image=
-./VariableDeclarator/VariableDeclaratorId/@Image)
+./VariableDeclarator/VariableDeclaratorId/@Name)
 (: or field of known mutable types including array :)
 or ((Type/ReferenceType/ClassOrInterfaceType[(pmd-java:typeIs('java.util.Date') or pmd-java:typeIs('java.lang.StringBuilder') or pmd-java:typeIs('java.lang.StringBuffer') or pmd-java:typeIs('java.net.URL') or pmd-java:typeIs('java.io.File')) or
 (ancestor::FieldDeclaration/VariableDeclarator/VariableInitializer[ArrayInitializer and count(ArrayInitializer/VariableInitializer) > 0])])
 (: or in-line allocation of known mutable collection types :)
 or (VariableDeclarator/VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/AllocationExpression/ClassOrInterfaceType[pmd-java:typeIs('java.util.ArrayList') or pmd-java:typeIs('java.util.HashMap') or pmd-java:typeIs('java.util.HashSet')] )
 (: or in-constructor allocation of known mutable collection types :)
-or (VariableDeclarator/VariableDeclaratorId/@Image = ancestor::ClassOrInterfaceBody//ConstructorDeclaration//StatementExpression/Expression[pmd-java:typeIs('java.util.ArrayList') or pmd-java:typeIs('java.util.HashMap') or pmd-java:typeIs('java.util.HashSet')]/../..//Name/@Image)
+or (VariableDeclarator/VariableDeclaratorId/@Name = ancestor::ClassOrInterfaceBody//ConstructorDeclaration//StatementExpression/Expression[pmd-java:typeIs('java.util.ArrayList') or pmd-java:typeIs('java.util.HashMap') or pmd-java:typeIs('java.util.HashSet')]/../..//Name/@Image)
 (: mutable types not annotated with GuardedBy :)
 ) and not (../Annotation//Name[@Image='GuardedBy'])
 ]
@@ -433,7 +433,7 @@ or (VariableDeclarator/VariableDeclaratorId/@Image = ancestor::ClassOrInterfaceB
 and not (../Annotation//Name[@Image='Autowired' or @Image='PostConstruct' or @Image='BeforeStep' or @Image='Value' or @Image='Inject'])]
 //PrimaryPrefix/Name[substring-before(concat(@Image,'.'), '.') =
 ancestor::ClassOrInterfaceBody//Annotation//Name[@Image='GuardedBy']/..//Literal[@Image='"this"']/
-ancestor::ClassOrInterfaceBodyDeclaration/FieldDeclaration//VariableDeclaratorId/@Image
+ancestor::ClassOrInterfaceBodyDeclaration/FieldDeclaration//VariableDeclaratorId/@Name
 and (
 not (ancestor::SynchronizedStatement)
 or ancestor::SynchronizedStatement/Expression//Name)]
@@ -483,10 +483,10 @@ or ancestor::SynchronizedStatement/Expression//Name)]
     //PrimaryPrefix/Name[substring-before(concat(@Image,'.'), '.') =
     (: used in a class with guarded-by literal *IS* a field (should be private final) :)
     ancestor::ClassOrInterfaceBody//Annotation//Name[@Image='GuardedBy']/..//Literal[substring(@Image, 2, (string-length(@Image) - 2))=
-    ancestor::ClassOrInterfaceBody//FieldDeclaration//VariableDeclaratorId/@Image
+    ancestor::ClassOrInterfaceBody//FieldDeclaration//VariableDeclaratorId/@Name
     ]/
     (: is defined as field :)
-    ancestor::ClassOrInterfaceBodyDeclaration//FieldDeclaration//VariableDeclaratorId/@Image
+    ancestor::ClassOrInterfaceBodyDeclaration//FieldDeclaration//VariableDeclaratorId/@Name
     (: and *IS NOT* in a synchronized block with the GuardedBy literal:)
     and (not(concat('"', ancestor::SynchronizedStatement/Expression//Name/@Image, '"') =
     ancestor::ClassOrInterfaceBody//Annotation//Name[@Image='GuardedBy']/..//Literal/@Image)
@@ -498,10 +498,10 @@ or ancestor::SynchronizedStatement/Expression//Name)]
     //PrimaryPrefix/Name[substring-before(concat(@Image,'.'), '.') =
     (: used in a class with guarded by literal *IS NOT* a field :)
     ancestor::ClassOrInterfaceBody//Annotation//Name[@Image='GuardedBy']/..//Literal[not (substring(@Image, 2, (string-length(@Image) - 2)) =
-    ancestor::ClassOrInterfaceBody//FieldDeclaration//VariableDeclaratorId/@Image)
+    ancestor::ClassOrInterfaceBody//FieldDeclaration//VariableDeclaratorId/@Name)
     ]/
     (: is defined as field :)
-    ancestor::ClassOrInterfaceBodyDeclaration//FieldDeclaration//VariableDeclaratorId/@Image
+    ancestor::ClassOrInterfaceBodyDeclaration//FieldDeclaration//VariableDeclaratorId/@Name
     (: and *IS* in a synchronized block with the GuardedBy literal:)
     and (
     (concat('"', ancestor::SynchronizedStatement/Expression//Name/@Image, '"') =
@@ -539,7 +539,7 @@ or ancestor::SynchronizedStatement/Expression//Name)]
     </rule>
 
     <rule name="AvoidStaticXmlFactories" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="Avoid static XML Factories" typeResolution="true"
-          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-IUOXAR09">
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#IUOXAR09">
         <description>An XML Factory like DocumentBuilderFactory, TransformerFactory, MessageFactory is used as static field. Problem: These factory objects are typically not thread-safe and rather expensive to create because of class loading. &#13;
             Solution: Create the Factories as local variables and use command line arguments to specify the implementation class. (jpinpoint-rules)</description>
         <priority>1</priority>
@@ -577,4 +577,76 @@ or ancestor::SynchronizedStatement/Expression//Name)]
             ]]>
         </example>
     </rule>
+
+    <rule name="AvoidIncrementOrDecrementForVolatileField" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="Avoid ++, --, +=, -= for volatile fields" typeResolution="true"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#tutc09">
+        <description>A compound statement like i++, i--, i += 1 or i -= 1 may seem one statement and thread-safe for a volatile field. Problem: The operation is actually two separate statements executed non-atomically and therefore not thread-safe. &#13;
+            Solution: Guard the field properly with synchronized or use atomics like AtomicInteger. (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+//StatementExpression/(AssignmentOperator[@Image='+=' or @Image='-=']/..|
+(PreIncrementExpression|PostfixExpression[@Image='++' or @Image='--']))/PrimaryExpression/(PrimaryPrefix/Name|PrimarySuffix)[@Image =
+//FieldDeclaration[@Volatile = true()]/VariableDeclarator/VariableDeclaratorId/@Name]
+                        ]]>
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+ public class Foo {
+    private volatile int i;
+    private volatile String str = "";
+
+    public int bad() {
+        i++; // bad
+        --i; // bad
+        i += 1; // bad
+        str += "a"; // bad
+    }
+    public int good(int v) {
+        i = 5; // good
+        i = v + 5; // good
+        str = "other"; // good
+    }
+}
+            ]]>
+        </example>
+    </rule>
+
+    <rule name="AvoidVolatileInPrototypeScope" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="No need for volatile in prototype scope" typeResolution="true"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#tutc10">
+        <description>A field is defined as volatile while the class has prototype scope. Problem: volatile has some overhead, especially for writes. When getting the bean from the Spring applicationContext, prototype scope means that each invocation creates a new object so the field is not shared. &#13;
+            Solution: Since only one thread can access the field, there is no need for violatile and it can be removed. (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+    //FieldDeclaration[@Volatile = true() and
+    ancestor::TypeDeclaration/Annotation//Name[@Image='Scope']/..//PrimaryPrefix/
+    (Name[ends-with(@Image,'SCOPE_PROTOTYPE')]|Literal[contains(@Image, 'prototype')])]
+                        ]]>
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+@Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+@Component
+class Bad {
+    private volatile String id;
+}
+
+@Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+@Component
+class Good {
+    private String id;
+}
+            ]]>
+        </example>
+    </rule>
+
 </ruleset>

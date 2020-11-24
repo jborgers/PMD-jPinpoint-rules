@@ -2,7 +2,7 @@
 Java Data Access Performance - performance pitfalls and best practices
 ===================================================================
 
-By Jeroen Borgers ([jPinpoint](www.jpinpoint.com)) and Peter Paul Bakker ([Stokpop](www.stokpop.com))
+By Jeroen Borgers ([jPinpoint](www.jpinpoint.com)) and Peter Paul Bakker ([Stokpop](www.stokpop.com)), sponsored by Rabobank
 
 # Table of contents
 
@@ -412,7 +412,7 @@ catch(NoResultException|NonUniqueResultException e) { /* handle it */ }
 **Observation: A query is unnecessarily executed more than once.**  
 **Problem:** Time is taken by the unnecessary roundtrip(s). Unnecessary work is performed.  
 **Solution:** Execute the query only once.  
-**perf-code-check:** AvoidMultipleRoundtripsForQuery
+**Rule name:** AvoidMultipleRoundtripsForQuery
 
 #### JPA details
 
@@ -628,7 +628,7 @@ IN-operator with many or a varying number of values
 
 **Solution:** Rewrite the query by replacing the IN-argument list by a sub query using the criteria used to fetch the IN arguments. Or often even better performing, an inner join using these criteria (depending on indexes etc. - recommended to test to be sure.) 
 This way, the select and update are combined into one, which will also save one round-trip. An other option would be to use custom user types.  
-**perf-code-check**: AvoidSqlInExpression
+**Rule name**: AvoidSqlInExpression
 
 JDBC/database resource leaks
 ----------------------------

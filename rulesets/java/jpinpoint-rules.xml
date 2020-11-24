@@ -12,7 +12,7 @@
           message="Explicit CDI references need to be destroyed otherwise they leak."
           class="net.sourceforge.pmd.lang.rule.XPathRule"
           typeResolution="true"
-          externalInfoUrl="http://www.jpinpoint.com/doc/pmd_rules_performance.html#AvoidCDIReferenceLeak">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#pml05">
         <description>Problem: A proxy object is created by CDI for explicit references, they are not de-referenced implicitly and become a memory leak. &#13;
             Solution: Destroy the reference explicitly.
         (jpinpoint-rules)</description>
@@ -35,7 +35,7 @@ and not
 PrimaryPrefix/Name/@Image='CDI.current'][PrimarySuffix/@Image = 'destroy']
 [PrimarySuffix/Arguments/ArgumentList/Expression/PrimaryExpression/PrimaryPrefix/Name/@Image =
 ancestor::MethodDeclaration//VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/Name[@Image='CDI.current']/../../
-PrimarySuffix[@Image = 'select']/ancestor::VariableDeclarator/VariableDeclaratorId/@Image
+PrimarySuffix[@Image = 'select']/ancestor::VariableDeclarator/VariableDeclaratorId/@Name
 ])]
 ]]></value>
             </property>
@@ -68,7 +68,7 @@ public class CDIStuff {
           message="A Calendar is inefficient in memory usage."
           class="net.sourceforge.pmd.lang.rule.XPathRule"
           typeResolution="true"
-          externalInfoUrl="${pmd.website.baseurl}/pmd_rules_performance.html#AvoidCalendar">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#imu01">
         <description>Problem: A Calendar is a heavyweight object and expensive to create. &#13;
             Solution: Use Date, Java 8+ java.time.[Local/Zoned]DateTime or joda time [Local]DateTime.
         (jpinpoint-rules)</description>
@@ -103,29 +103,33 @@ public class CalendarStuff {
     </rule>
 
     <rule name="AvoidConstantsInInterface" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="Interface defines constants. It may expose implementation details." typeResolution="true"
-          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-VOEDOS04">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#voedos04">
         <description>Interface defines constants. Problem: Possibly exposes implementation details.  &#13;
             Solution: Make it a Class which cannot be instantiated, or an Enum. Use static imports.
             (jpinpoint-rules)</description>
         <priority>3</priority>
         <properties>
-            <property name="version" value="1.0"/>
+            <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
- //ClassOrInterfaceDeclaration[@Interface='true']
-    [
-      count(.//FieldDeclaration)>0
-    ]
+ //ClassOrInterfaceDeclaration[@Interface=true()]/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration
 	]]></value>
             </property>
         </properties>
+        <example>
+            <![CDATA[
+public interface Foo {
+    static final Object CONST = new Object(); //bad
+}
+            ]]>
+        </example>
     </rule>
 
     <rule name="AvoidDecimalAndChoiceFormatAsField" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false"
           dfa="false" language="java"
           message="Avoid using DecimalFormat or ChoiceFormat as field since it is thread-unsafe."
           typeResolution="true"
-          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-IDTF01">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#idtf01">
         <description>Problem: java.text.DecimalFormat and java.text.ChoiceFormat are thread-unsafe. The usual solution
             is to create a new local one when needed in a method.
         (jpinpoint-rules)</description>
@@ -141,7 +145,7 @@ public class CalendarStuff {
     </rule>
 
     <rule name="AvoidDeprecatedHttpConnectors" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="Avoid the use of deprecated/thread-unsafe HTTP connectors" typeResolution="true"
-          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-IBI06" >
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#ibi06" >
         <description>Problem: Several HTTP client connection managers are thread-unsafe which may cause session data mix-up or have other issues for which they were made deprecated.&#13;
             Solutions: Use org.apache.http.impl.conn.PoolingHttpClientConnectionManager and org.apache.http.impl.client.HttpClientBuilder. (jpinpoint-rules)</description>
         <priority>3</priority>
@@ -190,7 +194,7 @@ or typeIs('org.apache.http.conn.ClientConnectionManager')
     <rule name="AvoidDuplicateAssignmentsInCases"
           message="Avoid duplicate assignments in different switch cases"
           class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
-          typeResolution="true" externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Quality#JavaCodeQuality-CSC01">
+          typeResolution="true" externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodeQuality.md#SSC01">
         <description>
             Problem: Potential bug: expected are different assignments in different cases.&#13;
             Solution: assign different values in different cases, common assignments should be taken out of the switch.
@@ -210,7 +214,7 @@ and
 .//AssignmentOperator/../../..//StatementExpression/PrimaryExpression/PrimaryPrefix/Name/@Image
 =preceding-sibling::SwitchLabel/preceding-sibling::BlockStatement//AssignmentOperator/../../..//StatementExpression/PrimaryExpression/PrimaryPrefix/Name/@Image
 and
-not(.//AssignmentOperator/../../..//StatementExpression/Expression/PrimaryExpression/PrimarySuffix/Arguments/@ArgumentCount > 0
+not(.//AssignmentOperator/../../..//StatementExpression/Expression/PrimaryExpression/PrimarySuffix/Arguments/@Size > 0
 or preceding-sibling::SwitchLabel[@Default='true'])
 ]
 ]]>
@@ -222,7 +226,7 @@ or preceding-sibling::SwitchLabel[@Default='true'])
 
     <rule name="AvoidImplicitlyRecompilingRegex" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="String regex method, Pattern.matches or FileSystem.getPathMatcher is used.
 	   Implicitely compiles a regex pattern, can be expensive." typeResolution="true"
-          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-IREU01">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#ireu01">
         <description>A regular expression is compiled implicitely on every invocation. Problem: this can be expensive, depending on the length of the regular expression.&#13;
             Solution: Compile the regex pattern only once and assign it to a private static final Pattern field. java.util.Pattern objects are thread-safe so they can be shared among threads.
             (jpinpoint-rules)</description>
@@ -231,65 +235,65 @@ or preceding-sibling::SwitchLabel[@Default='true'])
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
-(//MethodDeclaration//PrimaryPrefix/Name[ends-with(@Image, '.replaceAll') or ends-with(@Image, '.replaceFirst') or ends-with(@Image, 'Pattern.matches')]/../../PrimarySuffix/Arguments[@ArgumentCount=2]//Expression[1]//PrimaryPrefix[
+(//MethodDeclaration//PrimaryPrefix/Name[ends-with(@Image, '.replaceAll') or ends-with(@Image, '.replaceFirst') or ends-with(@Image, 'Pattern.matches')]/../../PrimarySuffix/Arguments[ArgumentList/@Size=2]//Expression[1]//PrimaryPrefix[
 Literal[string-length(@Image) > 5 and
 (matches(@Image, '[\.\$\|\(\)\[\]\{\}\^\?\*\+\\]+'))] or Name
 and not(../PrimarySuffix)
 and not (
-Name/@Image=ancestor::MethodDeclaration//VariableDeclaratorId/@Image)
+Name/@Image=ancestor::MethodDeclaration//VariableDeclaratorId/@Name)
 and not (
 Name[@Image=ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration/VariableDeclarator[
 VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/Literal[string-length(@Image) < 6 or not
 (matches(@Image, '[\.\$\|\(\)\[\]\{\}\^\?\*\+\\]+'))]
-]/VariableDeclaratorId/@Image])
+]/VariableDeclaratorId/@Name])
 ]
 ,
-//MethodDeclaration//PrimaryPrefix/Name[ends-with(@Image, '.split') or ends-with(@Image, 'getPathMatcher')]/../../PrimarySuffix/Arguments[@ArgumentCount=1]//Expression[1]//PrimaryPrefix[
+//MethodDeclaration//PrimaryPrefix/Name[ends-with(@Image, '.split') or ends-with(@Image, 'getPathMatcher')]/../../PrimarySuffix/Arguments[ArgumentList/@Size=1]//Expression[1]//PrimaryPrefix[
 Literal[string-length(@Image) > 5 and
 matches(@Image, '[\.\$\|\(\)\[\]\{\}\^\?\*\+\\]+')] or Name
 and not(../PrimarySuffix)
 and not (
-Name/@Image=ancestor::MethodDeclaration//VariableDeclaratorId/@Image)
+Name/@Image=ancestor::MethodDeclaration//VariableDeclaratorId/@Name)
 and not (
 (:--- not (if foreign field (with .), or field with short String or without regex char) ---:)
 Name[contains(@Image, '.') or @Image=ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration/VariableDeclarator[
 VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/Literal[string-length(@Image) < 6 or not
 (matches(@Image, '[\.\$\|\(\)\[\]\{\}\^\?\*\+\\]+'))]
-]/VariableDeclaratorId/@Image])
+]/VariableDeclaratorId/@Name])
 ]
 ,
-//MethodDeclaration//PrimarySuffix[@Image='getPathMatcher']/../PrimarySuffix/Arguments[@ArgumentCount=1]/ArgumentList/Expression[1]/PrimaryExpression/PrimaryPrefix[
+//MethodDeclaration//PrimarySuffix[@Image='getPathMatcher']/../PrimarySuffix/Arguments[ArgumentList/@Size=1]/ArgumentList/Expression[1]/PrimaryExpression/PrimaryPrefix[
 Literal[string-length(@Image) > 5] or Name
 and not(../PrimarySuffix)
 and not (
-Name/@Image=ancestor::MethodDeclaration//VariableDeclaratorId/@Image)
+Name/@Image=ancestor::MethodDeclaration//VariableDeclaratorId/@Name)
 and not (
 Name[@Image=ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration/VariableDeclarator[
-VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/Literal[string-length(@Image) < 6]]/VariableDeclaratorId/@Image])
+VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/Literal[string-length(@Image) < 6]]/VariableDeclaratorId/@Name])
 ]
 ,
 (: --- String.matches called on formalparams, locals and fields --- :)
 //MethodDeclaration//PrimaryPrefix/Name[ends-with(@Image, '.matches')]
 [
-(exists(index-of((ancestor::MethodDeclaration//FormalParameter[pmd-java:typeIs('java.lang.String')]/VariableDeclaratorId/@Image), substring-before(@Image,'.')))
+(exists(index-of((ancestor::MethodDeclaration//FormalParameter[pmd-java:typeIs('java.lang.String')]/VariableDeclaratorId/@Name), substring-before(@Image,'.')))
 or
-exists(index-of((ancestor::MethodDeclaration//LocalVariableDeclaration/Type[pmd-java:typeIs('java.lang.String')]/../VariableDeclarator/VariableDeclaratorId/@Image), substring-before(@Image,'.')))
+exists(index-of((ancestor::MethodDeclaration//LocalVariableDeclaration/Type[pmd-java:typeIs('java.lang.String')]/../VariableDeclarator/VariableDeclaratorId/@Name), substring-before(@Image,'.')))
 or
-exists(index-of((ancestor::ClassOrInterfaceBody//FieldDeclaration[pmd-java:typeIs('java.lang.String')]/VariableDeclarator/VariableDeclaratorId/@Image), substring-before(@Image,'.'))))
+exists(index-of((ancestor::ClassOrInterfaceBody//FieldDeclaration[pmd-java:typeIs('java.lang.String')]/VariableDeclarator/VariableDeclaratorId/@Name), substring-before(@Image,'.'))))
 and
 (: for matches param is >5 literal or something named :)
-../../PrimarySuffix/Arguments[@ArgumentCount=1]//Expression[1]//PrimaryPrefix[
+../../PrimarySuffix/Arguments[ArgumentList/@Size=1]//Expression[1]//PrimaryPrefix[
 Literal[string-length(@Image) > 5] or Name
 (: exclude method calls :)
 and not(../PrimarySuffix)
 (: exclude for param is method arg or local :)
 and not (
-Name/@Image=ancestor::MethodDeclaration//VariableDeclaratorId/@Image)
+Name/@Image=ancestor::MethodDeclaration//VariableDeclaratorId/@Name)
 (: exclude for param is short fields :)
 and not (
 Name[@Image=ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration/VariableDeclarator[
 VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/Literal[string-length(@Image) < 6]
-]/VariableDeclaratorId/@Image])
+]/VariableDeclaratorId/@Name])
 ]])
 ]]></value>
             </property>
@@ -297,7 +301,7 @@ VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/Literal[string-le
     </rule>
 
     <rule name="AvoidInMemoryStreamingDefaultConstructor" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="Default capacity constructor of ByteArrayOutputStream or StringWriter is used, it usually needs expensive expansions." typeResolution="true"
-          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-ISIO01">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#isio01">
         <description>Default constructor of ByteArrayOutputStream or StringWriter is used. Problem: It allocates a small buffer as capacity which usually needs several expensive expansions.&#13;
             Solution: Presize the ByteArrayOutputStream or StringWriter with an initial capacity such that an expansion is not needed in most cases.
             (jpinpoint-rules)</description>
@@ -314,8 +318,40 @@ VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/Literal[string-le
         </properties>
     </rule>
 
+    <rule name="AvoidJAXBUtil"
+          language="java"
+          message="The JAXB utility class is not optimized for performance."
+          class="net.sourceforge.pmd.lang.rule.XPathRule"
+          typeResolution="true"
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#iuoxar04">
+        <description>Problem: JAXB utility methods do not reuse JAXBContext when more that one context is used. &#13;
+            Solution: use JAXB API directly for marshalling and unmarshalling to gain all the performance benefits as described in IUOXAR04 and IUOXAR06.
+        (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+//PrimaryExpression[pmd-java:typeIs('javax.xml.bind.JAXB')]
+	         ]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+public class XMLConversion {
+    public <T> T myUnmarshal(final Source response, final Class<T> clazz) {
+        return JAXB.unmarshal(response, clazz); // bad
+    }
+    public void myMarshal(final Object response, StringWriter stringWriter) {
+        JAXB.marshal(response, stringWriter); // bad
+    }
+}
+            ]]>
+        </example>
+    </rule>
+
     <rule name="AvoidMultipleConcatStatements" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="Multiple statements concatenate to the same String. Use StringBuilder append." typeResolution="true"
-          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-ISU02">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#isu02">
         <description>Multiple statements concatenate to the same String. Problem: Each statement with one or more +-operators creates a hidden temporary StringBuilder, a char[] and a new String object, which all have to be garbage collected.&#13;
             Solution: Use StringBulder.append.
             (jpinpoint-rules)</description>
@@ -327,9 +363,9 @@ VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/Literal[string-le
 //MethodDeclaration/Block[
 count(
 ./BlockStatement/Statement//StatementExpression/PrimaryExpression/PrimaryPrefix/Name
-[@Image=./../../../../../../../../../../../..//VariableDeclaratorId/attribute::Image
+[@Image=./../../../../../../../../../../../..//VariableDeclaratorId/@Name
 and
-./../../../../../../..//VariableDeclaratorId/../../Type/ReferenceType/ClassOrInterfaceType[typeIs('java.lang.String')]
+./../../../../../../..//VariableDeclaratorId/../../Type/ReferenceType/ClassOrInterfaceType[pmd-java:typeIs('java.lang.String')]
 ]
 /../../../AssignmentOperator[@Image='+=']/
 ../Expression//PrimaryExpression/PrimaryPrefix/Name) > 1]/BlockStatement[position()=last()]
@@ -340,9 +376,9 @@ count(
 ./PrimaryExpression/PrimaryPrefix/Name[
 @Image = ../../../Expression/AdditiveExpression/PrimaryExpression/PrimaryPrefix/Name/@Image
 and
-@Image = ./../../../../../../../..//VariableDeclaratorId/../../Type/ReferenceType/ClassOrInterfaceType[typeIs('java.lang.String')]/../../../VariableDeclarator/VariableDeclaratorId/attribute::Image
+@Image = ./../../../../../../../..//VariableDeclaratorId/../../Type/ReferenceType/ClassOrInterfaceType[pmd-java:typeIs('java.lang.String')]/../../../VariableDeclarator/VariableDeclaratorId/@Name
 ]
-]) > 1 ]//BlockStatement[position()=last()]//StatementExpression/Expression/AdditiveExpression[@Image = '+']
+]) > 1 ]//BlockStatement[position()=last()]//StatementExpression/Expression/AdditiveExpression[@Operator = '+']
 	]]></value>
             </property>
         </properties>
@@ -353,7 +389,7 @@ and
           message="List is not modified, make it immutable or unmodifiable"
           class="net.sourceforge.pmd.lang.rule.XPathRule"
           typeResolution="true"
-          externalInfoUrl="${pmd.website.baseurl}/Java+Code+Performance#JavaCodePerformance-PML01">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#pml01">
         <description>Problem: A list which is unnecessarily mutable may accidentally be added to and cause a memory leak. &#13;
             Solution: Make it impossible to modify the list after initialization: use Java 9 List.of, Collections.unmodifiableList or Guava ImmutableList.
         (jpinpoint-rules)</description>
@@ -365,7 +401,7 @@ and
     (: a field of type List :)
     //FieldDeclaration[pmd-java:typeIs('java.util.List')]//VariableDeclaratorId[
     (: with a method defined at that level that does not use the field with a modify operation (case field.modOp) :)
-    not(@Image = ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDeclaration//PrimaryExpression/PrimaryPrefix/Name[
+    not(@Name = ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDeclaration//PrimaryExpression/PrimaryPrefix/Name[
     starts-with(substring-after(@Image, '.'), 'add') or
     starts-with(substring-after(@Image, '.'), 'remove') or
     substring-after(@Image, '.') = 'set' or
@@ -374,7 +410,7 @@ and
     substring-after(@Image, '.') = 'retainAll'
     ]/(substring-before(concat(@Image, '.'), '.')))]
     [ (: and case this.field.modOp() :)
-not(@Image = ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDeclaration//PrimaryExpression
+not(@Name = ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDeclaration//PrimaryExpression
 /PrimarySuffix[starts-with(@Image, 'add') or starts-with(@Image, 'remove') or @Image = 'set' or @Image = 'clear' or @Image = 'replaceAll' or @Image = 'retainAll']
 /preceding-sibling::PrimarySuffix/@Image)
     ]     (: and :)
@@ -382,10 +418,10 @@ not(@Image = ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/Meth
     ../VariableInitializer/Expression//AllocationExpression[pmd-java:typeIs('java.util.List')]
     or
     (: or static block / constructor has field initialized with List allocation :)
-    ancestor::ClassOrInterfaceBody//(Initializer|ConstructorDeclaration)//AssignmentOperator[exists(../Expression/PrimaryExpression/PrimaryPrefix/AllocationExpression[pmd-java:typeIs('java.util.List')])]/..//Name/@Image = @Image
+    ancestor::ClassOrInterfaceBody//(Initializer|ConstructorDeclaration)//AssignmentOperator[exists(../Expression/PrimaryExpression/PrimaryPrefix/AllocationExpression[pmd-java:typeIs('java.util.List')])]/..//Name/@Image = @Name
     or
     (: or constructor has a simple assignment to the field, param of literal: no arguments :)
-    ancestor::ClassOrInterfaceBody//ConstructorDeclaration//AssignmentOperator[exists(../Expression[pmd-java:typeIs('java.util.List')]) and not(exists(../Expression/PrimaryExpression/PrimarySuffix))]/..//Name/@Image = @Image
+    ancestor::ClassOrInterfaceBody//ConstructorDeclaration//AssignmentOperator[exists(../Expression[pmd-java:typeIs('java.util.List')]) and not(exists(../Expression/PrimaryExpression/PrimarySuffix))]/..//Name/@Image = @Name
     )]
 	         ]]></value>
             </property>
@@ -414,28 +450,50 @@ public class Good {
     </rule>
 
     <rule name="AvoidRecompilingPatterns" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="Pattern.compile is used in a method. Compiling a regex pattern can be expensive, make it a static final field." typeResolution="true"
-          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-IREU02">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#ireu02">
         <description>A regular expression is compiled on every invocation. Problem: this can be expensive, depending on the length of the regular expression.&#13;
             Solution: Usually a pattern is a literal, not dynamic and can be compiled only once. Assign it to a private static field. java.util.Pattern objects are thread-safe so they can be shared among threads.
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
-            <property name="version" value="1.0"/>
+            <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
 //TypeDeclaration/ClassOrInterfaceDeclaration/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDeclaration
-//PrimaryExpression/PrimaryPrefix/Name[ends-with(@Image, '.compile') and
+//PrimaryExpression/PrimaryPrefix/Name[pmd-java:typeIs('java.util.regex.Pattern') and ends-with(@Image, '.compile') and
 count(../../PrimarySuffix/Arguments/ArgumentList/Expression//PrimaryExpression) = 1
 and not (
 ../../PrimarySuffix/Arguments/ArgumentList/Expression/PrimaryExpression/PrimaryPrefix/Name/@Image=
-ancestor::MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter/VariableDeclaratorId/@Image)]
+ancestor::MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter/VariableDeclaratorId/@Name)]
 	]]></value>
             </property>
         </properties>
+        <example>
+            <![CDATA[
+lass Bad {
+    public static final String STR_PAT1 = "[A-Z][a-z]+";
+
+    public static void bad() {
+        Pattern p1 = Pattern.compile(STR_PAT1); // bad
+        Pattern p2 = Pattern.compile("(?=\\p{Lu})"); // bad
+        boolean b = p1.matcher("Start ").matches();
+    }
+}
+class Good {
+    public static final Pattern PAT1 = Pattern.compile("[A-Z][a-z]+");
+    public static final Pattern PAT2 = Pattern.compile("(?=\\p{Lu})");
+
+    public static void good() {
+        boolean b = PAT1.matcher("Start ").matches();
+    }
+}
+            ]]>
+        </example>
+
     </rule>
 
     <rule name="AvoidRecompilingXPathExpression" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="XPathExpression is created and compiled every time. Beware it is thread-unsafe." typeResolution="true"
-          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-UX02">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#ux02">
         <description>XPathExpression is created and compiled on every method call. Problem: Creation XPath and compilation of XPathExpression takes time. It may slow down your application. &#13;
             Solution: 1. Avoid XPath usage. 2. Since XPath and XPathExpression classes are thread-unsafe, they are not easily cached. Caching in Thread locals may be a solution.
             (jpinpoint-rules)</description>
@@ -456,7 +514,7 @@ ancestor::MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter/Va
     <rule name="AvoidRecreatingDateTimeFormatter"
           message="Avoid recreating DateTimeFormatter, it is relatively expensive."
           class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
-          typeResolution="true" externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-IDTF02">
+          typeResolution="true" externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#idtf02">
         <description>
             Problem: Recreating a DateTimeFormatter is relatively expensive.&#13;
             Solution: org.joda.time.format.DateTimeFormatter or Java 8 java.time.DateTimeFormatter is thread-safe and can be shared among threads. Create the
@@ -474,12 +532,12 @@ ancestor::MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter/Va
     //MethodDeclaration/Block/BlockStatement//Expression//AllocationExpression/ClassOrInterfaceType[pmd-java:typeIs('org.joda.time.format.DateTimeFormatter') or pmd-java:typeIs('org.threeten.bp.format.DateTimeFormatter') or pmd-java:typeIs('java.time.format.DateTimeFormatter')],
     //MethodDeclaration/Block/BlockStatement//VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/Name[ends-with(@Image, 'DateTimeFormatter.ofPattern')]
 (: check if parameter is argument of method call :)[not(ancestor::LocalVariableDeclaration//PrimarySuffix/Arguments/ArgumentList/Expression/PrimaryExpression/PrimaryPrefix/Name/@Image=
-ancestor::MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter/VariableDeclaratorId/@Image)],
+ancestor::MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter/VariableDeclaratorId/@Name)],
     //MethodDeclaration/Block/BlockStatement//Expression/PrimaryExpression/PrimaryPrefix/Name[contains(@Image, 'ISODateTimeFormat.')],
     //MethodDeclaration/Block/BlockStatement//Expression/PrimaryExpression/PrimaryPrefix/Name[contains(@Image, 'DateTimeFormat.fullDateTime')],
     //MethodDeclaration/Block/BlockStatement//Expression/PrimaryExpression/PrimaryPrefix/Name[ends-with(@Image, 'DateTimeFormat.forPattern')]
 (: check if parameter is argument of method call :)[not(ancestor::LocalVariableDeclaration//PrimarySuffix/Arguments/ArgumentList/Expression/PrimaryExpression/PrimaryPrefix/Name/@Image=
-ancestor::MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter/VariableDeclaratorId/@Image)],
+ancestor::MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter/VariableDeclaratorId/@Name)],
     //MethodDeclaration/Block/BlockStatement//Expression//AllocationExpression/ClassOrInterfaceType[pmd-java:typeIs('org.joda.time.format.DateTimeFormatterBuilder')][ancestor::PrimaryExpression/PrimarySuffix[@Image="toFormatter"]]
                    ]]>
                 </value>
@@ -489,7 +547,7 @@ ancestor::MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter/Va
     </rule>
 
     <rule name="AvoidReflectionInToStringAndHashCode" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="Reflection is used in toString or hashCode, which is expensive." typeResolution="true"
-          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-UUOR01">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#uuor01">
         <description>Problem: Reflection is relatively expensive. &#13;
             Solution: Avoid to use reflection. Use the non-reflective, explicit way, preferably using Guava.
             (jpinpoint-rules)</description>
@@ -520,7 +578,7 @@ ancestor::MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter/Va
     </rule>
 
     <rule name="AvoidSimpleDateFormat" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="SimpleDateFormat is used. Since it is thread-unsafe, it needs expensive recreation."  typeResolution="true"
-          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-IDTF01">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#idtf01">
         <description>Problem: java.util.SimpleDateFormat is thread-unsafe. The usual solution is to create a new one when needed in a method. Creating SimpleDateFormat is relatively expensive. &#13;
             Solution: Use a Joda-Time DateTimeFormat to create a specific DateTimeFormatter or Java 8 java.time.DateTimeFormatter. These classes are immutable, thus thread-safe and can be made static.
             (jpinpoint-rules)</description>
@@ -536,7 +594,7 @@ ancestor::MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter/Va
     </rule>
 
     <rule name="AvoidStringBuffer" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="StringBuffer is used. It introduces locking overhead, use StringBuilder." typeResolution="true"
-          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-ISU01" >
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#isu01" >
         <description>Problem: StringBuffer introduces locking overhead because it is thread safe. Its thread-safety is rarely needed.&#13;
             Solution: Replace StringBuffer by StringBuilder.  (jpinpoint-rules)</description>
         <priority>3</priority>
@@ -551,7 +609,7 @@ ancestor::MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter/Va
     </rule>
 
     <rule name="AvoidTimeUnitConfusion" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="A variable identifier or @Value member ends with timeToLive, expiryTime or timeout, time unit is missing." typeResolution="true"
-          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md">
         <description>Problem: Time unit like hours, seconds, milliseconds is not specified and may be assumed differently by readers.
             Different assumptions will lead to errors or hidden problems like ineffective caches.&#13;
             Solution: Specify the time unit in the identifier. (jpinpoint-rules)</description>
@@ -560,8 +618,8 @@ ancestor::MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter/Va
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
-//VariableDeclaratorId[ends-with(lower-case(@Image), 'timetolive') or ends-with(lower-case(@Image), 'expirytime')
-or ends-with(lower-case(@Image), 'timeout')]
+//VariableDeclaratorId[ends-with(lower-case(@Name), 'timetolive') or ends-with(lower-case(@Name), 'expirytime')
+or ends-with(lower-case(@Name), 'timeout')]
 ,
 //SingleMemberAnnotation/Name[@Image='Value']/..//Literal[ends-with(lower-case(@Image), 'timetolive') or ends-with(lower-case(@Image), 'expirytime}"')
 or ends-with(lower-case(@Image), 'timeout}"')]
@@ -582,7 +640,7 @@ public RetrieveCache(final @Value("${cache.expiryTimeSeconds}") long timeToLiveS
     </rule>
 
     <rule name="AvoidUnconditionalBuiltLogStrings" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="Log String is built irrespective of log level." typeResolution="true"
-          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-IL02">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#il02">
         <description>A String to be logged is built unconditionally. Problem: String building, concatenation and/or other operations happen before the debug, trace or info method executes, so independent of the need to actually log. Concatenation is relatively expensive. &#13;
             Solution: Build the String conditionally on the log level, within an if statement.
             (jpinpoint-rules)</description>
@@ -613,8 +671,68 @@ substring-after(@Image, '.') != 'append')]) = 0
         </properties>
     </rule>
 
+    <rule name="AvoidUnnecessaryStringBuilderCreation"
+          language="java"
+          message="Use concatenation (+) instead of new StringBuilder if only one statement."
+          class="net.sourceforge.pmd.lang.rule.XPathRule"
+          typeResolution="true"
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#isu05">
+        <description>Problem: Creating a StringBuilder and using append is more verbose, less readable and less maintainable than simply using String concatenation (+).
+            For one statement resulting in a String, creating a StringBuilder and using append is not faster than simply using concatenation.&#13;
+            Solution: Simply concatenate Strings in one statement, it is more concise, better readable and more maintainable.
+        (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+(: append used in one chained statement on allocated StringBuilder and with chained toString :)
+//MethodDeclaration//Block//AllocationExpression/ClassOrInterfaceType[@Image="StringBuilder" or @Image = "StringBuffer"]
+/../../../PrimarySuffix[@Image = "toString"]/../PrimarySuffix[@Image = "append"][1] (: only report first append in chain :)
+|
+(: or :)
+(: append on builder var, where var is allocated as builder :)
+//MethodDeclaration//Block//PrimaryPrefix/Name[ends-with(@Image, '.append') and starts-with(@Image,
+ancestor::Block//AllocationExpression/ClassOrInterfaceType[@Image="StringBuilder" or @Image = "StringBuffer"]
+/ancestor::VariableDeclarator/VariableDeclaratorId/@Name)
+and
+(
+(: and either 1. toString is called in a chain after append :)
+../../PrimarySuffix[@Image = 'toString'] or
+(: or 2. toString is called on the var in same block :)
+substring-before(@Image, '.') = substring-before(ancestor::Block//PrimaryPrefix/Name[ends-with(@Image, '.toString')]/@Image, '.'))
+(: and not append on var used in inner block like a ForStatement :)
+and not(ancestor::Block//Block//PrimaryPrefix/Name[ends-with(@Image, '.append')])
+(: and var not passed as argument to method :)
+and not(substring-before(@Image, '.') = ancestor::Block//Statement//PrimarySuffix/Arguments//Name/@Image)
+]
+	         ]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+class Foo {
+    String name;
+    String value;
+
+    public String bad() {
+        return new StringBuilder()
+           .append(name) // bad
+           .append(" = ")// bad
+           .append(value)// bad
+           .toString();
+    }
+
+    public String good() {
+        return name + " = " + value;
+    }
+}
+            ]]>
+        </example>
+    </rule>
+
     <rule name="AvoidWideScopeXPathExpression" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="XPathExpression targets a wide scope, this is potentially slow." typeResolution="true"
-          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-UX01">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#ux01">
         <description>The XPathExpression targets a wide scope since it starts with '//'. Problem: XPath has to search in a wide scope for occurrences, this may take a while. &#13;
             Solution: 1. Avoid XPath usage. 2. Make the scope as narrow as possible, do not start with '//'.
             (jpinpoint-rules)</description>
@@ -636,7 +754,7 @@ and
     </rule>
 
     <rule name="AvoidXMLGregorianCalendar" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="XMLGregorianCalendar is used. It is slow in JAXB." typeResolution="true"
-          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-IUOXAR05">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#iuoxar05">
         <description>Problem: XMLGregorianCalendar is a large object, involving substantial processing. It is created with the poorly performing DatatypeFactory.
             Solution: Add a converter for alternative date handling with joda-time or Java 8 java.time.
             (jpinpoint-rules)</description>
@@ -657,7 +775,7 @@ MethodDeclaration//LocalVariableDeclaration/Type/ReferenceType/ClassOrInterfaceT
     </rule>
 
     <rule name="AvoidXPathAPIUsage" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="XPathAPI is used. XPathAPI implementation has bad performance." typeResolution="true"
-          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-UX03">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#ux03">
         <description>XPathAPI is used. Problem: XPathAPI implementation is slow.&#13;
             Solution: 1. try to avoid using XPathAPI. 2. improve performance by using jvm parameters and possibly CachedXPathAPI.
             (jpinpoint-rules)</description>
@@ -674,24 +792,26 @@ MethodDeclaration//LocalVariableDeclaration/Type/ReferenceType/ClassOrInterfaceT
     </rule>
 
     <rule name="AvoidXPathUsage" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="XPath is used. XPath implementation has bad performance." typeResolution="true"
-          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-UX03">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#ux03">
         <description>XPath is used. Problem: XPath implementation is slow.&#13;
             Solution: 1. avoid using XPath. 2. improve performance by using jvm parameters and possibly Cached XPath API.
             (jpinpoint-rules)</description>
         <priority>3</priority>
         <properties>
-            <property name="version" value="1.0"/>
+            <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
-//TypeDeclaration/ClassOrInterfaceDeclaration/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration
+//TypeDeclaration/ClassOrInterfaceDeclaration/ClassOrInterfaceBody/
+ClassOrInterfaceBodyDeclaration
 //PrimaryExpression/PrimaryPrefix/Name[@Image='XPathFactory.newInstance']
+[not (ancestor::FieldDeclaration//ClassOrInterfaceType/@Image = 'ThreadLocal')]
 	]]></value>
             </property>
         </properties>
     </rule>
 
     <rule name="HttpClientBuilderWithoutDisableConnectionState" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="A HttpClient builder is used and disableConnectionState is not called. HTTP client tracks connection state while using TLS" typeResolution="true"
-          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-IBI07">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#ibi07">
         <description>Problem: NTLM authenticated connections and SSL/TLS connections with client certificate authentication are stateful: they have a specific user identity/security context per session. If HttpClients have enabled connection state tracking which is the default, established TLS connections will not be reused because it is assumed that the user identity or security context may differ.
             Then performance will suffer due to a full TLS handshake for each request.&#13;
             Solution: HttpClients should disable connection state tracking in order to reuse TLS connections, since service calls for one pool have the same user identity/security context for all sessions. (jpinpoint-rules)</description>
@@ -752,48 +872,48 @@ ancestor::MethodDeclaration//PrimarySuffix/@Image="setMaxConnTotal")]
     <rule name="ImplementEqualsHashCodeOnValueObjects"
           message="Equals and/or hashCode is missing for a value object."
           class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
-          typeResolution="true" externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-IncorrectequalsandhashCode">
+          typeResolution="true" externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodeQuality.md#incorrect-equals-and-hashcode">
         <description>
             Problem: If equals and hashCode are not defined, they don't meet the programmer's expectations and the requirements for use with the collections API. It may result in unexpected, undesired behavior.&#13;
             Solution: Add proper equals and hashCode methods that meet the equals-hashCode contract to all objects which might anyhow be put in a Map, Set or other collection. If the object should never be checked for equality or used in a collection, also add those methods and let them throw UnsupportedOperationException to fail fast. @Xml... and @Entity objects are ignored because they are assumed to be not used as value objects.
             (jpinpoint-rules)</description>
         <properties>
-            <property name="version" value="1.0"/>
+            <property name="version" value="2.0"/>
             <property name="xpath">
                 <value>
                     <![CDATA[
 //TypeDeclaration[not(./Annotation//Name[@Image='Data' or @Image='Value' or @Image='EqualsAndHashCode'
 or @Image='Singleton' or @Image='Component' or @Image='Service' or @Image='Repository' or @Image='Configuration' or @Image='Endpoint' or @Image='RestController' or @Image='ControllerAdvice'
 or starts-with(@Image, 'Xml') or @Image='Entity' or @Image='Embeddable' or @Image='MappedSuperclass'])]
-/ClassOrInterfaceDeclaration[@Interface='false' and @Abstract='false']
+/ClassOrInterfaceDeclaration[@Interface=false() and @Abstract=false()]
 [not(./ExtendsList/ClassOrInterfaceType[ends-with(@Image, 'Exception') or ends-with(@Image, 'Throwable')])]
-/ClassOrInterfaceBody[ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Static='false']
+/ClassOrInterfaceBody[ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Static=false()]
 [
 (not (../Annotation//Name[@Image = 'XmlElement']))
 and
 (
 ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDeclaration
-[@Public='true' and @Static='false']/MethodDeclarator[starts-with(@Image, 'get') and string-length(@Image) > 3 or starts-with(@Image, 'is') and string-length(@Image) > 2]
-[../ResultType/Type/ReferenceType/ClassOrInterfaceType/@Image =
-ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Static='false']/Type/ReferenceType/ClassOrInterfaceType/@Image]
+[@Public=true() and @Static=false() and starts-with(@Name, 'get') and string-length(@Name) > 3 or starts-with(@Name, 'is') and string-length(@Name) > 2]
+[ResultType/Type/ReferenceType/ClassOrInterfaceType/@Image =
+ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Static=false()]/Type/ReferenceType/ClassOrInterfaceType/@Image]
 )
 and
 (not (
-ancestor::ClassOrInterfaceBody//MethodDeclaration[@Public='true' and @Static='false']/MethodDeclarator[@Image='equals' or @Image='hashCode'])
+ancestor::ClassOrInterfaceBody//MethodDeclaration[@Public=true() and @Static=false() and @Name='equals' or @Name='hashCode'])
 )
 and
-((ancestor::ClassOrInterfaceBody//MethodDeclaration[@Public='true' and @Static='false']/MethodDeclarator/@Image='toString'
+((ancestor::ClassOrInterfaceBody//MethodDeclaration[@Public=true() and @Static=false() and @Name='toString']
 and
-count(ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Static='false']) <=
+count(ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Static=false()]) <=
 (1 + count(ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDeclaration
-[@Public='true' and @Static='false']/MethodDeclarator[starts-with(@Image, 'get') and string-length(@Image) > 3 or starts-with(@Image, 'is') and string-length(@Image) > 2]))
+[@Public=true() and @Static=false() and starts-with(@Name, 'get') and string-length(@Name) > 3 or starts-with(@Name, 'is') and string-length(@Name) > 2]))
 )
 or
-ancestor::ClassOrInterfaceDeclaration[ends-with(@Image, 'Dto')]
+ancestor::ClassOrInterfaceDeclaration[ends-with(@SimpleName, 'Dto')]
 or
-count(ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Static='false']) =
+count(ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Static=false()]) =
 count(ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDeclaration
-[@Public='true' and @Static='false']/MethodDeclarator[starts-with(@Image, 'get') and string-length(@Image) > 3 or starts-with(@Image, 'is') and string-length(@Image) > 2])
+[@Public=true() and @Static=false() and starts-with(@Name, 'get') and string-length(@Name) > 3 or starts-with(@Name, 'is') and string-length(@Name) > 2])
 )]
 ]
 ]]>
@@ -804,7 +924,7 @@ count(ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDecla
     </rule>
 
     <rule name="InconsistentEqualsAndHashCode" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="Equals and hashCode are not based on the same fields or use inconsistent conversion." typeResolution="true"
-          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-IncorrectequalsandhashCode">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodeQuality.md#ieah03">
         <description>Problem: If equals and hashCode are inconsistent, strange things can happen like adding the object to a Set and not being able to find it back.&#13;
             Solution: Use the same fields in equals and hashCode and if conversions are needed, use identical conversions in both. So don't use equalsIgnoreCase. (jpinpoint-rules)</description>
         <priority>2</priority>
@@ -812,11 +932,11 @@ count(ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDecla
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
-//FieldDeclaration//VariableDeclaratorId[(@Image = ancestor::ClassOrInterfaceBody//MethodDeclarator[@Image='equals']/../Block//Name/@Image) !=
-(@Image = ancestor::ClassOrInterfaceBody//MethodDeclarator[@Image='hashCode']/../Block//Name/@Image)
+//FieldDeclaration//VariableDeclaratorId[(@Name = ancestor::ClassOrInterfaceBody//MethodDeclaration[@Name='equals']/Block//(Name|PrimarySuffix)/@Image) !=
+(@Name = ancestor::ClassOrInterfaceBody//MethodDeclaration[@Name='hashCode']/Block//(Name|PrimarySuffix)/@Image)
 ]
 ,
-//MethodDeclarator[@Image='equals']/../Block//Name[ends-with(@Image, 'equalsIgnoreCase')]
+//MethodDeclaration[@Name='equals']/Block//Name[ends-with(@Image, 'equalsIgnoreCase')]
 			]]>
                 </value>
             </property>
@@ -876,7 +996,7 @@ class Bad2 {
     </rule>
 
     <rule name="JAXBContextCreatedForEachMethodCall" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="JAXBContext is created for each method call, which is expensive."  typeResolution="true"
-          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-IUOXAR04">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#iuoxar04">
         <description>Problem: JAXBContext creation is expensive because it does much class loading.  &#13;
             Solution: Since JAXBContext objects are thread safe, they can be shared between requests and reused. So, reuse created instances, e.g. as singletons.
             (jpinpoint-rules)</description>
@@ -891,39 +1011,55 @@ class Bad2 {
         </properties>
     </rule>
 
-    <rule name="MDCPutWithoutRemove" message="MDC put is used without finally remove." class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" typeResolution="true" externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-IL04">
+    <rule name="MDCPutWithoutRemove" message="MDC put is used without finally remove." class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" typeResolution="true" externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#IL04">
         <description>
             MDC values are added for logging, but not removed. Problem: MDC values can leak to other user transactions (requests) and log incorrect information. Solution: remove the MDC value in a finally clause.
             (jpinpoint-rules)</description>
+        <priority>2</priority>
         <properties>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value>
                     <![CDATA[
 //MethodDeclaration//StatementExpression//Name[@Image='MDC.put']
-/../../PrimarySuffix/Arguments/ArgumentList/Expression[1]/PrimaryExpression/PrimaryPrefix/Literal[not(@Image=
-ancestor::MethodDeclaration//TryStatement/FinallyStatement//StatementExpression//Name[@Image='MDC.remove']
-/../../PrimarySuffix/Arguments/ArgumentList/Expression[1]/PrimaryExpression/PrimaryPrefix/Literal/@Image)
-and not(ancestor::MethodDeclaration//TryStatement/FinallyStatement//StatementExpression//Name[@Image='MDC.clear'])
-and not(ancestor::ClassOrInterfaceBody//MethodDeclarator[@Image='afterCompletion']/../Block//Name[@Image='MDC.clear'])
-]
-|
-//MethodDeclaration//StatementExpression//Name[@Image='MDC.put']
-/../../PrimarySuffix/Arguments/ArgumentList/Expression[1]/PrimaryExpression/PrimaryPrefix/Name[not(@Image=
-ancestor::MethodDeclaration//TryStatement/FinallyStatement//StatementExpression//Name[@Image='MDC.remove']
-/../../PrimarySuffix/Arguments/ArgumentList/Expression[1]/PrimaryExpression/PrimaryPrefix/Name/@Image)
-and not(ancestor::MethodDeclaration//TryStatement/FinallyStatement//StatementExpression//Name[@Image='MDC.clear'])
-and not(ancestor::ClassOrInterfaceBody//MethodDeclarator[@Image='afterCompletion']/../Block//Name[@Image='MDC.clear'])
+/../../PrimarySuffix/Arguments/ArgumentList/Expression[1]/PrimaryExpression/PrimaryPrefix/(Name|Literal)[not(@Image=
+(ancestor::MethodDeclaration//TryStatement/FinallyStatement//StatementExpression|ancestor::ClassOrInterfaceBody//MethodDeclaration[@Name='afterCompletion']/Block)//Name[@Image='MDC.remove']
+/../../PrimarySuffix/Arguments/ArgumentList/Expression[1]/PrimaryExpression/PrimaryPrefix/(Name|Literal)/@Image)
+and not((ancestor::MethodDeclaration//TryStatement/FinallyStatement//StatementExpression|ancestor::ClassOrInterfaceBody//MethodDeclaration[@Name='afterCompletion']/Block)//Name[@Image='MDC.clear'])
 ]
 ]]>
                 </value>
             </property>
         </properties>
-        <priority>2</priority>
+        <example>
+            <![CDATA[
+class Bad {
+    public void bad() {
+        MDC.put("levelKey1", "levelName1"); // bad, not removed in finally
+        MDC.put("levelKey2", "levelName2"); // bad, not removed at all
+        doStuff();
+        MDC.remove("levelKey1");
+    }
+}
+
+class Good {
+    public void good() {
+        try {
+            MDC.put("levelKey1", "levelName1");
+            MDC.put("levelKey2", "levelName2");
+            doStuff();
+        } finally {
+            MDC.remove("levelKey1");
+            MDC.remove("levelKey2");
+        }
+    }
+}
+            ]]>
+        </example>
     </rule>
 
     <rule name="MinimizeAttributesInSession" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="Attribute is set in the session, yet not removed. This may bloat the session." typeResolution="true"
-          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-TMSU01">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#tmsu01">
         <description>An attribute is set in the session and not removed. Problem: This may be a large object and data in the sessions takes heap space and stay in the session until time-out. This may take substantial heap space.&#13;
             Solution: remove the attribute if not really needed in the session, remove it from the session as soon as possible. Alternatively, use render parameters.
             (jpinpoint-rules)</description>
@@ -977,7 +1113,7 @@ class Good {
     </rule>
 
     <rule name="MissingFieldInEquals" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="Field simply assigned to is missing in equals method." typeResolution="true"
-          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-IncorrectequalsandhashCode">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodeQuality.md#ieah04">
         <description>Problem: If a field which can be assigned separately (independent of other fields) is missing in the equals method, then changing the field in one object has no effect on the equality with another object.
             However, if a field of one of two equal objects is changed, the expectation is that they are no longer equal.&#13;
             Solution: include the missing field in the equals and hashCode method. (jpinpoint-rules)</description>
@@ -986,17 +1122,22 @@ class Good {
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
-//FieldDeclaration[@Static=false()]//VariableDeclaratorId[
-(: with an equals method defined at that level with 1 argument and not having a throw statement :)
-ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDeclaration/MethodDeclarator[@Image='equals' and @ParameterCount=1 and not (../Block/BlockStatement/Statement/ThrowStatement)]
-(: where names used in equals method matching fields are non-equal to :)
-and (@Image = ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDeclaration/MethodDeclarator[@Image='equals' and @ParameterCount=1]/../Block//(Name|PrimarySuffix)/(substring-before(concat(@Image, '.'), '.'))) !=
+//ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Static=false()]//VariableDeclaratorId[
 (: names used as left hand side in simple assignments in methods or constructor matching fields:)
- (@Image = ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/(MethodDeclaration|ConstructorDeclaration)
-/..//BlockStatement//StatementExpression[exists(AssignmentOperator) and not(exists(Expression/PrimaryExpression/PrimarySuffix))
+ (@Name = ancestor::ClassOrInterfaceBody[1]/ClassOrInterfaceBodyDeclaration/(MethodDeclaration|ConstructorDeclaration)
+/..//BlockStatement//StatementExpression
+(: simple assignment :)
+[exists(AssignmentOperator) and not(exists(Expression/PrimaryExpression/PrimarySuffix))
 and exists(Expression/PrimaryExpression/PrimaryPrefix/Name) and not(contains(Expression/PrimaryExpression/PrimaryPrefix/Name/@Image,".")) ]
 /PrimaryExpression/(PrimaryPrefix/Name|PrimarySuffix)/@Image)
-]
+ and (
+(: with an equals method defined at that level with 1 argument and not having a throw statement :)
+ancestor::ClassOrInterfaceBody[1]/ClassOrInterfaceBodyDeclaration/MethodDeclaration[@Name='equals' and MethodDeclarator/FormalParameters/@Size=1 and not (Block/BlockStatement/Statement/ThrowStatement)]
+(: where names used in equals method matching fields are non-equal to :)
+and not(@Name = ancestor::ClassOrInterfaceBody[1]/ClassOrInterfaceBodyDeclaration/MethodDeclaration
+[@Name='equals' and MethodDeclarator/FormalParameters/@Size=1]/Block//
+(: name or this.name and name before dot if present :)
+(Name|PrimarySuffix)/(substring-before(concat(@Image, '.'), '.'))) )]
 			]]>
                 </value>
             </property>
@@ -1027,7 +1168,7 @@ class Bad1 {
         </example>
     </rule>
 
-    <rule name="ObjectMapperCreatedForEachMethodCall" message="An ObjectMapper is created for each method call, which is expensive." class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"   typeResolution="true" externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-IUOJAR01">
+    <rule name="ObjectMapperCreatedForEachMethodCall" message="An ObjectMapper is created for each method call, which is expensive." class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"   typeResolution="true" externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#IUOJAR01">
         <description>Problem: Jackson ObjectMapper creation is expensive because it does much class loading.  &#13;
             Solution: Since ObjectMapper objects are thread-safe after configuration in one thread, they can be shared afterwards between requests and reused. So, reuse created instances, from a static field.
             (jpinpoint-rules)</description>
@@ -1046,7 +1187,7 @@ class Bad1 {
     </rule>
 
     <rule name="UnconditionalConcatInLogArgument" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="String concatenation (+) is executed regardless of log level and can be expensive" typeResolution="true"
-          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-IL01">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#il01">
         <description>Problem: String concatenation (+) is executed regardless of log level and can be expensive. &#13;
             Solution: Use SLF4J formatting with {}-placeholders or log and format conditionally.  (jpinpoint-rules)</description>
         <priority>2</priority>
@@ -1068,7 +1209,7 @@ class Bad1 {
     </rule>
 
     <rule name="UnconditionalOperationOnLogArgument" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="Operation is executed regardless of log level and can be expensive" typeResolution="true"
-          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-IL03">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#il03">
         <description>Problem: An operation is executed regardless of log level. This could be much processing while the result is typically not used. Detected are obj.toString() and operations with one or more arguments except usually cheap obj.get(arg).&#13;
             Solution: Execute the operation only conditionally and utilize SLF4J formatting with {}-placeholders.  (jpinpoint-rules)</description>
         <priority>2</priority>
@@ -1084,15 +1225,24 @@ class Bad1 {
             	or ends-with(@Image,'.info')
             ]
             (: no violation if conditionally: only executed if level enabled is okay :)
-            [not(ancestor::IfStatement/Expression//PrimaryPrefix/Name
+            [not(ancestor::IfStatement//Name
             	[
 					ends-with(@Image,'.isTraceEnabled')
 					or ends-with(@Image,'.isDebugEnabled')
 					or ends-with(@Image,'.isInfoEnabled')
 					or ends-with(@Image,'.isLoggable')
-				])
-			]
-			(: in the log method :)
+		        ])
+	        ]
+            (: no violation if return conditionally before :)
+            [not(ancestor::BlockStatement/preceding-sibling::BlockStatement//IfStatement//ReturnStatement/ancestor::IfStatement//Name
+                [
+					ends-with(@Image,'.isTraceEnabled')
+					or ends-with(@Image,'.isDebugEnabled')
+					or ends-with(@Image,'.isInfoEnabled')
+					or ends-with(@Image,'.isLoggable')
+		        ])
+            ]
+	        (: in the log method :)
             /../../PrimarySuffix/Arguments/ArgumentList/Expression//PrimaryExpression
             [
                 (: toString on argument :)
@@ -1121,7 +1271,7 @@ class Bad1 {
     </rule>
 
     <rule name="UsingSuppressWarnings" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="Using SuppressWarnings." typeResolution="true"
-          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md">
         <description>(Informative) Problem: This rule detects problems, suppressing them without full knowledge can lead to the problems this rule is trying to prevent. &#13;
             Solution: Suppress warnings judiciously based on full knowledge and report reasons to suppress (false positives) to the rule maintainers so these can be fixed. (jpinpoint-rules)</description>
         <priority>4</priority>
@@ -1141,7 +1291,7 @@ class Bad1 {
     </rule>
 
     <rule name="UsingSuppressWarningsHighRisk" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="Using SuppressWarnings for a rule that is meant to prevent high risk problems." typeResolution="true"
-          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md">
         <description>(Informative) Problem: This rule detects high risk problems, suppressing them without full knowledge can lead to incidents like customer data mix-up, corrupt data, server crashes or very bad performance. &#13;
             Solution: Suppress warnings judiciously based on full knowledge and report reasons to suppress (false positives) to the rule maintainers so these can be fixed. (jpinpoint-rules)</description>
         <priority>4</priority>
@@ -1167,7 +1317,7 @@ class Bad1 {
           message="Avoid memory intensive FileItem.get and FileItem.getString"
           class="net.sourceforge.pmd.lang.rule.XPathRule"
           typeResolution="true"
-          externalInfoUrl="${pmd.website.baseurl}/pmd_rules_performance.html#AvoidApacheCommonsFileItemNonStreaming">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#isio03">
         <description>
             Problem: Use of FileItem.get and FileItem.getString could exhaust memory since they load the entire file into memory&#13;
             Solution: Use streaming methods and buffering.
@@ -1182,15 +1332,15 @@ class Bad1 {
 [ends-with(@Image, '.get') or ends-with(@Image, '.getString')]
 [
 	starts-with(@Image, concat(
-		ancestor::MethodDeclaration//FormalParameter/Type/ReferenceType/ClassOrInterfaceType[typeIs('org.apache.commons.fileupload.FileItem')]/../../..//VariableDeclaratorId/@Image,
+		ancestor::MethodDeclaration//FormalParameter/Type/ReferenceType/ClassOrInterfaceType[typeIs('org.apache.commons.fileupload.FileItem')]/../../..//VariableDeclaratorId/@Name,
 		'.')
 	) or
 	starts-with(@Image, concat(
-		ancestor::MethodDeclaration//LocalVariableDeclaration/Type/ReferenceType/ClassOrInterfaceType[typeIs('org.apache.commons.fileupload.FileItem')]/../../..//VariableDeclaratorId/@Image,
+		ancestor::MethodDeclaration//LocalVariableDeclaration/Type/ReferenceType/ClassOrInterfaceType[typeIs('org.apache.commons.fileupload.FileItem')]/../../..//VariableDeclaratorId/@Name,
 		'.')
 	) or
 	starts-with(@Image, concat(
-		ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration/Type/ReferenceType/ClassOrInterfaceType[typeIs('org.apache.commons.fileupload.FileItem')]/../../..//VariableDeclaratorId/@Image,
+		ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration/Type/ReferenceType/ClassOrInterfaceType[typeIs('org.apache.commons.fileupload.FileItem')]/../../..//VariableDeclaratorId/@Name,
 		'.')
 )
 ]
@@ -1218,7 +1368,7 @@ public class FileStuff {
           message="A Calendar is used to create a Date or DateTime, this is expensive."
           class="net.sourceforge.pmd.lang.rule.XPathRule"
           typeResolution="true"
-          externalInfoUrl="${pmd.website.baseurl}/pmd_rules_performance.html#AvoidCalendarDateCreation">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#ue01">
         <description>Problem: A Calendar is a heavyweight object and expensive to create. &#13;
             Solution: Use 'new Date()', Java 8+ java.time.[Local/Zoned]DateTime.now() or joda time '[Local]DateTime.now()'.
         (jpinpoint-rules)</description>
@@ -1264,7 +1414,7 @@ public class DateStuff {
           message="Concatenation inside append. Use extra append."
           class="net.sourceforge.pmd.lang.rule.XPathRule"
           typeResolution="true"
-          externalInfoUrl="${pmd.website.baseurl}/pmd_rules_performance.html#AvoidConcatInAppend">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#isu04">
         <description>Concatenation of Strings is used inside an StringBuilder.append argument. Problem: Each statement with one or more +-operators creates a hidden temporary StringBuilder, a char[] and a new String object, which all have to be garbage collected.&#13;
             Solution: Use an extra fluent append instead of concatenation.
             (jpinpoint-rules)</description>
@@ -1278,12 +1428,12 @@ public class DateStuff {
 or
 .//PrimaryExpression/PrimarySuffix/@Image = 'append')
 and
-.//PrimaryExpression/PrimarySuffix/Arguments/ArgumentList/Expression[1]/AdditiveExpression[@Image='+'
+.//PrimaryExpression/PrimarySuffix/Arguments/ArgumentList/Expression[1]/AdditiveExpression[@Operator='+'
 and (count(PrimaryExpression/PrimaryPrefix/Name) > 0)
 and not(PrimaryExpression/PrimaryPrefix/Name/@Image=
-ancestor::ClassOrInterfaceBody//FieldDeclaration[@Final='true']//VariableDeclaratorId/@Image)
+ancestor::ClassOrInterfaceBody//FieldDeclaration[@Final='true']//VariableDeclaratorId/@Name)
 and not(PrimaryExpression/PrimaryPrefix/Name/@Image=
-ancestor::Block//LocalVariableDeclaration[@Final='true']//VariableDeclaratorId/@Image)
+ancestor::Block//LocalVariableDeclaration[@Final='true']//VariableDeclaratorId/@Name)
 ]]
 	]]></value>
             </property>
@@ -1312,7 +1462,7 @@ public class StringStuff {
           message="A String is concatenated in a loop. Use StringBuilder.append."
           class="net.sourceforge.pmd.lang.rule.XPathRule"
           typeResolution="true"
-          externalInfoUrl="${pmd.website.baseurl}/pmd_rules_performance.html#AvoidConcatInLoop">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#isu02">
         <description>A String is built in a loop by concatenation. Problem: Each statement with one or more +-operators creates a hidden temporary StringBuilder, a char[] and a new String object, which all have to be garbage collected. &#13;
             Solution: Use the StringBuilder append method.
         (jpinpoint-rules)</description>
@@ -1324,7 +1474,6 @@ public class StringStuff {
 (//ForStatement | //WhileStatement | //DoStatement)//AssignmentOperator[
     (: a += ...;  -- a being a string :)
     @Image='+=' and preceding-sibling::*[1]/PrimaryPrefix/Name[pmd-java:typeIs('java.lang.String')]
-
     (: a = ... + a + ...; -- a being a string :)
     or @Image='=' and following-sibling::*[1]/AdditiveExpression/PrimaryExpression/PrimaryPrefix/Name[
         pmd-java:typeIs('java.lang.String')
@@ -1365,7 +1514,7 @@ public class StringStuff {
     <rule name="AvoidCompletionServiceTake"
           message="Avoid completionService.take, use poll"
           class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
-          typeResolution="true" externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance">
+          typeResolution="true" externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md">
         <description>
             Problem: take() stalls indefinitely in case of hanging threads and consumes a thread.&#13;
             Solution: use poll() with a timeout value and handle the timeout.
@@ -1380,17 +1529,17 @@ public class StringStuff {
     [(starts-with(@Image, concat(ancestor::MethodDeclaration//FormalParameter/Type/ReferenceType/ClassOrInterfaceType[
     typeIs('java.util.concurrent.CompletionService')
     or typeIs('java.util.concurrent.ExecutorCompletionService')
-    ]/../../../VariableDeclaratorId/@Image, '.'))
+    ]/../../../VariableDeclaratorId/@Name, '.'))
     or
     starts-with(@Image, concat(ancestor::MethodDeclaration//LocalVariableDeclaration/Type/ReferenceType/ClassOrInterfaceType[
      typeIs('java.util.concurrent.CompletionService')
     or typeIs('java.util.concurrent.ExecutorCompletionService')
-    ]/../../../VariableDeclarator/VariableDeclaratorId/@Image, '.'))
+    ]/../../../VariableDeclarator/VariableDeclaratorId/@Name, '.'))
     or
     starts-with(@Image, concat(ancestor::ClassOrInterfaceBody//FieldDeclaration/Type/ReferenceType/ClassOrInterfaceType[
      typeIs('java.util.concurrent.CompletionService')
     or typeIs('java.util.concurrent.ExecutorCompletionService')
-    ]/../../../VariableDeclarator/VariableDeclaratorId/@Image, '.')))
+    ]/../../../VariableDeclarator/VariableDeclaratorId/@Name, '.')))
 ]    ]]>
                 </value>
             </property>
@@ -1400,7 +1549,7 @@ public class StringStuff {
     <rule name="AvoidFutureGetWithoutTimeout"
           message="Avoid future.get without timeout"
           class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
-          typeResolution="true" externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance">
+          typeResolution="true" externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md">
         <description>
             Problem: Stalls indefinitely in case of hanging threads and consumes a thread.&#13;
             Solution: Provide a timeout value and handle the timeout.
@@ -1420,7 +1569,7 @@ public class StringStuff {
     or pmd-java:typeIs('java.util.concurrent.RunnableFuture')
     or pmd-java:typeIs('java.util.concurrent.RunnableScheduledFuture')
     or pmd-java:typeIs('java.util.concurrent.ScheduledFuture')
-    ]/VariableDeclaratorId/@Image), substring-before(@Image,'.')))
+    ]/VariableDeclaratorId/@Name), substring-before(@Image,'.')))
     or
     (: future.get or variant called on local var :)
     exists(index-of((ancestor::MethodDeclaration//LocalVariableDeclaration/Type[
@@ -1430,7 +1579,7 @@ public class StringStuff {
     or pmd-java:typeIs('java.util.concurrent.RunnableFuture')
     or pmd-java:typeIs('java.util.concurrent.RunnableScheduledFuture')
     or pmd-java:typeIs('java.util.concurrent.ScheduledFuture')
-    ]/../VariableDeclarator/VariableDeclaratorId/@Image), substring-before(@Image,'.')))
+    ]/../VariableDeclarator/VariableDeclaratorId/@Name), substring-before(@Image,'.')))
     or
     (: future.get or variant called on field :)
     exists(index-of((ancestor::ClassOrInterfaceBody//FieldDeclaration[
@@ -1440,7 +1589,7 @@ public class StringStuff {
     or pmd-java:typeIs('java.util.concurrent.RunnableFuture')
     or pmd-java:typeIs('java.util.concurrent.RunnableScheduledFuture')
     or pmd-java:typeIs('java.util.concurrent.ScheduledFuture')
-    ]/VariableDeclarator/VariableDeclaratorId/@Image), substring-before(@Image,'.')))
+    ]/VariableDeclarator/VariableDeclaratorId/@Name), substring-before(@Image,'.')))
     )
     (: .get without arguments :)
     and not(../../PrimarySuffix/Arguments/ArgumentList)
@@ -1462,10 +1611,48 @@ public class StringStuff {
         </example>
     </rule>
 
+    <rule name="AvoidIncrementOrDecrementForVolatileField" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="Avoid ++, --, +=, -= for volatile fields" typeResolution="true"
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#tutc09">
+        <description>A compound statement like i++, i--, i += 1 or i -= 1 may seem one statement and thread-safe for a volatile field. Problem: The operation is actually two separate statements executed non-atomically and therefore not thread-safe. &#13;
+            Solution: Guard the field properly with synchronized or use atomics like AtomicInteger. (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+//StatementExpression/(AssignmentOperator[@Image='+=' or @Image='-=']/..|
+(PreIncrementExpression|PostfixExpression[@Image='++' or @Image='--']))/PrimaryExpression/(PrimaryPrefix/Name|PrimarySuffix)[@Image =
+//FieldDeclaration[@Volatile = true()]/VariableDeclarator/VariableDeclaratorId/@Name]
+                        ]]>
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+ public class Foo {
+    private volatile int i;
+    private volatile String str = "";
+
+    public int bad() {
+        i++; // bad
+        --i; // bad
+        i += 1; // bad
+        str += "a"; // bad
+    }
+    public int good(int v) {
+        i = 5; // good
+        i = v + 5; // good
+        str = "other"; // good
+    }
+}
+            ]]>
+        </example>
+    </rule>
+
     <rule name="AvoidMutableStaticFields"
           message="Avoid non-final or mutable static fields. Make final immutable or access thread-safely and use @GuardedBy."
           class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
-          typeResolution="true" externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-TUTC08">
+          typeResolution="true" externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#TUTC08">
         <description>
             Problem: Multiple threads typically access static fields. Unguarded assignment to a mutable or non-final static field is thread-unsafe and may cause corruption or visibility problems. To make this thread-safe, that is, guard the field e.g. with synchronized methods, may cause contention. &#13;
             Solution: Make the fields final and unmodifiable.  If they really need to be mutable, make access thread-safe: use synchronized and @GuardedBy or use volatile. Consider lock contention.&#13;
@@ -1502,7 +1689,7 @@ or
 ClassOrInterfaceType[pmd-java:typeIs('java.util.ArrayList') or pmd-java:typeIs('java.util.HashMap') or pmd-java:typeIs('java.util.HashSet')])
 and
 (: given the field is not @GuardedBy :)
-ancestor::StatementExpression/PrimaryExpression/PrimaryPrefix/Name/@Image = ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration[count(Annotation//Name[@Image='GuardedBy']) = 0]/FieldDeclaration//VariableDeclaratorId/@Image
+ancestor::StatementExpression/PrimaryExpression/PrimaryPrefix/Name/@Image = ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration[count(Annotation//Name[@Image='GuardedBy']) = 0]/FieldDeclaration//VariableDeclaratorId/@Name
 ]
 ]]>
                 </value>
@@ -1511,7 +1698,7 @@ ancestor::StatementExpression/PrimaryExpression/PrimaryPrefix/Name/@Image = ance
     </rule>
 
     <rule name="AvoidStaticXmlFactories" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="Avoid static XML Factories" typeResolution="true"
-          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-IUOXAR09">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#IUOXAR09">
         <description>An XML Factory like DocumentBuilderFactory, TransformerFactory, MessageFactory is used as static field. Problem: These factory objects are typically not thread-safe and rather expensive to create because of class loading. &#13;
             Solution: Create the Factories as local variables and use command line arguments to specify the implementation class. (jpinpoint-rules)</description>
         <priority>1</priority>
@@ -1550,7 +1737,7 @@ ancestor::StatementExpression/PrimaryExpression/PrimaryPrefix/Name/@Image = ance
         </example>
     </rule>
 
-    <rule name="AvoidThreadUnsafeJaxbUsage" message="A JAXB Marshaller, Unmarshaller or Validator is used in a thread-unsafe way." class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" typeResolution="true" externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-IUOXAR07">
+    <rule name="AvoidThreadUnsafeJaxbUsage" message="A JAXB Marshaller, Unmarshaller or Validator is used in a thread-unsafe way." class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" typeResolution="true" externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#IUOXAR07">
         <description>Problem: JAXB Marshaller, Unmarshaller and Validator are not thread-safe.  &#13;
             Solution: Create a new instance every time you need to marshall, unmarshall or validate a document.
             (jpinpoint-rules)</description>
@@ -1574,7 +1761,7 @@ ancestor::StatementExpression/PrimaryExpression/PrimaryPrefix/Name/@Image = ance
     <rule name="AvoidUnguardedAssignmentToNonFinalFieldsInObjectsUsingSynchronized"
           message="Avoid unguarded assignments to non-final fields in objects using synchronized. Access thread-safely and use @GuardedBy."
           class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
-          typeResolution="true" externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-TUTC07">
+          typeResolution="true" externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#TUTC07">
         <description>
             Problem: Multiple threads typically access fields of an object using synchronized. Unguarded assignment to a non-final field is thread-unsafe and may cause corruption or visibility problems. To make this thread-safe, that is, guard the field e.g. with synchronized methods, may cause contention. &#13;
             Solution: Make the fields final and unmodifiable.  If they really need to be mutable, make access thread-safe: use synchronized and jcip @GuardedBy or use volatile.&#13;
@@ -1595,7 +1782,7 @@ ancestor::StatementExpression/PrimaryExpression/PrimaryPrefix/Name/@Image = ance
 (: assignment to a field :)
 /ClassOrInterfaceBodyDeclaration/MethodDeclaration/Block/BlockStatement/Statement//StatementExpression/AssignmentOperator/../PrimaryExpression//*[@Image=
 (: non-final, non-volatile, non-GuardedBy fields :)
-ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Final=false() and @Volatile=false() and not (../Annotation//Name[@Image='GuardedBy'])]/VariableDeclarator/VariableDeclaratorId/@Image
+ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Final=false() and @Volatile=false() and not (../Annotation//Name[@Image='GuardedBy'])]/VariableDeclarator/VariableDeclaratorId/@Name
 (: field not on accessor method with assignment, annotated with framework annotation :)
 and not (ancestor::ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='Autowired' or @Image='PostConstruct' or @Image='BeforeStep' or @Image='Value' or @Image='Inject']
 (: field not assigned in non-public accessor method annotated with VisibleForTesting :)
@@ -1609,7 +1796,7 @@ or (ancestor::ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='VisibleFo
     <rule name="AvoidUnguardedAssignmentToNonFinalFieldsInSharedObjects"
           message="Avoid unguarded assignments to non-final fields in objects shared among threads. Access thread-safely and use @GuardedBy."
           class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
-          typeResolution="true" externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-TUTC07">
+          typeResolution="true" externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#TUTC07">
         <description>
             Problem: Multiple threads typically access fields of a singleton or may access fields in session scoped objects. Unguarded assignment to a non-final field is thread-unsafe and may cause corruption or visibility problems. It may also unintentionally mixup session data. &#13;
             Solution: Make the fields final and unmodifiable.  If they really need to be mutable, make access thread-safe: use synchronized and jcip @GuardedBy or use volatile.&#13;
@@ -1637,14 +1824,14 @@ and not ((ancestor::TypeDeclaration/Annotation//Name[@Image='ConfigurationProper
 (: assignment to a field :)
 /../../..//ClassOrInterfaceDeclaration[@Static=false()]/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDeclaration/Block/BlockStatement/Statement//StatementExpression/AssignmentOperator/../PrimaryExpression//*[(@Image=
 (: non-final, non-volatile, non-GuardedBy fields :)
-ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Final=false() and @Volatile=false() and not (../Annotation//Name[@Image='GuardedBy'])]/VariableDeclarator/VariableDeclaratorId/@Image
+ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Final=false() and @Volatile=false() and not (../Annotation//Name[@Image='GuardedBy'])]/VariableDeclarator/VariableDeclaratorId/@Name
 or
 (: not 'this' and extends a base class :)
 ((@Image != '') and ancestor::ClassOrInterfaceDeclaration/ExtendsList and
 (: not a field of this class :)
-not (exists(index-of((ancestor::ClassOrInterfaceBody//FieldDeclaration//VariableDeclaratorId/@Image), @Image))
+not (exists(index-of((ancestor::ClassOrInterfaceBody//FieldDeclaration//VariableDeclaratorId/@Name), @Image))
 (: not a param or local :)
-     or exists(index-of((ancestor::ClassOrInterfaceBodyDeclaration//VariableDeclaratorId/@Image), @Image))))
+     or exists(index-of((ancestor::ClassOrInterfaceBodyDeclaration//VariableDeclaratorId/@Name), @Image))))
 and not (ancestor::SynchronizedStatement or ancestor::MethodDeclaration[@Synchronized = true()])
 )
 (: field not on accessor method with assignment, annotated with framework annotation :)
@@ -1660,7 +1847,7 @@ or (ancestor::ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='VisibleFo
     <rule name="AvoidUnguardedMutableFieldsInObjectsUsingSynchronized"
           message="Avoid unguarded non-final or mutable fields in objects using synchronized. Make final immutable or access thread-safely and use @GuardedBy."
           class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
-          typeResolution="true" externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-TUTC07">
+          typeResolution="true" externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#TUTC07">
         <description>
             Problem: Multiple threads typically access fields of an object using synchronized. If a field or its reference is mutable, access is thread-unsafe and may cause corruption or visibility problems. To make this thread-safe, that is, guard the field e.g. with synchronized methods, may cause contention.&#13;
             Solution: Make the fields final and unmodifiable. If they really need to be mutable, make access thread-safe: use synchronized and jcip @GuardedBy or use volatile.&#13;
@@ -1688,14 +1875,14 @@ and not (../Annotation//Name[@Image='Autowired' or @Image='PersistenceContext' o
 (: field not on accessor method with assignment, annotated with framework annotation :)
 and not (../../ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='Autowired' or @Image='PostConstruct' or @Image='BeforeStep' or @Image='Value' or @Image='Inject']
 /../../..//BlockStatement/Statement//StatementExpression/AssignmentOperator/../PrimaryExpression//@Image=
-./VariableDeclarator/VariableDeclaratorId/@Image)
+./VariableDeclarator/VariableDeclaratorId/@Name)
 (: or field of known mutable types including array :)
 or ((Type/ReferenceType/ClassOrInterfaceType[(pmd-java:typeIs('java.util.Date') or pmd-java:typeIs('java.lang.StringBuilder') or pmd-java:typeIs('java.lang.StringBuffer') or pmd-java:typeIs('java.net.URL') or pmd-java:typeIs('java.io.File')) or
 (ancestor::FieldDeclaration/VariableDeclarator/VariableInitializer[ArrayInitializer and count(ArrayInitializer/VariableInitializer) > 0])])
 (: or in-line allocation of known mutable collection types :)
 or (VariableDeclarator/VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/AllocationExpression/ClassOrInterfaceType[pmd-java:typeIs('java.util.ArrayList') or pmd-java:typeIs('java.util.HashMap') or pmd-java:typeIs('java.util.HashSet')] )
 (: or in-constructor allocation of known mutable collection types :)
-or (VariableDeclarator/VariableDeclaratorId/@Image = ancestor::ClassOrInterfaceBody//ConstructorDeclaration//StatementExpression/Expression[pmd-java:typeIs('java.util.ArrayList') or pmd-java:typeIs('java.util.HashMap') or pmd-java:typeIs('java.util.HashSet')]/../..//Name/@Image)
+or (VariableDeclarator/VariableDeclaratorId/@Name = ancestor::ClassOrInterfaceBody//ConstructorDeclaration//StatementExpression/Expression[pmd-java:typeIs('java.util.ArrayList') or pmd-java:typeIs('java.util.HashMap') or pmd-java:typeIs('java.util.HashSet')]/../..//Name/@Image)
 (: mutable types not annotated with GuardedBy :)
 ) and not (../Annotation//Name[@Image='GuardedBy'])
 ]
@@ -1708,7 +1895,7 @@ or (VariableDeclarator/VariableDeclaratorId/@Image = ancestor::ClassOrInterfaceB
     <rule name="AvoidUnguardedMutableFieldsInSharedObjects"
           message="Avoid unguarded non-final or mutable fields in objects shared among threads. Make final immutable or access thread-safely and use @GuardedBy."
           class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
-          typeResolution="true" externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-TUTC07">
+          typeResolution="true" externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#TUTC07">
         <description>
             Problem: Multiple threads typically access fields of a singleton or may access fields in session scoped objects. If a field or its reference is mutable, access is thread-unsafe and may cause corruption or visibility problems. It may also unintentionally mixup session data.&#13;
             Solution: Make the fields final and unmodifiable. If they really need to be mutable, make access thread-safe: use synchronized and jcip @GuardedBy or use volatile.&#13;
@@ -1743,14 +1930,14 @@ and not (../Annotation//Name[@Image='Autowired' or @Image='PersistenceContext' o
 (: field not on accessor method with assignment level annotated with framework annotation :)
 and not (../../ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='Autowired' or @Image='PostConstruct' or @Image='BeforeStep' or @Image='Value' or @Image='Inject']
 /../../..//BlockStatement/Statement//StatementExpression/AssignmentOperator/../PrimaryExpression//@Image=
-./VariableDeclarator/VariableDeclaratorId/@Image)
+./VariableDeclarator/VariableDeclaratorId/@Name)
 (: or field of known mutable types including array :)
 or ((Type/ReferenceType/ClassOrInterfaceType[(pmd-java:typeIs('java.util.Date') or pmd-java:typeIs('java.lang.StringBuilder') or pmd-java:typeIs('java.lang.StringBuffer') or pmd-java:typeIs('java.net.URL') or pmd-java:typeIs('java.io.File')) or
 (ancestor::FieldDeclaration/VariableDeclarator/VariableInitializer[ArrayInitializer and count(ArrayInitializer/VariableInitializer) > 0])])
 (: or in-line allocation of known mutable collection types :)
 or (VariableDeclarator/VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/AllocationExpression[pmd-java:typeIs('java.util.ArrayList') or pmd-java:typeIs('java.util.HashMap') or pmd-java:typeIs('java.util.HashSet')] )
 (: or in-constructor allocation of known mutable collection types :)
-or (VariableDeclarator/VariableDeclaratorId/@Image = ancestor::ClassOrInterfaceBody//ConstructorDeclaration//StatementExpression/Expression[pmd-java:typeIs('java.util.ArrayList') or pmd-java:typeIs('java.util.HashMap') or pmd-java:typeIs('java.util.HashSet')]/../..//Name/@Image)
+or (VariableDeclarator/VariableDeclaratorId/@Name = ancestor::ClassOrInterfaceBody//ConstructorDeclaration//StatementExpression/Expression[pmd-java:typeIs('java.util.ArrayList') or pmd-java:typeIs('java.util.HashMap') or pmd-java:typeIs('java.util.HashSet')]/../..//Name/@Image)
 (: not annotated GuardedBy :)
 )
 and not (../Annotation//Name[@Image='GuardedBy'])
@@ -1764,7 +1951,7 @@ and not (../Annotation//Name[@Image='GuardedBy'])
     <rule name="AvoidUnguardedMutableInheritedFieldsInSharedObjects"
           message="Mutator method called on inherited field. Avoid unguarded mutable inherited fields in objects shared among threads. Make final immutable or access thread-safely and use @GuardedBy."
           class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
-          typeResolution="true" externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-TUTC07">
+          typeResolution="true" externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#TUTC07">
         <description>
             Problem: Multiple threads typically access fields of a singleton or may access fields in session scoped objects. If a (inherited) field or its reference is mutable, access is thread-unsafe and may cause corruption or visibility problems. It may also unintentionally mixup session data. &#13;
             Solution: Make the fields final and unmodifiable. If they really need to be mutable, make access thread-safe: use synchronized and jcip @GuardedBy or use volatile.&#13;
@@ -1814,6 +2001,39 @@ or (ancestor::ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='VisibleFo
         </properties>
     </rule>
 
+    <rule name="AvoidVolatileInPrototypeScope" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="No need for volatile in prototype scope" typeResolution="true"
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#tutc10">
+        <description>A field is defined as volatile while the class has prototype scope. Problem: volatile has some overhead, especially for writes. When getting the bean from the Spring applicationContext, prototype scope means that each invocation creates a new object so the field is not shared. &#13;
+            Solution: Since only one thread can access the field, there is no need for volatile and it can be removed. (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+    //FieldDeclaration[@Volatile = true() and
+    ancestor::TypeDeclaration/Annotation//Name[@Image='Scope']/..//PrimaryPrefix/
+    (Name[ends-with(@Image,'SCOPE_PROTOTYPE')]|Literal[contains(@Image, 'prototype')])]
+                        ]]>
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+@Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+@Component
+class Bad {
+    private volatile String id;
+}
+
+@Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+@Component
+class Good {
+    private String id;
+}
+            ]]>
+        </example>
+    </rule>
+
     <rule name="NotProperlySynchronizingOnFieldWhileUsingGuardedBy"
           message="Not properly synchronizing access of field while using @GuardedBy(field)"
           class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
@@ -1835,10 +2055,10 @@ or (ancestor::ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='VisibleFo
     //PrimaryPrefix/Name[substring-before(concat(@Image,'.'), '.') =
     (: used in a class with guarded-by literal *IS* a field (should be private final) :)
     ancestor::ClassOrInterfaceBody//Annotation//Name[@Image='GuardedBy']/..//Literal[substring(@Image, 2, (string-length(@Image) - 2))=
-    ancestor::ClassOrInterfaceBody//FieldDeclaration//VariableDeclaratorId/@Image
+    ancestor::ClassOrInterfaceBody//FieldDeclaration//VariableDeclaratorId/@Name
     ]/
     (: is defined as field :)
-    ancestor::ClassOrInterfaceBodyDeclaration//FieldDeclaration//VariableDeclaratorId/@Image
+    ancestor::ClassOrInterfaceBodyDeclaration//FieldDeclaration//VariableDeclaratorId/@Name
     (: and *IS NOT* in a synchronized block with the GuardedBy literal:)
     and (not(concat('"', ancestor::SynchronizedStatement/Expression//Name/@Image, '"') =
     ancestor::ClassOrInterfaceBody//Annotation//Name[@Image='GuardedBy']/..//Literal/@Image)
@@ -1850,10 +2070,10 @@ or (ancestor::ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='VisibleFo
     //PrimaryPrefix/Name[substring-before(concat(@Image,'.'), '.') =
     (: used in a class with guarded by literal *IS NOT* a field :)
     ancestor::ClassOrInterfaceBody//Annotation//Name[@Image='GuardedBy']/..//Literal[not (substring(@Image, 2, (string-length(@Image) - 2)) =
-    ancestor::ClassOrInterfaceBody//FieldDeclaration//VariableDeclaratorId/@Image)
+    ancestor::ClassOrInterfaceBody//FieldDeclaration//VariableDeclaratorId/@Name)
     ]/
     (: is defined as field :)
-    ancestor::ClassOrInterfaceBodyDeclaration//FieldDeclaration//VariableDeclaratorId/@Image
+    ancestor::ClassOrInterfaceBodyDeclaration//FieldDeclaration//VariableDeclaratorId/@Name
     (: and *IS* in a synchronized block with the GuardedBy literal:)
     and (
     (concat('"', ancestor::SynchronizedStatement/Expression//Name/@Image, '"') =
@@ -1909,7 +2129,7 @@ or (ancestor::ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='VisibleFo
 and not (../Annotation//Name[@Image='Autowired' or @Image='PostConstruct' or @Image='BeforeStep' or @Image='Value' or @Image='Inject'])]
 //PrimaryPrefix/Name[substring-before(concat(@Image,'.'), '.') =
 ancestor::ClassOrInterfaceBody//Annotation//Name[@Image='GuardedBy']/..//Literal[@Image='"this"']/
-ancestor::ClassOrInterfaceBodyDeclaration/FieldDeclaration//VariableDeclaratorId/@Image
+ancestor::ClassOrInterfaceBodyDeclaration/FieldDeclaration//VariableDeclaratorId/@Name
 and (
 not (ancestor::SynchronizedStatement)
 or ancestor::SynchronizedStatement/Expression//Name)]
@@ -1943,7 +2163,7 @@ or ancestor::SynchronizedStatement/Expression//Name)]
     <rule name="DefineConcurrencyForJavaEESingleton"
       message="For JavaEE @Singleton, make @ConcurrencyManagement explicit and define @Lock on class level or for all public methods."
       class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
-      typeResolution="true" externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-TUTC07">
+      typeResolution="true" externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.mdTUTC07">
     <description>
         Problem: A JavaEE @Singleton has default @ConcurrencyManagement CONTAINER and write locks. Using defaults is unclear and write locks typically cause much more contention than read locks. &#13;
         Solution: Make @ConcurrencyManagement and @Lock-s explicit, @Lock on class level or on all public methods.&#13;
@@ -1996,7 +2216,7 @@ class SingletonGood {
 <!-- END Included file 'enterprise.xml' -->
 <!-- BEGIN Included file 'spring.xml' -->
     <rule name="AvoidExpressionsInCacheable" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="Avoid SpEL-expression for computing Cacheable key" typeResolution="true"
-          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-TMSU12">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#TMSU12">
         <description>Spring Expression Language (SpEL) expression is used for computing the key dynamically. Problem: evaluating the expression language is expensive, on every call.&#13;
             Solution: use a custom KeyGenerator: keyGenerator=... instead of key=...
             (jpinpoint-rules)</description>
@@ -2024,7 +2244,7 @@ class Bad1 {
     <rule name="AvoidImproperAnnotationCombinations"
           language="java"
           message="Don't combine these annotations"
-          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-Annotations"
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#Annotations"
           class="net.sourceforge.pmd.lang.rule.XPathRule">
         <description>
             Improper combination of annotations. Problem: these annotations are not meant to be combined and may cause unexpected and unwanted behavior.&#13;
@@ -2068,7 +2288,7 @@ class Good {
     </rule>
 
     <rule name="AvoidModelMapAsRenderParameter" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="A ModelMap or @ModelAttribute is used as parameter of a portlet render method and implicitely put in the session." typeResolution="true"
-          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-TMSU11">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#TMSU11">
         <description>Problem: ModelMaps are rather large objects containing explicitly added data and administrative data from Spring. They are added to the Portlet session implicitly. They stay in the session for some time: during session activity and 30 minutes (HTTP timeout) after it, in case the user does not exit explicitly. They occupy heap space during that time, for every user.&#13;
             Solution: Remove the ModelMap from the render method parameter list and create a new local ModelMap to use in the render request scope.
             (jpinpoint-rules)</description>
@@ -2089,7 +2309,7 @@ Annotation//Name[@Image='RenderMapping'])]
     </rule>
 
     <rule name="AvoidSimpleCaches" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="Avoid simple caching in production" typeResolution="true"
-          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-IC08">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#IC08">
         <description>Simple caches are used. Problem: Simple caching is meant for testing and prototyping and it lacks manageability and monitorability.&#13;
             Solution: Use a proper cache implementation like ehcache or a cloud cache.
             (jpinpoint-rules)</description>
@@ -2126,7 +2346,7 @@ class Good {
     <rule name="AvoidSpringApplicationContextRecreation"
           message="Avoid re-creation of Spring application context"
           class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
-          typeResolution="true" externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-EUOCS01">
+          typeResolution="true" externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#EUOCS01">
         <description>
             Problem: When a XXXApplicationContext is created, all Spring beans are initialized, wired and component scanning may take place. Component scanning involves extensive class path scanning which is expensive.&#13;
             Solution: Create the ApplicationContext only once in the application deployed/live time.
@@ -2150,7 +2370,7 @@ and (
 
     <rule name="AvoidSpringMVCMemoryLeaks" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
           message="Spring Controller returns an additive expression or a ModelAndView object which may cause a MemoryLeak" typeResolution="true"
-          externalInfoUrl="https://www.jpinpoint.com/doc/Java+Code+Performance">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md">
         <description>Avoid to return an additive expression for a Spring Controller because it may cause a MemoryLeak.
             Each new value returned will create a new entry in the View Cache.
             Also avoid to return a ModelAndView object created using non-static and non-final methods because it may
@@ -2175,16 +2395,16 @@ and (
     ]
     [
         PrimarySuffix/Arguments/ArgumentList//PrimaryPrefix/Name[
-            (@Image = ancestor::MethodDeclaration//VariableDeclaratorId/@Image)
-            or (@Image = ancestor::ClassOrInterfaceBody//FieldDeclaration[@Final='false']//VariableDeclaratorId/@Image)]
+            (@Image = ancestor::MethodDeclaration//VariableDeclaratorId/@Name)
+            or (@Image = ancestor::ClassOrInterfaceBody//FieldDeclaration[@Final='false']//VariableDeclaratorId/@Name)]
     |
             PrimaryPrefix/AllocationExpression/Arguments/ArgumentList/Expression[1]/PrimaryExpression/PrimaryPrefix/Name[
-            (@Image = ancestor::MethodDeclaration//VariableDeclaratorId/@Image)
-            or (@Image = ancestor::ClassOrInterfaceBody//FieldDeclaration[@Final='false']//VariableDeclaratorId/@Image)]
+            (@Image = ancestor::MethodDeclaration//VariableDeclaratorId/@Name)
+            or (@Image = ancestor::ClassOrInterfaceBody//FieldDeclaration[@Final='false']//VariableDeclaratorId/@Name)]
     |
             PrimaryPrefix/AllocationExpression/Arguments/ArgumentList/Expression//Arguments//PrimaryExpression/PrimaryPrefix/Name[
-            (@Image = ancestor::MethodDeclaration//VariableDeclaratorId/@Image)
-            or (@Image = ancestor::ClassOrInterfaceBody//FieldDeclaration[@Final='false']//VariableDeclaratorId/@Image)]
+            (@Image = ancestor::MethodDeclaration//VariableDeclaratorId/@Name)
+            or (@Image = ancestor::ClassOrInterfaceBody//FieldDeclaration[@Final='false']//VariableDeclaratorId/@Name)]
     ]
 )
             ]]></value>
@@ -2195,7 +2415,7 @@ and (
     <rule name="MakeAutoWiredConstructedFieldFinal"
           message="Make autowired, constructed field final in objects shared among threads."
           class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
-          typeResolution="true" externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-TUTC07">
+          typeResolution="true" externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#TUTC07">
         <description>
             Problem: Multiple threads typically access fields of a singleton or may access fields in session scoped objects. If a field or its reference is mutable, non-autowired access is thread-unsafe and may cause corruption or visibility problems. To make this thread-safe, that is, guard the field e.g. with synchronized methods, may cause contention. &#13;
             Solution: Make the fields final and unmodifiable to defend against mutation. If they really need to be mutable (which is strange for autowired fields), make access thread-safe. Thread-safety can be achieved e.g. by proper synchronization and use the @GuardedBy annotation or use of volatile.&#13;
@@ -2220,7 +2440,7 @@ and not ((ancestor::TypeDeclaration/Annotation/NormalAnnotation/Name[@Image='Con
 and not (../Annotation//Name[@Image='Autowired' or @Image='PersistenceContext' or @Image='EJB' or @Image='Resource' or @Image='Inject' or @Image='Value' or @Image='GuardedBy'])
 and  (../../ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='Autowired']
 /../../../ConstructorDeclaration//BlockStatement/Statement//StatementExpression/AssignmentOperator/../PrimaryExpression//@Image=
-./VariableDeclarator/VariableDeclaratorId/@Image)
+./VariableDeclarator/VariableDeclaratorId/@Name)
 ]
 ]]>
                 </value>
@@ -2229,7 +2449,7 @@ and  (../../ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='Autowired']
     </rule>
 
     <rule name="MinimizeActionModelMapInSession" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="ModelMap in action method is not cleared. This may bloat the session." typeResolution="true"
-          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-TMSU12">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#TMSU12">
         <description>A ModelMap is used in an action method typically for form validation and not cleared. Problem: the ModelMap is put in the session by Spring. This is typically a large object which may bloat the session.&#13;
             Solution: clear the ModelMap right after the validation in the happy flow.
             (jpinpoint-rules)</description>
@@ -2250,7 +2470,7 @@ count(.//PrimaryExpression/PrimaryPrefix/Name[ends-with(@Image,'.clear')])=0]
     </rule>
 
     <rule name="SynchronizeForKeyInCacheable" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="Synchronize access for each key in @Cacheable" typeResolution="true"
-          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-TMSU12">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#TMSU12">
         <description>The cache by default allows multiple threads accessing by the same key. Problem: if the value of the key is not available from the cache, it will be fetched/computed by multiple threads while only one time is needed.&#13;
             Solution: Let only the first accessing thread fetch/compute the value and block others until the value is in the cache. Add attribute sync = "true" to achieve this. (Assuming the cache implementation supports it.)
             (jpinpoint-rules)</description>
@@ -2286,7 +2506,7 @@ class Good1 {
     <rule name="AvoidHugeQueryFetchSize"
           message="Avoid a huge query fetch size, it consumes much memory."
           class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
-          typeResolution="true" externalInfoUrl="http://www.jpinpoint.com/doc/Java+Data+Access+Performance#JavaDataAccessPerformance-IDA-TRM03">
+          typeResolution="true" externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaDataAccessPerformance.md#IDA-TRM03">
         <description>
             Problem: if huge numbers of result rows are fetched these are all stored in memory and this may introduce long gc times and out of memory risk.&#13;
             Solution: Set fetch size to 100 maximally. Only set it higher than 100 yet still max 500, if you are sure there is only little data returned per row, like 3 rather short columns.
@@ -2302,7 +2522,7 @@ class Good1 {
 |
 //MethodDeclaration//PrimaryExpression[PrimaryPrefix/Name[ends-with(@Image, '.setFetchSize')]
 [ancestor::PrimaryExpression/PrimarySuffix/Arguments/ArgumentList/Expression/PrimaryExpression/PrimaryPrefix/Name[@Image =
-ancestor::ClassOrInterfaceBody//VariableDeclarator/VariableDeclaratorId/@Image
+ancestor::ClassOrInterfaceBody//VariableDeclarator/VariableDeclaratorId/@Name
 [ancestor::VariableDeclarator/VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/Literal[@Image > 500]]]]]
 ]]>
                 </value>
@@ -2313,7 +2533,7 @@ ancestor::ClassOrInterfaceBody//VariableDeclarator/VariableDeclaratorId/@Image
     <rule name="AvoidMultipleRoundtripsForQuery"
           message="Avoid multiple roundtrips for the same query"
           class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
-          typeResolution="true" externalInfoUrl="http://www.jpinpoint.com/doc/Java+Data+Access+Performance#JavaDataAccessPerformance-IDA-TRR05">
+          typeResolution="true" externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaDataAccessPerformance.md#IDA-TRR05">
         <description>
             Problem: Time is taken by the unnecessary roundtrip(s). Unnecessary work is performed.&#13;
             Solution: Execute the query only once.
@@ -2339,7 +2559,7 @@ count(.//PrimaryExpression/PrimaryPrefix/Name[ends-with(@Image, '.getSingleResul
     <rule name="AvoidSqlInExpression"
           message="Avoid a SQL IN-Expression, it fails for > 1000 arguments and pollutes the query plan cache / statement cache"
           class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
-          typeResolution="true" externalInfoUrl="http://www.jpinpoint.com/doc/Java+Data+Access+Performance#JavaDataAccessPerformance-IDA-INO01">
+          typeResolution="true" externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaDataAccessPerformance.md#IDA-INO01">
         <description>
             Problem: The number of values for the IN-argument list is limited, in Oracle to 1000. An error occurs when exceeding this limit. Additionally, a large IN list takes much time to transport to the database and be parsed. Moreover, each number of IN values used in a query results in a separate cache entry in e.g. the Prepared Statement Cache of the application server and in the Hibernate Query Plan Cache, resulting in higher memory usage and/or low cache hit ratio.&#13;
             Solution: Rewrite the query by replacing the IN-argument list by a sub query using the criteria used to fetch the IN arguments. Or often even better performing, an inner join using these criteria (depending on indexes etc. - recommended to test to be sure.) This way, the select and update are combined into one, which will also save one roundtrip.

@@ -6,20 +6,18 @@
     <test-code>
         <description>violation: [Gregorian]Calendar.getInstance().getTime()</description>
         <expected-problems>4</expected-problems>
-        <expected-linenumbers>7,8,9,12</expected-linenumbers>
+        <expected-linenumbers>5,6,7,10</expected-linenumbers>
         <code><![CDATA[
-import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
+import java.util.*;
 
 public class Foo {
-	void foo() {
-		Date now = Calendar.getInstance().getTime();
-		setDate(Calendar.getInstance().getTime());
-		setDate(GregorianCalendar.getInstance().getTime());
+	void bad() {
+		Date now = Calendar.getInstance().getTime(); // bad
+		setDate(Calendar.getInstance().getTime()); // bad
+		setDate(GregorianCalendar.getInstance().getTime()); // bad
 
 		Calendar cal = Calendar.getInstance();
-		Date now2 = cal.getTime();
+		Date now2 = cal.getTime(); // bad
 	}
 	private void setDate(Date when){
 	}
@@ -30,16 +28,12 @@ public class Foo {
     <test-code>
         <description>violation: joda-time: new DateTime([Gregorian]Calendar.getInstance())</description>
         <expected-problems>2</expected-problems>
-        <expected-linenumbers>7,8</expected-linenumbers>
+        <expected-linenumbers>3,4</expected-linenumbers>
         <code><![CDATA[
-import org.joda.time.DateTime;
-import java.util.Calendar;
-import java.util.GregorianCalendar;
-
 public class Foo {
-	void foo() {
-		DateTime nowDT1 = new DateTime(GregorianCalendar.getInstance());
-		DateTime nowDT2 = new DateTime(Calendar.getInstance());
+	void bad() {
+		DateTime nowDT1 = new DateTime(GregorianCalendar.getInstance()); // bad
+		DateTime nowDT2 = new DateTime(Calendar.getInstance()); // bad
 	}
 }
      ]]></code>
@@ -48,14 +42,12 @@ public class Foo {
     <test-code>
         <description>violation: Calendar.getInstance().getTimeInMillis()</description>
         <expected-problems>2</expected-problems>
-        <expected-linenumbers>5,6</expected-linenumbers>
+        <expected-linenumbers>3,4</expected-linenumbers>
         <code><![CDATA[
-import java.util.Calendar;
-
 public class Foo {
-	void foo() {
-		long time = Calendar.getInstance().getTimeInMillis();
-		String timeStr = Long.toString(Calendar.getInstance().getTimeInMillis());
+	void bad() {
+		long time = Calendar.getInstance().getTimeInMillis(); // bad
+		String timeStr = Long.toString(Calendar.getInstance().getTimeInMillis()); // bad
 	}
 }
      ]]></code>
@@ -69,11 +61,11 @@ public class Foo {
 import java.util.Calendar;
 
 public class Foo {
-	void foo() {
+	void bad() {
 		long time1 = 0;
 		Calendar cal = Calendar.getInstance();
-		long time2 = cal.getTimeInMillis();
-		time1 = cal.getTimeInMillis();
+		long time2 = cal.getTimeInMillis(); // bad
+		time1 = cal.getTimeInMillis(); // bad
 	}
 }
      ]]></code>
@@ -83,11 +75,8 @@ public class Foo {
         <description>no violation</description>
         <expected-problems>0</expected-problems>
         <code><![CDATA[
-import java.util.Calendar;
-import java.util.Date;
-
 public class Foo {
-	void foo() {
+	void bad() {
 		int warmestMonth = Calendar.getInstance().AUGUST;
 		long time = System.currentTimeMillis();
 		Date now = new Date();

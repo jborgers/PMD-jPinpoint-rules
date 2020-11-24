@@ -1,7 +1,7 @@
 
 Java Code Performance - pitfalls and best practices
 =====================
-**By Jeroen Borgers (jPinpoint) and Peter Paul Bakker (Stokpop), sponsered by Rabobank**
+By Jeroen Borgers ([jPinpoint](www.jpinpoint.com)) and Peter Paul Bakker ([Stokpop](www.stokpop.com)), sponsored by Rabobank
 
 # Table of contents
 
@@ -93,27 +93,21 @@ See: [Monix Best Practice](https://monix.io/docs/2x/best-practices/blocking.html
 
 #### IBI05
 
-**Observation: Apache DefaultHttpClient is used with multiple threads.**
-
-**Problem:** This HttpClient can only handle one thread on one connection and will throw an IllegalStateException in case a second thread tries to connect when the first is using the connection.
-
+**Observation: Apache DefaultHttpClient is used with multiple threads.**  
+**Problem:** This HttpClient can only handle one thread on one connection and will throw an IllegalStateException in case a second thread tries to connect when the first is using the connection.  
 **Solution:** Use a PoolingHttpConnectionManager, see Apache doc: [connection management](http://hc.apache.org/httpcomponents-client-ga/tutorial/html/connmgmt.html#d5e639).
 
 #### IBI06
 
-**Observation: Deprecated or thread-unsafe HTTP connectors are used.**
-
+**Observation: Deprecated or thread-unsafe HTTP connectors are used.**  
 **Problem:** Several HTTP client connection managers are thread-unsafe which may cause session data mix-up or have other issues for which they were made deprecated. Highest risk of session data mixup: SimpleHttpConnectionManager.  
-Other deprecated ones to remove: SimpleHttpConnectionManager, ClientConnectionManager, PoolingClientConnectionManager, ThreadSafeClientConnManager, SingleClientConnManager, DefaultHttpClient, SystemDefaultHttpClient and ClientConnectionManager.
-
+Other deprecated ones to remove: SimpleHttpConnectionManager, ClientConnectionManager, PoolingClientConnectionManager, ThreadSafeClientConnManager, SingleClientConnManager, DefaultHttpClient, SystemDefaultHttpClient and ClientConnectionManager.  
 **Solution:** Use org.apache.http.impl.conn.PoolingHttpClientConnectionManager and org.apache.http.impl.client.HttpClientBuilder., see Apache doc: [connection management](http://hc.apache.org/httpcomponents-client-ga/tutorial/html/connmgmt.html#d5e639).
 
 #### IBI07
 
-**Observation: The HTTP client has enabled connection state tracking while using TLS.**
-
-**Problem:** HTTP connections between services are mostly stateless, meaning there is no specific user identity or security context for each session. Exceptions are `NTLM` authenticated connections and SSL/TLS connections with client certificate authentication. If HttpClients have enabled connection state tracking which is the default, established TLS connections will not be reused because it is assumed that the user identity or security context may differ. Then performance will suffer due to a full TLS handshake for each request.
-
+**Observation: The HTTP client has enabled connection state tracking while using TLS.**  
+**Problem:** HTTP connections between services are mostly stateless, meaning there is no specific user identity or security context for each session. Exceptions are `NTLM` authenticated connections and SSL/TLS connections with client certificate authentication. If HttpClients have enabled connection state tracking which is the default, established TLS connections will not be reused because it is assumed that the user identity or security context may differ. Then performance will suffer due to a full TLS handshake for each request.  
 **Solution:** HttpClients should disable connection state tracking in order to reuse TLS connections, since service calls for one pool have the same user identity/security context for all sessions. Connect to one back-end only from one pool. See [Apache Http client tutorial](http://hc.apache.org/httpcomponents-client-ga/tutorial/html/advanced.html#stateful_conn)
 
 Example (correct):
@@ -183,7 +177,7 @@ See our [presentation on Java Performance Pitfall: improper caching.](https://yo
 
 *   This is efficient because it prevents String concatenation of the arguments when accessing the cache.
 
-**perf-code-check:** partly implemented: AvoidDefaultCacheKeyGenerator.
+**Rule name:** partly implemented: AvoidDefaultCacheKeyGenerator.
 
 #### IC02
 
@@ -206,7 +200,7 @@ See our [presentation on Java Performance Pitfall: improper caching.](https://yo
 ```xml
  <property name="freemarkerSettings">
   <props>
-    <prop key="template\_update\_delay">2500000</prop>
+    <prop key="template_update_delay">2500000</prop>
   </props>
 </property>
 ```
@@ -216,7 +210,7 @@ Note that this delay is specified in **seconds.**
 Or via configuration (e.g. in Spring):
 
 ```java
-freemarker.template.Configuration.setTemplateUpdateDelayMilliseconds(2\_500\_000\_000L);
+freemarker.template.Configuration.setTemplateUpdateDelayMilliseconds(2_500_000_000L);
 ```
   
 #### IC05
@@ -336,7 +330,7 @@ It might also be an option to use render parameters instead, for example, in the
 response.setRenderParameter("page", "initiatePayment");
 ```
 
-**perf-code-check:** Available. Assumes removeAttribute occurs in same class as setAttribute. Also deals with Spring PortletUtils.
+**Rule name:** Available. Assumes removeAttribute occurs in same class as setAttribute. Also deals with Spring PortletUtils.
 
 #### TMSU02
 
@@ -495,13 +489,13 @@ static {
 }
 ```
 
-**perf-code-check:** implemented, will give false positives: any construction in a method will be flagged. Construction in a static block, the safe way, will not be flagged.
+**Rule name:** implemented, will give false positives: any construction in a method will be flagged. Construction in a static block, the safe way, will not be flagged.
 
 #### IUOXAR05
 
-**Observation: XMLGregorianCalendar and GregorianCalendar are used with JAXB for dates.**  
-**Problem:** XMLGregorianCalendar and GregorianCalendar are large objects on the heap, involving substantial processing. To create a new XMLGregorianCalendar, the [poorly performing DatatypeFactory](http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6466177) is used. A DatatypeFactory.newInstance() is executed, which goes through the complete service look up mechanism, involving class loading.  
-**Solution:** Add a converter for alternative date handling with joda-time LocalDateTime or [java.time.LocalDateTime](https://docs.oracle.com/javase/8/docs/api/index.html?java/time/LocalDateTime.html) instead of default XMLGregorianCalendar.  
+**Observation: `XMLGregorianCalendar` and `GregorianCalendar` are used with JAXB for dates.**  
+**Problem:** `XMLGregorianCalendar` and `GregorianCalendar` are large objects on the heap, involving substantial processing. To create a new `XMLGregorianCalendar`, the [poorly performing DatatypeFactory](http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6466177) is used. A `DatatypeFactory.newInstance()` is executed, which goes through the complete service look up mechanism, involving class loading.  
+**Solution:** Add a converter for alternative date handling with joda-time `LocalDateTime` or [java.time.LocalDateTime](https://docs.oracle.com/javase/8/docs/api/index.html?java/time/LocalDateTime.html) instead of default `XMLGregorianCalendar`.  
 Example:
 
 ```java
@@ -532,34 +526,34 @@ corresponding JAXB binding configuration:
 </jxb:globalBindings>
 ```
 
-Note that LocalDateTime is faster than DateTime, however, be aware of its time zone (none) and daylight saving (DST) properties.
+Note that `LocalDateTime` is faster than `DateTime`, however, be aware of its time zone (none) and daylight saving (DST) properties.
 
 #### IUOXAR06
 
-**Observation: many JAXBContextImpl instances are used.**  
-**Problem:** JAXBContextImpl objects are large objects on the heap, wasting memory  
-**Solution:** Handle as many XSDs per JAXBContextImpl as possible. Ideally just one per application. See: [stackoverflow](http://stackoverflow.com/questions/13399567/multiple-jaxbcontext-instances)
+**Observation: many `JAXBContextImpl` instances are used.**  
+**Problem:** `JAXBContextImpl` objects are large objects on the heap, wasting memory  
+**Solution:** Handle as many XSDs per `JAXBContextImpl` as possible. Ideally just one per application. See: [stackoverflow](http://stackoverflow.com/questions/13399567/multiple-jaxbcontext-instances)
 
 #### IUOXAR07
 
-**Observation: JAXB Marshaller, Unmarshaller or Validator is shared by threads.**  
-**Problem:** JAXB Marshaller, Unmarshaller and Validator are not thread-safe.  
+**Observation: JAXB `Marshaller`, `Unmarshaller` or `Validator` is shared by threads.**  
+**Problem:** JAXB `Marshaller`, `Unmarshaller` and `Validator` are not thread-safe.  
 **Solution:** Create a new instance every time you need to marshall, unmarshall or validate a document. If it turns out to be a bottleneck in profiling, consider to pool the instances. More details [here.](https://jaxb.java.net/guide/Performance_and_thread_safety.html)
 
 #### IUOXAR08
 
 **Observation: XML messages between internal systems are validated in production.**  
-**Problem:** XML validation is expensive, comparable to parsing. (javax.xml.validation.Validator.validate or org.springframework.xml.validation.XmlValidator)  
+**Problem:** XML validation is expensive, comparable to parsing. (`javax.xml.validation.Validator.validate` or `org.springframework.xml.validation.XmlValidator`)  
 **Solution:** Validate messages produced during testing, and once the message format and semantics are valid, switch off validation. Note that load tests should be run production like, so with validation switched off like in production.
 
 #### IUOXAR09
 
-**Observation: XML related XXXFactory.newInstance() is called repeatedly.**  
-**Problem:** Upon instance creation of javax.xml.transform.TransformerFactory, javax.xml.parsers.DocumentBuilderFactory, javax.xml.soap.MessageFactory or javax.xml.validation.SchemaFactory, i.a. the file system is searched for an implementing class in a jar file. This is expensive. The factories are not thread-safe, so they cannot simply be made static and/or shared among threads.  
+**Observation: XML related `XXXFactory.newInstance()` is called repeatedly.**  
+**Problem:** Upon instance creation of `javax.xml.transform.TransformerFactory`, `javax.xml.parsers.DocumentBuilderFactory`, `javax.xml.soap.MessageFactory` or `javax.xml.validation.SchemaFactory`, i.a. the file system is searched for an implementing class in a jar file. This is expensive. The factories are not thread-safe, so they cannot simply be made static and/or shared among threads.  
 **Solution:**
 
-1.  Preferably create the factory once. Use a lock to guard the factory, preferably with a synchronizing wrapper. Be aware of possible contention. Or use a ThreadLocal.
-2.  If many threads access often, consider using ThreadLocals, or a pooling factory solution with for instance a BlockingQueue of a few factories.
+1.  Preferably create the factory once. Use a lock to guard the factory, preferably with a synchronizing wrapper. Be aware of possible contention. Or use a `ThreadLocal`.
+2.  If many threads access often, consider using `ThreadLocal`s, or a pooling factory solution with for instance a `BlockingQueue` of a few factories.
 3.  Simple alternative: use jvm system properties to specify your default implementation class. This at least prevents the biggest bottleneck: class path scanning. Examples:
 
 ```
@@ -570,9 +564,9 @@ Note that LocalDateTime is faster than DateTime, however, be aware of its time z
 -Djavax.xml.validation.SchemaFactory=com.saxonica.ee.jaxp.SchemaFactoryImpl
 ```
 
-**Note:** More on TransformerFactory and caching compiled templates, see IBM's [XSLT transformations cause high CPU and slow performance](http://www-01.ibm.com/support/docview.wss?uid=swg21641274).
+**Note:** More on `TransformerFactory` and caching compiled templates, see IBM's [XSLT transformations cause high CPU and slow performance](http://www-01.ibm.com/support/docview.wss?uid=swg21641274).
 
-Example code ThreadLocal for TransformerFactory:
+Example code `ThreadLocal` for `TransformerFactory`:
 
 ```java
 private static final ThreadLocal<TransformerFactory> TRANSFORMER = ThreadLocal.withInitial(TransformerFactory::newInstance);
@@ -580,11 +574,22 @@ private static final ThreadLocal<TransformerFactory> TRANSFORMER = ThreadLocal.w
 
 #### IUOXAR10
 
-**Observation: javax.xml.bind.JAXB utility class is used for marshalling or unmarshalling**
+**Observation: `javax.xml.bind.JAXB` utility class is used for marshalling or unmarshalling**  
+**Problem:** the `JAXB` class is not optimised for performance and multi-threaded usage. For instance, if multiple types are marshalled, with multiple `JAXBContext`'s, the `JAXBContext`'s are not reused. When URLs are supplied, the context is fetched outside of http connection pools with proper timeout properties and connection sharing. No validation is performed (if you need that, better skip validation when you can for better performance).  
+**Solution:** use JAXB API directly for marshalling and unmarshalling to gain all the performance benefits as described in IUOXAR04 and IUOXAR06.
 
-**Problem:** the JAXB class is not optimised for performance and multi-threaded usage. For instance, if multiple types are marshalled, with multiple JAXBContext's, the JAXBContext's are not reused. When URLs are supplied, the context is fetched outside of http connection pools with proper timeout properties and connection sharing. No validation is performed (if you need that, better skip validation when you can for better performance).
+Instead of using this:
+```java
+JAXB.unmarshal(response, X.class)
+```
 
-**Solution:** use JAXB API directly for marshalling and unmarshalling to gain all the performance benefits as described in IUOXAR04 and IUOXAR06
+create a reusable `JAXB_CONTEXT` via `JAXBContext.newInstance(new Class[]{X.class})` (as described in IUOXAR04)
+and use as follows:
+
+```java
+Unmarshaller u = JAXB_CONTEXT.createUnmarshaller();
+u.unmarshal(...);
+```
 
 Improper use of JSON and remoting
 ---------------------------------
@@ -617,6 +622,12 @@ is used. The new factory, new XPath, and the compiled expression are hard to cac
 **Problem:** Execution of the same code on the same expression is performed on every node retrieval, several times per user request. This takes CPU cycles, unnecessarily.  
 **Solution:** There is no easy solution, other than not using XPath. Caching in a ThreadLocal might be an option, however, this introduces some complexity.
 
+Example code `ThreadLocal` for `XPathFactory`:
+
+```java
+private static final ThreadLocal<XPath> parser = ThreadLocal.withInitial(() -> XPathFactory.newInstance().newXPath());
+```
+
 #### UX03
 
 **Observation: XPath is used, implemented by Xalan. XPath implementation has bad performance.**  
@@ -633,7 +644,7 @@ or
 -Dorg.apache.xml.dtm.DTMManager=org.apache.xml.dtm.ref.DTMManagerDefault 
 ```
 Depending on e.g. which one shows up in your Java stack traces / javacore file.  
-3\. Use CachedXPathAPI, see [Ways to increase the performance of XML processing in Java](http://www.ictforu.com/index.php/programming/java/27-xml-performance) - Case 2. Be aware of higher memory usage. Note that CachedXPathAPI object is thread-unsafe.  
+3\. Use CachedXPathAPI, see [Ways to increase the performance of XML processing in Java](https://xml.apache.org/xalan-j/apidocs/org/apache/xpath/CachedXPathAPI.html) - Case 2. Be aware of higher memory usage. Note that CachedXPathAPI object is thread-unsafe.  
 **Alternative approach:** If XPath evaluation still turns out to be a bottleneck by profiling, consider to switch to [VTD-XML](http://vtd-xml.sourceforge.net/)
 
 #### UX04
@@ -664,7 +675,7 @@ LOG.debug("Length: " + length + ", currency: " + currency);
 LOG.debug("Length: {}, currency: {}", length, currency);
 ```
 
-**perf-code-check:** UnconditionalConcatInLogArgument.
+**Rule name:** UnconditionalConcatInLogArgument.
 
 #### IL02
 
@@ -682,7 +693,7 @@ LOG.debug("Note: {}", logStatement);
 
 **Problem:** String building, concatenation and/or other operations happen before the debug, trace or info method executes, so independent of the need to actually log. Concatenation is relatively expensive.  
 **Solution:** Built the String conditionally on the log level, within an if statement.  
-**Perf-code-check:**: AvoidUnconditionalBuiltLogStrings
+**Rule name:**: AvoidUnconditionalBuiltLogStrings
 
 #### IL03
 
@@ -711,7 +722,7 @@ if (LOG.isDebugEnabled()) { // good
 }
 ```
 
-**perf-code-check:** UnconditionalOperationOnLogArgument.
+**Rule name:** UnconditionalOperationOnLogArgument.
 
 #### IL04
 
@@ -732,14 +743,12 @@ MDC.remove("UserId");
 
 **Solution:** Determine the MDC-value lifecycle and remove the MDC value in the proper place. Put the remove in a finally clause so it is also removed in case of exceptions. See also [Automating access to the MDC](http://logback.qos.ch/manual/mdc.html).
 
-**perf-code-check:** MDCPutWithoutRemove.
+**Rule name:** MDCPutWithoutRemove.
 
 #### IL05
 
-**Observation: Synchonous logging is used for much data.**
-
-**Problem:** Logging is I/O which can take much time away from the user request/response.
-
+**Observation: Synchonous logging is used for much data.**  
+**Problem:** Logging is I/O which can take much time away from the user request/response.  
 **Solution:** Use Asynchronous logging. In logback you can use: _ch.qos.logback.classic.AsyncAppender._ Log lines are put in a queue and the user does not have to wait for the actual logging, which is handled in a separate thread. You need to think about i.a. maximum queue size, data loss and what information to transfer to the logging thread (MDC).
 
 Improper Streaming I/O
@@ -822,18 +831,14 @@ Extensive use of classpath scanning
 
 #### EUOCS01
 
-**Observation: A Spring ApplicationContext is re-created** (to complete with example)
-
-**Problem:** When a XXXApplicationContext is created, all Spring beans are initialized, wired and component scanning may take place. Component scanning involves extensive class path scanning which is expensive.
-
+**Observation: A Spring ApplicationContext is re-created** (to complete with example)  
+**Problem:** When a XXXApplicationContext is created, all Spring beans are initialized, wired and component scanning may take place. Component scanning involves extensive class path scanning which is expensive.  
 **Solution:** Create the ApplicationContext only once in the application deployed/live time.
 
 #### EUOCS02
 
-**Observation: A Spring component scan is used explicitly** (to complete with example)
-
-**Problem:** A component scan uses extensive class path scanning which is expensive.
-
+**Observation: A Spring component scan is used explicitly** (to complete with example)  
+**Problem:** A component scan uses extensive class path scanning which is expensive.  
 **Solution:** Specify explicitly**.** And/or use Java 9+ modules which have an index.
 
 Unnecessary use of reflection
@@ -849,10 +854,9 @@ public boolean equals(final Object arg0) {
 }
 ```
 
-**Problem:** Reflection is relatively expensive.
-
+**Problem:** Reflection is relatively expensive.  
 **Solution:** Avoid to use reflection. Use the non-reflective, explicit way, see equals and hashCode section below.  
-**perf-code-check:** prototype ready, hits on EqualsBuilder.reflectionEquals and HashCodeBuilder.reflectionHashCode of Apache commons lang.
+**Rule name:** prototype ready, hits on EqualsBuilder.reflectionEquals and HashCodeBuilder.reflectionHashCode of Apache commons lang.
 
 Thread unsafety and lock contention
 -----------------------------------
@@ -1030,12 +1034,12 @@ public class ReportController extends AbstractController {
 	}
 ```
 
-**perf-code-checks:** AvoidUnguardedMutableFieldsInSharedObjects, AvoidUnguardedAssignmentToNonFinalFieldsInSharedObjects
+**Rule names:** AvoidUnguardedMutableFieldsInSharedObjects, AvoidUnguardedAssignmentToNonFinalFieldsInSharedObjects
 
 #### TUTC08
 
-**Observation: A static field is mutable or non-final.  
-****Problem:** Multiple threads typically access static fields. Unguarded assignment to a mutable or non-final static field is thread-unsafe and may cause corruption or visibility problems. To make this thread-safe, that is, guard the field e.g. with synchronized methods, may cause contention.
+**Observation: A static field is mutable or non-final.**  
+**Problem:** Multiple threads typically access static fields. Unguarded assignment to a mutable or non-final static field is thread-unsafe and may cause corruption or visibility problems. To make this thread-safe, that is, guard the field e.g. with synchronized methods, may cause contention.
 
 The next examples show non-final fields:
 
@@ -1062,26 +1066,39 @@ private static final List QUALIFIERS_Ok = Collections.unmodifiableList(Arrays.as
 With Java 9 this can be much more compact:
 
 ```java
-private static final List QUALIFIERS\_Ok \= List.of("alpha", "beta", "milestone");
+private static final List QUALIFIERS_Ok = List.of("alpha", "beta", "milestone");
 ```
 
 or by using Guava immutable collections like [ImmutableList](https://google.github.io/guava/releases/21.0/api/docs/com/google/common/collect/ImmutableList.html):
 
 ```java
-private static final List QUALIFIERS\_Ok \= ImmutableList.of("alpha", "beta", "milestone");
+private static final List QUALIFIERS_Ok = ImmutableList.of("alpha", "beta", "milestone");
 ```
 
 Note that for primitives Guava has: [ImmutableIntArray](http://google.github.io/guava/releases/22.0/api/docs/com/google/common/primitives/ImmutableIntArray.html), [ImmutableLongArray](http://google.github.io/guava/releases/22.0/api/docs/com/google/common/primitives/ImmutableLongArray.html) and [ImmutableDoubleArray](http://google.github.io/guava/releases/22.0/api/docs/com/google/common/primitives/ImmutableDoubleArray.html).
 
 If they really need to be mutable, make access thread-safe. Thread-safety can be achieved e.g. by proper synchronization and use the [@GuardedBy](#TUTC04) annotation or use of volatile. Consider lock contention.
 
-**Perf-code-check:** AvoidMutableStaticFields
+**Rule name:** AvoidMutableStaticFields
+
+#### TUTC09
+**Observation: A compound statement like ``i++`` or ``i-=1`` is used for a volatile field**  
+**Problem:** A compound statement like ``i++``, ``i--``, ``i += 1`` or  ``i -= 1`` may seem one statement and thread-safe for a volatile field. 
+However, the operation actually comprises two separate statements executed non-atomically and therefore *not* thread-safe.  
+**Solution:** In stead of volatile, guard the field properly with synchronized, atomics like AtomicInteger or java.util.concurrent locks.  
+**Rule name:** AvoidIncrementOrDecrementForVolatileField
+
+#### TUTC10
+**Observation: A field is defined as volatile while the class has prototype scope.**  
+**Problem:** Volatile has some overhead, especially for writes. When getting the bean from the Spring applicationContext, 
+prototype scope means that each invocation creates a new object so the field is not shared.  
+**Solution:** Since only one thread can access the field, there is no need for volatile and it can be removed.  
+**Rule name:** AvoidVolatileInPrototypeScope  
 
 Unnecessary execution
 ---------------------
 
 #### UE01
-
 **Observation: A Calendar is unnecessarily created for a Date or time**  
 **Problem:** A Calendar is a heavyweight object and expensive to create. For example, to copy a Date:
 
@@ -1110,7 +1127,7 @@ long time = System.currentTimeMillis();
 ```
 
 Or better yet instead of Date, use a [org.joda.time.LocalDateTime](http://joda-time.sourceforge.net/apidocs/org/joda/time/LocalDateTime.html) or [java.time.LocalDateTime](https://docs.oracle.com/javase/8/docs/api/index.html?java/time/LocalDateTime.html), which also has the advantage over java.util.Date that it is immutable.  
-**perf-code-check**: prototype ready, hit on Calendar.getInstance().getTime() usage and on two steps in same block.
+**Rule name**: prototype ready, hit on Calendar.getInstance().getTime() usage and on two steps in same block.
 
 #### UE02
 
@@ -1207,10 +1224,10 @@ Inefficient String usage
 
 #### ISU01
 
-**Observation: A StringBuffer is used.  
-****Problem:** StringBuffer is thread-safe and has locking overhead.  
+**Observation: A StringBuffer is used.**  
+**Problem:** StringBuffer is thread-safe and has locking overhead.  
 **Solution:** Thread-safety not needed if only accessed by one thread. Use StringBuilder instead.  
-**perf-code-check:** AvoidStringBuffer.
+**Rule name:** AvoidStringBuffer.
 
 #### ISU02
 
@@ -1225,12 +1242,12 @@ for (String val : values) {
 
 **Problem:** Each statement with one or more +-operators creates a hidden temporary StringBuilder, a char\[\] and a new String object, which all have to be garbage collected.  
 **Solution:** If you have multiple statements which concatenate to the same String with the +-operator in a method, it is more efficient to explicitly use a StringBuilder, append to it and use one toString at the exit of the method. This is especially true for concatenation within a loop.  
-**perf-code-check:** AvoidConcatInLoop, AvoidMultipleConcatStatements
+**Rule name:** AvoidConcatInLoop, AvoidMultipleConcatStatements
 
 #### ISU03
 
-**Observation: A StringBuilder used to build long strings is constructed with default capacity.  
-****Problem:** The default initial capacity of StringBuilder is 16 characters. If more is appended, a new char\[\] will be allocated with: new-capacity = 2 \* capacity + 2. The contents will be copied into the new char\[\] and the old char\[\] can be garbage collected. This allocation, copying and garbage collection takes time.  
+**Observation: A StringBuilder used to build long strings is constructed with default capacity.**  
+**Problem:** The default initial capacity of StringBuilder is 16 characters. If more is appended, a new char\[\] will be allocated with: new-capacity = 2 \* capacity + 2. The contents will be copied into the new char\[\] and the old char\[\] can be garbage collected. This allocation, copying and garbage collection takes time.  
 **Solution:** Construct the StringBuilder with an initial capacity explicitly:
 
 ```java
@@ -1241,8 +1258,8 @@ Choose the value such that it will fit without resizing in most cases. And of co
 
 #### ISU04
 
-**Observation: Concatenation of Strings is used inside an StringBuilder.append argument.  
-**Example:
+**Observation: Concatenation of Strings is used inside an StringBuilder.append argument.**  
+Example:
 
 ```java
 builder.append("ExceptionType: " + ex.getClass().getName() + ", ");
@@ -1255,15 +1272,43 @@ builder.append("ExceptionType: " + ex.getClass().getName() + ", ");
 builder.append("ExceptionType: ").append(ex.getClass().getName()).append(", ");
 ```
 
-**perf-code-check:** AvoidConcatInAppend
+**Rule name:** AvoidConcatInAppend
+
+#### ISU05
+
+**Observation: A StringBuilder is created and append is used for one statement resulting in a String.**  
+Example:
+
+```java
+    public String bad() {
+        return new StringBuilder()
+                .append(name) // bad 
+                .append(" = ")
+                .append(value)
+                .toString();
+    }
+```
+
+**Problem:** Creating a StringBuilder and using append is more verbose, less readable and less maintainable than simply using String concatenation (+).
+                         For one statement resulting in a String, creating a StringBuilder and using append is not faster than simply using concatenation.  
+**Solution:** Simply concatenate Strings in one statement, it is more concise, better readable and more maintainable. Example:
+
+```java
+    public String good() {
+        return name + " = " + value;
+    }
+```
+
+**Rule name:** AvoidUnnecessaryStringBuilderCreation
+
 
 Inefficient date time formatting
 --------------------------------
 
 #### IDTF01
 
-**Observation: A SimpleDateFormat is used.  
-****Problem:** java.util.SimpleDateFormat is thread-unsafe. The usual solution is to create a new one when needed in a method. Creating SimpleDateFormat is relatively expensive.  
+**Observation: A SimpleDateFormat is used.**  
+**Problem:** java.util.SimpleDateFormat is thread-unsafe. The usual solution is to create a new one when needed in a method. Creating SimpleDateFormat is relatively expensive.  
 **Solution:** Use a [Joda-Time](http://joda-time.sourceforge.net/index.html) [DateTimeFormat](http://joda-time.sourceforge.net/api-release/org/joda/time/format/DateTimeFormat.html) to create a specific [DateTimeFormatter](http://joda-time.sourceforge.net/api-release/org/joda/time/format/DateTimeFormatter.html) or use [java.time.DateTimeFormatter](https://docs.oracle.com/javase/8/docs/api/index.html?java/time/format/DateTimeFormatter.html). These classes are immutable, thus thread-safe and can be made static final. Example:
 
 ```java
@@ -1273,19 +1318,19 @@ LocalDateTime lastDate = DATE_FORMATTER.parseLocalDateTime(lastDateString);
 ```
  
 Like SimpleDateFormat, java.util.Date and -Calendar are mutable and flawed in other ways. Joda-Time is the better alternative and when Java 8 is available, [java.time](https://docs.oracle.com/javase/8/docs/api/index.html?java/time/package-summary.html) is the way to go .  
-**perf-code-check:** AvoidSimpleDateFormat.
+**Rule name:** AvoidSimpleDateFormat.
 
 #### IDTF02
 
-**Observation: A DateTimeFormatter is created from a pattern on every parse or print.  
-****Problem:** Recreating a DateTimeFormatter is relatively expensive.  
+**Observation: A DateTimeFormatter is created from a pattern on every parse or print.**  
+**Problem:** Recreating a DateTimeFormatter is relatively expensive.  
 **Solution:** org.joda.time.format.DateTimeFormatter or [java.time.DateTimeFormatter](https://docs.oracle.com/javase/8/docs/api/index.html?java/time/format/DateTimeFormatter.html) is thread-safe and can be shared among threads. Create the formatter from a pattern only once, to initialize a static field. See previous example.  
-**perf-code-check:** AvoidRecreatingDateTimeFormatter
+**Rule name:** AvoidRecreatingDateTimeFormatter
 
 #### IDTF03
 
-**Observation: Joda-time parseDateTime or printDateTime is used.  
-****Problem:** These methods consider timezone information which is expensive and usually unnecessary. There is a [performance issue](http://java-performance.info/joda-time-performance/) with time zones in joda time library 2.1-2.3  
+**Observation: Joda-time parseDateTime or printDateTime is used.**  
+**Problem:** These methods consider timezone information which is expensive and usually unnecessary. There is a [performance issue](http://java-performance.info/joda-time-performance/) with time zones in joda time library 2.1-2.3  
 **Solution:** Use DateTimeFormatter.parseLocalDateTime(String) and DateTimeFormatter.print(LocalDateTime). In my benchmarks, the parse local is 2-3 times faster, and the print local is ~10% faster. Make sure the functionality is still correct. Note that LocalDateTime besides times zones [does not support daylight saving time (DST)](http://blog.smartbear.com/programming/date-and-time-manipulation-in-java-using-jodatime/).  
 Upgrade to version >= 2.4 or when Java 8 is available, move to [java.time](https://docs.oracle.com/javase/8/docs/api/index.html?java/time/package-summary.html).
 
@@ -1294,8 +1339,8 @@ Inefficient regular expression usage
 
 #### IREU01
 
-**Observation: One of the regular expression operations of String is used: matches, replaceAll, replaceFirst, split; or the static Pattern.matches().  
-****Problem:** A regular expression is implicitly compiled on every invocation, which can be expensive, depending on the length of the regular expression.  
+**Observation: One of the regular expression operations of String is used: matches, replaceAll, replaceFirst, split; or the static Pattern.matches().**  
+**Problem:** A regular expression is implicitly compiled on every invocation, which can be expensive, depending on the length of the regular expression.  
 **Solution:** Use a matcher with the constant compiled regular expression pattern. Example:  
 old:
 
@@ -1315,28 +1360,28 @@ String getFileNameWithCount() {
 }
 ```
 
-**perf-code-check:** AvoidImplicitlyRecompilingPatterns, improved: AvoidImplicitlyRecompilingRegex
+**Rule name:** AvoidImplicitlyRecompilingPatterns, improved: AvoidImplicitlyRecompilingRegex
 
 IREU02
 
-**Observation: A regular expression is compiled in a method.  
-****Problem:** A regular expression is compiled on every invocation, which can be expensive, depending on the length of the regular expression.  
+**Observation: A regular expression is compiled in a method.**  
+**Problem:** A regular expression is compiled on every invocation, which can be expensive, depending on the length of the regular expression.  
 **Solution:** Compile the pattern only once and assign it to a private static field. java.util.Pattern objects are thread-safe so they can be shared among threads.  
-**perf-code-check:** AvoidRecompilingPatterns
+**Rule name:** AvoidRecompilingPatterns
 
 Use of slow library calls
 -------------------------
 
 #### UOSLC01
 
-**Observation: [java.net](http://java.net).URLEncoder.encode is called on an IBM JRE.  
-****Problem:** [java.net](http://java.net).URLEncoder.encode is slow in multi-threaded environment for [java.net](http://java.net).URLEncoder source before Java 6. This turned out to be a bottleneck in a large webshop application, I reported this in 2006 and it was fixed in Sun Java 6, see [Sun Bug](http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6437829). However, IBM still uses a version of 17/11/2005 in JDK7 and even in JDK8, hence it suffers from this issue.  
+**Observation: [java.net](http://java.net).URLEncoder.encode is called on an IBM JRE.**  
+**Problem:** [java.net](http://java.net).URLEncoder.encode is slow in multi-threaded environment for [java.net](http://java.net).URLEncoder source before Java 6. This turned out to be a bottleneck in a large webshop application, I reported this in 2006 and it was fixed in Sun Java 6, see [Sun Bug](http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6437829). However, IBM still uses a version of 17/11/2005 in JDK7 and even in JDK8, hence it suffers from this issue.  
 **Solution:** Use [org.apache.commons.codec.net.URLCodec](http://commons.apache.org/codec/apidocs/org/apache/commons/codec/net/URLCodec.html).encode instead.
 
 #### UOSLC02
 
-**Observation: Base64 encoding is achieved with sun.misc.BASE64Encoder and decoding with sun.misc.BASE64Decoder.  
-****Problem:** These implementations are not efficient  
+**Observation: Base64 encoding is achieved with sun.misc.BASE64Encoder and decoding with sun.misc.BASE64Decoder.**  
+**Problem:** These implementations are not efficient  
 **Solution:** There is actually a hidden fast alternative since JAXB 1.0 / JavaEE 5+: [javax.xml.bind.DatatypeConverter](http://docs.oracle.com/javaee/6/api/javax/xml/bind/DatatypeConverter.html) parseBase64Binary and printBase64Binary methods, see [here](http://java-performance.info/base64-encoding-and-decoding-performance/). If you have Java 8+, use java.util.Base64, it is even a little faster.
 
 Potential memory leaks
@@ -1358,13 +1403,13 @@ class Conf {
 }
  
 class PaymentUtil {
-    private static final Set<String> BRANCH\_NAMES;
+    private static final Set<String> BRANCH_NAMES;
     static {
-		final Set<String> branches = new HashSet<String>();
+		final Set<String> branches = new HashSet<>();
         branches.add("Company Antwerp Branch");
         branches.add("Company Frankfurt Branch");
         branches.add("Company London Branch");
-		BRANCH\_NAMES = Collections.unmodifiableSet(branches);
+		BRANCH_NAMES = Collections.unmodifiableSet(branches);
     }    
 }
 ```
@@ -1401,7 +1446,7 @@ try {
 }
 ```
 
-**perf-code-check:** [PMD-jPinpoint-rules/issues/28](https://github.com/jborgers/PMD-jPinpoint-rules/issues/28)
+**Rule name:** AvoidCDIReferenceLeak [PMD-jPinpoint-rules/issues/28](https://github.com/jborgers/PMD-jPinpoint-rules/issues/28)
 
 Violation of Encapsulation, DRY or SRP
 --------------------------------------
@@ -1431,7 +1476,7 @@ Violation of Encapsulation, DRY or SRP
 **Observation: An interface is used to define constants.**  
 **Problem:** Constants are often implementation details. Putting constants in an interface makes them part of the public API of all implementing classes. Doing this for constants which are implementation details is bad OO practice. It is a [documented anti-pattern](http://en.wikipedia.org/wiki/Constant_interface).  
 **Solution:** Make it a Class which cannot be instantiated, or an Enum. Use static imports.  
-**Perf-code-check:** AvoidConstantsInInterface.
+**Rule name:** AvoidConstantsInInterface.
 
 #### VOEDOS05
 

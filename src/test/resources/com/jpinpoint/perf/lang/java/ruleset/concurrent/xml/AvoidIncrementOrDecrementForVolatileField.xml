@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>Avoid increment or decrement for a volatile field</description>
+        <expected-problems>7</expected-problems>
+        <expected-linenumbers>8,9,10,11,12,13,14</expected-linenumbers>
+        <code><![CDATA[
+public class TryVolatileCompound {
+    private volatile int i;
+    private volatile String str = "";
+    private int j;
+    private String foo = "";
+
+    public int next(int v) {
+        i++; // bad
+        this.i++; //bad
+        i--; // bad
+        ++i; // bad
+        i += 1; // bad
+        i -= v; // bad
+        str += "a"; //bad
+    }
+
+    public int set(int v) {
+        i = 5; // good
+        i = v + 5; // good
+        str = "other"; // good
+        j++; // good
+        foo += ";"; // good
+    }
+}
+            ]]></code>
+    </test-code>
+</test-data>

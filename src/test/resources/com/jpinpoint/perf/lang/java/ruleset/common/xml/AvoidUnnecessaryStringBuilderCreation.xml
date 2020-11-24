@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>no violation</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+public class Foo {
+    String field1;
+    String field2;
+
+    public String good1() {
+        return field1 + " = " + field2;
+    }
+
+    public String good2(boolean more) {
+        StringBuilder strBui = new StringBuilder();
+        strBui.append(field1)
+                .append(" = ")
+                .append(field2);
+        if (more) {
+            strBui.append("bla");
+        }
+        return strBui.toString();
+    }
+
+    public String good3(boolean more) {
+        StringBuilder strBui = new StringBuilder();
+        for (int i = 0; i < 3; i++) {
+            strBui.append(field1)
+                    .append(" = ")
+                    .append(field2);
+        }
+        if (more) {
+            strBui.append("bla");
+        }
+        return strBui.toString();
+    }
+
+    public StringBuilder good4() {
+        StringBuilder strBui = new StringBuilder();
+        return strBui.append(field1)
+                .append(" = ")
+                .append(field2);
+
+    }
+
+    public String good5() {
+        StringBuilder strBui = new StringBuilder();
+        strBui.append(field1)
+                .append(" = ")
+                .append(field2);
+        buildMore(strBui);
+        return strBui.toString();
+    }
+
+    private void buildMore(StringBuilder sb) {
+    }
+
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>violation: mutable List used while not mutated</description>
+        <expected-problems>7</expected-problems>
+        <expected-linenumbers>7,15,21,28,36,44,45</expected-linenumbers>
+        <code><![CDATA[
+public class Foo {
+    String field1;
+    String field2;
+
+    public String bad1() {
+        return new StringBuilder()
+                .append(field1) // bad 1
+                .append(" = ")
+                .append(field2)
+                .toString();
+    }
+
+    public String bad2() {
+        String result = new StringBuffer()
+                .append(field1)// bad 2
+                .toString();
+        return result;
+    }
+
+    public String bad3() {
+        String result = new StringBuilder("field1").append(field2)// bad 3
+                .toString();
+        return result;
+    }
+
+    public String bad4() {
+        StringBuilder strBui = new StringBuilder();
+        return strBui.append(field1) // bad 4
+                .append(" = ")
+                .append(field2)
+                .toString();
+    }
+
+    public String bad5() {
+        StringBuilder strBui = new StringBuilder();
+        strBui.append(field1) // bad 5
+                .append(" = ")
+                .append(field2);
+        return strBui.toString();
+    }
+
+    public String bad6() {
+        StringBuilder strBui = new StringBuilder();
+        strBui.append(field1); // bad 6
+        strBui.append(" = ").append(field2); // bad 7
+        return strBui.toString();
+    }
+}
+     ]]></code>
+    </test-code>
+
+</test-data>

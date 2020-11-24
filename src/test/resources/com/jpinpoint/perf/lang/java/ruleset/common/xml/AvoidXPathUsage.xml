@@ -5,7 +5,8 @@
         xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
     <test-code>
         <description>Avoid xpath usage</description>
-        <expected-problems>1</expected-problems>
+        <expected-problems>2</expected-problems>
+        <expected-linenumbers>18, 31</expected-linenumbers>
         <code><![CDATA[
 import org.apache.xpath.XPathAPI;
 import org.w3c.dom.Document;
@@ -24,6 +25,10 @@ import java.io.IOException;
 
 public class XPathUsageTest {
 
+    private static final Object fact = XPathFactory.newInstance(); // bad
+    private static final ThreadLocal<XPath> parser = ThreadLocal.withInitial(() -> XPathFactory.newInstance().newXPath()); // good
+    private static final ThreadLocal<XPathFactory> fac = ThreadLocal.withInitial(XPathFactory::newInstance); // good
+
 	public static void main(String[] args) throws ParserConfigurationException,
 			SAXException, IOException, XPathExpressionException {
 
@@ -33,7 +38,7 @@ public class XPathUsageTest {
 		DocumentBuilder builder = domFactory.newDocumentBuilder();
 		Document doc = builder.parse("books.xml");
 
-		XPathFactory factory = XPathFactory.newInstance();
+		XPathFactory factory = XPathFactory.newInstance(); // bad
 		XPath xpath = factory.newXPath();
 		XPathExpression expr = xpath
 				.compile("//book[author='Isaac Asimov']/title/text()");

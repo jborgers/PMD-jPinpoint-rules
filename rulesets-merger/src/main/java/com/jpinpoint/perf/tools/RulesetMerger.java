@@ -19,7 +19,7 @@ public class RulesetMerger {
     private static final String RESULT_COMPANY_RULES_NAME = "jpinpoint-rules";
     private static final String RESULT_ALL_RULES_NAME = "jpinpoint-rules";
     private static final String PATH_TO_CAT_RULES = "src/main/resources/category/java/";
-    private static final String COMPANY_DOC_ROOT = "http://www.jpinpoint.com/doc";
+    private static final String COMPANY_DOC_ROOT = "https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs";
     private static final boolean IS_ADD_TAG_TO_DESCRIPTION_AND_DOC = true;
 
     // constants unlikely to have to change
@@ -209,7 +209,7 @@ public class RulesetMerger {
                 line = line.replace(DESCRIPTION_END_TAG, taggedDescriptionEndTag);
             }
             // @TODO replace externalInfoUrl="..."
-            line = line.replace("http://www.jpinpoint.com/doc", COMPANY_DOC_ROOT);
+            line = line.replace("${doc_root}", COMPANY_DOC_ROOT);
             fileLinesWithReplaced.add(line);
         }
         return fileLinesWithReplaced;
