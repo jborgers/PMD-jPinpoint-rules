@@ -17,6 +17,7 @@ environment with a PMD-plugin, or in SonarQube after packaging them as Sonar plu
 Documentation of the rules are here:
 * [JavaCodePerformance](docs/JavaCodePerformance.md)
 * [JavaDataAccessPerformance](docs/JavaDataAccessPerformance.md)
+* [JavaCodeQuality](docs/JavaCodeQuality.md)
 
 ## See also
 - Jeroen Borgers presented at Amsterdam JUG about the why, what and how of these code checking rules: [Performance problem prevention](https://www.meetup.com/nl-NL/Amsterdam-Java-User-Group/events/256497068/)
