@@ -877,7 +877,7 @@ ancestor::MethodDeclaration//PrimarySuffix/@Image="disableConnectionState")]
     </rule>
 
     <rule name="HttpClientBuilderWithoutPoolSize" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="HttpClient builder is used and setMaxConnTotal and/or setMaxConnPerRoute is not called. HttpClient defaults of 2 per route and 20 max total are probably not right." typeResolution="true"
-          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-IBI03">
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi03">
         <description>Problem: default there are only 2 connections per route available. When two external calls are being made, a third thread requesting a connection must wait for free connection.&#13;
             Solution: HttpClients should explicitly define the number of connections per route. If only one route is used make the max number of connections equal to conn per route. (jpinpoint-rules)</description>
         <priority>2</priority>
