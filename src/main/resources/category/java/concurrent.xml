@@ -45,7 +45,7 @@
             Problem: Stalls indefinitely in case of hanging threads and consumes a thread.&#13;
             Solution: Provide a timeout value and handle the timeout.
             (jpinpoint-rules)</description>
-        <priority>2</priority>
+        <priority>1</priority>
         <properties>
             <property name="version" value="2.0"/>
             <property name="xpath">
@@ -110,7 +110,7 @@
             Problem: Multiple threads typically access static fields. Unguarded assignment to a mutable or non-final static field is thread-unsafe and may cause corruption or visibility problems. To make this thread-safe, that is, guard the field e.g. with synchronized methods, may cause contention. &#13;
             Solution: Make the fields final and unmodifiable.  If they really need to be mutable, make access thread-safe: use synchronized and @GuardedBy or use volatile. Consider lock contention.&#13;
             (jpinpoint-rules)</description>
-        <priority>2</priority>
+        <priority>3</priority>
         <properties>
             <property name="version" value="2.0"/>
             <property name="xpath">
@@ -184,7 +184,7 @@ ancestor::StatementExpression/PrimaryExpression/PrimaryPrefix/Name/@Image = ance
             3. Use package-private and @VisibleForTesting for methods (e.g. setters) used for JUnit only.
             4. Use synchronized for accessors to inherited fields, or better: make field private and use proper accessors on base class level using @GuardedBy.
             (jpinpoint-rules)</description>
-        <priority>2</priority>
+        <priority>1</priority>
         <properties>
             <property name="version" value="2.0"/>
             <property name="xpath">
@@ -236,7 +236,7 @@ or (ancestor::ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='VisibleFo
             &#13;4. In case you are sure the Component is used in single threaded context only (e.g. a Tasklet), annotate the class with @NotThreadSafe to make this explicit.
             &#13;5. Use package private and @VisibleForTesting for methods used for JUnit only.
             (jpinpoint-rules)</description>
-        <priority>2</priority>
+        <priority>1</priority>
         <properties>
             <property name="version" value="2.0"/>
             <property name="xpath">
@@ -292,7 +292,7 @@ and not (../Annotation//Name[@Image='GuardedBy'])
             &#13;4. In case you are sure the Component is used in single threaded context only (e.g. a Tasklet), annotate the class with @NotThreadSafe to make this explicit.
             &#13;5. Use package private and @VisibleForTesting for methods used for JUnit only.
             (jpinpoint-rules)</description>
-        <priority>2</priority>
+        <priority>1</priority>
         <properties>
             <property name="version" value="2.0"/>
             <property name="xpath">
@@ -342,7 +342,7 @@ or (ancestor::ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='VisibleFo
             1. In case you are sure the class is used in single threaded context only, remove current use of synchronized and annotate the class with @NotThreadSafe to make this explicit. &#13;
             2. Use package-private and @VisibleForTesting for methods (e.g. setters) used for JUnit only.
             (jpinpoint-rules)</description>
-        <priority>2</priority>
+        <priority>1</priority>
         <properties>
             <property name="version" value="2.0"/>
             <property name="xpath">
@@ -423,7 +423,7 @@ or (VariableDeclarator/VariableDeclaratorId/@Name = ancestor::ClassOrInterfaceBo
             Solution: Make access thread-safe: synchronize access by method modifier or a synchronized(this) block.&#13;
             Note that methods with annotations @Autowired, @PostConstruct, @BeforeStep, @Value and @Inject are ignored.
             (jpinpoint-rules)</description>
-        <priority>3</priority>
+        <priority>2</priority>
         <properties>
             <property name="version" value="2.0"/>
             <property name="xpath">
@@ -471,7 +471,7 @@ or ancestor::SynchronizedStatement/Expression//Name)]
             Solution: Make access thread-safe: synchronize access by a synchronized(LOCK) block with LOCK being a final field.&#13;
             Note that methods with annotations @Autowired, @PostConstruct, @BeforeStep, @Value and @Inject are ignored.
             (jpinpoint-rules)</description>
-        <priority>3</priority>
+        <priority>2</priority>
         <properties>
             <property name="version" value="2.0"/>
             <property name="xpath">
@@ -582,7 +582,7 @@ or ancestor::SynchronizedStatement/Expression//Name)]
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#tutc09">
         <description>A compound statement like i++, i--, i += 1 or i -= 1 may seem one statement and thread-safe for a volatile field. Problem: The operation is actually two separate statements executed non-atomically and therefore not thread-safe. &#13;
             Solution: Guard the field properly with synchronized or use atomics like AtomicInteger. (jpinpoint-rules)</description>
-        <priority>2</priority>
+        <priority>1</priority>
         <properties>
             <property name="version" value="2.0"/>
             <property name="xpath">

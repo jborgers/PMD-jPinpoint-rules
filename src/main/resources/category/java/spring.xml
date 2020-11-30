@@ -13,7 +13,7 @@
             Don't combine 2+ of [@Component, @Service, @Configuration, @Controller, @Repository, @Entity, @Aspect] (Spring/JPA/AspectJ)
             Don't combine [@Data with @Value] and [@Data or @Value] with any of [@ToString, @EqualsHashCode, @Getter, @Setter, @RequiredArgsConstructor] (Lombok)
             (jpinpoint-rules)</description>
-        <priority>2</priority>
+        <priority>3</priority>
         <properties>
             <property name="version" value="2.0"/>
             <property name="xpath">
@@ -77,6 +77,7 @@ Annotation//Name[@Image='RenderMapping'])]
             Problem: When a XXXApplicationContext is created, all Spring beans are initialized, wired and component scanning may take place. Component scanning involves extensive class path scanning which is expensive.&#13;
             Solution: Create the ApplicationContext only once in the application deployed/live time.
             (jpinpoint-rules)</description>
+        <priority>2</priority>
         <properties>
             <property name="version" value="2.0"/>
             <property name="xpath">
@@ -91,7 +92,6 @@ and (
                 </value>
             </property>
         </properties>
-        <priority>2</priority>
     </rule>
 
     <rule name="AvoidSpringMVCMemoryLeaks" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
@@ -103,7 +103,7 @@ and (
             cause a MemoryLeak.
             Solution: Although multiple solutions exist you can make use of model attributes icw a redirectUrl like
             redirect:/redirectUrl?someAttribute={someAttribute}.</description>
-        <priority>2</priority>
+        <priority>1</priority>
         <properties>
             <property name="version" value="1.0"/>
             <property name="xpath">
@@ -150,7 +150,7 @@ and (
             2. In case you are sure the Component is used in single threaded context only (e.g. a Tasklet), annotate the class with @NotThreadSafe to make this explicit. &#13;
             3. Use package-private and @VisibleForTesting for methods (e.g. setters) used for JUnit only.
             (jpinpoint-rules)</description>
-        <priority>4</priority>
+        <priority>3</priority>
         <properties>
             <property name="version" value="1.0"/>
             <property name="xpath">

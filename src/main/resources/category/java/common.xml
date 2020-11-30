@@ -11,7 +11,7 @@
         <description>Problem: A proxy object is created by CDI for explicit references, they are not de-referenced implicitly and become a memory leak. &#13;
             Solution: Destroy the reference explicitly.
         </description>
-        <priority>2</priority>
+        <priority>1</priority>
         <properties>
             <property name="version" value="1.0"/>
             <property name="xpath">
@@ -89,7 +89,7 @@ public interface Foo {
         <description>Problem: java.text.DecimalFormat and java.text.ChoiceFormat are thread-unsafe. The usual solution
             is to create a new local one when needed in a method.
         </description>
-        <priority>2</priority>
+        <priority>1</priority>
         <properties>
             <property name="version" value="1.0"/>
             <property name="xpath">
@@ -104,7 +104,7 @@ public interface Foo {
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi06" >
         <description>Problem: Several HTTP client connection managers are thread-unsafe which may cause session data mix-up or have other issues for which they were made deprecated.&#13;
             Solutions: Use org.apache.http.impl.conn.PoolingHttpClientConnectionManager and org.apache.http.impl.client.HttpClientBuilder. (jpinpoint-rules)</description>
-        <priority>3</priority>
+        <priority>2</priority>
         <properties>
             <property name="version" value="1.0"/>
             <property name="xpath">
@@ -155,6 +155,7 @@ or typeIs('org.apache.http.conn.ClientConnectionManager')
             Problem: Potential bug: expected are different assignments in different cases.&#13;
             Solution: assign different values in different cases, common assignments should be taken out of the switch.
             (jpinpoint-rules)</description>
+        <priority>2</priority>
         <properties>
             <property name="version" value="1.0"/>
             <property name="xpath">
@@ -177,7 +178,6 @@ or preceding-sibling::SwitchLabel[@Default='true'])
                 </value>
             </property>
         </properties>
-        <priority>2</priority>
     </rule>
 
     <rule name="AvoidImplicitlyRecompilingRegex" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="String regex method, Pattern.matches or FileSystem.getPathMatcher is used.
@@ -547,7 +547,7 @@ MethodDeclaration//LocalVariableDeclaration/Type/ReferenceType/ClassOrInterfaceT
         <description>XPathAPI is used. Problem: XPathAPI implementation is slow.&#13;
             Solution: 1. try to avoid using XPathAPI. 2. improve performance by using jvm parameters and possibly CachedXPathAPI.
             (jpinpoint-rules)</description>
-        <priority>2</priority>
+        <priority>3</priority>
         <properties>
             <property name="version" value="1.0"/>
             <property name="xpath">
@@ -990,7 +990,7 @@ ancestor::MethodDeclaration//PrimarySuffix/@Image="disableConnectionState")]
           externalInfoUrl="${doc_root}/JavaCodePerformance.md">
         <description>(Informative) Problem: This rule detects problems, suppressing them without full knowledge can lead to the problems this rule is trying to prevent. &#13;
             Solution: Suppress warnings judiciously based on full knowledge and report reasons to suppress (false positives) to the rule maintainers so these can be fixed. (jpinpoint-rules)</description>
-        <priority>4</priority>
+        <priority>5</priority>
         <properties>
             <property name="ruleIdMatches" type="String" value=".*"
                       description="Regex for inclusion of rules"/>
@@ -1011,7 +1011,7 @@ ancestor::MethodDeclaration//PrimarySuffix/@Image="disableConnectionState")]
         <description>Problem: Time unit like hours, seconds, milliseconds is not specified and may be assumed differently by readers.
             Different assumptions will lead to errors or hidden problems like ineffective caches.&#13;
             Solution: Specify the time unit in the identifier. (jpinpoint-rules)</description>
-        <priority>2</priority>
+        <priority>3</priority>
         <properties>
             <property name="version" value="2.0"/>
             <property name="xpath">
@@ -1041,7 +1041,7 @@ public RetrieveCache(final @Value("${cache.expiryTimeSeconds}") long timeToLiveS
           externalInfoUrl="${doc_root}/JavaCodeQuality.md#ieah03">
         <description>Problem: If equals and hashCode are inconsistent, strange things can happen like adding the object to a Set and not being able to find it back.&#13;
             Solution: Use the same fields in equals and hashCode and if conversions are needed, use identical conversions in both. So don't use equalsIgnoreCase. (jpinpoint-rules)</description>
-        <priority>2</priority>
+        <priority>1</priority>
         <properties>
             <property name="version" value="2.0"/>
             <property name="xpath">
@@ -1114,7 +1114,7 @@ class Bad2 {
         <description>Problem: If a field which can be assigned separately (independent of other fields) is missing in the equals method, then changing the field in one object has no effect on the equality with another object.
             However, if a field of one of two equal objects is changed, the expectation is that they are no longer equal.&#13;
             Solution: include the missing field in the equals and hashCode method. (jpinpoint-rules)</description>
-        <priority>2</priority>
+        <priority>3</priority>
         <properties>
             <property name="version" value="2.0"/>
             <property name="xpath">
@@ -1174,7 +1174,7 @@ class Bad1 {
         <description>Problem: A Calendar is a heavyweight object and expensive to create. &#13;
             Solution: Use Date, Java 8+ java.time.[Local/Zoned]DateTime or joda time [Local]DateTime.
         </description>
-        <priority>2</priority>
+        <priority>3</priority>
         <properties>
             <property name="version" value="2.0"/>
             <property name="xpath">
@@ -1213,7 +1213,7 @@ public class CalendarStuff {
         <description>Problem: A list which is unnecessarily mutable may accidentally be added to and cause a memory leak. &#13;
             Solution: Make it impossible to modify the list after initialization: use Java 9 List.of, Collections.unmodifiableList or Guava ImmutableList.
         </description>
-        <priority>2</priority>
+        <priority>3</priority>
         <properties>
             <property name="version" value="2.0"/>
             <property name="xpath">
@@ -1311,7 +1311,7 @@ public class XMLConversion {
             For one statement resulting in a String, creating a StringBuilder and using append is not faster than simply using concatenation.&#13;
             Solution: Simply concatenate Strings in one statement, it is more concise, better readable and more maintainable.
         </description>
-        <priority>2</priority>
+        <priority>3</priority>
         <properties>
             <property name="version" value="2.0"/>
             <property name="xpath">
