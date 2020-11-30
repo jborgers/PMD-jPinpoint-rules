@@ -12,7 +12,7 @@
 4. **Minor**: it is generally a bad practice, it may increase the above risks.
 5. **Informative**: for your information, it might increase the above risks.
 
-| Rule name | original level 2020-11| proposed level | level after review 1 (if different)| decided level after review 2 (if different)
+| Rule name | original level 2020-11| proposed level | level after review 1 (if different)| decided level after review 2 (if different) - apply from 2020-11-30 
 | --------- | ------------- | -------------- | ------- | ---
 |AvoidApacheCommonsFileItemNonStreaming| 2| 2|
 |AvoidCDIReferenceLeak| 2| 1|
