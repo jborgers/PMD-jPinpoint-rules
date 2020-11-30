@@ -14,6 +14,11 @@ You don't have to wait for that, you can already use these as custom rules right
 Run the jPinpoint rules from the command-line using the PMD tool, from your favorite development
 environment with a PMD-plugin, or in SonarQube after packaging them as Sonar plugin.
 
+Documentation of the rules are here:
+* [JavaCodePerformance](docs/JavaCodePerformance.md)
+* [JavaDataAccessPerformance](docs/JavaDataAccessPerformance.md)
+* [JavaCodeQuality](docs/JavaCodeQuality.md)
+
 ## See also
 - Jeroen Borgers presented at Amsterdam JUG about the why, what and how of these code checking rules: [Performance problem prevention](https://www.meetup.com/nl-NL/Amsterdam-Java-User-Group/events/256497068/)
 | [slides](http://jpinpoint.com/resources/Automated-and-learning-performance-problem-prevention-AMS-JUG.pdf)
@@ -154,7 +159,8 @@ construct the unit test files:
 
  Run the merger tool as follows:
 
-    rulesets-merger/mvn exec:java
+    cd rulesets-merger
+    mvn exec:java
     
  or simply:
  

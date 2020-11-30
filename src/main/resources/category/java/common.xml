@@ -277,7 +277,7 @@ VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/Literal[string-le
     <rule name="AvoidMultipleConcatStatements" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="Multiple statements concatenate to the same String. Use StringBuilder append." typeResolution="true"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#isu02">
         <description>Multiple statements concatenate to the same String. Problem: Each statement with one or more +-operators creates a hidden temporary StringBuilder, a char[] and a new String object, which all have to be garbage collected.&#13;
-            Solution: Use StringBulder.append.
+            Solution: Use StringBuilder.append.
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
@@ -874,6 +874,96 @@ ancestor::MethodDeclaration//PrimarySuffix/@Image="disableConnectionState")]
                 </value>
             </property>
         </properties>
+    </rule>
+
+    <rule name="HttpClientBuilderWithoutPoolSize" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="HttpClient builder is used and setMaxConnTotal and/or setMaxConnPerRoute is not called. HttpClient defaults of 2 per route and 20 max total are probably not right." typeResolution="true"
+          externalInfoUrl="http://www.jpinpoint.com/doc/Java+Code+Performance#JavaCodePerformance-IBI03">
+        <description>Problem: default there are only 2 connections per route available. When two external calls are being made, a third thread requesting a connection must wait for free connection.&#13;
+            Solution: HttpClients should explicitly define the number of connections per route. If only one route is used make the max number of connections equal to conn per route. (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+(: locally created http client builder without setMaxConnTotal :)
+//MethodDeclaration//PrimaryExpression/PrimaryPrefix/Name[
+ (
+   (pmd-java:typeIs('org.apache.http.impl.client.HttpClientBuilder') and @Image='HttpClientBuilder.create')
+    or (pmd-java:typeIs('org.apache.http.impl.nio.client.HttpAsyncClientBuilder') and @Image='HttpAsyncClientBuilder.create')
+    or (pmd-java:typeIs('org.apache.http.impl.client.HttpClients') and @Image='HttpClients.custom')
+  )
+  and not(ancestor::MethodDeclaration//(PrimaryPrefix/Name|PrimarySuffix)[ends-with(@Image, 'setMaxConnTotal')])
+]
+,
+(: locally created http client builder without setMaxConnPerRoute :)
+//MethodDeclaration//PrimaryExpression/PrimaryPrefix/Name[
+ (
+   (pmd-java:typeIs('org.apache.http.impl.client.HttpClientBuilder') and @Image='HttpClientBuilder.create')
+    or (pmd-java:typeIs('org.apache.http.impl.nio.client.HttpAsyncClientBuilder') and @Image='HttpAsyncClientBuilder.create')
+    or (pmd-java:typeIs('org.apache.http.impl.client.HttpClients') and @Image='HttpClients.custom')
+  )
+ and not(ancestor::MethodDeclaration//(PrimaryPrefix/Name|PrimarySuffix)[ends-with(@Image, 'setMaxConnPerRoute')])
+]
+,
+(: method param http client builder without setMaxConnTotal :)
+//MethodDeclaration//FormalParameter//ClassOrInterfaceType[
+ (
+   pmd-java:typeIs('org.apache.http.impl.client.HttpClientBuilder')
+   or pmd-java:typeIs('org.apache.http.impl.nio.client.HttpAsyncClientBuilder')
+   or pmd-java:typeIs('org.apache.http.impl.client.HttpClients')
+  )
+  and not(ancestor::MethodDeclaration//(PrimaryPrefix/Name|PrimarySuffix)[ends-with(@Image, 'setMaxConnTotal')])
+]
+,
+(: method param http client builder without setMaxConnPerRoute :)
+//MethodDeclaration//FormalParameter//ClassOrInterfaceType[
+  (
+   pmd-java:typeIs('org.apache.http.impl.client.HttpClientBuilder')
+   or pmd-java:typeIs('org.apache.http.impl.nio.client.HttpAsyncClientBuilder')
+   or pmd-java:typeIs('org.apache.http.impl.client.HttpClients')
+  )
+  and not(ancestor::MethodDeclaration//(PrimaryPrefix/Name|PrimarySuffix)[ends-with(@Image, 'setMaxConnPerRoute')])
+]
+,
+(: method param PoolingHttpClientConnectionManager without setMaxTotal :)
+//MethodDeclaration//FormalParameter//ClassOrInterfaceType[
+   pmd-java:typeIs('org.apache.http.impl.conn.PoolingHttpClientConnectionManager')
+   and not(ancestor::MethodDeclaration//(PrimaryPrefix/Name|PrimarySuffix)[ends-with(@Image, 'setMaxTotal')])
+]
+,
+(: method param PoolingHttpClientConnectionManager without setDefaultMaxPerRoute :)
+//MethodDeclaration//FormalParameter//ClassOrInterfaceType[
+   pmd-java:typeIs('org.apache.http.impl.conn.PoolingHttpClientConnectionManager')
+   and not(ancestor::MethodDeclaration//(PrimaryPrefix/Name|PrimarySuffix)[ends-with(@Image, 'setDefaultMaxPerRoute')])
+]
+,
+(: new PoolingHttpClientConnectionManager without setMaxTotal :)
+//MethodDeclaration//PrimaryExpression//ClassOrInterfaceType[
+   pmd-java:typeIs('org.apache.http.impl.conn.PoolingHttpClientConnectionManager')
+   and not(ancestor::MethodDeclaration//(PrimaryPrefix/Name|PrimarySuffix)[ends-with(@Image, 'setMaxTotal')])
+]
+,
+(: method param PoolingHttpClientConnectionManager without setDefaultMaxPerRoute :)
+//MethodDeclaration//PrimaryExpression//ClassOrInterfaceType[
+   pmd-java:typeIs('org.apache.http.impl.conn.PoolingHttpClientConnectionManager')
+   and not(ancestor::MethodDeclaration//(PrimaryPrefix/Name|PrimarySuffix)[ends-with(@Image, 'setDefaultMaxPerRoute')])
+]
+]]>
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+        return HttpClientBuilder.create() // bad, missing setMaxConnPerRoute and setMaxConnTotal
+                .setConnectionManager(conMgr)
+                .build();
+
+        return HttpClientBuilder.create() // good, both setMaxConnPerRoute and setMaxConnTotal called
+                .setMaxConnPerRoute(MAX_CONNECTIONS_TOTAL)
+                .setMaxConnTotal(MAX_CONNECTIONS_TOTAL)
+                .build();
+            ]]>
+        </example>
     </rule>
 
     <rule name="UsingSuppressWarningsHighRisk" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="Using SuppressWarnings for a rule that is meant to prevent high risk problems." typeResolution="true"
