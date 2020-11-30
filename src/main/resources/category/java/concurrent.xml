@@ -105,7 +105,7 @@
     <rule name="AvoidMutableStaticFields"
           message="Avoid non-final or mutable static fields. Make final immutable or access thread-safely and use @GuardedBy."
           class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
-          typeResolution="true" externalInfoUrl="${doc_root}/JavaCodePerformance.md#TUTC08">
+          typeResolution="true" externalInfoUrl="${doc_root}/JavaCodePerformance.md#tutc08">
         <description>
             Problem: Multiple threads typically access static fields. Unguarded assignment to a mutable or non-final static field is thread-unsafe and may cause corruption or visibility problems. To make this thread-safe, that is, guard the field e.g. with synchronized methods, may cause contention. &#13;
             Solution: Make the fields final and unmodifiable.  If they really need to be mutable, make access thread-safe: use synchronized and @GuardedBy or use volatile. Consider lock contention.&#13;
@@ -174,7 +174,7 @@ ancestor::StatementExpression/PrimaryExpression/PrimaryPrefix/Name/@Image = ance
     <rule name="AvoidUnguardedAssignmentToNonFinalFieldsInSharedObjects"
           message="Avoid unguarded assignments to non-final fields in objects shared among threads. Access thread-safely and use @GuardedBy."
           class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
-          typeResolution="true" externalInfoUrl="${doc_root}/JavaCodePerformance.md#TUTC07">
+          typeResolution="true" externalInfoUrl="${doc_root}/JavaCodePerformance.md#tutc07">
         <description>
             Problem: Multiple threads typically access fields of a singleton or may access fields in session scoped objects. Unguarded assignment to a non-final field is thread-unsafe and may cause corruption or visibility problems. It may also unintentionally mixup session data. &#13;
             Solution: Make the fields final and unmodifiable.  If they really need to be mutable, make access thread-safe: use synchronized and jcip @GuardedBy or use volatile.&#13;
@@ -225,7 +225,7 @@ or (ancestor::ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='VisibleFo
     <rule name="AvoidUnguardedMutableFieldsInSharedObjects"
           message="Avoid unguarded non-final or mutable fields in objects shared among threads. Make final immutable or access thread-safely and use @GuardedBy."
           class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
-          typeResolution="true" externalInfoUrl="${doc_root}/JavaCodePerformance.md#TUTC07">
+          typeResolution="true" externalInfoUrl="${doc_root}/JavaCodePerformance.md#tutc07">
         <description>
             Problem: Multiple threads typically access fields of a singleton or may access fields in session scoped objects. If a field or its reference is mutable, access is thread-unsafe and may cause corruption or visibility problems. It may also unintentionally mixup session data.&#13;
             Solution: Make the fields final and unmodifiable. If they really need to be mutable, make access thread-safe: use synchronized and jcip @GuardedBy or use volatile.&#13;
@@ -281,7 +281,7 @@ and not (../Annotation//Name[@Image='GuardedBy'])
     <rule name="AvoidUnguardedMutableInheritedFieldsInSharedObjects"
           message="Mutator method called on inherited field. Avoid unguarded mutable inherited fields in objects shared among threads. Make final immutable or access thread-safely and use @GuardedBy."
           class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
-          typeResolution="true" externalInfoUrl="${doc_root}/JavaCodePerformance.md#TUTC07">
+          typeResolution="true" externalInfoUrl="${doc_root}/JavaCodePerformance.md#tutc07">
         <description>
             Problem: Multiple threads typically access fields of a singleton or may access fields in session scoped objects. If a (inherited) field or its reference is mutable, access is thread-unsafe and may cause corruption or visibility problems. It may also unintentionally mixup session data. &#13;
             Solution: Make the fields final and unmodifiable. If they really need to be mutable, make access thread-safe: use synchronized and jcip @GuardedBy or use volatile.&#13;
@@ -334,7 +334,7 @@ or (ancestor::ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='VisibleFo
     <rule name="AvoidUnguardedAssignmentToNonFinalFieldsInObjectsUsingSynchronized"
           message="Avoid unguarded assignments to non-final fields in objects using synchronized. Access thread-safely and use @GuardedBy."
           class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
-          typeResolution="true" externalInfoUrl="${doc_root}/JavaCodePerformance.md#TUTC07">
+          typeResolution="true" externalInfoUrl="${doc_root}/JavaCodePerformance.md#tutc07">
         <description>
             Problem: Multiple threads typically access fields of an object using synchronized. Unguarded assignment to a non-final field is thread-unsafe and may cause corruption or visibility problems. To make this thread-safe, that is, guard the field e.g. with synchronized methods, may cause contention. &#13;
             Solution: Make the fields final and unmodifiable.  If they really need to be mutable, make access thread-safe: use synchronized and jcip @GuardedBy or use volatile.&#13;
@@ -369,7 +369,7 @@ or (ancestor::ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='VisibleFo
     <rule name="AvoidUnguardedMutableFieldsInObjectsUsingSynchronized"
           message="Avoid unguarded non-final or mutable fields in objects using synchronized. Make final immutable or access thread-safely and use @GuardedBy."
           class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
-          typeResolution="true" externalInfoUrl="${doc_root}/JavaCodePerformance.md#TUTC07">
+          typeResolution="true" externalInfoUrl="${doc_root}/JavaCodePerformance.md#tutc07">
         <description>
             Problem: Multiple threads typically access fields of an object using synchronized. If a field or its reference is mutable, access is thread-unsafe and may cause corruption or visibility problems. To make this thread-safe, that is, guard the field e.g. with synchronized methods, may cause contention.&#13;
             Solution: Make the fields final and unmodifiable. If they really need to be mutable, make access thread-safe: use synchronized and jcip @GuardedBy or use volatile.&#13;

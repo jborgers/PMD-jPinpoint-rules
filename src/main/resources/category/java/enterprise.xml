@@ -5,7 +5,7 @@
     <rule name="DefineConcurrencyForJavaEESingleton"
       message="For JavaEE @Singleton, make @ConcurrencyManagement explicit and define @Lock on class level or for all public methods."
       class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
-      typeResolution="true" externalInfoUrl="${doc_root}/JavaCodePerformance.mdTUTC07">
+      typeResolution="true" externalInfoUrl="${doc_root}/JavaCodePerformance.md#tutc07">
     <description>
         Problem: A JavaEE @Singleton has default @ConcurrencyManagement CONTAINER and write locks. Using defaults is unclear and write locks typically cause much more contention than read locks. &#13;
         Solution: Make @ConcurrencyManagement and @Lock-s explicit, @Lock on class level or on all public methods.&#13;
