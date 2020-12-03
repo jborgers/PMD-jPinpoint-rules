@@ -65,7 +65,7 @@ The most important factor of application performance is the number of back-end s
 can be done via `HttpClients` builder directly:
 
 ```java
-HttpClient httpClient = HttpClients.custom()
+CloseableHttpClient httpClient = HttpClients.custom()
     .setMaxConnPerRoute(MAX_CONNECTIONS_PER_ROUTE)
     .setMaxConnTotal(MAX_CONNECTIONS_TOTAL)
     .build();
