@@ -62,6 +62,17 @@ The most important factor of application performance is the number of back-end s
 **Problem:** The default maximum connections per route is by default set to 2. This throttles the number of connections to the back-end usually much more than required, such that many requests have to wait for a connection and response times get much higher than needed.The connection timeout is usually set to a low number (e.g. 300 ms), in that case connection timeout exceptions will occur.  
 **Solution:** Set the default maximum connections per route to a higher number, e.g. 20. Also increase the Max Total to at least the DefaultMaxPerRoute or a multiple in case of multiple routes. Example for only one host:
 
+can be done via `HttpClients` builder directly:
+
+```java
+HttpClient httpClient = HttpClients.custom()
+    .setMaxConnPerRoute(MAX_CONNECTIONS_PER_ROUTE)
+    .setMaxConnTotal(MAX_CONNECTIONS_TOTAL)
+    .build();
+```
+
+or optionally via the `PoolingHttpClientConnectionManager`:
+
 ```java
 PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
 cm.setMaxTotal(maxFileTransferConnections);
@@ -71,13 +82,15 @@ cm.setDefaultMaxPerRoute(maxFileTransferConnections);
 or for asynchronous connections using nio:
 
 ```java
-    private HttpAsyncClientBuilder createHttpClientConfigCallback(final HttpAsyncClientBuilder clientBuilder) {
-        clientBuilder
-            .setMaxConnPerRoute(MAX_CONNECTIONS_PER_ROUTE)
-            .setMaxConnTotal(MAX_CONNECTIONS_TOTAL);
+private HttpAsyncClientBuilder createHttpClientConfigCallback(final HttpAsyncClientBuilder clientBuilder) {
+    clientBuilder
+        .setMaxConnPerRoute(MAX_CONNECTIONS_PER_ROUTE)
+        .setMaxConnTotal(MAX_CONNECTIONS_TOTAL);
 ```
 
-Note that class PoolingClientConnectionManager and several othersare deprecated and [PoolingHttpClientConnectionManager](http://hc.apache.org/httpcomponents-client-ga/httpclient/apidocs/org/apache/http/impl/conn/PoolingHttpClientConnectionManager.html) is the one to use for synchronous calls and NHttpClientConnectionManager (e.g. by HttpAsyncClientBuilder) for asynchronous calls.
+Note that class PoolingClientConnectionManager and several others are deprecated and [PoolingHttpClientConnectionManager](http://hc.apache.org/httpcomponents-client-ga/httpclient/apidocs/org/apache/http/impl/conn/PoolingHttpClientConnectionManager.html) is the one to use for synchronous calls and NHttpClientConnectionManager (e.g. by HttpAsyncClientBuilder) for asynchronous calls.
+
+**Rule name:** HttpClientBuilderWithoutPoolSize.
 
 #### IBI04
 

@@ -219,9 +219,9 @@ class Bad {
         <expected-problems>0</expected-problems>
         <code><![CDATA[
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-class Bad {
-    private PoolingHttpClientConnectionManager bad() { // bad
-        PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
+class Good {
+    private PoolingHttpClientConnectionManager good() {
+        final PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
         cm.setMaxTotal(maxConnections);
         cm.setDefaultMaxPerRoute(maxConnections);
         return cm;
