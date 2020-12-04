@@ -124,6 +124,29 @@ Example (correct):
     }
 ```
 
+#### IBI08
+
+**Observation: HttpClient is used instead of ClosableHttpClient.**  
+**Problem:** if HttpClient connections are not closed properly when needed, resources are not released and connections may not (or not quick enough) become available from the pool.  
+**Solution:** Use ClosableHttpClient to allow for invoking close on it to properly close the connection. Or use HttpComponentsClientHttpRequestFactory(httpClient) and let it manage closing.  
+**Rule name:** UseCloseableForHttpClient  
+**Example:**  
+```java
+  void bad() {
+        HttpClient httpClient = HttpClientBuilder.create()
+                .disableConnectionState().build();
+    }
+
+    void good() {
+        CloseableHttpClient httpClient = HttpClientBuilder.create()
+                .disableConnectionState().build();
+    }
+    void good2() {
+        HttpClient httpClient = HttpClientBuilder.create().disableConnectionState().build();
+        ClientHttpRequestFactory clientHttpRequestFactory = new HttpComponentsClientHttpRequestFactory(httpClient);
+    }    
+```
+
 Improper caching  
 -------------------
 

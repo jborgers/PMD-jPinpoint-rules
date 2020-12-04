@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>violation: non-Closeable HttpClient</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>6</expected-linenumbers>
+        <code><![CDATA[
+import org.apache.http.client.HttpClient;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+class Bad {
+    void bad() {
+        HttpClient httpClient = HttpClientBuilder.create()
+                .disableConnectionState().build();
+    }
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>no violation: using Closeable </description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import org.apache.http.client.HttpClient;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+class Good {
+    void good() {
+        CloseableHttpClient httpClient = HttpClientBuilder.create()
+                .disableConnectionState().build();
+    }
+
+    void good2() {
+        HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
+        CloseableHttpClient httpClient = (CloseableHttpClient) requestFactory.getHttpClient();
+    }
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>violation: HttpClient non-Closeable from HttpComponentsClientHttpRequestFactory</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>7</expected-linenumbers>
+        <code><![CDATA[
+import org.apache.http.client.HttpClient;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+class Bad {
+    void bad2() {
+        HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
+        HttpClient httpClient = (HttpClient) requestFactory.getHttpClient();
+    }
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>no violation: HttpComponentsClientHttpRequestFactory manages closing</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import org.apache.http.client.HttpClient;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+class Good {
+   void good3() {
+        HttpClient httpClient = HttpClientBuilder.create().setSSLContext(sslContext).disableConnectionState().build();
+        ClientHttpRequestFactory clientHttpRequestFactory = new HttpComponentsClientHttpRequestFactory(httpClient);
+    }
+
+   void good4() {
+        HttpClient httpClient = HttpClientBuilder.create()
+                .disableConnectionState()
+                .build();
+        HttpComponentsClientHttpRequestFactory httpComponentsClientHttpRequestFactory = new HttpComponentsClientHttpRequestFactory();
+        httpComponentsClientHttpRequestFactory.setHttpClient(httpClient);
+    }}
+]]></code>
+    </test-code>
+
+</test-data>

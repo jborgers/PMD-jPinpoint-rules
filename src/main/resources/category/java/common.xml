@@ -100,53 +100,6 @@ public interface Foo {
         </properties>
     </rule>
 
-    <rule name="AvoidDeprecatedHttpConnectors" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="Avoid the use of deprecated/thread-unsafe HTTP connectors" typeResolution="true"
-          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi06" >
-        <description>Problem: Several HTTP client connection managers are thread-unsafe which may cause session data mix-up or have other issues for which they were made deprecated.&#13;
-            Solutions: Use org.apache.http.impl.conn.PoolingHttpClientConnectionManager and org.apache.http.impl.client.HttpClientBuilder. (jpinpoint-rules)</description>
-        <priority>2</priority>
-        <properties>
-            <property name="version" value="1.0"/>
-            <property name="xpath">
-                <value><![CDATA[
-//ImportDeclaration/Name[@Image='org.apache.commons.httpclient.SimpleHttpConnectionManager'
-or @Image='org.apache.http.conn.ClientConnectionManager'
-or @Image='org.apache.http.impl.conn.PoolingClientConnectionManager'
-or @Image='org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager'
-or @Image='org.apache.http.impl.conn.SingleClientConnManager'
-or @Image='org.apache.http.impl.client.DefaultHttpClient'
-or @Image='org.apache.http.impl.client.SystemDefaultHttpClient'
-or @Image='org.apache.http.conn.ClientConnectionManager'
-]
-|
-//TypeDeclaration//ClassOrInterfaceDeclaration//ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration/
-Type/ReferenceType/ClassOrInterfaceType[typeIs('org.apache.commons.httpclient.SimpleHttpConnectionManager')
-or typeIs('org.apache.http.conn.ClientConnectionManager')
-or typeIs('org.apache.http.impl.conn.PoolingClientConnectionManager')
-or typeIs('org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager')
-or typeIs('org.apache.http.impl.conn.SingleClientConnManager')
-or typeIs('org.apache.http.impl.client.DefaultHttpClient')
-or typeIs('org.apache.http.impl.client.SystemDefaultHttpClient')
-or typeIs('org.apache.http.conn.ClientConnectionManager')
-]
-|
-//TypeDeclaration//ClassOrInterfaceDeclaration//ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration/
-VariableDeclarator/VariableInitializer/Expression//AllocationExpression/ClassOrInterfaceType[
-typeIs('org.apache.http.conn.ClientConnectionManager')
-or typeIs('org.apache.http.impl.conn.PoolingClientConnectionManager')
-or typeIs('org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager')
-or typeIs('org.apache.http.impl.conn.SingleClientConnManager')
-or typeIs('org.apache.http.impl.client.DefaultHttpClient')
-or typeIs('org.apache.http.impl.client.SystemDefaultHttpClient')
-or typeIs('org.apache.http.conn.ClientConnectionManager')
-]
-|
-//AllocationExpression/ClassOrInterfaceType[typeIs('org.apache.commons.httpclient.SimpleHttpConnectionManager')]
-		     ]]></value>
-            </property>
-        </properties>
-    </rule>
-
     <rule name="AvoidDuplicateAssignmentsInCases"
           message="Avoid duplicate assignments in different switch cases"
           class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
@@ -521,27 +474,6 @@ and
         </properties>
     </rule>
 
-    <rule name="AvoidXMLGregorianCalendar" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="XMLGregorianCalendar is used. It is slow in JAXB." typeResolution="true"
-          externalInfoUrl="${doc_root}/JavaCodePerformance.md#iuoxar05">
-        <description>Problem: XMLGregorianCalendar is a large object, involving substantial processing. It is created with the poorly performing DatatypeFactory.
-            Solution: Add a converter for alternative date handling with joda-time or Java 8 java.time.
-            (jpinpoint-rules)</description>
-        <priority>2</priority>
-        <properties>
-
-            <property name="version" value="1.0"/>
-            <property name="xpath">
-                <value><![CDATA[
-//TypeDeclaration/ClassOrInterfaceDeclaration/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/
-FieldDeclaration/Type/ReferenceType/ClassOrInterfaceType[typeIs('javax.xml.datatype.XMLGregorianCalendar')]
-|
-//TypeDeclaration/ClassOrInterfaceDeclaration/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/
-MethodDeclaration//LocalVariableDeclaration/Type/ReferenceType/ClassOrInterfaceType[typeIs('javax.xml.datatype.XMLGregorianCalendar')]
-	]]></value>
-            </property>
-        </properties>
-    </rule>
-
     <rule name="AvoidXPathAPIUsage" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="XPathAPI is used. XPathAPI implementation has bad performance." typeResolution="true"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#ux03">
         <description>XPathAPI is used. Problem: XPathAPI implementation is slow.&#13;
@@ -630,22 +562,6 @@ count(ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDecla
             </property>
         </properties>
         <priority>3</priority>
-    </rule>
-
-    <rule name="JAXBContextCreatedForEachMethodCall" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="JAXBContext is created for each method call, which is expensive."  typeResolution="true"
-          externalInfoUrl="${doc_root}/JavaCodePerformance.md#iuoxar04">
-        <description>Problem: JAXBContext creation is expensive because it does much class loading.  &#13;
-            Solution: Since JAXBContext objects are thread safe, they can be shared between requests and reused. So, reuse created instances, e.g. as singletons.
-            (jpinpoint-rules)</description>
-        <priority>2</priority>
-        <properties>
-            <property name="version" value="1.0"/>
-            <property name="xpath">
-                <value><![CDATA[
-//MethodDeclaration//Expression/PrimaryExpression/PrimaryPrefix/Name[@Image = 'JAXBContext.newInstance']
-			]]></value>
-            </property>
-        </properties>
     </rule>
 
     <rule name="MDCPutWithoutRemove" message="MDC put is used without finally remove." class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" typeResolution="true" externalInfoUrl="${doc_root}/JavaCodePerformance.md#IL04">
@@ -749,24 +665,6 @@ class Good {
         </example>
     </rule>
 
-    <rule name="ObjectMapperCreatedForEachMethodCall" message="An ObjectMapper is created for each method call, which is expensive." class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"   typeResolution="true" externalInfoUrl="${doc_root}/JavaCodePerformance.md#IUOJAR01">
-        <description>Problem: Jackson ObjectMapper creation is expensive because it does much class loading.  &#13;
-            Solution: Since ObjectMapper objects are thread-safe after configuration in one thread, they can be shared afterwards between requests and reused. So, reuse created instances, from a static field.
-            (jpinpoint-rules)</description>
-        <priority>2</priority>
-        <properties>
-            <property name="version" value="1.0"/>
-            <property name="xpath">
-                <value><![CDATA[
-//MethodDeclaration//Expression/PrimaryExpression/PrimaryPrefix/AllocationExpression/ClassOrInterfaceType[
-	(typeIs('com.fasterxml.jackson.databind.ObjectMapper')) and
-	not(ancestor::TypeDeclaration/Annotation/MarkerAnnotation/Name/@Image='Configuration')
-]
-			]]></value>
-            </property>
-        </properties>
-    </rule>
-
     <rule name="UnconditionalConcatInLogArgument" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="String concatenation (+) is executed regardless of log level and can be expensive" typeResolution="true"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#il01">
         <description>Problem: String concatenation (+) is executed regardless of log level and can be expensive. &#13;
@@ -847,121 +745,6 @@ class Good {
             if (LOG.isDebugEnabled()) { // good
                 LOG.debug("Complete Soap response: {}", getSoapMsgAsString(context.getMessage()));
             }
-            ]]>
-        </example>
-    </rule>
-
-    <rule name="HttpClientBuilderWithoutDisableConnectionState" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="A HttpClient builder is used and disableConnectionState is not called. HTTP client tracks connection state while using TLS" typeResolution="true"
-          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi07">
-        <description>Problem: NTLM authenticated connections and SSL/TLS connections with client certificate authentication are stateful: they have a specific user identity/security context per session. If HttpClients have enabled connection state tracking which is the default, established TLS connections will not be reused because it is assumed that the user identity or security context may differ.
-            Then performance will suffer due to a full TLS handshake for each request.&#13;
-            Solution: HttpClients should disable connection state tracking in order to reuse TLS connections, since service calls for one pool have the same user identity/security context for all sessions. (jpinpoint-rules)</description>
-        <priority>2</priority>
-        <properties>
-            <property name="version" value="2.0"/>
-            <property name="xpath">
-                <value><![CDATA[
-(:locally created http client builder without disableConnectionState :)
-//MethodDeclaration//PrimaryExpression/PrimaryPrefix/Name[
-(@Image="HttpClientBuilder.create" or @Image="HttpAsyncClientBuilder.create" or @Image="HttpClients.custom") and not(
-ancestor::MethodDeclaration//PrimarySuffix/@Image="disableConnectionState")]
-,
-(: method param http client builder without disableConnectionState :)
-//MethodDeclaration//FormalParameter//ClassOrInterfaceType[
-(@Image="HttpClientBuilder" or @Image="HttpAsyncClientBuilder" or @Image="HttpClients") and not(
-ancestor::MethodDeclaration//PrimarySuffix/@Image="disableConnectionState")]
-			]]>
-                </value>
-            </property>
-        </properties>
-    </rule>
-
-    <rule name="HttpClientBuilderWithoutPoolSize" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="HttpClient builder is used and setMaxConnTotal and/or setMaxConnPerRoute is not called. HttpClient defaults of 2 per route and 20 max total are probably not right." typeResolution="true"
-          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi03">
-        <description>Problem: default there are only 2 connections per route available. When two external calls are being made, a third thread requesting a connection must wait for free connection.&#13;
-            Solution: HttpClients should explicitly define the number of connections per route. If only one route is used make the max number of connections equal to conn per route. (jpinpoint-rules)</description>
-        <priority>2</priority>
-        <properties>
-            <property name="version" value="2.0"/>
-            <property name="xpath">
-                <value><![CDATA[
-(: locally created http client builder without setMaxConnTotal :)
-//MethodDeclaration//PrimaryExpression/PrimaryPrefix/Name[
- (
-   (pmd-java:typeIs('org.apache.http.impl.client.HttpClientBuilder') and @Image='HttpClientBuilder.create')
-    or (pmd-java:typeIs('org.apache.http.impl.nio.client.HttpAsyncClientBuilder') and @Image='HttpAsyncClientBuilder.create')
-    or (pmd-java:typeIs('org.apache.http.impl.client.HttpClients') and @Image='HttpClients.custom')
-  )
-  and not(ancestor::MethodDeclaration//(PrimaryPrefix/Name|PrimarySuffix)[ends-with(@Image, 'setMaxConnTotal')])
-]
-,
-(: locally created http client builder without setMaxConnPerRoute :)
-//MethodDeclaration//PrimaryExpression/PrimaryPrefix/Name[
- (
-   (pmd-java:typeIs('org.apache.http.impl.client.HttpClientBuilder') and @Image='HttpClientBuilder.create')
-    or (pmd-java:typeIs('org.apache.http.impl.nio.client.HttpAsyncClientBuilder') and @Image='HttpAsyncClientBuilder.create')
-    or (pmd-java:typeIs('org.apache.http.impl.client.HttpClients') and @Image='HttpClients.custom')
-  )
- and not(ancestor::MethodDeclaration//(PrimaryPrefix/Name|PrimarySuffix)[ends-with(@Image, 'setMaxConnPerRoute')])
-]
-,
-(: method param http client builder without setMaxConnTotal :)
-//MethodDeclaration//FormalParameter//ClassOrInterfaceType[
- (
-   pmd-java:typeIs('org.apache.http.impl.client.HttpClientBuilder')
-   or pmd-java:typeIs('org.apache.http.impl.nio.client.HttpAsyncClientBuilder')
-   or pmd-java:typeIs('org.apache.http.impl.client.HttpClients')
-  )
-  and not(ancestor::MethodDeclaration//(PrimaryPrefix/Name|PrimarySuffix)[ends-with(@Image, 'setMaxConnTotal')])
-]
-,
-(: method param http client builder without setMaxConnPerRoute :)
-//MethodDeclaration//FormalParameter//ClassOrInterfaceType[
-  (
-   pmd-java:typeIs('org.apache.http.impl.client.HttpClientBuilder')
-   or pmd-java:typeIs('org.apache.http.impl.nio.client.HttpAsyncClientBuilder')
-   or pmd-java:typeIs('org.apache.http.impl.client.HttpClients')
-  )
-  and not(ancestor::MethodDeclaration//(PrimaryPrefix/Name|PrimarySuffix)[ends-with(@Image, 'setMaxConnPerRoute')])
-]
-,
-(: method param PoolingHttpClientConnectionManager without setMaxTotal :)
-//MethodDeclaration//FormalParameter//ClassOrInterfaceType[
-   pmd-java:typeIs('org.apache.http.impl.conn.PoolingHttpClientConnectionManager')
-   and not(ancestor::MethodDeclaration//(PrimaryPrefix/Name|PrimarySuffix)[ends-with(@Image, 'setMaxTotal')])
-]
-,
-(: method param PoolingHttpClientConnectionManager without setDefaultMaxPerRoute :)
-//MethodDeclaration//FormalParameter//ClassOrInterfaceType[
-   pmd-java:typeIs('org.apache.http.impl.conn.PoolingHttpClientConnectionManager')
-   and not(ancestor::MethodDeclaration//(PrimaryPrefix/Name|PrimarySuffix)[ends-with(@Image, 'setDefaultMaxPerRoute')])
-]
-,
-(: new PoolingHttpClientConnectionManager without setMaxTotal :)
-//MethodDeclaration//PrimaryExpression//ClassOrInterfaceType[
-   pmd-java:typeIs('org.apache.http.impl.conn.PoolingHttpClientConnectionManager')
-   and not(ancestor::MethodDeclaration//(PrimaryPrefix/Name|PrimarySuffix)[ends-with(@Image, 'setMaxTotal')])
-]
-,
-(: method param PoolingHttpClientConnectionManager without setDefaultMaxPerRoute :)
-//MethodDeclaration//PrimaryExpression//ClassOrInterfaceType[
-   pmd-java:typeIs('org.apache.http.impl.conn.PoolingHttpClientConnectionManager')
-   and not(ancestor::MethodDeclaration//(PrimaryPrefix/Name|PrimarySuffix)[ends-with(@Image, 'setDefaultMaxPerRoute')])
-]
-]]>
-                </value>
-            </property>
-        </properties>
-        <example>
-            <![CDATA[
-        return HttpClientBuilder.create() // bad, missing setMaxConnPerRoute and setMaxConnTotal
-                .setConnectionManager(conMgr)
-                .build();
-
-        return HttpClientBuilder.create() // good, both setMaxConnPerRoute and setMaxConnTotal called
-                .setMaxConnPerRoute(MAX_CONNECTIONS_TOTAL)
-                .setMaxConnTotal(MAX_CONNECTIONS_TOTAL)
-                .build();
             ]]>
         </example>
     </rule>
@@ -1263,38 +1046,6 @@ public class Good {
 
     private void mutate() {
         mutated.add("one");
-    }
-}
-            ]]>
-        </example>
-    </rule>
-
-    <rule name="AvoidJAXBUtil"
-          language="java"
-          message="The JAXB utility class is not optimized for performance."
-          class="net.sourceforge.pmd.lang.rule.XPathRule"
-          typeResolution="true"
-          externalInfoUrl="${doc_root}/JavaCodePerformance.md#iuoxar04">
-        <description>Problem: JAXB utility methods do not reuse JAXBContext when more that one context is used. &#13;
-            Solution: use JAXB API directly for marshalling and unmarshalling to gain all the performance benefits as described in IUOXAR04 and IUOXAR06.
-        </description>
-        <priority>2</priority>
-        <properties>
-            <property name="version" value="2.0"/>
-            <property name="xpath">
-                <value><![CDATA[
-//PrimaryExpression[pmd-java:typeIs('javax.xml.bind.JAXB')]
-	         ]]></value>
-            </property>
-        </properties>
-        <example>
-            <![CDATA[
-public class XMLConversion {
-    public <T> T myUnmarshal(final Source response, final Class<T> clazz) {
-        return JAXB.unmarshal(response, clazz); // bad
-    }
-    public void myMarshal(final Object response, StringWriter stringWriter) {
-        JAXB.marshal(response, stringWriter); // bad
     }
 }
             ]]>
