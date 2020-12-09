@@ -13,7 +13,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 class Bad {
     void bad() {
-        HttpClient httpClient = HttpClientBuilder.create()
+        HttpClient httpClient = HttpClientBuilder.create() // bad
                 .disableConnectionState().build();
     }
 }
@@ -52,7 +52,7 @@ import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 class Bad {
     void bad2() {
         HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
-        HttpClient httpClient = (HttpClient) requestFactory.getHttpClient();
+        HttpClient httpClient = (HttpClient) requestFactory.getHttpClient();// bad
     }
 }
      ]]></code>

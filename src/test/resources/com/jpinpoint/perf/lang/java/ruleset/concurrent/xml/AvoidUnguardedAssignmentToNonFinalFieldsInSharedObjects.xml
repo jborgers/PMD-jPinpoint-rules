@@ -446,4 +446,35 @@ public class Try extends Parent {
 }
         ]]></code>
     </test-code>
+
+    <test-code>
+        <description>Avoid unguarded assignment to non-final fields in shared objects, local var should be good</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+@Service(AdviesEnAfsluitkostenFunction.NAME)
+public class AdviesEnAfsluitkostenFunction extends AbstractFunction<AdviesEnAfsluitkostenInput, AdviesEnAfsluitkostenResult> {
+
+    public static final String NAME = "adviesEnAfsluitkostenFunction";
+
+    public AdviesEnAfsluitkostenFunction() {
+        super();
+    }
+
+    private BerekeningBedrag bepaalAfsluitkostenOverlijdensrisicoverzekering(AdviesEnAfsluitkostenInput input,
+            Map<String, Map<String, AdviesAfsluitkostenComponent>> adviesEnAfsluitKostenMap,
+            List<BerekeningAdviesAfsluitkostenComponent> componenten) {
+        BerekeningBedrag afsluitkostenBedr = ZERO;
+        if (input.getOverlijdensrisicoverzekeringAant() > 0) {
+            AdviesAfsluitkostenComponent adviesAfsluitkostenComponent = adviesEnAfsluitKostenMap.get(AFSLUITKOSTEN_OVERLIJDENSRISICOVERZEKERING).get(STANDAARD);
+            componenten.add(getComponent(adviesAfsluitkostenComponent, input.getOverlijdensrisicoverzekeringAant()));
+            if (!input.getAfsluitkostenOverlijdensrisicoverzekeringNultariefInd()) {
+                BerekeningBedrag opAfslagBedr = valueOf(adviesAfsluitkostenComponent.getOpAfslagBedr());
+                afsluitkostenBedr = opAfslagBedr.multiply(input.getOverlijdensrisicoverzekeringAant());
+            }
+        }
+        return afsluitkostenBedr;
+    }
+}
+               ]]></code>
+    </test-code>
 </test-data>

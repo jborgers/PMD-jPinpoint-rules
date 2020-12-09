@@ -146,6 +146,7 @@ Example (correct):
         ClientHttpRequestFactory clientHttpRequestFactory = new HttpComponentsClientHttpRequestFactory(httpClient);
     }    
 ```
+For more information, see [httpclient-connection-management](https://www.baeldung.com/httpclient-connection-management)   
 
 Improper caching  
 -------------------
