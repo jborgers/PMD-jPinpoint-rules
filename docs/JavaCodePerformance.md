@@ -786,6 +786,8 @@ Improper streaming may result in unwanted large object allocations. The IBM JVM 
 
 Logging of the allocation stack traces will be in native_stderr.log.
 
+#### ISIO01
+
 **Observation: ByteArrayOutputStream or StringWriter default constructor is used for large strings/streams.**  
 **Problem:** This creates an initial buffer of 32 bytes or 16 characters respectively. If this is not enough, a new byte/char array will be allocated and contents will be copied into the new array. The old array becomes garbage to be collected and copying takes processing time. If you know what the minimum or typical size will be, this garbage and processing time are wasted.  
 **Solution:** Presize the ByteArrayOutputStream or StringWriter with an initial capacity such that a resize is not needed in most cases. By using the [ByteArrayOutputStream](http://docs.oracle.com/javase/6/docs/api/java/io/ByteArrayOutputStream.html#ByteArrayOutputStream%28int%29) or [StringWriter](http://docs.oracle.com/javase/6/docs/api/java/io/StringWriter.html#StringWriter%28int%29) alternative constructor.  
