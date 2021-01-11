@@ -208,4 +208,8 @@ or simply
       cd target
       java -jar rulesets-merger-1.0-SNAPSHOT.jar PMD-jPinpoint-rules rulesets/java jpinpoint-rules.xml 
    
-
+## Tools to create documentation
+1. Confluence export as HTML
+2. [Converting HTML to Markdown](https://domchristie.github.io/turndown/)
+3. [Markdown TOC generator](https://luciopaiva.com/markdown-toc/
+)
