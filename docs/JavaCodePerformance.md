@@ -622,7 +622,17 @@ Improper use of JSON and remoting
 
 **Observation: Jackson's ObjectMapper is created in each method call.**  
 **Problem:** ObjectMapper creation is expensive in time because it does much class loading.  
-**Solution:** Since Jackson's ObjectMapper objects are [thread-safe after configuration](https://github.com/FasterXML/jackson-databind/wiki/JacksonFeatures) in one thread, they can be shared afterwards between requests and reused. So, reuse created and configured instances, from a static field.
+**Solution:** Since Jackson's ObjectMapper objects are [thread-safe after configuration](https://github.com/FasterXML/jackson-databind/wiki/JacksonFeatures) in one thread, 
+they can be shared afterwards between requests and reused. So, an option is to reuse created and configured instances, from a static field. 
+Better is using and sharing ObjectReaders and ObjectWriters created from ObjectMapper since they are immutable and therefore guaranteed to be thread-safe.
+
+#### IUOJAR02
+
+**Observation: An existing ObjectMapper object is configured/modified.**  
+**Problem:** ObjectMapper is thread-safe only after configuration. Configuring an ObjectMapper is not thread-safe.  
+**Solution:** Avoid configuring objectMappers except when initializing: right after construction. 
+It is recommended to create ObjectReaders and ObjectWriters from ObjectMapper and pass those around since they are immutable and therefore guaranteed to be thread-safe.
+
 
 Using XPath
 -----------

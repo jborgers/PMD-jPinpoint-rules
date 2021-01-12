@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>no violation: only initialize objectmapper </description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+    import com.fasterxml.jackson.databind.ObjectMapper;
+    public class OldStyle {
+        private static final ObjectMapper staticObjectMapper = new ObjectMapper();
+        private final ObjectMapper mapperField = new ObjectMapper();
+
+        static {
+            staticObjectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL); // good
+        }
+
+        public OldStyle() {
+            mapperField.setSerializationInclusion(JsonInclude.Include.NON_NULL); // good
+        }
+    }
+    class NewStyle {
+        private static final ObjectWriter staticObjectWriter =
+            new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL).writer(); // good
+    }
+
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>violation: modify objectMapper </description>
+        <expected-problems>2</expected-problems>
+        <expected-linenumbers>7,10</expected-linenumbers>
+        <code><![CDATA[
+    import com.fasterxml.jackson.databind.ObjectMapper;
+    public class OldStyle {
+        private static final ObjectMapper staticObjectMapper = new ObjectMapper();
+        private final ObjectMapper mapperField = new ObjectMapper();
+
+        public OldStyle() {
+            staticObjectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL); // bad
+        }
+        ObjectMapper bad(ObjectMapper mapper) {
+            mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL); // bad
+            return mapper;
+        }
+    }
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>violation: many modify objectMapper</description>
+        <expected-problems>9</expected-problems>
+        <expected-linenumbers>7,9,16,17,18,19,21,28,29</expected-linenumbers>
+        <code><![CDATA[
+    import com.fasterxml.jackson.databind.ObjectMapper;
+    public class Foo {
+        private static final ObjectMapper staticObjectMapper = new ObjectMapper();
+        private final ObjectMapper mapperField = new ObjectMapper();
+
+        public Foo(ObjectMapper mpr) {
+            mpr.clearProblemHandlers(); // bad, modify
+            mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false); // good, initialize in ctor
+            staticObjectMapper.clearProblemHandlers(); // bad, static modified
+        }
+        public static ObjectMapper setupObjectMapper(Module... additionalModules) {
+            return setupObjectMapper(new ObjectMapper(), additionalModules);
+        }
+
+        public static ObjectMapper setupObjectMapper(ObjectMapper objectMapper, Module... additionalModules) {
+            objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);                  // bad, modify
+            objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false); // bad, modify
+            objectMapper.registerModule(javaTimeModule()); // bad, modify
+            objectMapper.clearProblemHandlers(); // bad, modify
+            for (Module module : additionalModules) {
+                objectMapper.registerModule(module); // bad, modify
+            }
+            DataValueConverter.setObjectMapper(objectMapper);
+            return objectMapper;
+        }
+
+        public static ObjectMapper setupObjectMapper() {
+            staticObjectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);           // bad, modify
+            staticObjectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false); // bad, modify
+        }
+    }
+     ]]></code>
+    </test-code>
+</test-data>
