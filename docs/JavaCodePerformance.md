@@ -626,6 +626,7 @@ Improper use of JSON and remoting
 they can be shared afterwards between requests and reused. So, an option is to reuse created and configured instances, from a static field. 
 Better is using and sharing ObjectReaders and ObjectWriters created from ObjectMapper since they are immutable and therefore guaranteed to be thread-safe.
 **Rule name:** ObjectMapperCreatedForEachMethodCall
+
 #### IUOJAR02
 
 **Observation: An existing ObjectMapper object is configured/modified.**  
@@ -656,10 +657,29 @@ is used. The new factory, new XPath, and the compiled expression are hard to cac
 **Problem:** Execution of the same code on the same expression is performed on every node retrieval, several times per user request. This takes CPU cycles, unnecessarily.  
 **Solution:** There is no easy solution, other than not using XPath. Caching in a ThreadLocal might be an option, however, this introduces some complexity.
 
-Example code `ThreadLocal` for `XPathFactory`:
+Example code using `ThreadLocal` for `XPathExpression`:
 
 ```java
-private static final ThreadLocal<XPath> parser = ThreadLocal.withInitial(() -> XPathFactory.newInstance().newXPath());
+class Bad {
+    public static NodeList bad(Document doc) {
+        XPath xpath = XPathFactory.newInstance().newXPath();
+        XPathExpression expr = xpath.compile("//book[author='Isaac Asimov']/title/text()"); // bad
+        return expr.evaluate(doc, XPathConstants.NODESET);
+    }
+}
+
+class Good {
+    private static final ThreadLocal<XPathFactory> tlFac = ThreadLocal.withInitial(XPathFactory::newInstance);
+    private static final ThreadLocal<XPathExpression> tlExpr;
+    static {
+        XPath xpath = tlFac.get().newXPath();
+        XPathExpression expr = xpath.compile("//book[author='Isaac Asimov']/title/text()"); // good
+        tlExpr = ThreadLocal.withInitial(expr); 
+    }
+    public static NodeList good(Document doc) {
+        return tlExpr.get().evaluate(doc, XPathConstants.NODESET); // good
+    }
+}
 ```
 
 #### UX03

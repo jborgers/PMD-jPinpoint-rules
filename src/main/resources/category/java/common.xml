@@ -282,7 +282,7 @@ ancestor::MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter/Va
         </properties>
         <example>
             <![CDATA[
-lass Bad {
+class Bad {
     public static final String STR_PAT1 = "[A-Z][a-z]+";
 
     public static void bad() {
@@ -314,13 +314,39 @@ class Good {
             <property name="version" value="1.0"/>
             <property name="xpath">
                 <value><![CDATA[
-//TypeDeclaration/ClassOrInterfaceDeclaration/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDeclaration
+//TypeDeclaration//ClassOrInterfaceBodyDeclaration/MethodDeclaration
 //PrimaryExpression/PrimaryPrefix/Name[ends-with(@Image,'.newXPath')]
 /ancestor::ClassOrInterfaceBodyDeclaration
 //PrimaryExpression/PrimaryPrefix/Name[ends-with(@Image, '.compile')]
 	]]></value>
             </property>
         </properties>
+        <example>
+            <![CDATA[
+class Bad {
+    public static NodeList bad(Document doc) {
+        XPath xpath = XPathFactory.newInstance().newXPath();
+        XPathExpression expr = xpath.compile("//book[author='Isaac Asimov']/title/text()"); // bad
+        return expr.evaluate(doc, XPathConstants.NODESET);
+    }
+}
+
+class Good {
+    private static final ThreadLocal<XPathFactory> tlFac = ThreadLocal.withInitial(XPathFactory::newInstance);
+    private static final ThreadLocal<XPathExpression> tlExpr;
+    static {
+        XPath xpath = tlFac.get().newXPath();
+        XPathExpression expr = xpath.compile("//book[author='Isaac Asimov']/title/text()"); // good
+        tlExpr = ThreadLocal.withInitial(expr); // good
+    }
+    public static NodeList good(Document doc) {
+        return tlExpr.get().evaluate(doc, XPathConstants.NODESET); // good
+    }
+}
+            ]]>
+        </example>
+
+
     </rule>
 
     <rule name="AvoidRecreatingDateTimeFormatter"

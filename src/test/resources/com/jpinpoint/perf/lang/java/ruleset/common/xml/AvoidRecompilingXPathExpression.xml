@@ -6,6 +6,7 @@
     <test-code>
         <description>Avoid recompilation of xpath expressions</description>
         <expected-problems>1</expected-problems>
+        <expected-linenumbers>31</expected-linenumbers>
         <code><![CDATA[
 package com.jpinpoint.perf.pinpointrules;
 
@@ -37,8 +38,7 @@ public class XPathUsageTest {
 
 		XPathFactory factory = XPathFactory.newInstance();
 		XPath xpath = factory.newXPath();
-		XPathExpression expr = xpath
-				.compile("//book[author='Isaac Asimov']/title/text()");
+		XPathExpression expr = xpath.compile("//book[author='Isaac Asimov']/title/text()"); // bad
 
 		Object result = expr.evaluate(doc, XPathConstants.NODESET);
 		NodeList nodes = (NodeList) result;
@@ -59,4 +59,51 @@ public class XPathUsageTest {
 }
      ]]></code>
     </test-code>
+
+    <test-code>
+        <description>no violation: Avoid recompiling xpath expression, other compile</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+public class GoodHere {
+    void otherCompile() {
+        MyCompiler.compile("stuff");
+    }
+}
+
+class MyCompiler {
+    static void compile(String s) {
+    }
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>no violation: Avoid recompiling xpath expression, bad and good example compile</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>6</expected-linenumbers>
+        <code><![CDATA[
+    class Bad {
+
+        public static NodeList bad(Document doc) {
+            XPathFactory factory = XPathFactory.newInstance();
+            XPath xpath = factory.newXPath();
+            XPathExpression expr = xpath.compile("//book[author='Isaac Asimov']/title/text()");
+            return expr.evaluate(doc, XPathConstants.NODESET);
+        }
+    }
+    class Good {
+        private static final ThreadLocal<XPathFactory> tlFac = ThreadLocal.withInitial(XPathFactory::newInstance);
+        private static final ThreadLocal<XPathExpression> tlExpr;
+        static {
+            XPath xpath = tlFac.get().newXPath();
+            XPathExpression expr = xpath.compile("//book[author='Isaac Asimov']/title/text()");
+            tlExpr = ThreadLocal.withInitial(expr); // good
+        }
+        public static NodeList good(Document doc) {
+            return tlExpr.get().evaluate(doc, XPathConstants.NODESET);
+        }
+    }
+    ]]></code>
+    </test-code>
+
 </test-data>
