@@ -112,4 +112,27 @@ class StaticLists {
 
         ]]></code>
     </test-code>
+
+    <test-code>
+        <description>violation: HashMap static field in enum</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>6</expected-linenumbers>
+        <code><![CDATA[
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+    enum Bad {
+        VAL1;
+        static final Map<String, Bad> STRING_TO_ENUM = new HashMap<>(); // bad
+    }
+    enum Good {
+        VAL1;
+        static final Map<String, Good> STRING_TO_ENUM; // good
+        static {
+            Map<String, Good> map = new HashMap<>();
+            STRING_TO_ENUM = Collections.unmodifiableMap(map);
+        }
+    }
+    ]]></code>
+    </test-code>
 </test-data>

@@ -128,7 +128,7 @@
 ])
 ,
 (: static field, non-guarded, some often used known collection/array types, allocation side:)
-(//ClassOrInterfaceDeclaration/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Static=true() and not (../Annotation//Name[@Image='GuardedBy'])]/
+(//ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Static=true() and not (../Annotation//Name[@Image='GuardedBy'])]/
 VariableDeclarator/VariableInitializer[((ArrayInitializer and count(ArrayInitializer/VariableInitializer) > 0)
 or Expression/PrimaryExpression/PrimaryPrefix/AllocationExpression[ArrayDimsAndInits and xs:int(ArrayDimsAndInits and (xs:int(ArrayDimsAndInits/Expression//Literal/@Image) > 0 or ArrayDimsAndInits/Expression//Name))]
 or Expression/PrimaryExpression/PrimaryPrefix/AllocationExpression[(pmd-java:typeIs('java.util.ArrayList') or pmd-java:typeIs('java.util.HashMap') or pmd-java:typeIs('java.util.HashSet'))]
@@ -148,6 +148,22 @@ ancestor::StatementExpression/PrimaryExpression/PrimaryPrefix/Name/@Image = ance
                 </value>
             </property>
         </properties>
+        <example>
+            <![CDATA[
+    enum Bad {
+        VAL1;
+        static final Map<String, Bad> STRING_TO_ENUM = new HashMap<>(); // bad
+    }
+    enum Good {
+        VAL1;
+        static final Map<String, Good> STRING_TO_ENUM; // good
+        static {
+            Map<String, Good> map = new HashMap<>();
+            STRING_TO_ENUM = Collections.unmodifiableMap(map);
+        }
+    }
+            ]]>
+        </example>
     </rule>
 
     <rule name="AvoidThreadUnsafeJaxbUsage" message="A JAXB Marshaller, Unmarshaller or Validator is used in a thread-unsafe way." class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" typeResolution="true" externalInfoUrl="${doc_root}/JavaCodePerformance.md#IUOXAR07">
