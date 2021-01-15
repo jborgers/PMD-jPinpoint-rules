@@ -1107,7 +1107,7 @@ and
 (: and either 1. toString is called in a chain after append :)
 ../../PrimarySuffix[@Image = 'toString'] or
 (: or 2. toString is called on the var in same block :)
-substring-before(@Image, '.') = substring-before(ancestor::Block//PrimaryPrefix/Name[ends-with(@Image, '.toString')]/@Image, '.'))
+concat(substring-before(@Image, '.'), '.toString') = ancestor::Block//PrimaryPrefix/Name[ends-with(@Image, '.toString')]/@Image)
 (: and not append on var used in inner block like a ForStatement :)
 and not(ancestor::Block//Block//PrimaryPrefix/Name[ends-with(@Image, '.append')])
 (: and var not passed as argument to method :)

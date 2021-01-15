@@ -119,4 +119,20 @@ public class Foo {
      ]]></code>
     </test-code>
 
+    <test-code>
+        <description>violation: more than one toString in method (issue #102: fails with error)</description>
+        <expected-problems>2</expected-problems>
+        <expected-linenumbers>5,6</expected-linenumbers>
+        <code><![CDATA[
+    class Foo {
+        public void bar() {
+            final String expiry = Long.toString(5);
+            final StringBuilder sasToken = new StringBuilder();
+            sasToken.append("a="); // bad
+            sasToken.append(expiry); // bad
+            sasToken.toString();
+        }
+    }
+        ]]></code>
+    </test-code>
 </test-data>
