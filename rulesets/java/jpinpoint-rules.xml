@@ -465,6 +465,7 @@ class Good {
             Solution: org.joda.time.format.DateTimeFormatter or Java 8 java.time.DateTimeFormatter is thread-safe and can be shared among threads. Create the
             formatter from a pattern only once, to initialize a static final field.
             (jpinpoint-rules)</description>
+        <priority>2</priority>
         <properties>
             <property name="version" value="2.0"/>
             <property name="xpath">
@@ -488,7 +489,6 @@ ancestor::MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter/Va
                 </value>
             </property>
         </properties>
-        <priority>2</priority>
     </rule>
 
     <rule name="AvoidReflectionInToStringAndHashCode" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="Reflection is used in toString or hashCode, which is expensive." typeResolution="true"
@@ -742,6 +742,7 @@ ClassOrInterfaceBodyDeclaration
             Problem: If equals and hashCode are not defined, they don't meet the programmer's expectations and the requirements for use with the collections API. It may result in unexpected, undesired behavior.&#13;
             Solution: Add proper equals and hashCode methods that meet the equals-hashCode contract to all objects which might anyhow be put in a Map, Set or other collection. If the object should never be checked for equality or used in a collection, also add those methods and let them throw UnsupportedOperationException to fail fast. @Xml... and @Entity objects are ignored because they are assumed to be not used as value objects.
             (jpinpoint-rules)</description>
+        <priority>3</priority>
         <properties>
             <property name="version" value="2.0"/>
             <property name="xpath">
@@ -785,7 +786,6 @@ count(ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDecla
                 </value>
             </property>
         </properties>
-        <priority>3</priority>
     </rule>
 
     <rule name="InconsistentEqualsAndHashCode" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="Equals and hashCode are not based on the same fields or use inconsistent conversion." typeResolution="true"
