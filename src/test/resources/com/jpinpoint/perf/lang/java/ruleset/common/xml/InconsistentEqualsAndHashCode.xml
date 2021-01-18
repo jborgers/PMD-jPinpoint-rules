@@ -250,4 +250,34 @@ class EqHashTryoutThis2 {
      ]]></code>
     </test-code>
 
+    <test-code>
+        <description>no violation: hashCode of field used, issue 105</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+public class BadFromIssue {
+    private String field1;
+    private String field2;
+
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        BadFromIssue that = (BadFromIssue) o;
+        return Objects.equals(field1, that.field1)
+        && Objects.equals(field2, that.field2);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = field1.hashCode();
+        result = 31 * result + field2.hashCode();
+        return result;
+    }
+}
+    ]]></code>
+    </test-code>
+
 </test-data>

@@ -856,7 +856,8 @@ public RetrieveCache(final @Value("${cache.expiryTimeSeconds}") long timeToLiveS
             <property name="xpath">
                 <value><![CDATA[
 //FieldDeclaration//VariableDeclaratorId[(@Name = ancestor::ClassOrInterfaceBody//MethodDeclaration[@Name='equals']/Block//(Name|PrimarySuffix)/@Image) !=
-(@Name = ancestor::ClassOrInterfaceBody//MethodDeclaration[@Name='hashCode']/Block//(Name|PrimarySuffix)/@Image)
+(@Name = ancestor::ClassOrInterfaceBody//MethodDeclaration[@Name='hashCode']/Block//(PrimarySuffix|Name)/@Image or
+concat(@Name, '.hashCode') = ancestor::ClassOrInterfaceBody//MethodDeclaration[@Name='hashCode']/Block//PrimaryPrefix/Name/@Image)
 ]
 ,
 //MethodDeclaration[@Name='equals']/Block//Name[ends-with(@Image, 'equalsIgnoreCase')]
