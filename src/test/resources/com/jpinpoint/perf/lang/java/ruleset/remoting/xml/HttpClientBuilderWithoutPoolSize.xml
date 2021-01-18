@@ -5,14 +5,29 @@
         xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
     <test-code>
         <description>violation: returning HttpClient without pool sizes set</description>
-        <expected-problems>2</expected-problems>
-        <expected-linenumbers>4,4</expected-linenumbers>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>4</expected-linenumbers>
         <code><![CDATA[
 import org.apache.http.impl.client.HttpClientBuilder;
 class Bad {
     public HttpClient bad(Object conMgr) {
         return HttpClientBuilder.create() // bad, missing setMaxConnPerRoute and setMaxConnTotal
-                .setConnectionManager(conMgr)
+                //.setConnectionManager(conMgr)
+                .build();
+    }
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>violation: returning HttpClient without pool sizes set</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import org.apache.http.impl.client.HttpClientBuilder;
+class Bad {
+    public HttpClient bad(Object conMgr) {
+        return HttpClientBuilder.create() // good, missing setMaxConnPerRoute and setMaxConnTotal, yet
+                .setConnectionManager(conMgr) // delegated to conMgr, should be set there
                 .build();
     }
 }
@@ -37,14 +52,14 @@ class Good {
 
     <test-code>
         <description>violation: HttpClient local built without pool sizes set</description>
-        <expected-problems>2</expected-problems>
-        <expected-linenumbers>4,4</expected-linenumbers>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>4</expected-linenumbers>
         <code><![CDATA[
 import org.apache.http.impl.client.HttpClientBuilder;
 class Bad {
     public HttpClient bad(Object conMgr) {
         HttpClient client = HttpClientBuilder.create() // bad
-                .setConnectionManager(conMgr)
+                //.setConnectionManager(conMgr)
                 .build(); // bad
         return client;
     }
@@ -72,15 +87,15 @@ class Bad {
 
     <test-code>
         <description>violation: HttpClients.custom local built without pool sizes set</description>
-        <expected-problems>2</expected-problems>
-        <expected-linenumbers>5,5</expected-linenumbers>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>5</expected-linenumbers>
         <code><![CDATA[
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 class Bad {
     public CloseableHttpClient bad(Object conMgr) {
         HttpClientBuilder httpClientBuilder = HttpClients.custom() // bad
-                .setConnectionManager(null)
+                //.setConnectionManager(null)
                 .setRetryHandler(null);
         return httpClientBuilder.build();
     }
@@ -96,7 +111,7 @@ import org.apache.http.impl.client.HttpClientBuilder;
 class Good {
     public CloseableHttpClient good(Object conMgr) {
         HttpClientBuilder httpClientBuilder = HttpClients.custom() // bad
-                .setConnectionManager(null)
+                //.setConnectionManager(null)
                 .setRetryHandler(null)
                 .setMaxConnPerRoute(MAX_CONNECTIONS_PER_ROUTE)
                 .setMaxConnTotal(MAX_CONNECTIONS_TOTAL);
@@ -108,8 +123,8 @@ class Good {
 
     <test-code>
         <description>violation: HttpClients.custom local built via param without pool sizes set</description>
-        <expected-problems>2</expected-problems>
-        <expected-linenumbers>4,4</expected-linenumbers>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>4</expected-linenumbers>
         <code><![CDATA[
 import org.apache.http.impl.client.HttpClients;
 class Bad {
@@ -187,8 +202,8 @@ class Good {
 
     <test-code>
         <description>violation: HttpAsyncClientBuilder formal param, and return created built without pool sizes set</description>
-        <expected-problems>2</expected-problems>
-        <expected-linenumbers>3,3</expected-linenumbers>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>3</expected-linenumbers>
         <code><![CDATA[
 import org.apache.http.impl.nio.client.HttpAsyncClientBuilder;
 class Bad {
@@ -202,8 +217,8 @@ class Bad {
 
     <test-code>
         <description>violation: PoolingHttpClientConnectionManager created without pool sizes set</description>
-        <expected-problems>2</expected-problems>
-        <expected-linenumbers>4,4</expected-linenumbers>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>4</expected-linenumbers>
         <code><![CDATA[
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 class Bad {
@@ -230,4 +245,34 @@ class Good {
    ]]></code>
     </test-code>
 
+    <test-code>
+        <description>no violation: PoolingHttpClientConnectionManager with pool sizes set, with HttpClients.setConnectionManager</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.impl.client.HttpClients;
+
+public class Good {
+
+    RestTemplate getHttpClient(final Integer maxConnections, final Integer maxConnectionsPerHost,
+                                 final Integer connectionTimeoutInMilliSeconds, final Integer readTimeoutInMilliSeconds, final SSLContext sslContext) {
+
+        PoolingHttpClientConnectionManager poolingHttpClientConnectionManager = getPoolingMgr();
+
+        RequestConfig requestConfig = RequestConfig.custom()
+                .setConnectTimeout(connectionTimeoutInMilliSeconds)
+                .setConnectionRequestTimeout(connectionTimeoutInMilliSeconds)
+                .setSocketTimeout(readTimeoutInMilliSeconds)
+                .build();
+
+        HttpClient httpClient = HttpClients.custom()
+                .setDefaultRequestConfig(requestConfig)
+                .setConnectionManager(poolingHttpClientConnectionManager)
+                .disableRedirectHandling()
+                .disableConnectionState()
+                .build();
+    }
+}
+   ]]></code>
+    </test-code>
 </test-data>

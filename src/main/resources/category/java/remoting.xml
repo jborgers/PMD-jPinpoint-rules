@@ -131,75 +131,45 @@ ancestor::MethodDeclaration//PrimarySuffix/@Image="disableConnectionState")]
 
     <rule name="HttpClientBuilderWithoutPoolSize" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="HttpClient builder is used and setMaxConnTotal and/or setMaxConnPerRoute is not called. HttpClient defaults of 2 per route and 20 max total are probably not right." typeResolution="true"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi03">
-        <description>Problem: default there are only 2 connections per route available. When two external calls are being made, a third thread requesting a connection must wait for free connection.&#13;
-            Solution: HttpClients should explicitly define the number of connections per route. If only one route is used make the max number of connections equal to conn per route. (jpinpoint-rules)</description>
+        <description>Problem: by default only 2 connections are available per route. When two external calls are being made, a third thread requesting a connection must wait for a free connection.&#13;
+            Solution: HttpClients should explicitly define the number of connections per route. If only one route is used, make the max number of connections equal to conn per route. (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
-(: locally created http client builder without setMaxConnTotal :)
+(: locally created http client builder without setMaxConnTotal/setMaxConnPerRoute :)
 //MethodDeclaration//PrimaryExpression/PrimaryPrefix/Name[
  (
    (pmd-java:typeIs('org.apache.http.impl.client.HttpClientBuilder') and @Image='HttpClientBuilder.create')
     or (pmd-java:typeIs('org.apache.http.impl.nio.client.HttpAsyncClientBuilder') and @Image='HttpAsyncClientBuilder.create')
     or (pmd-java:typeIs('org.apache.http.impl.client.HttpClients') and @Image='HttpClients.custom')
   )
-  and not(ancestor::MethodDeclaration//(PrimaryPrefix/Name|PrimarySuffix)[ends-with(@Image, 'setMaxConnTotal')])
+  and (count(ancestor::MethodDeclaration//(PrimaryPrefix/Name|PrimarySuffix)[ends-with(@Image, 'setMaxConnTotal') or ends-with(@Image, 'setMaxConnPerRoute')])<2
+    and not(ancestor::MethodDeclaration//(PrimaryPrefix/Name|PrimarySuffix)[ends-with(@Image, 'setConnectionManager')]))
 ]
 ,
-(: locally created http client builder without setMaxConnPerRoute :)
-//MethodDeclaration//PrimaryExpression/PrimaryPrefix/Name[
- (
-   (pmd-java:typeIs('org.apache.http.impl.client.HttpClientBuilder') and @Image='HttpClientBuilder.create')
-    or (pmd-java:typeIs('org.apache.http.impl.nio.client.HttpAsyncClientBuilder') and @Image='HttpAsyncClientBuilder.create')
-    or (pmd-java:typeIs('org.apache.http.impl.client.HttpClients') and @Image='HttpClients.custom')
-  )
- and not(ancestor::MethodDeclaration//(PrimaryPrefix/Name|PrimarySuffix)[ends-with(@Image, 'setMaxConnPerRoute')])
-]
-,
-(: method param http client builder without setMaxConnTotal :)
+(: method param http client builder without setMaxConnTotal/setMaxConnPerRoute :)
 //MethodDeclaration//FormalParameter//ClassOrInterfaceType[
  (
    pmd-java:typeIs('org.apache.http.impl.client.HttpClientBuilder')
    or pmd-java:typeIs('org.apache.http.impl.nio.client.HttpAsyncClientBuilder')
    or pmd-java:typeIs('org.apache.http.impl.client.HttpClients')
   )
-  and not(ancestor::MethodDeclaration//(PrimaryPrefix/Name|PrimarySuffix)[ends-with(@Image, 'setMaxConnTotal')])
+  and (count(ancestor::MethodDeclaration//(PrimaryPrefix/Name|PrimarySuffix)[ends-with(@Image, 'setMaxConnTotal') or ends-with(@Image, 'setMaxConnPerRoute')])<2
+       and not(ancestor::MethodDeclaration//(PrimaryPrefix/Name|PrimarySuffix)[ends-with(@Image, 'setConnectionManager')]))
 ]
 ,
-(: method param http client builder without setMaxConnPerRoute :)
-//MethodDeclaration//FormalParameter//ClassOrInterfaceType[
-  (
-   pmd-java:typeIs('org.apache.http.impl.client.HttpClientBuilder')
-   or pmd-java:typeIs('org.apache.http.impl.nio.client.HttpAsyncClientBuilder')
-   or pmd-java:typeIs('org.apache.http.impl.client.HttpClients')
-  )
-  and not(ancestor::MethodDeclaration//(PrimaryPrefix/Name|PrimarySuffix)[ends-with(@Image, 'setMaxConnPerRoute')])
-]
-,
-(: method param PoolingHttpClientConnectionManager without setMaxTotal :)
+(: method param PoolingHttpClientConnectionManager without setMaxTotal/setDefaultMaxPerRoute :)
 //MethodDeclaration//FormalParameter//ClassOrInterfaceType[
    pmd-java:typeIs('org.apache.http.impl.conn.PoolingHttpClientConnectionManager')
-   and not(ancestor::MethodDeclaration//(PrimaryPrefix/Name|PrimarySuffix)[ends-with(@Image, 'setMaxTotal')])
+   and count(ancestor::MethodDeclaration//(PrimaryPrefix/Name|PrimarySuffix)[ends-with(@Image, 'setMaxTotal') or ends-with(@Image, 'setDefaultMaxPerRoute')])<2
 ]
 ,
-(: method param PoolingHttpClientConnectionManager without setDefaultMaxPerRoute :)
-//MethodDeclaration//FormalParameter//ClassOrInterfaceType[
-   pmd-java:typeIs('org.apache.http.impl.conn.PoolingHttpClientConnectionManager')
-   and not(ancestor::MethodDeclaration//(PrimaryPrefix/Name|PrimarySuffix)[ends-with(@Image, 'setDefaultMaxPerRoute')])
-]
-,
-(: new PoolingHttpClientConnectionManager without setMaxTotal :)
+(: new PoolingHttpClientConnectionManager without setMaxTotal/setDefaultMaxPerRoute :)
 //MethodDeclaration//PrimaryExpression//ClassOrInterfaceType[
    pmd-java:typeIs('org.apache.http.impl.conn.PoolingHttpClientConnectionManager')
-   and not(ancestor::MethodDeclaration//(PrimaryPrefix/Name|PrimarySuffix)[ends-with(@Image, 'setMaxTotal')])
-]
-,
-(: method param PoolingHttpClientConnectionManager without setDefaultMaxPerRoute :)
-//MethodDeclaration//PrimaryExpression//ClassOrInterfaceType[
-   pmd-java:typeIs('org.apache.http.impl.conn.PoolingHttpClientConnectionManager')
-   and not(ancestor::MethodDeclaration//(PrimaryPrefix/Name|PrimarySuffix)[ends-with(@Image, 'setDefaultMaxPerRoute')])
+   and count(ancestor::MethodDeclaration//(PrimaryPrefix/Name|PrimarySuffix)[ends-with(@Image, 'setMaxTotal') or ends-with(@Image, 'setDefaultMaxPerRoute')])<2
 ]
 ]]>
                 </value>
