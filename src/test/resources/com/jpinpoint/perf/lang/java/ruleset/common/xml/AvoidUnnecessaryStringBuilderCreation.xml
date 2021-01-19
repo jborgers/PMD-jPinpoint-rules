@@ -135,4 +135,26 @@ public class Foo {
     }
         ]]></code>
     </test-code>
+    <test-code>
+        <description>violation: more than one StringBuilder in method (issue #106: fails with error)</description>
+        <expected-problems>4</expected-problems>
+        <expected-linenumbers>6,7,8,9</expected-linenumbers>
+        <code><![CDATA[
+    public class Foo {
+        public void bar(Foo bar) {
+            StringBuilder one = new StringBuilder();
+            StringBuilder two = new StringBuilder();
+
+            one.append("one");
+            one.append("one-two");
+            two.append("two");
+            two.append("two-two");
+
+            one.toString();
+            two.toString();
+        }
+    }
+        ]]></code>
+    </test-code>
+
 </test-data>

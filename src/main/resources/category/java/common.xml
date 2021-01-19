@@ -1099,10 +1099,10 @@ public class Good {
 /../../../PrimarySuffix[@Image = "toString"]/../PrimarySuffix[@Image = "append"][1] (: only report first append in chain :)
 |
 (: or :)
-(: append on builder var, where var is allocated as builder :)
+(: append on builder var, where var is allocated as StringBuilder :)
 //MethodDeclaration//Block//PrimaryPrefix/Name[ends-with(@Image, '.append') and starts-with(@Image,
 ancestor::Block//AllocationExpression/ClassOrInterfaceType[@Image="StringBuilder" or @Image = "StringBuffer"]
-/ancestor::VariableDeclarator/VariableDeclaratorId/@Name)
+/ancestor::VariableDeclarator/VariableDeclaratorId/@Name[0])
 and
 (
 (: and either 1. toString is called in a chain after append :)
