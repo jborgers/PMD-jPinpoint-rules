@@ -329,6 +329,35 @@ In Spring config:
 **Problem:** every access to the static data will take a remote call to the remote cache, serialization of data and possibly processing to an intermediate object like a Map to lookup e.g. a country. This means extra time is added the response time for the user.  
 **Solution:** Add a local, in process, by reference cache for high-performance; in addition to a remote cache. Ehcache is the most used local, in-process cache. Add a local cache in case of high load and you expect a significant hit ratio (say >20%) on the local cache. The redis cache enables scaling up of the calling service, it reduces load on the back-end and the local cache reduces load on the redis cache.
 
+#### IC13
+
+**Observation: A non-overridden Object.toString may be called on a spring KeyGenerator.generate method parameter.**  
+**Problem:** The non-overridden Object.toString returns a String representing the identity of the object. Because this is different for two objects with the same value, cache keys will be different and the cache will only have misses and no hits.  
+**Solution:** Cast the parameters each to the actual type  at call site and also check the expected number of params.   
+**Rule name:** AvoidIdentityCacheKeys   
+**Example:**   
+```java
+import org.springframework.cache.interceptor.KeyGenerator;
+import org.springframework.util.StringUtils;
+
+public class Bad implements KeyGenerator {
+    public Object generate(Object target, Method method, Object... params) {
+        List<Object> objArray = Arrays.asList(params);
+        return target.getClass().getName() + "_" + method.getName() + "_"
+                + StringUtils.arrayToDelimitedString(params, "_");  // bad, do not concatenate without casting
+    }
+}
+
+public class Good implements KeyGenerator {
+    public Object generate(Object target, Method method, Object... params) {
+        if (params.length != 1) {
+            throw new IllegalArgumentException("KeyGenerator for GetProfileCache assumes 1 parameter 'profileId', found: " + params);
+        }
+        String profileId = (String)params[0];
+        return profileId;
+    }
+}
+```
 Too much session usage
 ----------------------
 

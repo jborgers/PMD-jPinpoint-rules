@@ -2411,6 +2411,52 @@ class Bad1 {
         </example>
     </rule>
 
+    <rule name="AvoidIdentityCacheKeys" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
+          message="Avoid identity cache keys by casting the generate method parameters" typeResolution="true"
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#ic13">
+        <description>A non-overridden Object.toString may be called on a spring KeyGenerator.generate method parameter. Problem: The non-overridden Object.toString returns a String representing the identity of the object.
+            Because this is different for two objects with the same value, cache keys will be different and the cache will only have misses and no hits.&#13;
+            Solution: Cast the parameters each to the type used at call site and also check the expected number of params.
+            (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+//ImplementsList/ClassOrInterfaceType[pmd-java:typeIs("org.springframework.cache.interceptor.KeyGenerator")]
+/../..//MethodDeclaration[@Name='generate']
+/Block//BlockStatement//(ReturnStatement|LocalVariableDeclaration//VariableInitializer)/Expression[count(.//CastExpression)=0]//PrimaryExpression[PrimaryPrefix/Name/@Image
+= ancestor::MethodDeclaration//FormalParameter[3]/VariableDeclaratorId/@Name
+]
+	]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+import org.springframework.cache.interceptor.KeyGenerator;
+import org.springframework.util.StringUtils;
+
+public class Bad implements KeyGenerator {
+    public Object generate(Object target, Method method, Object... params) {
+        List<Object> objArray = Arrays.asList(params);
+        return target.getClass().getName() + "_" + method.getName() + "_"
+                + StringUtils.arrayToDelimitedString(params, "_");  // bad, do not concatenate without casting
+    }
+}
+
+public class Good implements KeyGenerator {
+    public Object generate(Object target, Method method, Object... params) {
+        if (params.length != 1) {
+            throw new IllegalArgumentException("KeyGenerator for GetProfileCache assumes 1 parameter 'profileId', found: " + params);
+        }
+        String profileId = (String)params[0];
+        return profileId;
+    }
+}
+            ]]>
+        </example>
+    </rule>
+
     <rule name="AvoidImproperAnnotationCombinations"
           language="java"
           message="Don't combine these annotations"

@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>no violation: KeyGenerator with casting params </description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import org.springframework.cache.interceptor.KeyGenerator;
+import org.springframework.util.StringUtils;
+
+class KeyGenerationGood implements KeyGenerator {
+    public Object generate(Object target, Method method, Object... params) {
+        List<String> strArray = Arrays.asList((String[])params);
+        return target.getClass().getName() + "_" + method.getName() + "_"
+                + String.join("_", strArray);  // good, has been casted
+    }
+}
+
+class KeyGenerationMyServiceGood implements KeyGenerator {
+    public Object generate(Object target, Method method, Object... params) {
+        if (params.length != 2) {
+            throw new IllegalArgumentException("KeyGenerationMyServiceGood assumed 2 arguments");
+        }
+        return "MyService_" + method.getName() + "_" + (String)params[0] + "_" + (Integer)params[1];
+    }
+}
+
+public class GetAddressKeyGeneratorGood implements KeyGenerator {
+    @Override
+    public Object generate(Object o, Method method, Object... objects) {
+        return GET_ADDRESS_CACHE + (String)objects[0];
+    }
+}
+]]></code>
+    </test-code>
+
+    <test-code>
+        <description>violation: return concatenated Object array</description>
+        <expected-problems>2</expected-problems>
+        <expected-linenumbers>6,8</expected-linenumbers>
+        <code><![CDATA[
+import org.springframework.cache.interceptor.KeyGenerator;
+import org.springframework.util.StringUtils;
+
+public class Bad implements KeyGenerator {
+    public Object generate(Object target, Method method, Object... params) {
+        List<Object> objArray = Arrays.asList(params); // bad, casting needed
+        return target.getClass().getName() + "_" + method.getName() + "_"
+                + StringUtils.arrayToDelimitedString(params, "_");  // bad, do not concatenate without casting
+    }
+}
+
+]]></code>
+    </test-code>
+
+    <test-code>
+        <description>violation: define and then return concatenated Object array</description>
+        <expected-problems>2</expected-problems>
+        <expected-linenumbers>6,8</expected-linenumbers>
+        <code><![CDATA[
+import org.springframework.cache.interceptor.KeyGenerator;
+import org.springframework.util.StringUtils;
+
+public class KeyGenerationBad2 implements KeyGenerator {
+    public Object generate(Object target, Method method, Object... params) {
+        List<Object> objArray = Arrays.asList(params); // bad, casting needed
+        Object result = target.getClass().getName() + "_" + method.getName() + "_"
+                + StringUtils.arrayToDelimitedString(params, "_");  // bad, do not concatenate
+        return result;
+    }
+}
+]]></code>
+    </test-code>
+
+    <test-code>
+        <description>violation: define and then return concatenated Object array</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>6</expected-linenumbers>
+        <code><![CDATA[
+import org.springframework.cache.interceptor.KeyGenerator;
+import org.springframework.util.StringUtils;
+
+public class GetAddressKeyGeneratorBad implements KeyGenerator {
+    public Object generate(Object o, Method method, Object... objects) {
+        return GET_ADDRESS_CACHE + objects[0]; // bad - casting needed
+    }
+}
+
+]]></code>
+    </test-code>
+</test-data>
