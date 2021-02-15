@@ -209,14 +209,14 @@ class Bad2 {
 #### IEAH04
 
 **Observation: A field simply assigned to is missing in the equals method**  
-**Problem:**  If a field which can be assigned separately (independent of other fields) is missing in the equals method, then changing the field in one object has no effect on the equality with another object.
-However, if a field of one of two equal objects is changed, the expectation is that they are no longer equal.  
+**Problem:**  If a field which can be assigned separately (independent of other fields) is missing in the equals method, then changing that field in one object has no effect on the equality with another object.
+However, if a field of one of two equal objects is changed, the expectation is that they are no longer equal. In other words, objects are typically only considered equal when all their fields have equal values. 
 **Solution:** include the missing field in the equals and hashCode method.  
 **Examples:**
 ````java
 class Bad1 {
     String field1;
-    String field2; // bad, missing in equals
+    String final field2; // bad, missing in equals
 
     public Bad1(String arg2) {
         field2 = arg2;
