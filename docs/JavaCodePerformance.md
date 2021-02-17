@@ -59,31 +59,30 @@ The most important factor of application performance is the number of back-end s
 #### IBI03
 
 **Observation: The HTTP connection manager uses the default maximum connections per route.**  
-**Problem:** The default maximum connections per route is by default set to 2. This throttles the number of connections to the back-end usually much more than required, such that many requests have to wait for a connection and response times get much higher than needed.The connection timeout is usually set to a low number (e.g. 300 ms), in that case connection timeout exceptions will occur.  
-**Solution:** Set the default maximum connections per route to a higher number, e.g. 20. Also increase the Max Total to at least the DefaultMaxPerRoute or a multiple in case of multiple routes. Example for only one host:
+**Problem:** The default maximum connections per route is by default set to 2. This throttles the number of connections to the back-end usually much more than required, 
+such that many requests have to wait for a connection and response times get much higher than needed.
+The connection timeout is usually set to a low number (e.g. 300 ms), in that case connection timeout exceptions will occur.  
+**Solution:** Set the default maximum connections per route to a higher number, e.g. 20. 
+Also increase the Max Total to at least the DefaultMaxPerRoute or a multiple in case of multiple routes.  
+**Example** for only one host. Can be done in two ways:
 
-can be done via `HttpClients` builder directly:
+* via the `PoolingHttpClientConnectionManager`:
+```java
+PoolingHttpClientConnectionManager connMgr = new PoolingHttpClientConnectionManager();
+connMgr.setMaxTotal(maxConnections);
+connMgr.setDefaultMaxPerRoute(maxConnections);
 
+CloseableHttpClient httpClient = HttpClients.custom()
+    .setConnectionManager(connMgr)
+    .build();
+```
+* or directly on the client via e.g. `HttpClients` builder:
 ```java
 CloseableHttpClient httpClient = HttpClients.custom()
     .setMaxConnPerRoute(MAX_CONNECTIONS_PER_ROUTE)
     .setMaxConnTotal(MAX_CONNECTIONS_TOTAL)
     .build();
 ```
-
-or optionally via the `PoolingHttpClientConnectionManager`:
-
-```java
-PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
-cm.setMaxTotal(maxConnections);
-cm.setDefaultMaxPerRoute(maxConnections);
-
-CloseableHttpClient httpClient = HttpClients.custom()
-    .setConnectionManager(cm)
-    .build();
-
-```
-
 or for asynchronous connections using nio:
 
 ```java
@@ -169,14 +168,17 @@ For more information, see [httpclient-connection-management](https://www.baeldun
 
 #### IBI09  
 **Observation: HttpClient builder is used with a ConnectionManager and setMaxConnTotal and/or setMaxConnPerRoute is called on the client.**  
-**Problem:** If you use setConnectionManager, the connection pool settings must be set on that Connection Manager. Settings on the client are ignored and lost. It is confusing and a source of errors. 
-**Solution:** HttpClients should either 1. not use a ConnectionManager and configure the connection pool on the client or 2. use a Connection Manager and *only* configure the pool on the connection manager. 
-So, if you use a Connection Manager, remove the setMaxConnTotal and setMaxConnPerRoute calls on the HttpClient.
+**Problem:** If you use setConnectionManager, the connection pool must be configured on that Connection Manager. Pool settings on the client are ignored and lost. This is confusing and a source of errors. 
+**Solution:** HttpClients should either:
+1. use setConnectionManager and *only* configure the pool on the connection manager or 
+2. not use a ConnectionManager and configure the connection pool on the client.   
+
+So, if you use a Connection Manager, remove the setMaxConnTotal and setMaxConnPerRoute calls on the HttpClient.  
 **Rule name:** HttpClientBuilderPoolSettingsIgnored  
 **Example:**  
 ```java
         return HttpClientBuilder.create()
-                .setConnectionManager(conMgr)
+                .setConnectionManager(connMgr)
                 .setMaxConnPerRoute(MAX_CONNECTIONS_TOTAL) // bad, ignored
                 .build();
 
@@ -186,7 +188,7 @@ So, if you use a Connection Manager, remove the setMaxConnTotal and setMaxConnPe
                 .build();
 
         return HttpClientBuilder.create() // good
-                .setConnectionManager(conMgr)
+                .setConnectionManager(connMgr)
                 .build();
 ```
 

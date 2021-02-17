@@ -129,10 +129,12 @@ ancestor::MethodDeclaration//PrimarySuffix/@Image="disableConnectionState")]
         </properties>
     </rule>
 
-    <rule name="HttpClientBuilderWithoutPoolSize" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="HttpClient builder is used and setMaxConnTotal and/or setMaxConnPerRoute is not called. HttpClient defaults of 2 per route and 20 max total are probably not right." typeResolution="true"
+    <rule name="HttpClientBuilderWithoutPoolSize" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
+          message="HttpClient builder is used and the connection pool is not configured. HttpClient defaults of 2 per route and 20 max total are probably not right." typeResolution="true"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi03">
         <description>Problem: by default only 2 connections are available per route. When two external calls are being made, a third thread requesting a connection must wait for a free connection.&#13;
-            Solution: HttpClients should explicitly define the number of connections per route. If only one route is used, make the max number of connections equal to conn per route. (jpinpoint-rules)</description>
+            Solution: HttpClients should explicitly define the number of connections per route. If only one route is used, make the max number of connections equal to conn per route.
+            Either use 1. setConnectionManager and call setMaxTotal and setDefaultMaxPerRoute on that connection manager, or 2. no ConnectionManager: call setMaxConnTotal and setMaxConnPerRoute on the client directly. (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
             <property name="version" value="2.0"/>
@@ -196,8 +198,9 @@ ancestor::MethodDeclaration//PrimarySuffix/@Image="disableConnectionState")]
     <rule name="HttpClientBuilderPoolSettingsIgnored" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
           message="HttpClient builder is used with a ConnectionManager and MaxConn settings on the client are ignored. Remove them." typeResolution="true"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi09">
-        <description>Problem: If you use setConnectionManager, the connection pool settings must be set on that Connection Manager. Settings on the client are ignored and lost. &#13;
-            Solution: HttpClients should either 1. not use a ConnectionManager and configure the connection pool on the client or 2. use a Connection Manager and *only* configure the pool on the connection manager.  (jpinpoint-rules)</description>
+        <description>Problem: If you use setConnectionManager, the connection pool must be configured on that Connection Manager. Pool settings on the client are ignored and lost. &#13;
+            Solution: HttpClients should either 1. use setConnectionManager and *only* call setMaxTotal and setDefaultMaxPerRoute on that ConnectionManager or
+            2. not use a ConnectionManager and call setMaxConnTotal and setMaxConnPerRoute on the client directly (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
             <property name="version" value="2.0"/>
