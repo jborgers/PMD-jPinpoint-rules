@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>violation: returning HttpClient with setConnectionManager, settings on the builder are ignored and lost.</description>
+        <expected-problems>2</expected-problems>
+        <expected-linenumbers>6,7</expected-linenumbers>
+        <code><![CDATA[
+import org.apache.http.impl.client.HttpClientBuilder;
+class Bad {
+    public HttpClient bad(Object conMgr) {
+        HttpClient client = HttpClientBuilder.create()
+                .setConnectionManager(conMgr)
+                .setMaxConnPerRoute(MAX_CONNECTIONS_PER_ROUTE) // setter ignored, bad
+                .setMaxConnTotal(MAX_CONNECTIONS_TOTAL) // setter ignored, bad
+                .build();
+        return client;
+    }
+}
+    ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>violation: returning HttpClient with Conn Mgr set</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>6</expected-linenumbers>
+        <code><![CDATA[
+import org.apache.http.impl.client.HttpClientBuilder;
+class Bad {
+   public HttpClient bad(Object conMgr) {
+        return HttpClientBuilder.create().setConnectionManager(conMgr)
+                //.setMaxConnPerRoute(MAX_CONNECTIONS_PER_ROUTE)
+                .setMaxConnTotal(MAX_CONNECTIONS_TOTAL) // bad
+                .build();
+    }
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>no violation: returning HttpClient with pool sizes set</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import org.apache.http.impl.client.HttpClientBuilder;
+class Good {
+    public HttpClient good(Object conMgr) {
+        return HttpClientBuilder.create()
+                .setMaxConnPerRoute(MAX_CONNECTIONS_PER_ROUTE)
+                .setMaxConnTotal(MAX_CONNECTIONS_TOTAL)
+                .build();
+    }
+}
+     ]]></code>
+    </test-code>
+    <test-code>
+        <description>no violation: returning HttpClient with assymed pool sizes set through Connection Manager </description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import org.apache.http.impl.client.HttpClientBuilder;
+class Good {
+    public HttpClient good(Object conMgr) {
+        return HttpClientBuilder.create()
+                .setConnectionManager(conMgr)
+                .build();
+    }
+}
+     ]]></code>
+    </test-code>
+</test-data>

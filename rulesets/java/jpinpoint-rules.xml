@@ -2220,6 +2220,58 @@ MethodDeclaration//LocalVariableDeclaration/Type/ReferenceType/ClassOrInterfaceT
         </properties>
     </rule>
 
+    <rule name="HttpClientBuilderPoolSettingsIgnored" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
+          message="HttpClient builder is used with a ConnectionManager and setMaxConnTotal and/or setMaxConnPerRoute is called on the client." typeResolution="true"
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#ibi09">
+        <description>Problem: If you use setConnectionManager, the connection pool settings must be set on that Connection Manager. Settings on the client are ignored and lost. &#13;
+            Solution: HttpClients should either 1. not use a ConnectionManager and configure the connection pool on the client or 2. use a Connection Manager and *only* configure the pool on the connection manager.  (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+(: locally created http client builder with setConnectionManager and at least one of setMaxConnTotal/setMaxConnPerRoute :)
+//MethodDeclaration//PrimaryExpression/PrimaryPrefix/Name[
+ (
+   (pmd-java:typeIs('org.apache.http.impl.client.HttpClientBuilder') and @Image='HttpClientBuilder.create')
+    or (pmd-java:typeIs('org.apache.http.impl.nio.client.HttpAsyncClientBuilder') and @Image='HttpAsyncClientBuilder.create')
+    or (pmd-java:typeIs('org.apache.http.impl.client.HttpClients') and @Image='HttpClients.custom')
+  )
+  and ancestor::MethodDeclaration//(PrimaryPrefix/Name|PrimarySuffix)[ends-with(@Image, 'setConnectionManager')]
+]/ancestor::MethodDeclaration//(PrimaryPrefix/Name|PrimarySuffix)[ends-with(@Image, 'setMaxConnTotal') or ends-with(@Image, 'setMaxConnPerRoute')]
+,
+(: method param http client builder setConnectionManager and at least one of setMaxConnTotal/setMaxConnPerRoute :)
+//MethodDeclaration//FormalParameter//ClassOrInterfaceType[
+ (
+   pmd-java:typeIs('org.apache.http.impl.client.HttpClient')
+   or pmd-java:typeIs('org.apache.http.impl.nio.client.HttpAsyncClientBuilder')
+   or pmd-java:typeIs('org.apache.http.impl.client.HttpClients')
+  )
+  and not(ancestor::MethodDeclaration//(PrimaryPrefix/Name|PrimarySuffix)[ends-with(@Image, 'setConnectionManager')])
+]/ancestor::MethodDeclaration//(PrimaryPrefix/Name|PrimarySuffix)[ends-with(@Image, 'setMaxConnTotal') or ends-with(@Image, 'setMaxConnPerRoute')]
+]]>
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+        return HttpClientBuilder.create()
+                .setConnectionManager(conMgr)
+                .setMaxConnPerRoute(MAX_CONNECTIONS_TOTAL) // bad, ignored
+                .build();
+
+        return HttpClientBuilder.create() // good
+                .setMaxConnPerRoute(MAX_CONNECTIONS_TOTAL)
+                .setMaxConnTotal(MAX_CONNECTIONS_TOTAL)
+                .build();
+
+        return HttpClientBuilder.create() // good
+                .setConnectionManager(conMgr)
+                .build();
+            ]]>
+        </example>
+    </rule>
+
     <rule name="HttpClientBuilderWithoutDisableConnectionState" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="A HttpClient builder is used and disableConnectionState is not called. HTTP client tracks connection state while using TLS" typeResolution="true"
           externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#ibi07">
         <description>Problem: NTLM authenticated connections and SSL/TLS connections with client certificate authentication are stateful: they have a specific user identity/security context per session. If HttpClients have enabled connection state tracking which is the default, established TLS connections will not be reused because it is assumed that the user identity or security context may differ.
@@ -2293,13 +2345,17 @@ ancestor::MethodDeclaration//PrimarySuffix/@Image="disableConnectionState")]
         </properties>
         <example>
             <![CDATA[
-        return HttpClientBuilder.create() // bad, missing setMaxConnPerRoute and setMaxConnTotal
-                .setConnectionManager(conMgr)
+        return HttpClientBuilder.create() // bad, missing setMaxConnPerRoute/setMaxConnTotal or setConnectionManager
+                .disableConnectionState()
                 .build();
 
-        return HttpClientBuilder.create() // good, both setMaxConnPerRoute and setMaxConnTotal called
+        return HttpClientBuilder.create() // good, both setMaxConnPerRoute and setMaxConnTotal called on client
                 .setMaxConnPerRoute(MAX_CONNECTIONS_TOTAL)
                 .setMaxConnTotal(MAX_CONNECTIONS_TOTAL)
+                .build();
+
+        return HttpClientBuilder.create() // good, setConnectionManager called, pool config delegated
+                .setConnectionManager(conMgr)
                 .build();
             ]]>
         </example>

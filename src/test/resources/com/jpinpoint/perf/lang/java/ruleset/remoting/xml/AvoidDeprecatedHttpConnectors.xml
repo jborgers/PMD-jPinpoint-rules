@@ -6,7 +6,7 @@
     <test-code>
         <description>violation: Avoid the use of deprecated HttpConnectors</description>
         <expected-problems>8</expected-problems>
-        <expected-linenumbers>1,2,3,24,24,25,25,28</expected-linenumbers>
+        <expected-linenumbers>1,2,3,27,27,28,28,31</expected-linenumbers>
         <code><![CDATA[
 import org.apache.commons.httpclient.SimpleHttpConnectionManager; //bad
 import org.apache.http.conn.ClientConnectionManager; //bad
@@ -21,6 +21,9 @@ Deprecated:
   - DefaultHttpClient
   - SystemDefaultHttpClient
   - PoolingClientConnectionManager;
+
+  to add:
+  - org.apache.commons.httpclient.MultiThreadedHttpConnectionManager
 
 Risk of session data mixup:
 

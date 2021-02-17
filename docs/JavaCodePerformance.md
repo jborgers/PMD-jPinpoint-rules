@@ -75,8 +75,13 @@ or optionally via the `PoolingHttpClientConnectionManager`:
 
 ```java
 PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
-cm.setMaxTotal(maxFileTransferConnections);
-cm.setDefaultMaxPerRoute(maxFileTransferConnections);
+cm.setMaxTotal(maxConnections);
+cm.setDefaultMaxPerRoute(maxConnections);
+
+CloseableHttpClient httpClient = HttpClients.custom()
+    .setConnectionManager(cm)
+    .build();
+
 ```
 
 or for asynchronous connections using nio:
@@ -116,6 +121,7 @@ See: [Monix Best Practice](https://monix.io/docs/2x/best-practices/blocking.html
 **Problem:** Several HTTP client connection managers are thread-unsafe which may cause session data mix-up or have other issues for which they were made deprecated. Highest risk of session data mixup: SimpleHttpConnectionManager.  
 Other deprecated ones to remove: SimpleHttpConnectionManager, ClientConnectionManager, PoolingClientConnectionManager, ThreadSafeClientConnManager, SingleClientConnManager, DefaultHttpClient, SystemDefaultHttpClient and ClientConnectionManager.  
 **Solution:** Use org.apache.http.impl.conn.PoolingHttpClientConnectionManager and org.apache.http.impl.client.HttpClientBuilder., see Apache doc: [connection management](http://hc.apache.org/httpcomponents-client-ga/tutorial/html/connmgmt.html#d5e639).
+**Rule name:** AvoidDeprecatedHttpConnectors.
 
 #### IBI07
 
@@ -160,6 +166,29 @@ Example (correct):
     }    
 ```
 For more information, see [httpclient-connection-management](https://www.baeldung.com/httpclient-connection-management)   
+
+#### IBI09  
+**Observation: HttpClient builder is used with a ConnectionManager and setMaxConnTotal and/or setMaxConnPerRoute is called on the client.**  
+**Problem:** If you use setConnectionManager, the connection pool settings must be set on that Connection Manager. Settings on the client are ignored and lost. It is confusing and a source of errors. 
+**Solution:** HttpClients should either 1. not use a ConnectionManager and configure the connection pool on the client or 2. use a Connection Manager and *only* configure the pool on the connection manager. 
+So, if you use a Connection Manager, remove the setMaxConnTotal and setMaxConnPerRoute calls on the HttpClient.
+**Rule name:** HttpClientBuilderPoolSettingsIgnored  
+**Example:**  
+```java
+        return HttpClientBuilder.create()
+                .setConnectionManager(conMgr)
+                .setMaxConnPerRoute(MAX_CONNECTIONS_TOTAL) // bad, ignored
+                .build();
+
+        return HttpClientBuilder.create() // good
+                .setMaxConnPerRoute(MAX_CONNECTIONS_TOTAL)
+                .setMaxConnTotal(MAX_CONNECTIONS_TOTAL)
+                .build();
+
+        return HttpClientBuilder.create() // good
+                .setConnectionManager(conMgr)
+                .build();
+```
 
 Improper caching  
 -------------------
