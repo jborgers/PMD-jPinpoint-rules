@@ -194,7 +194,7 @@ ancestor::MethodDeclaration//PrimarySuffix/@Image="disableConnectionState")]
     </rule>
 
     <rule name="HttpClientBuilderPoolSettingsIgnored" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
-          message="HttpClient builder is used with a ConnectionManager and setMaxConnTotal and/or setMaxConnPerRoute is called on the client." typeResolution="true"
+          message="HttpClient builder is used with a ConnectionManager and setMaxConn settings on the client are ignored. Remove them." typeResolution="true"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi09">
         <description>Problem: If you use setConnectionManager, the connection pool settings must be set on that Connection Manager. Settings on the client are ignored and lost. &#13;
             Solution: HttpClients should either 1. not use a ConnectionManager and configure the connection pool on the client or 2. use a Connection Manager and *only* configure the pool on the connection manager.  (jpinpoint-rules)</description>
