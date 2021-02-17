@@ -118,8 +118,8 @@ See: [Monix Best Practice](https://monix.io/docs/2x/best-practices/blocking.html
 
 **Observation: Deprecated or thread-unsafe HTTP connectors are used.**  
 **Problem:** Several HTTP client connection managers are thread-unsafe which may cause session data mix-up or have other issues for which they were made deprecated. Highest risk of session data mixup: SimpleHttpConnectionManager.  
-Other deprecated ones to remove: SimpleHttpConnectionManager, ClientConnectionManager, PoolingClientConnectionManager, ThreadSafeClientConnManager, SingleClientConnManager, DefaultHttpClient, SystemDefaultHttpClient and ClientConnectionManager.  
-**Solution:** Use org.apache.http.impl.conn.PoolingHttpClientConnectionManager and org.apache.http.impl.client.HttpClientBuilder., see Apache doc: [connection management](http://hc.apache.org/httpcomponents-client-ga/tutorial/html/connmgmt.html#d5e639).
+Other deprecated ones to remove: SimpleHttpConnectionManager, ClientConnectionManager, PoolingClientConnectionManager, ThreadSafeClientConnManager, SingleClientConnManager, DefaultHttpClient, SystemDefaultHttpClient, ClientConnectionManager, MultiThreadedHttpConnectionManager, HttpClient constructor.  
+**Solution:** Use org.apache.http.impl.conn.PoolingHttpClientConnectionManager and org.apache.http.impl.client.HttpClientBuilder., see Apache doc: [connection management](http://hc.apache.org/httpcomponents-client-ga/tutorial/html/connmgmt.html#d5e639).  
 **Rule name:** AvoidDeprecatedHttpConnectors.
 
 #### IBI07

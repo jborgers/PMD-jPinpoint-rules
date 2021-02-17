@@ -5,13 +5,14 @@
         xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
     <test-code>
         <description>violation: Avoid the use of deprecated HttpConnectors</description>
-        <expected-problems>8</expected-problems>
-        <expected-linenumbers>1,2,3,27,27,28,28,31</expected-linenumbers>
+        <expected-problems>11</expected-problems>
+        <expected-linenumbers>1,2,3,4,26,26,27,27,28,31,32</expected-linenumbers>
         <code><![CDATA[
 import org.apache.commons.httpclient.SimpleHttpConnectionManager; //bad
 import org.apache.http.conn.ClientConnectionManager; //bad
 import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager; //bad
-
+import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager; // bad
+import org.apache.commons.httpclient.HttpClient;
 /*
 Deprecated:
 
@@ -20,10 +21,8 @@ Deprecated:
   - ThreadSafeClientConnManager
   - DefaultHttpClient
   - SystemDefaultHttpClient
-  - PoolingClientConnectionManager;
-
-  to add:
-  - org.apache.commons.httpclient.MultiThreadedHttpConnectionManager
+  - PoolingClientConnectionManager
+  - MultiThreadedHttpConnectionManager
 
 Risk of session data mixup:
 
@@ -36,9 +35,11 @@ public class Foo {
 
     private SimpleHttpConnectionManager simple = new SimpleHttpConnectionManager(); // bad: 2x
     ClientConnectionManager mgr = new ThreadSafeClientConnManager(); // bad: 2x
+    MultiThreadedHttpConnectionManager other; // bad 1x
 
     private AvoidDeprecatedHttpConnectors() {
         new SimpleHttpConnectionManager(); // bad
+        final HttpClient client = new HttpClient(params, cm); // bad - difficult to test because of incompatible api change from 3.1 to 4.X
     }
 }
      ]]></code>

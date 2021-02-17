@@ -2069,7 +2069,7 @@ class SingletonGood {
         Solutions: Use org.apache.http.impl.conn.PoolingHttpClientConnectionManager and org.apache.http.impl.client.HttpClientBuilder. (jpinpoint-rules)</description>
     <priority>2</priority>
     <properties>
-        <property name="version" value="1.0"/>
+        <property name="version" value="2.0"/>
         <property name="xpath">
             <value><![CDATA[
 //ImportDeclaration/Name[@Image='org.apache.commons.httpclient.SimpleHttpConnectionManager'
@@ -2080,34 +2080,38 @@ or @Image='org.apache.http.impl.conn.SingleClientConnManager'
 or @Image='org.apache.http.impl.client.DefaultHttpClient'
 or @Image='org.apache.http.impl.client.SystemDefaultHttpClient'
 or @Image='org.apache.http.conn.ClientConnectionManager'
+or @Image='org.apache.commons.httpclient.MultiThreadedHttpConnectionManager'
 ]
 |
-//TypeDeclaration//ClassOrInterfaceDeclaration//ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration/
-Type/ReferenceType/ClassOrInterfaceType[typeIs('org.apache.commons.httpclient.SimpleHttpConnectionManager')
-or typeIs('org.apache.http.conn.ClientConnectionManager')
-or typeIs('org.apache.http.impl.conn.PoolingClientConnectionManager')
-or typeIs('org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager')
-or typeIs('org.apache.http.impl.conn.SingleClientConnManager')
-or typeIs('org.apache.http.impl.client.DefaultHttpClient')
-or typeIs('org.apache.http.impl.client.SystemDefaultHttpClient')
-or typeIs('org.apache.http.conn.ClientConnectionManager')
+//ClassOrInterfaceType[pmd-java:typeIs('org.apache.commons.httpclient.SimpleHttpConnectionManager')
+or pmd-java:typeIs('org.apache.http.conn.ClientConnectionManager')
+or pmd-java:typeIs('org.apache.http.impl.conn.PoolingClientConnectionManager')
+or pmd-java:typeIs('org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager')
+or pmd-java:typeIs('org.apache.http.impl.conn.SingleClientConnManager')
+or pmd-java:typeIs('org.apache.http.impl.client.DefaultHttpClient')
+or pmd-java:typeIs('org.apache.http.impl.client.SystemDefaultHttpClient')
+or pmd-java:typeIs('org.apache.http.conn.ClientConnectionManager')
+or pmd-java:typeIs('org.apache.commons.httpclient.MultiThreadedHttpConnectionManager')
 ]
 |
-//TypeDeclaration//ClassOrInterfaceDeclaration//ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration/
-VariableDeclarator/VariableInitializer/Expression//AllocationExpression/ClassOrInterfaceType[
-typeIs('org.apache.http.conn.ClientConnectionManager')
-or typeIs('org.apache.http.impl.conn.PoolingClientConnectionManager')
-or typeIs('org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager')
-or typeIs('org.apache.http.impl.conn.SingleClientConnManager')
-or typeIs('org.apache.http.impl.client.DefaultHttpClient')
-or typeIs('org.apache.http.impl.client.SystemDefaultHttpClient')
-or typeIs('org.apache.http.conn.ClientConnectionManager')
+//AllocationExpression[pmd-java:typeIs('org.apache.commons.httpclient.HttpClient')
 ]
-|
-//AllocationExpression/ClassOrInterfaceType[typeIs('org.apache.commons.httpclient.SimpleHttpConnectionManager')]
 		     ]]></value>
         </property>
     </properties>
+        <example>
+            <![CDATA[
+import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager; // bad
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+
+public class Bad {
+    private MultiThreadedHttpConnectionManager mgr = new MultiThreadedHttpConnectionManager(); // bad
+}
+class Good {
+    private PoolingHttpClientConnectionManager mgr = new PoolingHttpClientConnectionManager();
+}
+            ]]>
+        </example>
 </rule>
 
     <rule name="AvoidJAXBUtil"
@@ -2211,10 +2215,10 @@ public class XMLConversion {
             <property name="xpath">
                 <value><![CDATA[
 //TypeDeclaration/ClassOrInterfaceDeclaration/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/
-FieldDeclaration/Type/ReferenceType/ClassOrInterfaceType[typeIs('javax.xml.datatype.XMLGregorianCalendar')]
+FieldDeclaration/Type/ReferenceType/ClassOrInterfaceType[pmd-java:typeIs('javax.xml.datatype.XMLGregorianCalendar')]
 |
 //TypeDeclaration/ClassOrInterfaceDeclaration/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/
-MethodDeclaration//LocalVariableDeclaration/Type/ReferenceType/ClassOrInterfaceType[typeIs('javax.xml.datatype.XMLGregorianCalendar')]
+MethodDeclaration//LocalVariableDeclaration/Type/ReferenceType/ClassOrInterfaceType[pmd-java:typeIs('javax.xml.datatype.XMLGregorianCalendar')]
 	]]></value>
             </property>
         </properties>
@@ -2390,7 +2394,7 @@ ancestor::MethodDeclaration//PrimarySuffix/@Image="disableConnectionState")]
             <property name="xpath">
                 <value><![CDATA[
 //MethodDeclaration//Expression/PrimaryExpression/PrimaryPrefix/AllocationExpression/ClassOrInterfaceType[
-	(typeIs('com.fasterxml.jackson.databind.ObjectMapper')) and
+	(pmd-java:typeIs('com.fasterxml.jackson.databind.ObjectMapper')) and
 	not(ancestor::TypeDeclaration/Annotation/MarkerAnnotation/Name/@Image='Configuration')
 ]
 			]]></value>
