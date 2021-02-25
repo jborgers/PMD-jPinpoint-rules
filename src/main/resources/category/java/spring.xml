@@ -10,7 +10,8 @@
         <description>
             Improper combination of annotations. Problem: these annotations are not meant to be combined and may cause unexpected and unwanted behavior.&#13;
             Solution: remove the inappropriate annotation. &#13;
-            Don't combine 2+ of [@Component, @Service, @Configuration, @Controller, @Repository, @Entity, @Aspect] (Spring/JPA/AspectJ)
+            Don't combine 2+ of [@Component, @Service, @Configuration, @Controller, @Repository, @Entity] (Spring/JPA)
+            Don't combine @Aspect with one of [@Service, @Configuration, @Controller, @Repository, @Entity] (Spring/AspectJ)
             Don't combine [@Data with @Value] and [@Data or @Value] with any of [@ToString, @EqualsHashCode, @Getter, @Setter, @RequiredArgsConstructor] (Lombok)
             (jpinpoint-rules)</description>
         <priority>3</priority>
@@ -19,17 +20,13 @@
             <property name="xpath">
                 <value>
                     <![CDATA[
-//TypeDeclaration[count(./Annotation/MarkerAnnotation/Name[@Image='Component' or @Image='Service' or @Image='Configuration' or @Image='Controller' or @Image='Repository' or @Image='Entity' or @Image='Aspect']) > 1]
+//(TypeDeclaration|ClassOrInterfaceBodyDeclaration)[count(./Annotation//Name[@Image='Component' or @Image='Service' or @Image='Configuration' or @Image='Controller' or @Image='Repository' or @Image='Entity']) > 1]/Annotation[2]
 ,
-//ClassOrInterfaceBodyDeclaration[count(./Annotation/MarkerAnnotation/Name[@Image='Component' or @Image='Service' or @Image='Configuration' or @Image='Controller' or @Image='Repository' or @Image='Entity' or @Image='Aspect']) > 1]
+//(TypeDeclaration|ClassOrInterfaceBodyDeclaration)[./Annotation//Name[@Image='Aspect'] and count(./Annotation//Name[@Image='Service' or @Image='Configuration' or @Image='Controller' or @Image='Repository' or @Image='Entity']) > 0]/Annotation[2]
 ,
-//TypeDeclaration[count(./Annotation/MarkerAnnotation/Name[@Image='Data' or @Image='Value']) > 1]
+//(TypeDeclaration|ClassOrInterfaceBodyDeclaration)[count(./Annotation//Name[@Image='Data' or @Image='Value']) > 1]/Annotation[2]
 ,
-//ClassOrInterfaceBodyDeclaration[count(./Annotation/MarkerAnnotation/Name[@Image='Data' or @Image='Value']) > 1]
-,
-//TypeDeclaration[./Annotation/MarkerAnnotation/Name[@Image='Data' or @Image='Value'] and ./Annotation/MarkerAnnotation/Name[@Image='ToString' or @Image='EqualsAndHashCode' or @Image='Getter' or @Image='Setter' or @Image='RequiredArgsConstructor']]
-,
-//ClassOrInterfaceBodyDeclaration[./Annotation/MarkerAnnotation/Name[@Image='Data' or @Image='Value'] and ./Annotation/MarkerAnnotation/Name[@Image='ToString' or @Image='EqualsAndHashCode' or @Image='Getter' or @Image='Setter' or @Image='RequiredArgsConstructor']]
+//(TypeDeclaration|ClassOrInterfaceBodyDeclaration)[./Annotation//Name[@Image='Data' or @Image='Value'] and ./Annotation/MarkerAnnotation/Name[@Image='ToString' or @Image='EqualsAndHashCode' or @Image='Getter' or @Image='Setter' or @Image='RequiredArgsConstructor']]/Annotation[2]
                     ]]>
                 </value>
             </property>
@@ -37,7 +34,7 @@
         <example>
             <![CDATA[
 @Component
-@Aspect
+@Entity // bad
 class Bad {
 }
 
