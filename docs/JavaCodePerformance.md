@@ -704,8 +704,8 @@ Better is using and sharing ObjectReaders and ObjectWriters created from ObjectM
 
 **Observation: An existing ObjectMapper object is configured/modified.**  
 **Problem:** ObjectMapper is thread-safe only after configuration. Configuring an ObjectMapper is not thread-safe.  
-**Solution:** Avoid configuring objectMappers except when initializing: right after construction. 
-It is recommended to create ObjectReaders and ObjectWriters from ObjectMapper and pass those around since they are immutable and therefore guaranteed to be thread-safe.
+**Solution:** Avoid configuring objectMappers except when initializing: right after construction, in one thread. 
+The safe and recommended approach is to create configured ObjectReaders and ObjectWriters from ObjectMapper and share those, since they are immutable and therefore guaranteed to be thread-safe.  
 **Rule name:** AvoidModifyingObjectMapper
 
 Using XPath
