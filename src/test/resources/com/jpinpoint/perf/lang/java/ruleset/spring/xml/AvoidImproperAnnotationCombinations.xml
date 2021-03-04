@@ -5,8 +5,8 @@
         xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
     <test-code>
         <description>Avoid improper annotation combinations</description>
-        <expected-problems>11</expected-problems>
-        <expected-linenumbers>8, 13, 26, 33, 44, 54, 59, 64,64, 76, 81</expected-linenumbers>
+        <expected-problems>12</expected-problems>
+        <expected-linenumbers>8, 13, 26, 33, 44, 54, 59, 64,64, 76, 81, 95</expected-linenumbers>
         <code><![CDATA[
 import lombok.*;
 import org.springframework.context.annotation.Configuration;
@@ -18,7 +18,7 @@ import org.aspectj.lang.annotation.Aspect;
 @Repository // bad 1
 public class AvoidImproperAnnotationCombinations {
 
-    // Spring: Don't combine any of: @Component, @Service, @Configuration, @Repository, @Controller
+    // Spring: Don't combine any of: @Component, @Service, @Configuration, @Repository, @Controller, @RestController
     @Component
     @Configuration // bad 2
     class StringAnnotationsViolation1 {
@@ -99,6 +99,11 @@ public class AvoidImproperAnnotationCombinations {
     @Aspect
     @Value
     class AspectAnnotationOk2 {
+    }
+
+    @RestController
+    @Configuration // bad
+    class StringAnnotationsViolation2 {
     }
 
 }     ]]></code>

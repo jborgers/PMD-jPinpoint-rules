@@ -2530,8 +2530,8 @@ public class Good implements KeyGenerator {
         <description>
             Improper combination of annotations. Problem: these annotations are not meant to be combined and may cause unexpected and unwanted behavior.&#13;
             Solution: remove the inappropriate annotation. &#13;
-            Don't combine 2+ of [@Component, @Service, @Configuration, @Controller, @Repository, @Entity] (Spring/JPA)
-            Don't combine @Aspect with one of [@Service, @Configuration, @Controller, @Repository, @Entity] (Spring/AspectJ)
+            Don't combine 2+ of [@Component, @Service, @Configuration, @Controller, @RestController, @Repository, @Entity] (Spring/JPA)
+            Don't combine @Aspect with one of [@Service, @Configuration, @Controller, @RestController, @Repository, @Entity] (Spring/AspectJ)
             Don't combine [@Data with @Value] and [@Data or @Value] with any of [@ToString, @EqualsHashCode, @Getter, @Setter, @RequiredArgsConstructor] (Lombok)
             (jpinpoint-rules)</description>
         <priority>3</priority>
@@ -2540,9 +2540,9 @@ public class Good implements KeyGenerator {
             <property name="xpath">
                 <value>
                     <![CDATA[
-//(TypeDeclaration|ClassOrInterfaceBodyDeclaration)[count(./Annotation//Name[@Image='Component' or @Image='Service' or @Image='Configuration' or @Image='Controller' or @Image='Repository' or @Image='Entity']) > 1]/Annotation[2]
+//(TypeDeclaration|ClassOrInterfaceBodyDeclaration)[count(./Annotation//Name[@Image='Component' or @Image='Service' or @Image='Configuration' or @Image='Controller' or @Image='RestController' or @Image='Repository' or @Image='Entity']) > 1]/Annotation[2]
 ,
-//(TypeDeclaration|ClassOrInterfaceBodyDeclaration)[./Annotation//Name[@Image='Aspect'] and count(./Annotation//Name[@Image='Service' or @Image='Configuration' or @Image='Controller' or @Image='Repository' or @Image='Entity']) > 0]/Annotation[2]
+//(TypeDeclaration|ClassOrInterfaceBodyDeclaration)[./Annotation//Name[@Image='Aspect'] and count(./Annotation//Name[@Image='Service' or @Image='Configuration' or @Image='Controller' or @Image='RestController' or @Image='Repository' or @Image='Entity']) > 0]/Annotation[2]
 ,
 //(TypeDeclaration|ClassOrInterfaceBodyDeclaration)[count(./Annotation//Name[@Image='Data' or @Image='Value']) > 1]/Annotation[2]
 ,
@@ -2708,7 +2708,7 @@ and (
             <property name="xpath">
                 <value>
                     <![CDATA[
-	//TypeDeclaration/Annotation//Name[(@Image='Component' or @Image='Service' or @Image='Controller' or @Image='Repository' or
+	//TypeDeclaration/Annotation//Name[(@Image='Component' or @Image='Service' or @Image='Controller' or @Image='RestController' or @Image='Repository' or
 (@Image='Singleton' and ancestor::TypeDeclaration/Annotation/NormalAnnotation/MemberValuePairs//Name[@Image='ConcurrencyManagementType.BEAN']))
 and not (ancestor::TypeDeclaration/Annotation/NormalAnnotation/Name[@Image='Scope']/..//Literal[@Image='"request"' or @Image='"prototype"'])
 and not (ancestor::TypeDeclaration/Annotation/MarkerAnnotation/Name[@Image='NotThreadSafe'])
