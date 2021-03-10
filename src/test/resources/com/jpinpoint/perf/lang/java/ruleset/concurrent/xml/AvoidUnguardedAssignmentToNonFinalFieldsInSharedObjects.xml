@@ -484,11 +484,11 @@ public class AdviesEnAfsluitkostenFunction extends AbstractFunction<AdviesEnAfsl
             <code><![CDATA[
 @RestController
 class ARestController1 {
-    private String url; //
+    private String url;
 
     public void setUrlBad(final String url) {
-        this.url = url;
-    } // bad
+        this.url = url; // bad
+    }
 }
                ]]></code>
         </test-code>
