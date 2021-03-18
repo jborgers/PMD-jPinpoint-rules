@@ -705,9 +705,33 @@ Better is using and sharing ObjectReaders and ObjectWriters created from ObjectM
 **Observation: An existing ObjectMapper object is configured/modified.**  
 **Problem:** ObjectMapper is thread-safe only after configuration. Configuring an ObjectMapper is not thread-safe.  
 **Solution:** Avoid configuring objectMappers except when initializing: right after construction. 
-It is recommended to create ObjectReaders and ObjectWriters from ObjectMapper and pass those around since they are immutable and therefore guaranteed to be thread-safe.
-**Rule name:** AvoidModifyingObjectMapper
+It is recommended to create ObjectReaders and ObjectWriters from ObjectMapper and pass those around since they are immutable and therefore guaranteed to be thread-safe.  
+**Rule name:** AvoidModifyingObjectMapper   
+**Example:**   
+```java
+public class OldStyle {
+    private static final ObjectMapper staticObjectMapper = new ObjectMapper();
+    private final ObjectMapper mapperField = new ObjectMapper();
 
+    static {
+        staticObjectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL); // good
+    }
+
+    public OldStyle() {
+        mapperField.setSerializationInclusion(JsonInclude.Include.NON_NULL); // good
+    }
+
+    ObjectMapper bad(ObjectMapper mapper) {
+        mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL); // bad
+        return mapper;
+    }
+}
+
+class NewStyle {
+    private static final ObjectWriter staticObjectWriter =
+        new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL).writer(); // good
+}
+```
 Using XPath
 -----------
 
