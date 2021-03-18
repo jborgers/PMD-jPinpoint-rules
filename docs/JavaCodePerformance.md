@@ -1,7 +1,7 @@
 
 Java Code Performance - pitfalls and best practices
 =====================
-By Jeroen Borgers ([jPinpoint](www.jpinpoint.com)) and Peter Paul Bakker ([Stokpop](www.stokpop.com)), sponsored by Rabobank
+By Jeroen Borgers ([jPinpoint](https://www.jpinpoint.com)) and Peter Paul Bakker ([Stokpop](https://www.stokpop.com)), sponsored by Rabobank
 
 # Table of contents
 
@@ -704,9 +704,9 @@ Better is using and sharing ObjectReaders and ObjectWriters created from ObjectM
 
 **Observation: An existing ObjectMapper object is configured/modified.**  
 **Problem:** ObjectMapper is thread-safe only after configuration. Configuring an ObjectMapper is not thread-safe.  
-**Solution:** Avoid configuring objectMappers except when initializing: right after construction. 
-It is recommended to create ObjectReaders and ObjectWriters from ObjectMapper and pass those around since they are immutable and therefore guaranteed to be thread-safe.  
-**Rule name:** AvoidModifyingObjectMapper   
+**Solution:** Avoid configuring objectMappers except when initializing: right after construction, in one thread. 
+The safe and recommended approach is to create configured ObjectReaders and ObjectWriters from ObjectMapper and share those, since they are immutable and therefore guaranteed to be thread-safe.  
+***Rule name:** AvoidModifyingObjectMapper   
 **Example:**   
 ```java
 public class OldStyle {
@@ -1128,7 +1128,7 @@ public class StringBuilder {
 
 #### TUTC07
 
-**Observation: A singleton, or more general: an object shared among threads, is used with non-final and/or mutable fields and the fields are not guarded**   (e.g. accessor methods are not synchronized), while typically fields are not intended to change after initialization. This includes Spring @Component, @Controller, @Service and @Repository annotated classes for application and session scope and **JavaEE bean-managed** @Singleton annotated classes.  
+**Observation: A singleton, or more general: an object shared among threads, is used with non-final and/or mutable fields and the fields are not guarded**   (e.g. accessor methods are not synchronized), while typically fields are not intended to change after initialization. This includes Spring @Component, @Controller, @RestController, @Service and @Repository annotated classes for application and session scope and **JavaEE bean-managed** @Singleton annotated classes.  
 **Problem:** Multiple threads typically access fields of a singleton or may access fields in session scoped objects. If a field or its reference is mutable, access is thread-unsafe and may cause corruption or visibility problems. To make this thread-safe, that is, guard the field e.g. with synchronized methods, may cause contention.  
 **Solution**: Make the fields final and unmodifiable. If they really need to be mutable, make access thread-safe. Thread-safety can be achieved e.g. by proper synchronization and use the [@GuardedBy](#TUTC04) annotation or use of [volatile](https://www.ibm.com/developerworks/library/j-jtp06197/).
 
@@ -1150,7 +1150,7 @@ public class StringBuilder {
 public class ReportController extends AbstractController {
     private Report data;
     private boolean contacted;
-    private RestTemplate restTemplateOk
+    private RestTemplate restTemplateOk;
 	private String name; 
 
 	public ReportController() { name = "LaundryReport"; } // unsafe
@@ -1173,7 +1173,7 @@ public class ReportController extends AbstractController {
 	@GuardedBy("this") // needed to remove pmd/Sonar violation, enables extra checks
     private Report data;
     private volatile boolean contacted; // assignment-safe
-    private RestTemplate restTemplateOk
+    private RestTemplate restTemplateOk;
 	private final String name; // assignment-safe
 
 	public ReportController() { name = "LaundryReport"; } // safe because of final
@@ -1187,7 +1187,7 @@ public class ReportController extends AbstractController {
 	}
 ```
 
-**Rule names:** AvoidUnguardedMutableFieldsInSharedObjects, AvoidUnguardedAssignmentToNonFinalFieldsInSharedObjects
+**Rule names:** AvoidUnguardedMutableFieldsInSharedObjects, AvoidUnguardedAssignmentToNonFinalFieldsInSharedObjects, AvoidUnguardedMutableInheritedFieldsInSharedObjects, AvoidUnguardedAssignmentToNonFinalFieldsInObjectsUsingSynchronized, AvoidUnguardedMutableFieldsInObjectsUsingSynchronized
 
 #### TUTC08
 
