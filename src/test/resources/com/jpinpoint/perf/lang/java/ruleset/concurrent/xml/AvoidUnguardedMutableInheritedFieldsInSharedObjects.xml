@@ -51,4 +51,20 @@ public class MutateInheritedFieldTryout extends SynchronizedTryout {
 }
         ]]></code>
     </test-code>
+    <test-code>
+        <description>Avoid unguarded mutable (found mutated) inherited fields in shared objects: @RestController</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>7</expected-linenumbers>
+        <code><![CDATA[
+package com.jpinpoint.tryout;
+
+@RestController
+public class MutateInheritedFieldTryout extends SynchronizedTryout {
+
+    public void mutateMap(String key, String val) {
+        map.put(key, val); //bad
+    }
+}
+        ]]></code>
+    </test-code>
 </test-data>

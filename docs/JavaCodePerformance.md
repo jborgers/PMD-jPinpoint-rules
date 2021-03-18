@@ -1,7 +1,7 @@
 
 Java Code Performance - pitfalls and best practices
 =====================
-By Jeroen Borgers ([jPinpoint](www.jpinpoint.com)) and Peter Paul Bakker ([Stokpop](www.stokpop.com)), sponsored by Rabobank
+By Jeroen Borgers ([jPinpoint](https://www.jpinpoint.com)) and Peter Paul Bakker ([Stokpop](https://www.stokpop.com)), sponsored by Rabobank
 
 # Table of contents
 
@@ -1104,7 +1104,7 @@ public class StringBuilder {
 
 #### TUTC07
 
-**Observation: A singleton, or more general: an object shared among threads, is used with non-final and/or mutable fields and the fields are not guarded**   (e.g. accessor methods are not synchronized), while typically fields are not intended to change after initialization. This includes Spring @Component, @Controller, @Service and @Repository annotated classes for application and session scope and **JavaEE bean-managed** @Singleton annotated classes.  
+**Observation: A singleton, or more general: an object shared among threads, is used with non-final and/or mutable fields and the fields are not guarded**   (e.g. accessor methods are not synchronized), while typically fields are not intended to change after initialization. This includes Spring @Component, @Controller, @RestController, @Service and @Repository annotated classes for application and session scope and **JavaEE bean-managed** @Singleton annotated classes.  
 **Problem:** Multiple threads typically access fields of a singleton or may access fields in session scoped objects. If a field or its reference is mutable, access is thread-unsafe and may cause corruption or visibility problems. To make this thread-safe, that is, guard the field e.g. with synchronized methods, may cause contention.  
 **Solution**: Make the fields final and unmodifiable. If they really need to be mutable, make access thread-safe. Thread-safety can be achieved e.g. by proper synchronization and use the [@GuardedBy](#TUTC04) annotation or use of [volatile](https://www.ibm.com/developerworks/library/j-jtp06197/).
 
@@ -1126,7 +1126,7 @@ public class StringBuilder {
 public class ReportController extends AbstractController {
     private Report data;
     private boolean contacted;
-    private RestTemplate restTemplateOk
+    private RestTemplate restTemplateOk;
 	private String name; 
 
 	public ReportController() { name = "LaundryReport"; } // unsafe
@@ -1149,7 +1149,7 @@ public class ReportController extends AbstractController {
 	@GuardedBy("this") // needed to remove pmd/Sonar violation, enables extra checks
     private Report data;
     private volatile boolean contacted; // assignment-safe
-    private RestTemplate restTemplateOk
+    private RestTemplate restTemplateOk;
 	private final String name; // assignment-safe
 
 	public ReportController() { name = "LaundryReport"; } // safe because of final
@@ -1163,7 +1163,7 @@ public class ReportController extends AbstractController {
 	}
 ```
 
-**Rule names:** AvoidUnguardedMutableFieldsInSharedObjects, AvoidUnguardedAssignmentToNonFinalFieldsInSharedObjects
+**Rule names:** AvoidUnguardedMutableFieldsInSharedObjects, AvoidUnguardedAssignmentToNonFinalFieldsInSharedObjects, AvoidUnguardedMutableInheritedFieldsInSharedObjects, AvoidUnguardedAssignmentToNonFinalFieldsInObjectsUsingSynchronized, AvoidUnguardedMutableFieldsInObjectsUsingSynchronized
 
 #### TUTC08
 

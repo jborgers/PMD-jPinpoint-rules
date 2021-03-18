@@ -477,4 +477,19 @@ public class AdviesEnAfsluitkostenFunction extends AbstractFunction<AdviesEnAfsl
 }
                ]]></code>
     </test-code>
+    <test-code>
+            <description>Avoid unguarded assignment to non-final fields in shared objects: @RestController</description>
+            <expected-problems>1</expected-problems>
+            <expected-linenumbers>6</expected-linenumbers>
+            <code><![CDATA[
+@RestController
+class ARestController1 {
+    private String url;
+
+    public void setUrlBad(final String url) {
+        this.url = url; // bad
+    }
+}
+               ]]></code>
+        </test-code>
 </test-data>
