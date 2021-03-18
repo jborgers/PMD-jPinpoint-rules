@@ -64,8 +64,6 @@ After installing the tool you can run `pmd.sh` or `pmd.bat` similar to the follo
 
 - If you want more details on a violation: right click and choose 'Details' to get to the documentation page with problem and solution details.
 
-*Known Bug: the jpinpoint-rules can be listed multiple times in the PMD Plugin: this is a bug and should be resolved by restarting IntelliJ*
-
 ## Eclipse
 
 The Acanda PMD plugin seems to be the best one to use. 
