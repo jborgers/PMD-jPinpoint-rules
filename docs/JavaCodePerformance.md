@@ -1515,7 +1515,7 @@ String getFileNameWithCount() {
 
 **Rule name:** AvoidImplicitlyRecompilingPatterns, improved: AvoidImplicitlyRecompilingRegex
 
-IREU02
+#### IREU02
 
 **Observation: A regular expression is compiled in a method.**  
 **Problem:** A regular expression is compiled on every invocation, which can be expensive, depending on the length of the regular expression.  
