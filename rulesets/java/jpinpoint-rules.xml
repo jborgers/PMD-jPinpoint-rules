@@ -2224,6 +2224,30 @@ MethodDeclaration//LocalVariableDeclaration/Type/ReferenceType/ClassOrInterfaceT
         </properties>
     </rule>
 
+    <rule name="GsonCreatedForEachMethodCall" message="A Gson object is created for each method call, which is expensive." class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"   typeResolution="true" externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#IUOJAR03">
+        <description>Problem: Gson creation is relatively expensive. A JMH benchmark shows a 24x improvement reusing one instance. &#13;
+            Solution: Since Gson objects are thread-safe after creation, they can be between threads. So, reuse created instances, from a static field. Pay attention
+            to use thread-safe (custom) adapters and serializers.
+            (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+//MethodDeclaration//Expression/PrimaryExpression/PrimaryPrefix/AllocationExpression/ClassOrInterfaceType[
+	pmd-java:typeIs('com.google.gson.Gson')
+	and not(ancestor::TypeDeclaration/Annotation/MarkerAnnotation/Name/@Image='Configuration')
+],
+//MethodDeclaration//PrimaryPrefix[
+    pmd-java:typeIs('com.google.gson.GsonBuilder')
+    and ancestor::PrimaryExpression//(PrimaryPrefix/Name|PrimarySuffix)[ends-with(@Image, 'create')]
+    and not(ancestor::TypeDeclaration/Annotation/MarkerAnnotation/Name/@Image='Configuration')
+]
+			]]></value>
+            </property>
+        </properties>
+    </rule>
+
     <rule name="HttpClientBuilderPoolSettingsIgnored" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
           message="HttpClient builder is used with a ConnectionManager and MaxConn settings on the client are ignored. Remove them." typeResolution="true"
           externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#ibi09">

@@ -6,6 +6,7 @@
     <test-code>
         <description>JAXBContext object creation is expensive instances should be reused</description>
         <expected-problems>2</expected-problems>
+        <expected-linenumbers>21,29</expected-linenumbers>
         <code><![CDATA[
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;

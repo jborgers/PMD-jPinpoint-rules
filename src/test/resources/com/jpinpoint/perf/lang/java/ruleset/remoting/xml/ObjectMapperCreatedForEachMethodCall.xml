@@ -6,6 +6,7 @@
     <test-code>
         <description>Jackson ObjectMapper creation is expensive instances should be reused</description>
         <expected-problems>3</expected-problems>
+        <expected-linenumbers>16,20,21</expected-linenumbers>
         <code><![CDATA[
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
