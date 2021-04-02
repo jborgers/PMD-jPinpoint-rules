@@ -192,6 +192,33 @@ So, if you use a Connection Manager, remove the setMaxConnTotal and setMaxConnPe
                 .build();
 ```
 
+#### IBI10
+
+**Observation: Apache HttpClient uses the default timeouts.**  
+**Problem:** The default timeouts of Apache HttpClient are probably too high, if not infinite. 
+This has impact on the stability of the app if too many threads are blocked waiting for a connection or a response.  
+**Solution:** Always set the timeouts explicitly. Use best practice values: Read/socket timeout ~4000 ms (note: 
+depends largely on use case and expected latency of remote calls),
+Connect timeout ~250 ms, Connection Manager/Request timeout = connect timeout + slack 250+100 = ~350 ms.  
+**Example**
+```java
+RequestConfig requestConfig = RequestConfig.custom()
+        .setConnectionRequestTimeout(350)
+        .setConnectTimeout(250)
+        .setSocketTimeout(4000)
+        .build(); // good, all timeouts set
+
+return HttpClientBuilder.create()
+        .setDefaultRequestConfig(requestConfig) // good, all timeouts set, if missing > default timeouts?
+        .build();
+
+return HttpClientBuilder.create() // bad, no default HttpClient set with explicit timeouts set
+        .setConnectionTimeToLive(180, TimeUnit.SECONDS)
+        .build();
+```
+
+
+
 Improper caching  
 -------------------
 
