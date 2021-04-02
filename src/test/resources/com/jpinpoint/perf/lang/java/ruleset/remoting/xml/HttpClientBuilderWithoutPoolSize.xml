@@ -208,7 +208,7 @@ class Good {
 import org.apache.http.impl.nio.client.HttpAsyncClientBuilder;
 class Bad {
     private HttpAsyncClientBuilder bad(final HttpAsyncClientBuilder clientBuilder) { // bad
-        return HttpAsyncClientBuilder.create() //bad
+        return clientBuilder
             .setDefaultCredentialsProvider(CREDENTIALS);
     }
 }
