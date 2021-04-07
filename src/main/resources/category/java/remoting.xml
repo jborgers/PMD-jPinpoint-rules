@@ -411,7 +411,7 @@ public class XMLConversion {
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
-(: modify operations on objecMapper in a method where objectMapper is a formal parameter or field :)
+(: modify operations on objectMapper in a method where objectMapper is a formal parameter or field :)
 //MethodDeclaration//Statement//Name[(concat(substring-before(@Image, '.config'), substring-before(@Image, '.set'), substring-before(@Image, '.register')
 , substring-before(@Image, '.find'), substring-before(@Image, '.disable'), substring-before(@Image, '.enable'), substring-before(@Image, '.activate')
 , substring-before(@Image, '.deactivate'), substring-before(@Image, '.add'), substring-before(@Image, '.clear'))
@@ -419,7 +419,7 @@ public class XMLConversion {
 (ancestor::MethodDeclaration//FormalParameter|ancestor::ClassOrInterfaceBody//FieldDeclaration)[pmd-java:typeIs('com.fasterxml.jackson.databind.ObjectMapper')]//VariableDeclaratorId/@Name)
 ]
 ,
-(: modify operations on objecMapper in a constructor where objectMapper is a formal parameter or static field :)
+(: modify operations on objectMapper in a constructor where objectMapper is a formal parameter or static field :)
 //ConstructorDeclaration//Statement//Name[(concat(substring-before(@Image, '.config'), substring-before(@Image, '.set'), substring-before(@Image, '.register')
 , substring-before(@Image, '.find'), substring-before(@Image, '.disable'), substring-before(@Image, '.enable'), substring-before(@Image, '.activate')
 , substring-before(@Image, '.deactivate'), substring-before(@Image, '.add'), substring-before(@Image, '.clear'))
