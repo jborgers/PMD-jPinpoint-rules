@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>no violation: use of Apache HttpClient with all timeouts set</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.impl.client.CloseableHttpClient;
+
+class Good {
+    public CloseableHttpClient good() {
+        RequestConfig requestConfig = RequestConfig.custom()
+            .setConnectionRequestTimeout(350)
+            .setConnectTimeout(250)
+            .setSocketTimeout(4000)
+            .build(); // good, all timeouts set
+
+        return HttpClientBuilder.create()
+            .setDefaultRequestConfig(requestConfig) // good, all timeouts set, if missing > default timeouts?
+            .build();
+    }
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>violation: use of Apache HttpClient RequestConfig, not all timeouts set</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>7</expected-linenumbers>
+        <code><![CDATA[
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.impl.client.CloseableHttpClient;
+
+class Bad {
+    public CloseableHttpClient bad() {
+        RequestConfig requestConfig = RequestConfig.custom()
+            .setSocketTimeout(4000)
+            .build(); // bad, not all timeouts set
+
+        return HttpClientBuilder.create()
+            .setDefaultRequestConfig(requestConfig) // good, all timeouts set, if missing > default timeouts?
+            .build();
+    }
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>violation: no setDefaultRequestConfig called to set explicit timeouts</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>7</expected-linenumbers>
+        <code><![CDATA[
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.impl.client.CloseableHttpClient;
+
+class Bad {
+    public CloseableHttpClient bad() {
+        return HttpClientBuilder.create() // bad
+            .setConnectionTimeToLive(180, TimeUnit.SECONDS)
+            .build();
+    }
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>violation: HttpClientBuilder param no setDefaultRequestConfig called with explicit timeouts</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>5</expected-linenumbers>
+        <code><![CDATA[
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.client.CloseableHttpClient;
+
+class Bad {
+    public CloseableHttpClient bad(HttpClientBuilder builder) { // bad
+        return builder
+            .setConnectionTimeToLive(180, TimeUnit.SECONDS)
+            .build();
+    };
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>violation: HttpAsyncClientBuilder no setDefaultRequestConfig called with explicit timeouts</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>6</expected-linenumbers>
+        <code><![CDATA[
+import org.apache.http.impl.nio.client.CloseableHttpAsyncClient;
+import org.apache.http.impl.nio.client.HttpAsyncClientBuilder;
+
+class Bad {
+    public CloseableHttpAsyncClient bad() {
+        return HttpAsyncClientBuilder.create() // bad
+            .disableAuthCaching()
+            .build();
+    }
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>violation: HttpClients.custom and no setDefaultRequestConfig called with explicit timeouts</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>6</expected-linenumbers>
+        <code><![CDATA[
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.client.CloseableHttpClient;
+
+class Bad {
+    public CloseableHttpClient bad() {
+        return HttpClients.custom() // bad
+            .build();
+    }
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>no violation: Spring HttpComponentsClientHttpRequestFactory and all timeouts set</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import org.apache.http.client.HttpClient;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+
+class Good {
+    public HttpClient good() {
+        HttpComponentsClientHttpRequestFactory factory =
+            new HttpComponentsClientHttpRequestFactory(); // good
+        factory.setConnectTimeout(250);
+        factory.setConnectionRequestTimeout(350);
+        factory.setReadTimeout(4000);
+        return factory.getHttpClient();
+    }
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>violation: Spring HttpComponentsClientHttpRequestFactory and not all timeouts set</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>7</expected-linenumbers>
+        <code><![CDATA[
+import org.apache.http.client.HttpClient;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+
+class Bad {
+    public HttpClient bad() {
+        HttpComponentsClientHttpRequestFactory factory =
+            new HttpComponentsClientHttpRequestFactory(); // bad
+        factory.setReadTimeout(4000);
+        return factory.getHttpClient();
+    }
+ }
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>no violation: Spring HttpComponentsClientHttpRequestFactory and explicit HttpClient with probably all timeouts set</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import org.apache.http.client.HttpClient;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+
+class Good {
+    public HttpClient good(HttpClient client) {
+        HttpComponentsClientHttpRequestFactory factory =
+            new HttpComponentsClientHttpRequestFactory(client); // good
+        return factory.getHttpClient();
+    }
+ }
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>violation: Spring HttpComponentsClientHttpRequestFactory and explicit HttpClient and explicit timeouts, but not all three timeouts set</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>7</expected-linenumbers>
+        <code><![CDATA[
+import org.apache.http.client.HttpClient;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+
+class Bad {
+    public HttpClient bad(HttpClient client) {
+        HttpComponentsClientHttpRequestFactory factory =
+            new HttpComponentsClientHttpRequestFactory(client); // bad
+        factory.setReadTimeout(4000);
+        return factory.getHttpClient();
+    }
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>violation: Spring HttpComponentsClientHttpRequestFactory param and explicit timeouts, but not all three timeouts set</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>5</expected-linenumbers>
+        <code><![CDATA[
+import org.apache.http.client.HttpClient;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+
+class Bad {
+    public HttpClient bad(HttpComponentsClientHttpRequestFactory factory) { // bad
+        factory.setReadTimeout(4000);
+        return factory.getHttpClient();
+    }
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>no violation: Spring HttpComponentsClientHttpRequestFactory param and explicit timeouts and all three timeouts set</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import org.apache.http.impl.nio.client.HttpAsyncClientBuilder;
+class Good {
+    public HttpClient good(HttpComponentsClientHttpRequestFactory factory) {
+        factory.setReadTimeout(4000); // good
+        factory.setConnectionRequestTimeout(350);
+        factory.setConnectTimeout(250);
+        return factory.getHttpClient();
+    }
+}
+     ]]></code>
+    </test-code>
+</test-data>

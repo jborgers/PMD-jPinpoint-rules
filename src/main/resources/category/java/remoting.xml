@@ -276,6 +276,79 @@ ancestor::MethodDeclaration//PrimarySuffix/@Image="disableConnectionState")]
         </example>
     </rule>
 
+    <rule name="HttpClientBuilderWithoutTimeouts" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
+          message="HttpClient builder is used and not all three timeouts are configured (connectionRequestTimeout, connectTimeout, socketTimeout). HttpClient defaults are probably not optimal (e.g. infinite). Use the setDefaultRequestConfig with a method with a RequestConfig object on HttpClient builders to set the timeouts." typeResolution="true"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#IBI10">
+        <description>Problem: the default timeout settings are not optimal in most cases, set the timeouts explicitly to proper reasoned values. See best practice values via the link. (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+(: locally created http client builder without setDefaultRequestConfig to set timeouts :)
+//MethodDeclaration//PrimaryExpression/PrimaryPrefix/Name[
+ (
+   (pmd-java:typeIs('org.apache.http.impl.client.HttpClientBuilder') and @Image='HttpClientBuilder.create')
+    or (pmd-java:typeIs('org.apache.http.impl.nio.client.HttpAsyncClientBuilder') and @Image='HttpAsyncClientBuilder.create')
+    or (pmd-java:typeIs('org.apache.http.impl.client.HttpClients') and @Image='HttpClients.custom')
+  )
+  and not(ancestor::MethodDeclaration//(PrimaryPrefix/Name|PrimarySuffix)[ends-with(@Image, 'setDefaultRequestConfig')])
+]
+,
+(: method param http client builder without setDefaultRequestConfig to set timeouts :)
+//MethodDeclaration//FormalParameter//ClassOrInterfaceType[
+ (
+   pmd-java:typeIs('org.apache.http.impl.client.HttpClientBuilder')
+   or pmd-java:typeIs('org.apache.http.impl.nio.client.HttpAsyncClientBuilder')
+   or pmd-java:typeIs('org.apache.http.impl.client.HttpClients')
+  )
+  and not(ancestor::MethodDeclaration//(PrimaryPrefix/Name|PrimarySuffix)[ends-with(@Image, 'setDefaultRequestConfig')])
+]
+,
+(: RequestConfig creation without setConnectionRequestTimeout/setConnectTimeout/setSocketTimeout :)
+//MethodDeclaration//PrimaryExpression/PrimaryPrefix/Name[
+   (pmd-java:typeIs('org.apache.http.client.config.RequestConfig') and @Image='RequestConfig.custom')
+   and count(ancestor::MethodDeclaration//(PrimaryPrefix/Name|PrimarySuffix)[ends-with(@Image, 'setConnectionRequestTimeout') or ends-with(@Image, 'setConnectTimeout') or ends-with(@Image, 'setSocketTimeout')])<3
+]
+,
+(: HttpComponentsClientHttpRequestFactory without httpClient and without setConnectionRequestTimeout/setConnectTimeout/setReadTimeout :)
+//MethodDeclaration//AllocationExpression/ClassOrInterfaceType[
+   pmd-java:typeIs('org.springframework.http.client.HttpComponentsClientHttpRequestFactory')
+   and not(ancestor::Expression//Arguments//PrimaryPrefix[pmd-java:typeIs('org.apache.http.client.HttpClient')])
+   and count(ancestor::MethodDeclaration//(PrimaryPrefix/Name|PrimarySuffix)[ends-with(@Image, 'setConnectionRequestTimeout') or ends-with(@Image, 'setConnectTimeout') or ends-with(@Image, 'setReadTimeout')])<3
+]
+,
+(: HttpComponentsClientHttpRequestFactory with httpClient and with not all three of setConnectionRequestTimeout/setConnectTimeout/setReadTimeout :)
+//MethodDeclaration//AllocationExpression/ClassOrInterfaceType[
+   pmd-java:typeIs('org.springframework.http.client.HttpComponentsClientHttpRequestFactory')
+   and ancestor::Expression//Arguments//PrimaryPrefix[pmd-java:typeIs('org.apache.http.client.HttpClient')]
+   and count(ancestor::MethodDeclaration//(PrimaryPrefix/Name|PrimarySuffix)[ends-with(@Image, 'setConnectionRequestTimeout') or ends-with(@Image, 'setConnectTimeout') or ends-with(@Image, 'setReadTimeout')])<3
+   and count(ancestor::MethodDeclaration//(PrimaryPrefix/Name|PrimarySuffix)[ends-with(@Image, 'setConnectionRequestTimeout') or ends-with(@Image, 'setConnectTimeout') or ends-with(@Image, 'setReadTimeout')])>0
+]
+,
+(: HttpComponentsClientHttpRequestFactory as param and with not all three of setConnectionRequestTimeout/setConnectTimeout/setReadTimeout :)
+//MethodDeclaration//FormalParameter//ClassOrInterfaceType[
+   pmd-java:typeIs('org.springframework.http.client.HttpComponentsClientHttpRequestFactory')
+   and count(ancestor::MethodDeclaration//(PrimaryPrefix/Name|PrimarySuffix)[ends-with(@Image, 'setConnectionRequestTimeout') or ends-with(@Image, 'setConnectTimeout') or ends-with(@Image, 'setReadTimeout')])<3
+   and count(ancestor::MethodDeclaration//(PrimaryPrefix/Name|PrimarySuffix)[ends-with(@Image, 'setConnectionRequestTimeout') or ends-with(@Image, 'setConnectTimeout') or ends-with(@Image, 'setReadTimeout')])>0
+]
+]]>
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+        RequestConfig requestConfig = RequestConfig.custom()
+            .setSocketTimeout(4000)
+            .build(); // bad, not all timeouts set
+
+        return HttpClientBuilder.create()
+            .setDefaultRequestConfig(requestConfig) // good
+            .build();
+            ]]>
+        </example>
+    </rule>
+
     <rule name="AvoidJAXBUtil"
           language="java"
           message="The JAXB utility class is not optimized for performance."
@@ -362,7 +435,7 @@ public class XMLConversion {
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
-(: modify operations on objecMapper in a method where objectMapper is a formal parameter or field :)
+(: modify operations on objectMapper in a method where objectMapper is a formal parameter or field :)
 //MethodDeclaration//Statement//Name[(concat(substring-before(@Image, '.config'), substring-before(@Image, '.set'), substring-before(@Image, '.register')
 , substring-before(@Image, '.find'), substring-before(@Image, '.disable'), substring-before(@Image, '.enable'), substring-before(@Image, '.activate')
 , substring-before(@Image, '.deactivate'), substring-before(@Image, '.add'), substring-before(@Image, '.clear'))
@@ -370,7 +443,7 @@ public class XMLConversion {
 (ancestor::MethodDeclaration//FormalParameter|ancestor::ClassOrInterfaceBody//FieldDeclaration)[pmd-java:typeIs('com.fasterxml.jackson.databind.ObjectMapper')]//VariableDeclaratorId/@Name)
 ]
 ,
-(: modify operations on objecMapper in a constructor where objectMapper is a formal parameter or static field :)
+(: modify operations on objectMapper in a constructor where objectMapper is a formal parameter or static field :)
 //ConstructorDeclaration//Statement//Name[(concat(substring-before(@Image, '.config'), substring-before(@Image, '.set'), substring-before(@Image, '.register')
 , substring-before(@Image, '.find'), substring-before(@Image, '.disable'), substring-before(@Image, '.enable'), substring-before(@Image, '.activate')
 , substring-before(@Image, '.deactivate'), substring-before(@Image, '.add'), substring-before(@Image, '.clear'))
