@@ -706,7 +706,7 @@ Better is using and sharing ObjectReaders and ObjectWriters created from ObjectM
 **Problem:** ObjectMapper is thread-safe only after configuration. Configuring an ObjectMapper is not thread-safe.  
 **Solution:** Avoid configuring objectMappers except when initializing: right after construction, in one thread. 
 The safe and recommended approach is to create configured ObjectReaders and ObjectWriters from ObjectMapper and share those, since they are immutable and therefore guaranteed to be thread-safe.  
-***Rule name:** AvoidModifyingObjectMapper   
+**Rule name:** AvoidModifyingObjectMapper   
 **Example:**   
 ```java
 public class OldStyle {
@@ -730,6 +730,31 @@ public class OldStyle {
 class NewStyle {
     private static final ObjectWriter staticObjectWriter =
         new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL).writer(); // good
+}
+```
+
+#### IUOJAR03
+
+**Observation: A Gson object is created in each method call.**  
+**Problem:** Gson creation is expensive. 
+A [JMH benchmark](https://github.com/stokpop/performance-playground/blob/main/src/main/java/nl/stokpop/jmh/LetsParseGson.java) shows a 24x improvement reusing one Gson instance versus a new instance each call.  
+**Solution:** Since Gson objects are supposed to be [thread-safe](https://stackoverflow.com/questions/10380835/is-it-ok-to-use-gson-instance-as-a-static-field-in-a-model-bean-reuse#answer-35189723),
+they can be shared. So reuse created and configured instances from a static field. Take care to use (custom) thread-safe adapters/serializers.
+Note that the default Gson `com.google.gson.DefaultDateTypeAdapter` adapter uses thread-unsafe `SimpleDateFormat` and the adapter synchronizes on the List of DateFormats to avoid concurrency issues.
+This might be an [issue](https://github.com/google/gson/issues/162) in high load/performance environments. Consider using a non-synchronized thread-safe adapter for dates.  
+**Rule name:** GsonCreatedForEachMethodCall  
+**Example:**
+```java
+public class GsonReuse {
+  private static final Gson GSON = new Gson();
+  
+  public String toJsonBad(List<String> list) {
+    return new Gson().toJson(list); // bad
+  }
+
+  public String toJsonGood(List<String> list) {
+    return GSON.toJson(list); // good
+  }
 }
 ```
 Using XPath

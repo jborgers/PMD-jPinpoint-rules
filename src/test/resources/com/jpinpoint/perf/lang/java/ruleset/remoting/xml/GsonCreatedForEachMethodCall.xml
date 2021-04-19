@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>Gson creation is expensive instances should be reused</description>
+        <expected-problems>6</expected-problems>
+        <expected-linenumbers>16,20,27,28,29,30</expected-linenumbers>
+        <code><![CDATA[
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+public class GsonReuse {
+	private static final Gson sharedGson;
+	private static final Gson sharedBuildGson = new GsonBuilder().serializeNulls().create(); // good
+    private static final GsonBuilder sharedGsonBuilder = new GsonBuilder().setDateFormat("YYYY-MM-dd");
+
+	static {
+		sharedMapper = new Gson(); // good
+	}
+
+	public static Gson createGsonBad() {
+		return new Gson(); // bad
+	}
+
+	public static Gson createGsonViaBuilderBad() {
+		return new GsonBuilder()// bad
+            .serializeNulls()
+            .setDateFormat("YYYY-MM-dd")
+            .create();
+	}
+
+	public void myBadMethod() {
+		final Gson gson = new Gson(); // bad
+		String json = new Gson().toJson("'name'"); // bad
+                Gson dateGson1 = sharedGsonBuilder.create(); // bad
+		Gson dateGson2 = sharedGsonBuilder.serializeNulls().create(); // bad
+	}
+
+	public void myGoodMethod() {
+		final Gson gson = sharedGson; // good
+		String json = gson.toJson("'name'"); // good
+	}
+}
+
+@Configuration
+class BankSpringRootConfig {
+
+	@Bean
+	public Gson gsonGood() {
+		return new Gson(); // good, because configuration is only executed once
+	}
+
+	@Bean
+	public Gson gsonBuilderGood() {
+		return new GsonBuilder()
+            .serializeNulls()
+            .setDateFormat("YYYY-MM-dd")
+            .create(); // good, because configuration is only executed once
+	}
+}
+     ]]></code>
+    </test-code>
+</test-data>
