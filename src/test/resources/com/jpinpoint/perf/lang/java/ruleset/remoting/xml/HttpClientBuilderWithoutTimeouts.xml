@@ -169,10 +169,17 @@ import org.apache.http.client.HttpClient;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 
 class Good {
-    public HttpClient good(HttpClient client) {
+    public HttpComponentsClientHttpRequestFactory good1(HttpClient client) {
         HttpComponentsClientHttpRequestFactory factory =
             new HttpComponentsClientHttpRequestFactory(client); // good
-        return factory.getHttpClient();
+        return factory;
+    }
+
+    public HttpComponentsClientHttpRequestFactory good2(HttpClient client) {
+        HttpComponentsClientHttpRequestFactory factory =
+            new HttpComponentsClientHttpRequestFactory();
+            factory.setHttpClient(client); // good
+        return factory;
     }
  }
      ]]></code>
@@ -180,16 +187,23 @@ class Good {
 
     <test-code>
         <description>violation: Spring HttpComponentsClientHttpRequestFactory and explicit HttpClient and explicit timeouts, but not all three timeouts set</description>
-        <expected-problems>1</expected-problems>
-        <expected-linenumbers>7</expected-linenumbers>
+        <expected-problems>2</expected-problems>
+        <expected-linenumbers>7,13</expected-linenumbers>
         <code><![CDATA[
 import org.apache.http.client.HttpClient;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 
 class Bad {
-    public HttpClient bad(HttpClient client) {
+    public HttpClient bad1(HttpClient client) {
         HttpComponentsClientHttpRequestFactory factory =
             new HttpComponentsClientHttpRequestFactory(client); // bad
+        factory.setReadTimeout(4000);
+        return factory.getHttpClient();
+    }
+    public HttpClient bad2(HttpClient client) {
+        HttpComponentsClientHttpRequestFactory factory =
+            new HttpComponentsClientHttpRequestFactory(); // bad
+        factory.setHttpClient(client);
         factory.setReadTimeout(4000);
         return factory.getHttpClient();
     }
