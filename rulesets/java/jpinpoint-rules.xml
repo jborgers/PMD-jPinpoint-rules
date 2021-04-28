@@ -2156,7 +2156,7 @@ public class XMLConversion {
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
-(: modify operations on objecMapper in a method where objectMapper is a formal parameter or field :)
+(: modify operations on objectMapper in a method where objectMapper is a formal parameter or field :)
 //MethodDeclaration//Statement//Name[(concat(substring-before(@Image, '.config'), substring-before(@Image, '.set'), substring-before(@Image, '.register')
 , substring-before(@Image, '.find'), substring-before(@Image, '.disable'), substring-before(@Image, '.enable'), substring-before(@Image, '.activate')
 , substring-before(@Image, '.deactivate'), substring-before(@Image, '.add'), substring-before(@Image, '.clear'))
@@ -2164,7 +2164,7 @@ public class XMLConversion {
 (ancestor::MethodDeclaration//FormalParameter|ancestor::ClassOrInterfaceBody//FieldDeclaration)[pmd-java:typeIs('com.fasterxml.jackson.databind.ObjectMapper')]//VariableDeclaratorId/@Name)
 ]
 ,
-(: modify operations on objecMapper in a constructor where objectMapper is a formal parameter or static field :)
+(: modify operations on objectMapper in a constructor where objectMapper is a formal parameter or static field :)
 //ConstructorDeclaration//Statement//Name[(concat(substring-before(@Image, '.config'), substring-before(@Image, '.set'), substring-before(@Image, '.register')
 , substring-before(@Image, '.find'), substring-before(@Image, '.disable'), substring-before(@Image, '.enable'), substring-before(@Image, '.activate')
 , substring-before(@Image, '.deactivate'), substring-before(@Image, '.add'), substring-before(@Image, '.clear'))
@@ -2430,14 +2430,16 @@ ancestor::MethodDeclaration//PrimarySuffix/@Image="disableConnectionState")]
 (: HttpComponentsClientHttpRequestFactory without httpClient and without setConnectionRequestTimeout/setConnectTimeout/setReadTimeout :)
 //MethodDeclaration//AllocationExpression/ClassOrInterfaceType[
    pmd-java:typeIs('org.springframework.http.client.HttpComponentsClientHttpRequestFactory')
-   and not(ancestor::Expression//Arguments//PrimaryPrefix[pmd-java:typeIs('org.apache.http.client.HttpClient')])
+   and not(ancestor::Block//(PrimaryPrefix/Name|PrimarySuffix)[ends-with(@Image, 'setHttpClient')]
+        or ancestor::Expression//Arguments//PrimaryPrefix[pmd-java:typeIs('org.apache.http.client.HttpClient')])
    and count(ancestor::MethodDeclaration//(PrimaryPrefix/Name|PrimarySuffix)[ends-with(@Image, 'setConnectionRequestTimeout') or ends-with(@Image, 'setConnectTimeout') or ends-with(@Image, 'setReadTimeout')])<3
 ]
 ,
 (: HttpComponentsClientHttpRequestFactory with httpClient and with not all three of setConnectionRequestTimeout/setConnectTimeout/setReadTimeout :)
 //MethodDeclaration//AllocationExpression/ClassOrInterfaceType[
    pmd-java:typeIs('org.springframework.http.client.HttpComponentsClientHttpRequestFactory')
-   and ancestor::Expression//Arguments//PrimaryPrefix[pmd-java:typeIs('org.apache.http.client.HttpClient')]
+   and (ancestor::Block//(PrimaryPrefix/Name|PrimarySuffix)[ends-with(@Image, 'setHttpClient')]
+        or ancestor::Expression//Arguments//PrimaryPrefix[pmd-java:typeIs('org.apache.http.client.HttpClient')])
    and count(ancestor::MethodDeclaration//(PrimaryPrefix/Name|PrimarySuffix)[ends-with(@Image, 'setConnectionRequestTimeout') or ends-with(@Image, 'setConnectTimeout') or ends-with(@Image, 'setReadTimeout')])<3
    and count(ancestor::MethodDeclaration//(PrimaryPrefix/Name|PrimarySuffix)[ends-with(@Image, 'setConnectionRequestTimeout') or ends-with(@Image, 'setConnectTimeout') or ends-with(@Image, 'setReadTimeout')])>0
 ]
