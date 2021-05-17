@@ -195,7 +195,7 @@ class Bad2 {
         if (o == null || getClass() != o.getClass()) return false;
         Bad2 that = (Bad2) o;
         if (field1 != null ? !field1.equals(that.field1) : that.field1 != null) return false;
-        return field2 != null ? field2.equalsIgnoreCase(that.field2) : that.field2 == null; // ignore case
+        return field2 != null ? field2.equalsIgnoreCase(that.field2) : that.field2 == null; // bad: ignore case - inconsistent conversion
     }
     public int hashCode() {
         int result = field1 != null ? field1.hashCode() : 0;
