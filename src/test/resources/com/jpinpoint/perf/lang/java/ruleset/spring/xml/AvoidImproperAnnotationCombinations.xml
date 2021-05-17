@@ -106,6 +106,12 @@ public class AvoidImproperAnnotationCombinations {
     class StringAnnotationsViolation2 {
     }
 
+    class LombokAnnotationsOk2 {
+        @Getter
+        @Value("${foo.bar.enabled:true}")
+        private boolean barEnabled;
+    }
+
 }     ]]></code>
     </test-code>
 </test-data>
