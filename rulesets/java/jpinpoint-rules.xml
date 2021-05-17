@@ -2637,13 +2637,13 @@ public class Good implements KeyGenerator {
             <property name="xpath">
                 <value>
                     <![CDATA[
-//(TypeDeclaration|ClassOrInterfaceBodyDeclaration)[count(./Annotation//Name[@Image='Component' or @Image='Service' or @Image='Configuration' or @Image='Controller' or @Image='RestController' or @Image='Repository' or @Image='Entity']) > 1]/Annotation[2]
+//(TypeDeclaration|ClassOrInterfaceBodyDeclaration/ClassOrInterfaceDeclaration/..)[count(./Annotation//Name[@Image='Component' or @Image='Service' or @Image='Configuration' or @Image='Controller' or @Image='RestController' or @Image='Repository' or @Image='Entity']) > 1]/Annotation[2]
 ,
-//(TypeDeclaration|ClassOrInterfaceBodyDeclaration)[./Annotation//Name[@Image='Aspect'] and count(./Annotation//Name[@Image='Service' or @Image='Configuration' or @Image='Controller' or @Image='RestController' or @Image='Repository' or @Image='Entity']) > 0]/Annotation[2]
+//(TypeDeclaration|ClassOrInterfaceBodyDeclaration/ClassOrInterfaceDeclaration/..)[./Annotation//Name[@Image='Aspect'] and count(./Annotation//Name[@Image='Service' or @Image='Configuration' or @Image='Controller' or @Image='RestController' or @Image='Repository' or @Image='Entity']) > 0]/Annotation[2]
 ,
-//(TypeDeclaration|ClassOrInterfaceBodyDeclaration)[count(./Annotation//Name[@Image='Data' or @Image='Value']) > 1]/Annotation[2]
+//(TypeDeclaration|ClassOrInterfaceBodyDeclaration/ClassOrInterfaceDeclaration/..)[count(./Annotation//Name[@Image='Data' or @Image='Value']) > 1]/Annotation[2]
 ,
-//(TypeDeclaration|ClassOrInterfaceBodyDeclaration)[./Annotation//Name[@Image='Data' or @Image='Value'] and ./Annotation/MarkerAnnotation/Name[@Image='ToString' or @Image='EqualsAndHashCode' or @Image='Getter' or @Image='Setter' or @Image='RequiredArgsConstructor']]/Annotation[2]
+//(TypeDeclaration|ClassOrInterfaceBodyDeclaration/ClassOrInterfaceDeclaration/..)[./Annotation//Name[@Image='Data' or @Image='Value'] and ./Annotation/MarkerAnnotation/Name[@Image='ToString' or @Image='EqualsAndHashCode' or @Image='Getter' or @Image='Setter' or @Image='RequiredArgsConstructor']]/Annotation[2]
                     ]]>
                 </value>
             </property>
