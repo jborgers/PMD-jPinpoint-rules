@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>Set EnumSet tests</description>
+        <expected-problems>4</expected-problems>
+        <expected-linenumbers>7,11,14,18</expected-linenumbers>
+        <code><![CDATA[
+import java.util.*;
+import java.time.temporal.ChronoField; // enum
+
+public class EnumMapSetTryout {
+    Set<String> STRING_SET; // good
+    static final Set<ChronoField> CHRONO_SET; // good
+    static final Set<ChronoField> CHRONO_SET2 = new HashSet<>(); // bad
+    static final Set<ChronoField> CHRONO_SET3;
+    static final Set<ChronoField> CHRONO_SET4 = EnumSet.allOf(ChronoField.class); //good
+    HashSet<ChronoField> CHRONO_HASHSET; // good
+    final Set<ChronoField> CHRONO_HASHSET2 = new HashSet<>(); // bad
+    static {
+        CHRONO_SET = EnumSet.allOf(ChronoField.class); // good
+        CHRONO_SET3 = new HashSet<>(); //bad
+    }
+
+    void doIt() {
+        Set<ChronoField> localChrono = new HashSet<>(); // bad
+        Set<ChronoField> localChronoEnum = EnumSet.allOf(ChronoField.class); // good
+        Set<ChronoField> localChronoEnumOf = EnumSet.of(ChronoField.DAY_OF_WEEK); // good
+        EnumSet<ChronoField> localChronoEnumOf2 = EnumSet.of(ChronoField.DAY_OF_WEEK); // good
+    }
+}
+
+        ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>Map EnumMap and Set in enum tests</description>
+        <expected-problems>4</expected-problems>
+        <expected-linenumbers>9,17,22,32</expected-linenumbers>
+        <code><![CDATA[
+import java.util.*;
+import java.time.temporal.ChronoField; // enum
+
+public class EnumOther {
+    private final Map<String, ChronoField> STRING_TO_ENUM = new HashMap<>(); // good
+    private static final Map<ChronoField, String> map;
+    static final Map<ChronoField, String> map2;
+    static {
+        map = new HashMap<>(); // bad
+        map2 = new EnumMap<>(ChronoField.class); // good
+    }
+}
+
+class EnumOtherFoo {
+    ChronoField field;
+    Map<ChronoField, String> map = new EnumMap<>(ChronoField.class); // good
+    Map<MyEnumType, String> map2 = new HashMap<>(); // bad
+    //Map<MyEnumTryout, String> map3 = new HashMap<>(); // should be bad, seems typeIs() cannot resolve this one
+    private static final Map<ChronoField, String> mapEnumValue;
+
+    static {
+        mapEnumValue = Map.of( // bad
+                ChronoField.DAY_OF_WEEK, "DOW",
+                ChronoField.DAY_OF_MONTH, "DOM"
+        );
+    }
+}
+
+enum MyEnumType {
+    A, B;
+    static Set<MyEnumType> set1 = EnumSet.allOf(MyEnumType.class); // good
+    static Set<MyEnumType> set2 = new HashSet<>(); // bad
+}
+        ]]></code>
+    </test-code>
+
+</test-data>
