@@ -1018,6 +1018,42 @@ class Bad1 {
         </example>
     </rule>
 
+    <rule name="OptimizeMapOrSetForEnum"
+          language="java"
+          message="Map has enum keys or Set has enum elemens, use EnumMap or EnumSet for more efficiency."
+          class="net.sourceforge.pmd.lang.rule.XPathRule"
+          typeResolution="true"
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#iuoc03">
+        <description>Problem: A HashMap and HashSet are rather greedy in memory usage..&#13;
+            Solution: Use an EnumMap or EnumSet. It is represented internally with arrays which is extremely compact and efficient.
+        (jpinpoint-rules)</description>
+        <priority>3</priority>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+//FieldDeclaration[Type/ReferenceType/ClassOrInterfaceType[pmd-java:typeIs('java.util.Map') or pmd-java:typeIs('java.util.Set')]
+/TypeArguments/TypeArgument[1]/ReferenceType[pmd-java:typeIs('java.lang.Enum') or ClassOrInterfaceType/@Image = //EnumDeclaration/@SimpleName] and
+VariableDeclarator/VariableInitializer/Expression[not ((pmd-java:typeIs('java.util.EnumSet') or pmd-java:typeIs('java.util.EnumMap')))]]
+,
+//LocalVariableDeclaration[Type/ReferenceType/ClassOrInterfaceType[pmd-java:typeIs('java.util.Map') or pmd-java:typeIs('java.util.Set')]
+/TypeArguments/TypeArgument[1]/ReferenceType[pmd-java:typeIs('java.lang.Enum') or ClassOrInterfaceType/@Image = //EnumDeclaration/@SimpleName] and
+VariableDeclarator/VariableInitializer/Expression[not ((pmd-java:typeIs('java.util.EnumSet') or pmd-java:typeIs('java.util.EnumMap')))]]
+,
+//Initializer//StatementExpression[Expression[not ((pmd-java:typeIs('java.util.EnumSet') or pmd-java:typeIs('java.util.EnumMap')))]][PrimaryExpression//Name/@Image =
+//FieldDeclaration[Type/ReferenceType/ClassOrInterfaceType[pmd-java:typeIs('java.util.Map') or pmd-java:typeIs('java.util.Set')]
+/TypeArguments/TypeArgument[1]/ReferenceType[pmd-java:typeIs('java.lang.Enum') or ClassOrInterfaceType/@Image = //EnumDeclaration/@SimpleName]]/VariableDeclarator/VariableDeclaratorId/@Name]
+]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+Map<YourEnumType, String> map = new EnumMap<>(YourEnumType.class);
+Set<YourEnumType> set = EnumSet.allOf(YourEnumType.class);
+            ]]>
+        </example>
+    </rule>
+
     <rule name="UnconditionalConcatInLogArgument" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="String concatenation (+) is executed regardless of log level and can be expensive" typeResolution="true"
           externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#il01">
         <description>Problem: String concatenation (+) is executed regardless of log level and can be expensive. &#13;
