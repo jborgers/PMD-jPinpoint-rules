@@ -1400,6 +1400,7 @@ Collections.unmodifiableMap(initializeHashMap())
 
 ```java
 Map<YourEnumType, String> map = new EnumMap<>(YourEnumType.class);
+Set<YourEnumType> set = EnumSet.allOf(YourEnumType.class);
 ```
 
 #### IUOC04
