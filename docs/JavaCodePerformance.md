@@ -217,7 +217,13 @@ return HttpClientBuilder.create() // bad, no default HttpClient set with explici
         .build();
 ```
 
+#### IBI11
 
+**Observation: Netflix Hystrix is used for e.g. circuit breaker.**  
+**Problem:** Hystrix is not actively maintained anymore.&#13;  
+**Solution:** Netflix recommends to use open source alternatives like resilience4j.   
+**See:** [DZone article on Hystrix alternatives](https://dzone.com/articles/resilience4j-and-sentinel-two-open-source-alternat) 
+and [resilience4j on GitHub](https://github.com/resilience4j/resilience4j#fault-tolerance-library-designed-for-functional-programming)
 
 Improper caching  
 -------------------
