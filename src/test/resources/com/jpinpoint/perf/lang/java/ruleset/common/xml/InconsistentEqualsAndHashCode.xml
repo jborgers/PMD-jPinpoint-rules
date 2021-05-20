@@ -280,4 +280,72 @@ public class BadFromIssue {
     ]]></code>
     </test-code>
 
+    <test-code>
+        <description>violation: Only deal with equals with one argument and hashCode with 0 arguments, issue 130</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>43</expected-linenumbers>
+        <code><![CDATA[
+public class EqHashTryoutGoodIssue130NoEqHc {
+    String field1;// good
+    String field2;// good
+
+    public boolean equals(Object o, String foo) { // should be ignored
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        EqHashTryoutGoodIssue130 that = (EqHashTryoutGoodIssue130) o;
+        return Objects.equals(field2, that.field2);
+    }
+
+    public int hashCode(String str) { // should be ignored
+        return Objects.hash(field1, str);
+    }
+}
+
+class EqHashTryoutGoodIssue130 {
+    String field1;
+    String field2;// good
+
+    public boolean equals(Object o, String foo) { // should be ignored
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        EqHashTryoutGoodIssue130 that = (EqHashTryoutGoodIssue130) o;
+        return Objects.equals(field1, that.field1);
+    }
+
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        EqHashTryoutGoodIssue130 that = (EqHashTryoutGoodIssue130) o;
+        return Objects.equals(field1, that.field1) &&
+                Objects.equals(field2, that.field2);
+    }
+
+    public int hashCode() {
+        return Objects.hash(field1, field2);
+    }
+}
+
+class EqHashTryoutBadIssue130Related {
+    String field1;
+    String field2;// bad
+
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        EqHashTryoutBadIssue130Related that = (EqHashTryoutBadIssue130Related) o;
+        return Objects.equals(field1, that.field1) &&
+                Objects.equals(field2, that.field2);
+    }
+
+    public int hashCode() {
+        return Objects.hash(field1);
+    }
+
+    public int hashCode(String str) { // should be ignored
+        return Objects.hash(field2, str);
+    }
+}
+    ]]></code>
+        </test-code>
+
 </test-data>

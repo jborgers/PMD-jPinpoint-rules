@@ -797,12 +797,12 @@ count(ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDecla
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
-//FieldDeclaration//VariableDeclaratorId[(@Name = ancestor::ClassOrInterfaceBody//MethodDeclaration[@Name='equals']/Block//(Name|PrimarySuffix)/@Image) !=
-(@Name = ancestor::ClassOrInterfaceBody//MethodDeclaration[@Name='hashCode']/Block//(PrimarySuffix|Name)/@Image or
-concat(@Name, '.hashCode') = ancestor::ClassOrInterfaceBody//MethodDeclaration[@Name='hashCode']/Block//PrimaryPrefix/Name/@Image)
+//FieldDeclaration//VariableDeclaratorId[(@Name = ancestor::ClassOrInterfaceBody//MethodDeclaration[@Name='equals' and (MethodDeclarator//FormalParameters/@Size = 1)]/Block//(Name|PrimarySuffix)/@Image) !=
+(@Name = ancestor::ClassOrInterfaceBody//MethodDeclaration[@Name='hashCode' and (MethodDeclarator//FormalParameters/@Size = 0)]/Block//(PrimarySuffix|Name)/@Image or
+concat(@Name, '.hashCode') = ancestor::ClassOrInterfaceBody//MethodDeclaration[@Name='hashCode' and (MethodDeclarator//FormalParameters/@Size = 0)]/Block//PrimaryPrefix/Name/@Image)
 ]
 ,
-//MethodDeclaration[@Name='equals']/Block//Name[ends-with(@Image, 'equalsIgnoreCase')]
+//MethodDeclaration[@Name='equals' and (MethodDeclarator//FormalParameters/@Size = 1)]/Block//Name[ends-with(@Image, 'equalsIgnoreCase')]
 			]]>
                 </value>
             </property>
@@ -832,11 +832,10 @@ class Bad1 {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         EqHashTryoutBad3 that = (EqHashTryoutBad3) o;
-        return Objects.equals(field1, that.field1) &&
-                Objects.equals(field2, that.field2);
+        return Objects.equals(field1, that.field1); // field2 missing
     }
     public int hashCode() {
-        return Objects.hash(field1); // field2 missing
+        return Objects.hash(field1, field2);
     }
 }
 
