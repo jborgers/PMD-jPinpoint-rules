@@ -46,4 +46,28 @@ public class RetrieveCache {
 }
      ]]></code>
     </test-code>
+
+    <test-code>
+        <description>violation: time unit violation only for primitives</description>
+        <expected-problems>3</expected-problems>
+        <expected-linenumbers>3,10,11</expected-linenumbers>
+        <code><![CDATA[
+import java.time.*;
+public class Issue134 {
+    public Issue134(final int timeToLive) { // bad
+    }
+    public Issue134(final Temporal timeToLive) { // good
+    }
+    void work(final Object timeToLive) { // good
+    }
+    public void confuse(int expiryTimeHours) { // good
+        long someLongTimeToLive = expiryTimeHours; // bad
+        float someFloatTimeout; // bad
+        Duration someMoreTimeToLive; // good
+        LocalDateTime localExpiryTime; // good
+        String stringExpiryTime; // good
+    }
+}
+        ]]></code>
+    </test-code>
 </test-data>
