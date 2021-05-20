@@ -178,11 +178,10 @@ class Bad1 {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Bad1 that = (Bad1) o;
-        return Objects.equals(field1, that.field1) &&
-                Objects.equals(field2, that.field2);
+        return Objects.equals(field1, that.field1); // field2 missing
     }
     public int hashCode() {
-        return Objects.hash(field1); // field2 missing
+        return Objects.hash(field1, field2); 
     }
 }
 
