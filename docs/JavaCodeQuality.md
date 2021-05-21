@@ -85,9 +85,42 @@ result = false
 ````
 **Solution:** Add proper equals and hashCode methods that meet the general contract to all objects which might anyhow be put in a Map, Set or other collection by someone, e.g. the domain objects. See [Effective Java, Chapter 3](http://www.slideshare.net/ibrahimkurce/effective-java-chapter-3-methods-common-to-all-objects). Options to use are:
 
+Three ways to generate the boilerplate code:
+1. Use [Project Lombok](https://projectlombok.org/features/index.html) annotation @EqualsAndHashCode, @Value or @Data to generate the boilerplate code
+2. Use [Google AutoValue framework](https://github.com/google/auto/blob/master/value/userguide/why.md) (Promoted by Effective Java)
+3. Use Immutables framework [Article that compares Lombok, AutoValue and Immutables](https://codeburst.io/lombok-autovalue-and-immutables-or-how-to-write-less-and-better-code-returns-2b2e9273f877)
+
+````
+import lombok.*;
+class Getters { // bad - equals and hashCode missing
+    private String someState1 = "some1";
+    private String someState2 = "some2";
+
+    public String getSomeState1() {
+        return someState1;
+    }
+    public String getSomeState2() {
+        return someState2;
+    }
+}
+
+@Getter
+class LombokGetterBad { // bad - equals and hashCode missing
+    private String someState1 = "some1";
+    private String someState2 = "some2";
+}
+
+@Getter
+@EqualsAndHashCode
+class LombokGetterGood { // good  
+    private String someState1 = "some1";
+    private String someState2 = "some2";
+}
+````
+More traditional ways:
 1.  [EqualsBuilder](http://commons.apache.org/lang/api-2.4/org/apache/commons/lang/builder/EqualsBuilder.html) and [HashCodeBuilder](http://commons.apache.org/lang/api-2.4/org/apache/commons/lang/builder/HashCodeBuilder.html), without reflection, see [UUOR01](http://wiki.rabobank.nl/wiki/JavaCodePerformance#UUOR01) above.
 2.  The more concise [Google Guava Objects](http://guava-libraries.googlecode.com/svn/trunk/javadoc/com/google/common/base/Objects.html) as discussed at [StackOverflow](http://stackoverflow.com/questions/5038204/apache-commons-equals-hashcode-builder).
-3.  **Java 7 version using the Objects class, see example below.**
+3.  Java 7 version using the Objects class, see example below.
 4.  Your IDE to generate those methods, possibly using one of the above.
 
 Since we use Java 7+, we recommend the Java 7+ version, example:
