@@ -95,7 +95,7 @@ public class GetAddressKeyGeneratorBad implements KeyGenerator {
         <description>no violation: issue #133 - use params to do logging inside if-block checking on params.length</description>
         <expected-problems>0</expected-problems>
         <code><![CDATA[
-        class Foo implements KeyGenerator {
+ class Foo implements KeyGenerator {
     @NotNull @Override
     public Object generate(Object target, Method method, Object... params) {
         if (params.length < 2 ) {

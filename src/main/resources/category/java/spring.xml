@@ -300,7 +300,7 @@ class Good {
 //ImplementsList/ClassOrInterfaceType[pmd-java:typeIs("org.springframework.cache.interceptor.KeyGenerator")]
 /../..//MethodDeclaration[@Name='generate']
 /Block//BlockStatement//(ReturnStatement|LocalVariableDeclaration//VariableInitializer)
-(:-- exclude if in an If-block checking params.length to do error logging or so --:)
+(:-- exclude if in an if-block checking params.length to do error logging or so --:)
 [count(ancestor::IfStatement//Name[ends-with(@Image, '.length')]) = 0]
 /Expression[count(.//CastExpression)=0]//PrimaryExpression[PrimaryPrefix/Name/@Image
 = ancestor::MethodDeclaration//FormalParameter[3]/VariableDeclaratorId/@Name
