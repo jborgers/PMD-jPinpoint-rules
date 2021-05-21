@@ -740,7 +740,7 @@ ClassOrInterfaceBodyDeclaration
           typeResolution="true" externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodeQuality.md#incorrect-equals-and-hashcode">
         <description>
             Problem: If equals and hashCode are not defined, they don't meet the programmer's expectations and the requirements for use with the collections API. It may result in unexpected, undesired behavior.&#13;
-            Solution: Add proper equals and hashCode methods that meet the equals-hashCode contract to all objects which might anyhow be put in a Map, Set or other collection.
+            Solution: Add proper equals and hashCode methods that meet the equals-hashCode contract to all objects which might anyhow be put in a Map, Set or other collection. Or use Lombok @EqualsAndHashCode, @Value or @Data.
             If the object should never be checked for equality or used in a collection, also add those methods and let them throw UnsupportedOperationException to fail fast. @Xml... and @Entity objects are ignored because they are assumed to be not used as value objects.
             (jpinpoint-rules)</description>
         <priority>3</priority>
@@ -789,6 +789,34 @@ ancestor::TypeDeclaration/Annotation//Name[@Image='Getter']
                 </value>
             </property>
         </properties>
+        <example>
+            <![CDATA[
+class Getters { // bad
+    private String someState1 = "some1";
+    private String someState2 = "some2";
+
+    public String getSomeState1() {
+        return someState1;
+    }
+    public String getSomeState2() {
+        return someState2;
+    }
+}
+
+@Getter
+class LombokGetterBad { // bad
+    private String someState1 = "some1";
+    private String someState2 = "some2";
+}
+
+@Getter
+@EqualsAndHashCode
+class LombokGetterGood {
+    private String someState1 = "some1";
+    private String someState2 = "some2";
+}
+            ]]>
+        </example>
     </rule>
 
     <rule name="InconsistentEqualsAndHashCode" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="Equals and hashCode are not based on the same fields or use inconsistent conversion." typeResolution="true"
