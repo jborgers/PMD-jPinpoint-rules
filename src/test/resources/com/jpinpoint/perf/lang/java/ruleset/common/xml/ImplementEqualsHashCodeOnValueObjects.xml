@@ -6,7 +6,7 @@
     <test-code>
         <description>violation: Implement equals and hashcode methods on value Objects</description>
         <expected-problems>4</expected-problems>
-        <expected-linenumbers>44,52,66,81</expected-linenumbers>
+        <expected-linenumbers>44,52,66,80</expected-linenumbers>
         <code><![CDATA[
 import lombok.*;
 import org.slf4j.Logger;
@@ -51,7 +51,7 @@ public class Foo {
     // state and toString and no equals/hashCode --> violation
 }
 
-class ViolateDtoBad {
+class ViolateDtoBad { // bad line 44
     private String someState = "some";
 
     public String getSomeState() {
@@ -59,7 +59,7 @@ class ViolateDtoBad {
     }
 }
 
-class ViolateGetters1Bad {
+class ViolateGetters1Bad { // bad 52
     private String someState1 = "some1";
     private String someState2 = "some2";
 
@@ -73,10 +73,9 @@ class ViolateGetters1Bad {
     }
 }
 
-class ViolateGetters2Bad {
+class ViolateGetters2Bad { // bad 66
     private String someState1 = "some1";
     private boolean someState2 = true;
-
 
     public boolean isSomeState2() {
         return someState2;
@@ -88,7 +87,7 @@ class ViolateGetters2Bad {
 }
 
 @ApplicationScoped
-class ViolateLoggerProducerBad {
+class ViolateLoggerProducerBad { // bad 80
 
     @Inject
     private Properties properties;
@@ -531,4 +530,24 @@ class AdaptedValidationErrorIgnored {
 }
      ]]></code>
     </test-code>
+
+    <test-code>
+        <description>violation: Implement equals and hashcode methods on Objects with @Getter and no @EqualsAndHashCode (or @Value or @Data)</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>3</expected-linenumbers>
+        <code><![CDATA[
+import lombok.*;
+@Getter
+public class LombokGetterBad1 { // bad
+    private String someState1 = "some1";
+}
+
+@Getter
+@EqualsAndHashCode
+class LombokGetterGood {
+    private String someState1 = "some1";
+}
+            ]]></code>
+    </test-code>
+
 </test-data>
