@@ -269,6 +269,28 @@ VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/Literal[string-le
         </properties>
     </rule>
 
+    <rule name="AvoidLombokAnnotationForNonExistentFields"
+          language="java"
+          message="Avoid Lombok annotations for fields of a class while the class has no fields."
+          class="net.sourceforge.pmd.lang.rule.XPathRule"
+          typeResolution="true"
+          externalInfoUrl="">
+        <description>Problem: Lombok annotations for fields [@Getter, @Setter, @EqualsAndHashCode, @Value, @Data] are of no use and confusing in case the class has no fields.&#13;
+            Solution: Remove the Lombok annotation.
+        (jpinpoint-rules)</description>
+        <priority>4</priority>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+//(TypeDeclaration|ClassOrInterfaceBodyDeclaration/ClassOrInterfaceDeclaration/..)/Annotation
+    [MarkerAnnotation/Name[@Image='Getter' or @Image='Setter' or @Image='Value' or @Image='Data' or @Image='EqualsAndHashCode']]
+    [count(..//FieldDeclaration) = 0]
+                ]]></value>
+            </property>
+        </properties>
+    </rule>
+
     <rule name="AvoidMultipleConcatStatements" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="Multiple statements concatenate to the same String. Use StringBuilder append." typeResolution="true"
           externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#isu02">
         <description>Multiple statements concatenate to the same String. Problem: Each statement with one or more +-operators creates a hidden temporary StringBuilder, a char[] and a new String object, which all have to be garbage collected.&#13;
@@ -1054,7 +1076,7 @@ class Bad1 {
           class="net.sourceforge.pmd.lang.rule.XPathRule"
           typeResolution="true"
           externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#iuoc03">
-        <description>Problem: A HashMap and HashSet are rather greedy in memory usage..&#13;
+        <description>Problem: A HashMap and HashSet are rather greedy in memory usage.&#13;
             Solution: Use an EnumMap or EnumSet. It is represented internally with arrays which is extremely compact and efficient.
         (jpinpoint-rules)</description>
         <priority>3</priority>
@@ -2673,7 +2695,7 @@ class Bad1 {
 //ImplementsList/ClassOrInterfaceType[pmd-java:typeIs("org.springframework.cache.interceptor.KeyGenerator")]
 /../..//MethodDeclaration[@Name='generate']
 /Block//BlockStatement//(ReturnStatement|LocalVariableDeclaration//VariableInitializer)
-(:-- exclude if in an If-block checking params.length to do error logging or so --:)
+(:-- exclude if in an if-block checking params.length to do error logging or so --:)
 [count(ancestor::IfStatement//Name[ends-with(@Image, '.length')]) = 0]
 /Expression[count(.//CastExpression)=0]//PrimaryExpression[PrimaryPrefix/Name/@Image
 = ancestor::MethodDeclaration//FormalParameter[3]/VariableDeclaratorId/@Name
