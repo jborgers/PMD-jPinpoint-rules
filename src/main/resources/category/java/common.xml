@@ -1175,7 +1175,7 @@ class Foo {
           class="net.sourceforge.pmd.lang.rule.XPathRule"
           typeResolution="true"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#iuoc03">
-        <description>Problem: A HashMap and HashSet are rather greedy in memory usage..&#13;
+        <description>Problem: A HashMap and HashSet are rather greedy in memory usage.&#13;
             Solution: Use an EnumMap or EnumSet. It is represented internally with arrays which is extremely compact and efficient.
         </description>
         <priority>3</priority>
@@ -1205,5 +1205,26 @@ Set<YourEnumType> set = EnumSet.allOf(YourEnumType.class);
         </example>
     </rule>
 
+    <rule name="AvoidLombokAnnotationForNonExistentFields"
+          language="java"
+          message="Avoid Lombok annotations for fields of a class while the class has no fields."
+          class="net.sourceforge.pmd.lang.rule.XPathRule"
+          typeResolution="true"
+          externalInfoUrl="">
+        <description>Problem: Lombok annotations for fields [@Getter, @Setter, @EqualsAndHashCode, @Value, @Data] are of no use and confusing in case the class has no fields.&#13;
+            Solution: Remove the Lombok annotation.
+        </description>
+        <priority>4</priority>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+//(TypeDeclaration|ClassOrInterfaceBodyDeclaration/ClassOrInterfaceDeclaration/..)/Annotation
+    [MarkerAnnotation/Name[@Image='Getter' or @Image='Setter' or @Image='Value' or @Image='Data' or @Image='EqualsAndHashCode']]
+    [count(..//FieldDeclaration) = 0]
+                ]]></value>
+            </property>
+        </properties>
+    </rule>
 
 </ruleset>
