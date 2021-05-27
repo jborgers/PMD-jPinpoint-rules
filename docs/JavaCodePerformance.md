@@ -225,6 +225,21 @@ return HttpClientBuilder.create() // bad, no default HttpClient set with explici
 **See:** [DZone article on Hystrix alternatives](https://dzone.com/articles/resilience4j-and-sentinel-two-open-source-alternat) 
 and [resilience4j on GitHub](https://github.com/resilience4j/resilience4j#fault-tolerance-library-designed-for-functional-programming)
 
+#### IBI12
+
+**Observation: An HttpClient is created and combined with request-response.**  
+**Problem:** Apache HttpClient with its connection pool and timeouts should be setup once and then used for many requests. 
+It is quite expensive to create and can only provide the benefits of pooling when reused in all requests for that connection.  
+**Solution:** Create/build HttpClient with proper connection pooling and timeouts once, and then use it for requests.  
+**Example**
+```java
+    ResponseEntity<Object> connectBad(Object req) {
+        HttpEntity<Object> requestEntity = new HttpEntity<>(req);
+        HttpClient httpClient = HttpClientBuilder.create().setMaxConnPerRoute(10).build(); // bad
+        return remoteCall(httpClient, requestEntity);
+    }
+```
+
 Improper caching  
 -------------------
 
