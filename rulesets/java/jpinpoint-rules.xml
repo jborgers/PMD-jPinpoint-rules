@@ -339,8 +339,8 @@ and
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
-    (: a field of type List :)
-    //FieldDeclaration[pmd-java:typeIs('java.util.List')]//VariableDeclaratorId[
+    (: a field of type List, exclude when JPA annotated :)
+    //FieldDeclaration[pmd-java:typeIs('java.util.List')][count(../Annotation//Name[@Image='OneToMany' or @Image='ManyToMany']) = 0]//VariableDeclaratorId[
     (: with a method defined at that level that does not use the field with a modify operation (case field.modOp) :)
     not(@Name = ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDeclaration//PrimaryExpression/PrimaryPrefix/Name[
     starts-with(substring-after(@Image, '.'), 'add') or

@@ -61,4 +61,32 @@ public class Bad {
      ]]></code>
     </test-code>
 
+    <test-code>
+        <description>no violation: mutable List used as @OneToMany mutated/managed by JPA, issue #129</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import java.util.*;
+import javax.persistence.*;
+import nl.company.ItemDto;
+import org.springframework.lang.NonNull;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+@Getter
+@NoArgsConstructor
+@Entity(name = "ITEM")
+public class Item {
+    @OrderColumn(name = "SEQ_NR")
+    @JoinColumn(name = "ITEM_ID")
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
+    private final List<ItemProperties> properties = new ArrayList<>();   // good
+
+    public Item(@NonNull ItemDto item) {
+        proofItem.getProperties().stream()
+            .map(ItemProperties::new)
+            .forEach(properties::add);
+    }
+}
+     ]]></code>
+    </test-code>
 </test-data>
