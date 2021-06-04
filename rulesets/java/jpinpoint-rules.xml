@@ -1112,20 +1112,34 @@ Set<YourEnumType> set = EnumSet.allOf(YourEnumType.class);
             Solution: Use SLF4J formatting with {}-placeholders or log and format conditionally.  (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
-            <property name="version" value="1.0"/>
+            <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
-			//PrimaryPrefix/Name[ends-with(@Image,'.trace') or ends-with(@Image,'.debug') or ends-with(@Image,'.info')]/../../PrimarySuffix/Arguments/ArgumentList/Expression/AdditiveExpression
-			[PrimaryExpression/PrimaryPrefix/Name]
-			[not(ancestor::IfStatement/Expression/PrimaryExpression/PrimaryPrefix/Name[
-			ends-with(@Image,'.isTraceEnabled')
-			or ends-with(@Image,'.isDebugEnabled')
-			or ends-with(@Image,'.isInfoEnabled')
-			or ends-with(@Image,'.isLoggable')
-			])]
+//PrimaryPrefix/Name[ends-with(@Image,'.trace') or ends-with(@Image,'.debug') or
+    ends-with(@Image,'.info')]/../../PrimarySuffix/Arguments/ArgumentList/Expression/AdditiveExpression[pmd-java:typeIs('java.lang.String')]
+    [PrimaryExpression/PrimaryPrefix/Name]
+    [not(ancestor::IfStatement/Expression/PrimaryExpression/PrimaryPrefix/Name[
+        ends-with(@Image,'.isTraceEnabled')
+        or ends-with(@Image,'.isDebugEnabled')
+        or ends-with(@Image,'.isInfoEnabled')
+        or ends-with(@Image,'.isLoggable')
+    ])]
 ]]></value>
             </property>
         </properties>
+        <example>
+        <![CDATA[
+@slf4j
+class Foo {
+    void bad(String a, String b) {
+        log.debug("message: {}", a + b); // bad
+    }
+    void good(String a, String b) {
+        log.debug("message: {}{}", a, b); // good
+    }
+}
+            ]]>
+    </example>
     </rule>
 
     <rule name="UnconditionalOperationOnLogArgument" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="Operation is executed regardless of log level and can be expensive" typeResolution="true"

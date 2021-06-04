@@ -284,4 +284,27 @@ public class ConditionalLogging {
 }
      ]]></code>
     </test-code>
+
+    <test-code>
+        <description>Add and subtract numbers is not concatenation, only consider Strings, issue #141</description>
+        <expected-problems>4</expected-problems>
+        <expected-linenumbers>10,11,12,13</expected-linenumbers>
+        <code><![CDATA[
+@slf4j
+class Foo {
+    void bar() {
+         long startTime = System.currentTimeMillis();
+         long endTime = System.currentTimeMillis();
+         log.info("Execution Time : {} ms ", endTime - startTime); // good, no concat
+         log.info("More Time : {} ms ", endTime + startTime); // good, no concat
+         String strStart = String.valueOf(startTime);
+         String strEnd = String.valueOf(endTime);
+         log.info("Concatenation of Strings {} ", strEnd + strStart); // bad
+         log.info("Concatenation of String and converted value {} ", strEnd + startTime); // bad
+         log.info("Concatenation of converted value and String {} ", endTime + strStart); // bad
+         log.info("Concat confusing : {} ms ", "" + endTime + startTime); // bad
+    }
+}
+    ]]></code>
+        </test-code>
 </test-data>
