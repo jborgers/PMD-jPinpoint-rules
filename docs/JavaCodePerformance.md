@@ -909,7 +909,7 @@ LOG.debug("Length: {}, currency: {}", length, currency);
 ```java
 while(..) {
     ...
-    logStatement.append("Found page parameter with key '" + key + "' and value '" + value + "'\n");
+    logStatement.append("Found page parameter with key '" + key + "' and value '" + value + "'\n"); // bad
 }
 LOG.debug("Note: {}", logStatement);
 ```
@@ -918,7 +918,7 @@ LOG.debug("Note: {}", logStatement);
 **Problem:** String building, concatenation and/or other operations happen before the debug, trace or info method executes, so independent of the need to actually log. Concatenation is relatively expensive.  
 **Solution:** Built the String conditionally on the log level, within an if statement. A nicer solution is possible with SLF4J2, by utilizing a lambda expression:
 ```
-LOG.debug("Found page key-value pairs: {}", () -> buildPageKeyValueLogString());
+LOG.debug("Found page key-value pairs: {}", () -> buildPageKeyValueLogString()); // good
 ```
 The `buildPageKeyValueLogString` method is deferred and only executed if needed by SLF4J.
 
