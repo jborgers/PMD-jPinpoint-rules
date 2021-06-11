@@ -916,7 +916,12 @@ LOG.debug("Note: {}", logStatement);
   
 
 **Problem:** String building, concatenation and/or other operations happen before the debug, trace or info method executes, so independent of the need to actually log. Concatenation is relatively expensive.  
-**Solution:** Built the String conditionally on the log level, within an if statement.  
+**Solution:** Built the String conditionally on the log level, within an if statement. A nicer solution is possible with SLF4J2, by utilizing a lambda expression:
+```
+LOG.debug("Found page key-value pairs: {}", () -> buildPageKeyValueLogString());
+```
+The `buildPageKeyValueLogString` method is deferred and only executed if needed by SLF4J.
+
 **Rule name:**: AvoidUnconditionalBuiltLogStrings
 
 #### IL03
@@ -934,7 +939,7 @@ LOG.debug("Complete Soap response: {}", getSoapMsgAsString(context.getMessage())
 **Problem:** toString(), String.format or some other operation or method call is executed irrespective of log level. This may include formatting, concatenation, reflection and other wasteful processing. For example, the above line with toString seems rather harmless, however, you might change your mind if you see the toString implementation of [StepExecution](https://github.com/spring-projects/spring-batch/blob/master/spring-batch-core/src/main/java/org/springframework/batch/core/StepExecution.java) (at the bottom of the page.)
 
   
-**Solution:** Remove the toString() since this is already invoked conditionally inside SLF4J. If formatting is really needed, execute it conditionally or in its toString method.
+**Solution:** Remove the toString() since this is already invoked conditionally inside SLF4J. If formatting is really needed, execute it conditionally or in its toString method. Or even nicer, use a lambda expression with SLF4J2, see IL02 above.
 
 ```java
 LOG.debug("ACTUAL DOWNLOAD: EndDate Download Date: {}", endDateDownloadDate); // good
