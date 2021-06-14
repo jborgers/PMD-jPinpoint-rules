@@ -864,7 +864,7 @@ class Foo {
           externalInfoUrl="${doc_root}/JavaCodePerformance.md">
         <description>Problem: Time unit like hours, seconds, milliseconds is not specified and may be assumed differently by readers.
             Different assumptions will lead to errors or hidden problems like ineffective caches.&#13;
-            Solution: Specify the time unit in the identifier. (jpinpoint-rules)</description>
+            Solution: Specify the time unit in the identifier, like connectTimeoutMillis. (jpinpoint-rules)</description>
         <priority>3</priority>
         <properties>
             <property name="version" value="2.0"/>
@@ -885,7 +885,7 @@ or ends-with(lower-case(@Image), 'timeout}"')]
 public RetrieveCache(final @Value("${cache.expiryTime}") long timeToLive) { // 2x bad
 
 @Autowired
-public RetrieveCache(final @Value("${cache.expiryTimeSeconds}") long timeToLiveSeconds) { // 2x good
+public RetrieveCache(final @Value("${cache.expiryTimeMillis}") long timeToLiveMillis) { // 2x good
 
             ]]>
         </example>
