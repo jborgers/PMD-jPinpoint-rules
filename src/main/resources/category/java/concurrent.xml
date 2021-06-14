@@ -238,6 +238,45 @@ or (ancestor::ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='VisibleFo
         </properties>
     </rule>
 
+    <rule name="AvoidNonPrivateFieldsInSharedObjects"
+          message="Avoid non-private objects shared among threads. Make fields private to ensure thread-safety."
+          class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
+          typeResolution="true" externalInfoUrl="${doc_root}/JavaCodePerformance.md#tutc11">
+        <description>
+            Problem: A singleton, or more general: an object shared among threads, has a field that is not private.
+            These field can possibly be modified from other classes.&#13;
+            Solution: Make the fields private.
+            (jpinpoint-rules)</description>
+        <priority>1</priority>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value>
+                    <![CDATA[
+(: known assumed singleton types by annotation :)
+//TypeDeclaration/Annotation//Name[
+    (
+      @Image='Component'
+      or @Image='Service'
+      or @Image='Controller'
+      or @Image='RestController'
+      or @Image='Repository'
+      or (@Image='Singleton' and ancestor::TypeDeclaration/Annotation/NormalAnnotation/MemberValuePairs//Name[@Image='ConcurrencyManagementType.BEAN'])
+    )
+    (: not shared when request or prototype scope :)
+    and not (ancestor::TypeDeclaration/Annotation//Name[@Image='Scope']/..//Literal[@Image='"request"' or @Image='"prototype"'])
+    and not (ancestor::TypeDeclaration/Annotation//Name[@Image='RequestScope'])
+    (: if @NotThreadSafe no checking :)
+    and not (ancestor::TypeDeclaration/Annotation/MarkerAnnotation/Name[@Image='NotThreadSafe'])
+]
+(: non-static, non-final and non-private fields :)
+/../../../ClassOrInterfaceDeclaration[@Static=false()]/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Private=false() and @Final=false()]
+]]>
+                </value>
+            </property>
+        </properties>
+    </rule>
+
     <rule name="AvoidUnguardedMutableFieldsInSharedObjects"
           message="Avoid unguarded non-final or mutable fields in objects shared among threads. Make final immutable or access thread-safely and use @GuardedBy."
           class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
