@@ -111,7 +111,7 @@ public class DateStuff {
             </description>
         <priority>2</priority>
         <properties>
-            <property name="version" value="1.0"/>
+            <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
 //MethodDeclaration/Block/BlockStatement[
@@ -119,12 +119,12 @@ public class DateStuff {
 or
 .//PrimaryExpression/PrimarySuffix/@Image = 'append')
 and
-.//PrimaryExpression/PrimarySuffix/Arguments/ArgumentList/Expression[1]/AdditiveExpression[@Operator='+'
+.//PrimaryExpression/PrimarySuffix/Arguments/ArgumentList/Expression[1]/AdditiveExpression[pmd-java:typeIs('java.lang.String')
 and (count(PrimaryExpression/PrimaryPrefix/Name) > 0)
 and not(PrimaryExpression/PrimaryPrefix/Name/@Image=
-ancestor::ClassOrInterfaceBody//FieldDeclaration[@Final='true']//VariableDeclaratorId/@Name)
+ancestor::ClassOrInterfaceBody//FieldDeclaration[@Final=true()]//VariableDeclaratorId/@Name)
 and not(PrimaryExpression/PrimaryPrefix/Name/@Image=
-ancestor::Block//LocalVariableDeclaration[@Final='true']//VariableDeclaratorId/@Name)
+ancestor::Block//LocalVariableDeclaration[@Final=true()]//VariableDeclaratorId/@Name)
 ]]
 	]]></value>
             </property>

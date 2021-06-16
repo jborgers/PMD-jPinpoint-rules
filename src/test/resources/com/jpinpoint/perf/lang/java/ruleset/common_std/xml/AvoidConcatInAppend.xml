@@ -80,4 +80,22 @@ public class Foo {
 }
      ]]></code>
     </test-code>
+
+    <test-code>
+        <description>No violation: Avoid contact in append method invocations, number addition false positive #79</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+class Foo {
+    static String foo(String text) {
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < text.length(); i++) {
+            char ch = text.charAt(i);
+            String bar = String.valueOf(ch - 65 + 10);  // false positive
+            builder.append(bar);
+        }
+        return builder.toString();
+    }
+}
+            ]]></code>
+    </test-code>
 </test-data>
