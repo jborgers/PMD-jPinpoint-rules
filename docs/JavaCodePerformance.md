@@ -200,6 +200,7 @@ This has impact on the stability of the app if too many threads are blocked wait
 **Solution:** Always set the timeouts explicitly. Use best practice values: Read/socket timeout ~4000 ms (note: 
 depends largely on use case and expected latency of remote calls),
 Connect timeout ~250 ms, Connection Manager/Request timeout = connect timeout + slack 250+100 = ~350 ms.  
+**Rule name:** HttpClientBuilderWithoutTimeouts   
 **Example**
 ```java
 RequestConfig requestConfig = RequestConfig.custom()
@@ -222,6 +223,7 @@ return HttpClientBuilder.create() // bad, no default HttpClient set with explici
 **Observation: Netflix Hystrix is used for e.g. circuit breaker.**  
 **Problem:** Hystrix is not actively maintained anymore.&#13;  
 **Solution:** Netflix recommends to use open source alternatives like resilience4j.   
+**Rule name:** AvoidDeprecatedHystrix   
 **See:** [DZone article on Hystrix alternatives](https://dzone.com/articles/resilience4j-and-sentinel-two-open-source-alternat) 
 and [resilience4j on GitHub](https://github.com/resilience4j/resilience4j#fault-tolerance-library-designed-for-functional-programming)
 
@@ -231,6 +233,7 @@ and [resilience4j on GitHub](https://github.com/resilience4j/resilience4j#fault-
 **Problem:** Apache HttpClient with its connection pool and timeouts should be setup once and then used for many requests. 
 It is quite expensive to create and can only provide the benefits of pooling when reused in all requests for that connection.  
 **Solution:** Create/build HttpClient with proper connection pooling and timeouts once, and then use it for requests.  
+**Rule name:** AvoidRecreatingHttpClient   
 **Example**
 ```java
     ResponseEntity<Object> connectBad(Object req) {
@@ -240,6 +243,25 @@ It is quite expensive to create and can only provide the benefits of pooling whe
     }
 ```
 
+#### IBI13
+**Observation: A Retry mechanism is used in more than one location in a call chain. This can by by Resilience4j Retry or @Retry, or Spring @Retryable.**  
+**Problem:** Multiple Retry locations in a call chain multiply the number of calls. For 2x retry on 3 locations (service calls) in a chain calling a system which is just recovering,
+results in 3 x 3 x 3 = 27 calls instead of 1. This may cause it not being able to restart.  
+**Solution:** Have the retry mechanism in one location in the chain only, recommended only the one closest to the user. 
+This could be achieved with passing a token/header which indicates whether retrying is already managed.   
+**Rule name:** RetryCanCauseOverload   
+**See:** [AWS Timeouts, retries, and backoff with jitter](https://d1.awsstatic.com/builderslibrary/pdfs/timeouts-retries-and-backoff-with-jitter.pdf)  
+**Example**
+```java
+import io.github.resilience4j.retry.annotation.Retry;
+
+@Retry(name = "some-service") // inform
+public class Foo {
+    public Response callSomeService() {
+        //...and someService does a Retry for a call to the next service
+    }
+}
+```
 Improper caching  
 -------------------
 

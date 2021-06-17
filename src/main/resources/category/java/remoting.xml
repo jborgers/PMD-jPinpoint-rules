@@ -535,4 +535,38 @@ class Foo {
         </example>
     </rule>
 
+    <rule name="RetryCanCauseOverload" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="Be careful with retrying: multiple retry locations in a call chain can cause overload."
+          typeResolution="true"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi13">
+        <description>Problem: Multiple Retry locations in a call chain multiply the number of calls. For 2x retry on 3 locations (service calls) in a chain calling a system which is just recovering,
+            results in 3 x 3 x 3 = 27 calls instead of 1. This may cause it not being able to restart.&#13;
+            Solution: Have the retry mechanism in one location in the chain only, recommended only the one closest to the user. (jpinpoint-rules)</description>
+        <priority>5</priority>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+//Annotation//Name[@Image='Retry']
+,
+//Annotation//Name[@Image='Retryable']
+,
+//FieldDeclaration//ClassOrInterfaceType[@Image='Retry']
+]]>
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+import io.github.resilience4j.retry.annotation.Retry;
+
+@Retry(name = "some-service") // inform
+public class Foo {
+    public Response callSomeService() {
+        //...and someService does a Retry for a call to the next service
+    }
+}
+            ]]>
+        </example>
+    </rule>
+
 </ruleset>
