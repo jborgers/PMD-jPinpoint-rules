@@ -244,7 +244,7 @@ It is quite expensive to create and can only provide the benefits of pooling whe
 ```
 
 #### IBI13
-**Observation: A Retry mechanism is used in more than one location in a call chain. This can by by Resilience4j Retry or @Retry, or Spring @Retryable.**  
+**Observation: A Retry mechanism is used in more than one location in a call chain. This can be by Resilience4j Retry or @Retry, or Spring @Retryable.**  
 **Problem:** Multiple Retry locations in a call chain multiply the number of calls. For 2x retry on 3 locations (service calls) in a chain calling a system which is just recovering,
 results in 3 x 3 x 3 = 27 calls instead of 1. This may cause it not being able to restart.  
 **Solution:** Have the retry mechanism in one location in the chain only, recommended only the one closest to the user. 
