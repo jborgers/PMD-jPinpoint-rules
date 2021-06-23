@@ -20,4 +20,41 @@ public class Foo {
 }
      ]]></code>
     </test-code>
+    <test-code>
+        <description>no violation: SimpleDateFormat is allowed in Jackon's ObjectMapper</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>26</expected-linenumbers>
+        <code><![CDATA[
+import java.text.SimpleDateFormat;
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Date;
+
+public class Foo {
+
+    private static final ObjectMapper OBJECT_MAPPER = createObjectMapper();
+    private static final XmlMapper XML_MAPPER;
+    private static final Unknown unknown = createUnknownObject();
+
+    static {
+        XML_MAPPER = new XmlMapper();
+        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss"); // good, used in XmlMapper
+        XML_MAPPER.setDateFormat(df);
+    }
+
+    private static ObjectMapper createObjectMapper() {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.setDateFormat(new SimpleDateFormat("yyyy-MM-dd")); // good, used in ObjectMapper
+        return mapper;
+    }
+
+    private static Unknown createUnknownObject() {
+        Unknown unknown = new Unknown();
+        unknown.setDateFormat(new SimpleDateFormat("yyyy-MM-dd")); // bad, used in unknown object
+        return unknown;
+    }
+
+}
+        ]]></code>
+    </test-code>
 </test-data>

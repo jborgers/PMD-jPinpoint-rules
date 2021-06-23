@@ -1578,6 +1578,10 @@ private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormat.forPatter
 [...]
 LocalDateTime lastDate = DATE_FORMATTER.parseLocalDateTime(lastDateString);
 ```
+
+Note: sometimes the use of SimpleDateFormat is forced by an API of a library. For instance, Jackson's ObjectMapper uses SimpleDateFormat. Because Jackson prevents threading issues,
+the rule allows the usage here. Beware there might be some contention when you use objectMapper.setDateFormat(SimpleDateFormat), if so, better create your own thread safe date serializers
+or use jackson-datatype-jsr310.
  
 Like SimpleDateFormat, java.util.Date and -Calendar are mutable and flawed in other ways. Joda-Time is the better alternative and when Java 8 is available, [java.time](https://docs.oracle.com/javase/8/docs/api/index.html?java/time/package-summary.html) is the way to go .  
 **Rule name:** AvoidSimpleDateFormat.

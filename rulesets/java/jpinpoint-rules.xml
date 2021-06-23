@@ -551,11 +551,18 @@ ancestor::MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter/Va
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
-            <property name="version" value="1.0"/>
+            <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
- //AllocationExpression/ClassOrInterfaceType[typeIs('java.text.SimpleDateFormat')]
-	]]></value>
+//AllocationExpression/ClassOrInterfaceType[
+    pmd-java:typeIs('java.text.SimpleDateFormat')
+    and not (ancestor::ClassOrInterfaceBodyDeclaration//PrimaryPrefix/Name[
+       ends-with(@Image, 'setDateFormat')
+       and (   pmd-java:typeIs('com.fasterxml.jackson.databind.ObjectMapper')
+            or pmd-java:typeIs('com.fasterxml.jackson.dataformat.xml.XmlMapper'))
+    ])
+]
+                ]]></value>
             </property>
         </properties>
     </rule>
