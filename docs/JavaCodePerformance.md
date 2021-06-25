@@ -459,6 +459,31 @@ public class Good implements KeyGenerator {
     }
 }
 ```
+
+### IC14
+
+**Observation: Default key generation is used with @Cacheable, no KeyGenerator is used.**  
+**Problem:** With default key generation, an object of Spring's SimpleKey class is used and its value is composed of just the method parameter(s). It does not include the method and class name, which is unclear and risky.   
+**Solution:** Create a KeyGenerator and make it generate a unique key for the cache per cached value, typically by use of SimpleKey composed of class and/or method name and the appropriate method parameters.   
+**Rule name:** UseExplicitKeyGeneratorForCacheable    
+**See:** [Spring 4.0 Caching](https://docs.spring.io/spring-framework/docs/4.0.x/spring-framework-reference/html/cache.html)   
+**Example:**   
+```java
+import org.springframework.cache.annotation.Cacheable;
+class Foo {
+
+    @Cacheable(cacheNames = {"DATA"}, sync = true, keyGenerator = "cacheKeyGenerator")
+    public Object getDataGood(String id) {
+        return fetchFromBackend(id);
+    }
+
+    @Cacheable(value="DATA", sync = true) // bad, keyGenerator missing
+    public Object getDataBad(String id) {
+        return fetchFromBackend(id);
+    }
+}
+```
+
 Too much session usage
 ----------------------
 
