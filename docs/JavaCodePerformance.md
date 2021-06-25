@@ -872,9 +872,10 @@ XPathFactory.newInstance().newXPath().compile(xPathExpression).evaluate(..)
 is used. The new factory, new XPath, and the compiled expression are hard to cache, because those objects are not thread-safe.
 
 **Problem:** Execution of the same code on the same expression is performed on every node retrieval, several times per user request. This takes CPU cycles, unnecessarily.  
-**Solution:** There is no easy solution, other than not using XPath. Caching in a ThreadLocal might be an option, however, this introduces some complexity.
-
-Example code using `ThreadLocal` for `XPathExpression`:
+**Solution:** There is no easy solution, other than not using XPath. Caching in a ThreadLocal might be an option, however, this introduces some complexity.   
+**See:** [XPath performance tweaks](http://leakfromjavaheap.blogspot.com/2014/12/xpath-evaluation-performance-tweaks.html).   
+**Example:**   
+Using `ThreadLocal` for `XPathExpression`:
 
 ```java
 class Bad {
