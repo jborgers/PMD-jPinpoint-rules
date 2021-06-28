@@ -483,7 +483,7 @@ class Foo {
     }
 }
 ```
-
+ 
 Too much session usage
 ----------------------
 
