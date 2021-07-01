@@ -2592,9 +2592,10 @@ ancestor::MethodDeclaration//PrimarySuffix/@Image="disableConnectionState")]
     </rule>
 
     <rule name="HttpClientBuilderWithoutTimeouts" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
-          message="HttpClient builder is used and not all three timeouts are configured: connectionRequestTimeout, connectTimeout, socketTimeout (for HttpComponentsClientHttpRequestFactory) or readTimeout (for RequestConfig). HttpClient defaults are probably not optimal (e.g. infinite). Use the setDefaultRequestConfig with a method with a RequestConfig object on HttpClient builders to set the timeouts." typeResolution="true"
+          message="HttpClient builder is used and not all three timeouts are configured. The defaults are probably not optimal (e.g. infinite). " typeResolution="true"
           externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#IBI10">
-        <description>Problem: the default timeout settings are not optimal in most cases, set the timeouts explicitly to proper reasoned values. See best practice values via the link. (jpinpoint-rules)</description>
+        <description>Problem: For connectionRequestTimeout, connectTimeout, socketTimeout (for HttpComponentsClientHttpRequestFactory) or readTimeout (for RequestConfig) the default timeout settings are not optimal in most cases. &#13;
+            Solution: Set the timeouts explicitly to proper reasoned values. See best practice values via the link. Use the setDefaultRequestConfig with a method with a RequestConfig object on HttpClient builders to set the timeouts.(jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
             <property name="version" value="2.0"/>
