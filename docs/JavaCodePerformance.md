@@ -434,14 +434,16 @@ In Spring config:
 
 **Observation: A non-overridden Object.toString may be called on a spring KeyGenerator.generate method parameter.**  
 **Problem:** The non-overridden Object.toString returns a String representing the identity of the object. Because this is different for two objects with the same value, cache keys will be different and the cache will only have misses and no hits.  
-**Solution:** Cast the parameters each to the actual type  at call site and also check the expected number of params.   
+**Solution:** Cast the parameters each to the actual type  at call site and also check the expected number of params. 
+Or better and simpler: return a SimpleKey composed typically of class and method name and the params. Note: equals and hashCode must be properly implemented for each param.  
 **Rule name:** AvoidIdentityCacheKeys   
 **Example:**   
 ```java
 import org.springframework.cache.interceptor.KeyGenerator;
 import org.springframework.util.StringUtils;
+import org.springframework.cache.interceptor.SimpleKey;
 
-public class Bad implements KeyGenerator {
+class Bad implements KeyGenerator {
     public Object generate(Object target, Method method, Object... params) {
         List<Object> objArray = Arrays.asList(params);
         return target.getClass().getName() + "_" + method.getName() + "_"
@@ -449,7 +451,7 @@ public class Bad implements KeyGenerator {
     }
 }
 
-public class Good implements KeyGenerator {
+class Good implements KeyGenerator {
     public Object generate(Object target, Method method, Object... params) {
         if (params.length != 1) {
             throw new IllegalArgumentException("KeyGenerator for GetProfileCache assumes 1 parameter 'profileId', found: " + params);
@@ -458,13 +460,20 @@ public class Good implements KeyGenerator {
         return profileId;
     }
 }
+
+class Better implements KeyGenerator {
+    @NotNull @Override
+    public Object generate(Object target, Method method, Object... params) {
+        return new SimpleKey(target.getClass().getSimpleName(), method.getName(), params);
+    }
+}
 ```
 
 ### IC14
 
 **Observation: Default key generation is used with @Cacheable, no KeyGenerator is used.**  
 **Problem:** With default key generation, an object of Spring's SimpleKey class is used and its value is composed of just the method parameter(s). It does not include the method and class name, which is unclear and risky.   
-**Solution:** Create a KeyGenerator and make it generate a unique key for the cache per cached value, typically by use of SimpleKey composed of class and/or method name and the appropriate method parameters.   
+**Solution:** Create a KeyGenerator and make it generate a unique key for the cache per cached value, typically by use of SimpleKey composed of class and method name and the appropriate method parameters.   
 **Rule name:** UseExplicitKeyGeneratorForCacheable    
 **See:** [Spring 4.0 Caching](https://docs.spring.io/spring-framework/docs/4.0.x/spring-framework-reference/html/cache.html)   
 **Example:**   

@@ -290,7 +290,7 @@ class Good {
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#ic13">
         <description>A non-overridden Object.toString may be called on a spring KeyGenerator.generate method parameter. Problem: The non-overridden Object.toString returns a String representing the identity of the object.
             Because this is different for two objects with the same value, cache keys will be different and the cache will only have misses and no hits.&#13;
-            Solution: Cast the parameters each to the type used at call site and also check the expected number of params.
+            Solution: Cast the parameters each to the type used at call site and also check the expected number of params. Or better: return a SimpleKey composed typically of class and method name and the params.
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
@@ -302,7 +302,7 @@ class Good {
 /Block//BlockStatement//(ReturnStatement|LocalVariableDeclaration//VariableInitializer)
 (:-- exclude if in an if-block checking params.length to do error logging or so --:)
 [count(ancestor::IfStatement//Name[ends-with(@Image, '.length')]) = 0]
-/Expression[count(.//CastExpression)=0]//PrimaryExpression[PrimaryPrefix/Name/@Image
+/Expression[count(.//CastExpression)=0 and count(.//AllocationExpression/ClassOrInterfaceType[@Image='SimpleKey'])=0]//PrimaryExpression[PrimaryPrefix/Name/@Image
 = ancestor::MethodDeclaration//FormalParameter[3]/VariableDeclaratorId/@Name
 ]
 	]]></value>

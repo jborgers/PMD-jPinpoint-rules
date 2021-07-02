@@ -111,4 +111,18 @@ public class GetAddressKeyGeneratorBad implements KeyGenerator {
 }
         ]]></code>
     </test-code>
+
+    <test-code>
+        <description>no violation: issue #149 - false positive for AvoidIdentityCacheKeys when used SimpleKey</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import org.springframework.cache.interceptor.SimpleKey;
+class Foo implements KeyGenerator {
+    @NotNull @Override
+    public Object generate(Object target, Method method, Object... params) {
+        return new SimpleKey(target.getClass().getName(), method.getName(), params);
+    }
+}
+        ]]></code>
+    </test-code>
 </test-data>
