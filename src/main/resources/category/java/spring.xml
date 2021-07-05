@@ -299,12 +299,17 @@ class Good {
                 <value><![CDATA[
 //ImplementsList/ClassOrInterfaceType[pmd-java:typeIs("org.springframework.cache.interceptor.KeyGenerator")]
 /../..//MethodDeclaration[@Name='generate']
-/Block//BlockStatement//(ReturnStatement|LocalVariableDeclaration//VariableInitializer)
+/Block//BlockStatement//(
+(ReturnStatement|LocalVariableDeclaration//VariableInitializer)
 (:-- exclude if in an if-block checking params.length to do error logging or so --:)
 [count(ancestor::IfStatement//Name[ends-with(@Image, '.length')]) = 0]
-/Expression[count(.//CastExpression)=0 and count(.//AllocationExpression/ClassOrInterfaceType[@Image='SimpleKey'])=0]//PrimaryExpression[PrimaryPrefix/Name/@Image
-= ancestor::MethodDeclaration//FormalParameter[3]/VariableDeclaratorId/@Name
-]
+/Expression[count(.//CastExpression)=0 and count(.//AllocationExpression/ClassOrInterfaceType[@Image='SimpleKey'])=0]
+//PrimaryExpression[PrimaryPrefix/Name/@Image
+= ancestor::MethodDeclaration//FormalParameter[3]/VariableDeclaratorId/@Name]
+|
+ForStatement[./Expression//Name[@Image = ancestor::MethodDeclaration//FormalParameter[3]/VariableDeclaratorId/@Name]]
+//Arguments//Name[@Image = concat(ancestor::ForStatement/LocalVariableDeclaration//VariableDeclaratorId/@Name, '.toString')]
+)
 	]]></value>
             </property>
         </properties>

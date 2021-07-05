@@ -125,4 +125,55 @@ class Foo implements KeyGenerator {
 }
         ]]></code>
     </test-code>
+
+    <test-code>
+        <description>1 violation: issue AvoidIdentityCacheKeys #142</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>10</expected-linenumbers>
+        <code><![CDATA[
+import org.springframework.cache.interceptor.KeyGenerator;
+import org.springframework.util.StringUtils;
+
+class Foo implements KeyGenerator {
+    @Override
+    public Object generate(Object target, Method method, Object... params) {
+        List<String> accParams = new ArrayList<>();
+        for(Object o:params){
+            if(o!=null) {
+                accParams.add(o.toString()); // bad
+            }
+        }
+        return UaccKeyGenerator.generate(UaccCache.UACC_CACHE_NAME, target, method, accParams);
+    }
+}
+
+class Bar implements KeyGenerator {
+    @Override
+    public Object generate(Object target, Method method, Object... params) {
+        List<String> accParams = new ArrayList<>();
+        for(Object o:params){
+            if(o!=null) {
+                accParams.add(((User)o).toString()); // good, cast
+            }
+        }
+        return UaccKeyGenerator.generate(UaccCache.UACC_CACHE_NAME, target, method, accParams);
+    }
+}
+
+class Bee implements KeyGenerator {
+    @Override
+    public Object generate(Object target, Method method, Object... params) {
+        List<String> accParams = new ArrayList<>();
+        for(Object o:params){
+            if(o!=null) {
+                User u = (User)o;
+                accParams.add(u.toString()); // good, casted
+            }
+        }
+        return UaccKeyGenerator.generate(UaccCache.UACC_CACHE_NAME, target, method, accParams);
+    }
+}
+        ]]></code>
+    </test-code>
+
 </test-data>
