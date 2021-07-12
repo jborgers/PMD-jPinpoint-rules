@@ -231,7 +231,9 @@ and not (ancestor::SynchronizedStatement or ancestor::MethodDeclaration[@Synchro
 (: field not on accessor method with assignment, annotated with framework annotation :)
 and not (ancestor::ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='Autowired' or @Image='PostConstruct' or @Image='BeforeStep' or @Image='Value' or @Image='Inject']
 (: field not assigned in non-public accessor method annotated with VisibleForTesting :)
-or (ancestor::ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='VisibleForTesting'] and ancestor::MethodDeclaration[@Public=false()]))]
+or (ancestor::ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='VisibleForTesting'] and ancestor::MethodDeclaration[@Public=false()])
+or ancestor::MethodDeclaration[@Name='afterPropertiesSet']
+)]
 ]]>
                 </value>
             </property>

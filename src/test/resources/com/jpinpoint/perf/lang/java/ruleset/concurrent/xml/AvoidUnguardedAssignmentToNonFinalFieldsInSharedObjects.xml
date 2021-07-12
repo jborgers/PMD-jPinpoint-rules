@@ -492,4 +492,25 @@ class ARestController1 {
 }
                ]]></code>
         </test-code>
+
+    <test-code>
+        <description>Avoid unguarded assignment to non-final fields in shared objects: in afterPropertiesSet to be ignored #154</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>7</expected-linenumbers>
+        <code><![CDATA[
+@Component
+class Foo {
+    private Consumer badConsumer;
+    private Consumer goodConsumer;
+
+    public void bar() {
+       badConsumer = client.buildConsumer(); // bad
+    }
+    public void afterPropertiesSet() {
+       goodConsumer = client.buildConsumer();
+    }
+}
+               ]]></code>
+    </test-code>
+
 </test-data>
