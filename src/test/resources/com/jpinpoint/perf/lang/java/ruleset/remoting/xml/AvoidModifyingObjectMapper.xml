@@ -87,4 +87,27 @@
     }
      ]]></code>
     </test-code>
+
+    <test-code>
+        <description>violation: #116: AvoidModifyingObjectMapper - allow @PostConstruct</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>13</expected-linenumbers>
+        <code><![CDATA[
+import com.fasterxml.jackson.databind.ObjectMapper;
+@Component
+public class MyComponent {
+
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
+    @PostConstruct
+    public void setUp() {
+        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL); // good, should not be flagged
+    }
+
+    public void bad() {
+        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL); // bad
+    }
+}
+     ]]></code>
+    </test-code>
 </test-data>
