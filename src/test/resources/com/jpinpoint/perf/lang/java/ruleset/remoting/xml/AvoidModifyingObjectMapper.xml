@@ -110,4 +110,54 @@ public class MyComponent {
 }
      ]]></code>
     </test-code>
+
+    <test-code>
+        <description>violation: #155: Fix request: false positive for AvoidModifyingObjectMapper with a factory</description>
+        <expected-problems>3</expected-problems>
+        <expected-linenumbers>20,32,37</expected-linenumbers>
+        <code><![CDATA[
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+public class ObjectMapperFactory {
+    private final ObjectMapper objectmapper = new ObjectMapper();
+
+    public static ObjectMapperFactory builder() {
+        return new ObjectMapperFactory();
+    }
+
+    public com.fasterxml.jackson.databind.ObjectMapper build() {
+        return objectmapper;
+    }
+
+    public ObjectMapperFactory annotationIntrospector(AnnotationIntrospector annotationIntrospector) {
+        objectmapper.setAnnotationIntrospector(annotationIntrospector); // good
+        return this;
+    }
+
+    public ObjectMapperFactory annotationIntrospector(AnnotationIntrospector annotationIntrospector) {
+        objectmapper.setAnnotationIntrospector(annotationIntrospector); // bad
+        return new ObjectMapperFactory();
+    }
+}
+class FooFactory {
+    private final ObjectMapper objectmapper = new ObjectMapper();
+
+    public static ObjectMapperFactory builder() {
+        return new ObjectMapperFactory();
+    }
+
+    public ObjectMapperFactory annotationIntrospector(AnnotationIntrospector annotationIntrospector) {
+        objectmapper.setAnnotationIntrospector(annotationIntrospector); // bad, build() missing
+        return this;
+    }
+
+    public ObjectMapperFactory annotationIntrospector(AnnotationIntrospector annotationIntrospector) {
+        objectmapper.setAnnotationIntrospector(annotationIntrospector); // bad
+        return new ObjectMapperFactory();
+    }
+}
+     ]]></code>
+    </test-code>
+
+
 </test-data>
