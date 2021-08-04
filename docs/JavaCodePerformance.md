@@ -262,6 +262,25 @@ public class Foo {
     }
 }
 ```
+
+#### IBI14
+**Observation: When troubleshooting [Reactor](https://projectreactor.io/), [Blockhound](https://github.com/reactor/BlockHound) can be used to find blocking calls. It needs proper stack traces which can be achieved by Hooks.onOperatorDebug().**  
+**Problem:** Retaining full stack traces by reactor.core.publisher.Hooks.onOperatorDebug() uses StackWalker, this can have much CPU overhead.  
+**Solution:** Remove Hooks.onOperatorDebug() when not debugging Reactor for blocking calls.   
+**Note:** Enabling the system property reactor.trace.operatorStacktrace (default=false) is another way to retain the stack traces with the same problem.   
+**Rule name:** AvoidReactorDebugOverhead   
+**See:** 1. [JDK 11 performance problem](https://bugs.openjdk.java.net/browse/JDK-8222942) and 2. [100% CPU usage of Log4j2](https://www.programmersought.com/article/63006298939/)  
+**Example**
+```java
+import reactor.core.publisher.Hooks;
+
+public class Foo {
+    public void bar() {
+        Hooks.onOperatorDebug(); //bad
+    }
+}
+```
+
 Improper caching  
 -------------------
 

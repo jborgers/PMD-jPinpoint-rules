@@ -2325,7 +2325,7 @@ public class XMLConversion {
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
-(: exclude method annotated with PostConstuct :)
+(: exclude method annotated with PostConstruct :)
 //ClassOrInterfaceBodyDeclaration[count(Annotation//Name[@Image='PostConstruct']) = 0]
 (: exclude factory where config is in method returning 'this' and one method, typically build(), returning objectMapper :)
 /MethodDeclaration[count(Block//ReturnStatement/Expression/PrimaryExpression/PrimaryPrefix[@ThisModifier=true()])=0
@@ -2373,6 +2373,35 @@ or ancestor::ClassOrInterfaceBody[count(.//MethodDeclaration/ResultType/Type[pmd
         private static final ObjectWriter staticObjectWriter =
             new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL).writer(); // good
     }
+            ]]>
+        </example>
+    </rule>
+
+    <rule name="AvoidReactorDebugOverhead" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
+          message="Do not use Reactor debugging in production, it has much overhead."
+          typeResolution="true"
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#ibi14">
+        <description>Problem: For troubleshooting reactor, blockhound can be used. It needs proper stack traces which can be achieved by Hooks.onOperatorDebug(). This can have much CPU overhead. &#13;
+            Solution: Remove Hooks.onOperatorDebug() when not debugging. (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+//StatementExpression[pmd-java:typeIs('reactor.core.publisher.Hooks')]//Name[ends-with(@Image, 'Hooks.onOperatorDebug')]
+]]>
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+import reactor.core.publisher.Hooks;
+
+public class Foo {
+    public void bar() {
+        Hooks.onOperatorDebug(); //bad
+    }
+}
             ]]>
         </example>
     </rule>

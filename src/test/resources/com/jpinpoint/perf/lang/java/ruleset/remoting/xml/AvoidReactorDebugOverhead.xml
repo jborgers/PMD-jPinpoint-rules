@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>violation: Using reactor.core.publisher.Hooks.onOperatorDebug</description>
+        <expected-problems>2</expected-problems>
+        <expected-linenumbers>5,6</expected-linenumbers>
+        <code><![CDATA[
+import reactor.core.publisher.Hooks;
+
+public class Foo {
+    public void bar() {
+        reactor.core.publisher.Hooks.onOperatorDebug(); // bad
+        Hooks.onOperatorDebug(); //bad
+        other.pckg.Hooks.onOperatorDebug(); // good
+    }
+}
+     ]]></code>
+    </test-code>
+</test-data>
