@@ -348,4 +348,55 @@ class EqHashTryoutBadIssue130Related {
     ]]></code>
         </test-code>
 
+    <test-code>
+        <description>1 violation: equals on fields without null check, issue #153</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>25</expected-linenumbers>
+        <code><![CDATA[
+class MyClassOk {
+    String header;
+    String trailer;
+
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        MyClassOk that = (MyClassOk) o;
+        return header.equals(that.header) && trailer.equals(that.trailer);
+    }
+    public int hashCode() {
+        return Objects.hash(header, trailer);
+    }
+}
+
+class MyClass1 {
+    String header;
+    String trailer;
+    String valuez; // bad
+
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        MyClass1 that = (MyClass1) o;
+        return header.equals(that.header) && trailer.equals(that.trailer);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(header, trailer, valuez);
+    }
+}
+            ]]></code>
+    </test-code>
 </test-data>
