@@ -513,4 +513,18 @@ class Foo {
                ]]></code>
     </test-code>
 
+    <test-code>
+        <description>Avoid unguarded assignment to non-final fields in shared objects: @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE) issue #147</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+@Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+@Component
+class Foo {
+    private String id;
+    void build() {
+        id = "1";
+    }
+}
+        ]]></code>
+    </test-code>
 </test-data>

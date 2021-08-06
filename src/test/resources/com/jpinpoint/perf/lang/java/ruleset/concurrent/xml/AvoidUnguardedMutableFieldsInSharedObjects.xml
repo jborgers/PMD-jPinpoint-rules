@@ -6,6 +6,7 @@
     <test-code>
         <description>Avoid unguarded mutable fields in shared objects</description>
         <expected-problems>6</expected-problems>
+        <expected-linenumbers>83,93,131,154,314,334</expected-linenumbers>
         <code><![CDATA[
 import com.google.common.annotations.VisibleForTesting;
 import lombok.Data;
@@ -444,6 +445,18 @@ class Bad {
         mapCtor3 = new ConcurrentHashMap<>();
         mapCtor4 = new HashMap<>();
     }
+}
+        ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>Avoid unguarded mutable fields in shared objects: @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE) issue #147</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+@Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+@Component
+public class Foo {
+    private String id;
 }
         ]]></code>
     </test-code>
