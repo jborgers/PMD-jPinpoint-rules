@@ -999,7 +999,7 @@ LOG.debug("Note: {}", logStatement);
 ```
 LOG.debug("Found page key-value pairs: {}", () -> buildPageKeyValueLogString()); // good
 ```
-The `buildPageKeyValueLogString` method is deferred and only executed if needed by SLF4J.
+The `buildPageKeyValueLogString` method is deferred and only executed if needed, by SLF4J.
 
 **Rule name:**: AvoidUnconditionalBuiltLogStrings
 
@@ -1049,15 +1049,22 @@ with no corresponding
 MDC.remove("UserId");
 ```
 
-**Solution:** Determine the MDC-value lifecycle and remove the MDC value in the proper place. Put the remove in a finally clause so it is also removed in case of exceptions. See also [Automating access to the MDC](http://logback.qos.ch/manual/mdc.html).
-
+**Solution:** Determine the MDC-value lifecycle and remove the MDC value in the proper place. Put the remove in a finally clause so it is also removed in case of exceptions.  
+**See also:** [Automating access to the MDC](http://logback.qos.ch/manual/mdc.html).   
 **Rule name:** MDCPutWithoutRemove.
 
 #### IL05
 
-**Observation: Synchonous logging is used for much data.**  
+**Observation: Synchonous logging is used for much data.**   
 **Problem:** Logging is I/O which can take much time away from the user request/response.  
-**Solution:** Use Asynchronous logging. In logback you can use: _ch.qos.logback.classic.AsyncAppender._ Log lines are put in a queue and the user does not have to wait for the actual logging, which is handled in a separate thread. You need to think about i.a. maximum queue size, data loss and what information to transfer to the logging thread (MDC).
+**Solution:** Use Asynchronous logging. In logback you can use: _ch.qos.logback.classic.AsyncAppender._ Log lines are put in a queue and the user does not have to wait for the actual logging, which is handled in a separate thread. Think about i.a. maximum queue size, data loss and what information to transfer to the logging thread (MDC).
+
+#### IL06
+
+**Observation: A log argument is created unconditionally, irrespective of log level.**  
+**Problem:** Creation of a log argument with a toString or other operation(s) may be expensive, while depending on the log level, the result may not be used.     
+**Solution:** Create the log argument conditionally on the log level, within an if statement. For just 'obj.toString()', just pass 'obj' to the log method and leave it to SLF4J to call toString() only if needed. See IL02 for a nice solution using a lambda.   
+**Rule name:** UnconditionalCreatedLogArguments   
 
 Improper Streaming I/O
 ----------------------

@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>Avoid unconditional creation of log arguments</description>
+        <expected-problems>4</expected-problems>
+        <expected-linenumbers>11,28,34,40</expected-linenumbers>
+        <code><![CDATA[
+class Foo {
+   void bar1(Object obj) {
+        if (log.isDebugEnabled()) {
+          String logObj1 = obj.toString();
+          log.debug("object to String: {}", logObj1);
+        }
+    }
+
+    void bar2(Object obj) {
+      String logObj2 = obj.toString();
+      log.debug("object to String: {}", logObj2); //bad
+    }
+
+    String bar3(Object obj) {
+      String logObj3 = obj.toString();
+      log.debug("object to String: {}", logObj3);
+      return logObj3;
+    }
+
+    String bar4(Object obj) {
+      String logObj4 = obj.toString();
+      log.debug("object to String: {}", logObj4);
+      bar2(logObj4);
+    }
+
+    Object bar5(Object obj) {
+      String logObj5 = obj.toString();
+      log.debug("object to String: {}", logObj5); //bad
+      return obj;
+    }
+
+    void bar6(Object obj) {
+      String logObj6 = obj.toString();
+      log.debug("object to String: {}", logObj6); //bad
+      bar2(obj);
+    }
+
+    String bar7(Object obj) {
+      String logObj7 = obj.toString();
+      log.debug("object to String: {}", logObj7); //bad
+      String result = obj.toString();
+      return result;
+    }
+
+    String bar8(Object obj) {
+      String logObj8 = obj8.toString();
+      log.debug("object to String: {}", logObj8);
+      String result = logObj8;
+      return result;
+    }
+
+    String bar9(Object obj) {
+      String logObj9 = obj.toString();
+      log.debug("object to String: {}", logObj9);
+      if (logObj9 != null) {
+          return obj;
+      }
+      return null;
+    }
+
+    String bar10(Object obj) {
+      String logObj10 = obj.toString();
+      log.debug("object to String: {}", logObj10);
+      if (logObj10.toString() != "") {
+          return obj;
+      }
+      return null;
+    }
+
+    void bar11(Object obj) {
+      String logObj11 = obj.toString();
+      log.debug("object to String: {}", logObj11);
+      boolean b = logObj11.equals("foo");
+    }
+
+    void logBar12(Object obj) {
+      String logObj12 = obj.toString();
+      log.debug("object to String: {}", logObj12); // good, method starts with log assumes called conditionally
+    }
+
+    void bar13(Object obj) {
+      String logObj13 = obj.getId();
+      log.debug("object to String: {}", logObj13); //good, method starts with 'get' is assumed quick
+    }
+}
+     ]]></code>
+    </test-code>
+</test-data>
