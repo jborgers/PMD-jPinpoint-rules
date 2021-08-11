@@ -5,8 +5,8 @@
         xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
     <test-code>
         <description>Avoid unconditional creation of log arguments</description>
-        <expected-problems>4</expected-problems>
-        <expected-linenumbers>11,28,34,40</expected-linenumbers>
+        <expected-problems>6</expected-problems>
+        <expected-linenumbers>11,28,34,40,91,105</expected-linenumbers>
         <code><![CDATA[
 class Foo {
    void bar1(Object obj) {
@@ -91,6 +91,29 @@ class Foo {
     void bar13(Object obj) {
       String logObj13 = obj.getId();
       log.debug("object to String: {}", logObj13); //good, method starts with 'get' is assumed quick
+    }
+
+    /** from #140 */
+    void bar14(Enumeration<String> headerNames, HttpRequest httpRequest) {
+        while (headerNames.hasMoreElements()) {
+            String headerName = headerNames.nextElement();
+            String header = httpRequest.getHeader(headerName);
+            LOG.debug("DoFilter, headerName{}: value{}", headerName, header); // bad: simple getter but in a loop
+        }
+    }
+
+    void bar15(Object obj1) {
+            String name = obj1.toString();
+            byte[] bar15 = name.getBytes();
+            LOG.debug("name {}: bytes {}", name, bar15); // good: simple getter is cheap
+    }
+
+   void bar16(Object obj1) {
+        while (true) {
+            String name = obj1.toString();
+            byte[] bar16 = name.getBytes();
+            LOG.debug("name {}: bytes {}", name, bar16); // bad: getter but in a loop
+        }
     }
 }
      ]]></code>

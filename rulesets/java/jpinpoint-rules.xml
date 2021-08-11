@@ -1187,8 +1187,11 @@ class Foo {
     (: an argument in the log method :)
     /../../PrimarySuffix/Arguments/ArgumentList/Expression//PrimaryExpression
     [
-    (: equals a declared var, with initializer not like obj.get[Xxx], we assume a simple getter is quick :)
-    (PrimaryPrefix/Name[@Image = ancestor::MethodDeclaration//VariableDeclarator[not(contains(string-join(./VariableInitializer//PrimaryPrefix/Name/@Image, '-'), '.get'))]/VariableDeclaratorId/@Image
+    (: equals a declared var :)
+    (PrimaryPrefix/Name[@Image = ancestor::MethodDeclaration//VariableDeclarator
+        (: with initializer not like obj.get[Xxx], we assume a simple getter is quick, unless this is in a loop :)
+        [not(contains(string-join(./VariableInitializer//PrimaryPrefix/Name/@Image, '-'), '.get')) or ancestor::WhileStatement or ancestor::ForStatement or ancestor::DoStatement]
+    /VariableDeclaratorId/@Image
     (: and it is not used in a return :)
     and (not(@Image = ancestor::Block//ReturnStatement//Name/@Image))
     (: and it is not used as an argument in another method call than log :)
