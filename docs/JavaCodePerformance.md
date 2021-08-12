@@ -284,6 +284,34 @@ public class Foo {
 }
 ```
 
+#### IBI15
+**Observation: For Apache HttpComponentsClientHttpRequestFactory, both the constructor which takes a HttpClient and setHttpClient method are called.**   
+**Problem:** If you use both on the same factory, you discard all configuration done on the one provided in the constructor because it is replaced by the one provided to the setter.   
+**Solution:** Don't use both on the same factory, provide the HttpClient only once to the factory.   
+**Rule name:** AvoidDiscardingHttpClientConfig    
+**Example**
+```java
+class Bad {
+    ClientHttpRequestFactory getFactory(HttpClientConfiguration config) {
+        HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory(HttpClientBuilder.create()
+                .setMaxConnTotal(config.getMaxTotalConnections())
+                .setMaxConnPerRoute(config.getMaxConnPerRoute())
+                .build());
+
+        factory.setHttpClient(createHttpClient(config)); //bad
+        return factory;
+    }
+}
+
+class Good {
+    ClientHttpRequestFactory getFactory(HttpClientConfiguration config) {
+        HttpComponentsClientHttpRequestFactory factory =
+            new HttpComponentsClientHttpRequestFactory(createFullyConfiguredHttpClient(config));
+        return factory;
+    }
+}
+```
+
 Improper caching  
 -------------------
 

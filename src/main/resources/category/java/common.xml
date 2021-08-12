@@ -1290,7 +1290,7 @@ Set<YourEnumType> set = EnumSet.allOf(YourEnumType.class);
     (PrimaryPrefix/Name[@Image = ancestor::MethodDeclaration//VariableDeclarator
         (: with initializer not like obj.get[Xxx], we assume a simple getter is quick, unless this is in a loop :)
         [not(contains(string-join(./VariableInitializer//PrimaryPrefix/Name/@Image, '-'), '.get')) or ancestor::WhileStatement or ancestor::ForStatement or ancestor::DoStatement]
-    /VariableDeclaratorId/@Image
+    /VariableDeclaratorId/@Name
     (: and it is not used in a return :)
     and (not(@Image = ancestor::Block//ReturnStatement//Name/@Image))
     (: and it is not used as an argument in another method call than log :)
