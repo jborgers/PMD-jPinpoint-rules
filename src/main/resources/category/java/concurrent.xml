@@ -4,7 +4,7 @@
 
     <rule name="AvoidCompletionServiceTake"
           message="Avoid completionService.take, use poll"
-          class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
+          class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java"
           typeResolution="true" externalInfoUrl="${doc_root}/JavaCodePerformance.md">
         <description>
             Problem: take() stalls indefinitely in case of hanging threads and consumes a thread.&#13;
@@ -39,7 +39,7 @@
 
     <rule name="AvoidFutureGetWithoutTimeout"
           message="Avoid future.get without timeout"
-          class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
+          class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java"
           typeResolution="true" externalInfoUrl="${doc_root}/JavaCodePerformance.md">
         <description>
             Problem: Stalls indefinitely in case of hanging threads and consumes a thread.&#13;
@@ -104,7 +104,7 @@
 
     <rule name="AvoidMutableStaticFields"
           message="Avoid non-final or mutable static fields. Make final immutable or access thread-safely and use @GuardedBy."
-          class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
+          class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java"
           typeResolution="true" externalInfoUrl="${doc_root}/JavaCodePerformance.md#tutc08">
         <description>
             Problem: Multiple threads typically access static fields. Unguarded assignment to a mutable or non-final static field is thread-unsafe and may cause corruption or visibility problems. To make this thread-safe, that is, guard the field e.g. with synchronized methods, may cause contention. &#13;
@@ -166,7 +166,7 @@ ancestor::StatementExpression/PrimaryExpression/PrimaryPrefix/Name/@Image = ance
         </example>
     </rule>
 
-    <rule name="AvoidThreadUnsafeJaxbUsage" message="A JAXB Marshaller, Unmarshaller or Validator is used in a thread-unsafe way." class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" typeResolution="true" externalInfoUrl="${doc_root}/JavaCodePerformance.md#IUOXAR07">
+    <rule name="AvoidThreadUnsafeJaxbUsage" message="A JAXB Marshaller, Unmarshaller or Validator is used in a thread-unsafe way." class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" typeResolution="true" externalInfoUrl="${doc_root}/JavaCodePerformance.md#IUOXAR07">
         <description>Problem: JAXB Marshaller, Unmarshaller and Validator are not thread-safe.  &#13;
             Solution: Create a new instance every time you need to marshall, unmarshall or validate a document.
             (jpinpoint-rules)</description>
@@ -189,7 +189,7 @@ ancestor::StatementExpression/PrimaryExpression/PrimaryPrefix/Name/@Image = ance
 
     <rule name="AvoidUnguardedAssignmentToNonFinalFieldsInSharedObjects"
           message="Avoid unguarded assignments to non-final fields in objects shared among threads. Access thread-safely and use @GuardedBy."
-          class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
+          class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java"
           typeResolution="true" externalInfoUrl="${doc_root}/JavaCodePerformance.md#tutc07">
         <description>
             Problem: Multiple threads typically access fields of a singleton or may access fields in session scoped objects. Unguarded assignment to a non-final field is thread-unsafe and may cause corruption or visibility problems. It may also unintentionally mixup session data. &#13;
@@ -243,7 +243,7 @@ or ancestor::MethodDeclaration[@Name='afterPropertiesSet']
 
     <rule name="AvoidNonPrivateFieldsInSharedObjects"
           message="Avoid non-private objects shared among threads. Make fields private to ensure thread-safety."
-          class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
+          class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java"
           typeResolution="true" externalInfoUrl="${doc_root}/JavaCodePerformance.md#tutc11">
         <description>
             Problem: A singleton, or more general: an object shared among threads, has a field that is not private.
@@ -282,7 +282,7 @@ or ancestor::MethodDeclaration[@Name='afterPropertiesSet']
 
     <rule name="AvoidUnguardedMutableFieldsInSharedObjects"
           message="Avoid unguarded non-final or mutable fields in objects shared among threads. Make final immutable or access thread-safely and use @GuardedBy."
-          class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
+          class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java"
           typeResolution="true" externalInfoUrl="${doc_root}/JavaCodePerformance.md#tutc07">
         <description>
             Problem: Multiple threads typically access fields of a singleton or may access fields in session scoped objects. If a field or its reference is mutable, access is thread-unsafe and may cause corruption or visibility problems. It may also unintentionally mixup session data.&#13;
@@ -339,7 +339,7 @@ and not (../Annotation//Name[@Image='GuardedBy'])
 
     <rule name="AvoidUnguardedMutableInheritedFieldsInSharedObjects"
           message="Mutator method called on inherited field. Avoid unguarded mutable inherited fields in objects shared among threads. Make final immutable or access thread-safely and use @GuardedBy."
-          class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
+          class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java"
           typeResolution="true" externalInfoUrl="${doc_root}/JavaCodePerformance.md#tutc07">
         <description>
             Problem: Multiple threads typically access fields of a singleton or may access fields in session scoped objects. If a (inherited) field or its reference is mutable, access is thread-unsafe and may cause corruption or visibility problems. It may also unintentionally mixup session data. &#13;
@@ -392,7 +392,7 @@ or (ancestor::ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='VisibleFo
 
     <rule name="AvoidUnguardedAssignmentToNonFinalFieldsInObjectsUsingSynchronized"
           message="Avoid unguarded assignments to non-final fields in objects using synchronized. Access thread-safely and use @GuardedBy."
-          class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
+          class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java"
           typeResolution="true" externalInfoUrl="${doc_root}/JavaCodePerformance.md#tutc07">
         <description>
             Problem: Multiple threads typically access fields of an object using synchronized. Unguarded assignment to a non-final field is thread-unsafe and may cause corruption or visibility problems. To make this thread-safe, that is, guard the field e.g. with synchronized methods, may cause contention. &#13;
@@ -427,7 +427,7 @@ or (ancestor::ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='VisibleFo
 
     <rule name="AvoidUnguardedMutableFieldsInObjectsUsingSynchronized"
           message="Avoid unguarded non-final or mutable fields in objects using synchronized. Make final immutable or access thread-safely and use @GuardedBy."
-          class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
+          class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java"
           typeResolution="true" externalInfoUrl="${doc_root}/JavaCodePerformance.md#tutc07">
         <description>
             Problem: Multiple threads typically access fields of an object using synchronized. If a field or its reference is mutable, access is thread-unsafe and may cause corruption or visibility problems. To make this thread-safe, that is, guard the field e.g. with synchronized methods, may cause contention.&#13;
@@ -475,7 +475,7 @@ or (VariableDeclarator/VariableDeclaratorId/@Name = ancestor::ClassOrInterfaceBo
 
     <rule name="NotProperlySynchronizingOnThisWhileUsingGuardedBy"
           message="Not properly synchronizing access of field while using @GuardedBy('this')"
-          class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
+          class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java"
           typeResolution="true" externalInfoUrl="https://jcip.net/annotations/doc/index.html">
         <description>
             Problem: The field to which this annotation is applied should only be accessed when holding the built-in 'this' lock by using synchronized.&#13;
@@ -523,7 +523,7 @@ or ancestor::SynchronizedStatement/Expression//Name)]
 
     <rule name="NotProperlySynchronizingOnFieldWhileUsingGuardedBy"
           message="Not properly synchronizing access of field while using @GuardedBy(field)"
-          class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
+          class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java"
           typeResolution="true" externalInfoUrl="https://jcip.net/annotations/doc/index.html">
         <description>
             Problem: The field to which the GuardedBy annotation is applied is not accessed thread-safely as described by GuardedBy.&#13;
@@ -597,7 +597,7 @@ or ancestor::SynchronizedStatement/Expression//Name)]
         </example>
     </rule>
 
-    <rule name="AvoidStaticXmlFactories" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="Avoid static XML Factories" typeResolution="true"
+    <rule name="AvoidStaticXmlFactories" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" message="Avoid static XML Factories" typeResolution="true"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#IUOXAR09">
         <description>An XML Factory like DocumentBuilderFactory, TransformerFactory, MessageFactory is used as static field. Problem: These factory objects are typically not thread-safe and rather expensive to create because of class loading. &#13;
             Solution: Create the Factories as local variables and use command line arguments to specify the implementation class. (jpinpoint-rules)</description>
@@ -637,7 +637,7 @@ or ancestor::SynchronizedStatement/Expression//Name)]
         </example>
     </rule>
 
-    <rule name="AvoidIncrementOrDecrementForVolatileField" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="Avoid ++, --, +=, -= for volatile fields" typeResolution="true"
+    <rule name="AvoidIncrementOrDecrementForVolatileField" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" message="Avoid ++, --, +=, -= for volatile fields" typeResolution="true"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#tutc09">
         <description>A compound statement like i++, i--, i += 1 or i -= 1 may seem one statement and thread-safe for a volatile field. Problem: The operation is actually two separate statements executed non-atomically and therefore not thread-safe. &#13;
             Solution: Guard the field properly with synchronized or use atomics like AtomicInteger. (jpinpoint-rules)</description>
@@ -675,7 +675,7 @@ or ancestor::SynchronizedStatement/Expression//Name)]
         </example>
     </rule>
 
-    <rule name="AvoidVolatileInPrototypeScope" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="No need for volatile in prototype scope" typeResolution="true"
+    <rule name="AvoidVolatileInPrototypeScope" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" message="No need for volatile in prototype scope" typeResolution="true"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#tutc10">
         <description>A field is defined as volatile while the class has prototype scope. Problem: volatile has some overhead, especially for writes. When getting the bean from the Spring applicationContext, prototype scope means that each invocation creates a new object so the field is not shared. &#13;
             Solution: Since only one thread can access the field, there is no need for violatile and it can be removed. (jpinpoint-rules)</description>

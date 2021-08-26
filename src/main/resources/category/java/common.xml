@@ -58,7 +58,7 @@ public class CDIStuff {
         </example>
     </rule>
 
-    <rule name="AvoidConstantsInInterface" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="Interface defines constants. It may expose implementation details." typeResolution="true"
+    <rule name="AvoidConstantsInInterface" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" message="Interface defines constants. It may expose implementation details." typeResolution="true"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#voedos04">
         <description>Interface defines constants. Problem: Possibly exposes implementation details.  &#13;
             Solution: Make it a Class which cannot be instantiated, or an Enum. Use static imports.
@@ -81,7 +81,7 @@ public interface Foo {
         </example>
     </rule>
 
-    <rule name="AvoidDecimalAndChoiceFormatAsField" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false"
+    <rule name="AvoidDecimalAndChoiceFormatAsField" class="net.sourceforge.pmd.lang.rule.XPathRule"
           dfa="false" language="java"
           message="Avoid using DecimalFormat or ChoiceFormat as field since it is thread-unsafe."
           typeResolution="true"
@@ -102,7 +102,7 @@ public interface Foo {
 
     <rule name="AvoidDuplicateAssignmentsInCases"
           message="Avoid duplicate assignments in different switch cases"
-          class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
+          class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java"
           typeResolution="true" externalInfoUrl="${doc_root}/JavaCodeQuality.md#SSC01">
         <description>
             Problem: Potential bug: expected are different assignments in different cases.&#13;
@@ -133,7 +133,7 @@ or preceding-sibling::SwitchLabel[@Default='true'])
         </properties>
     </rule>
 
-    <rule name="AvoidImplicitlyRecompilingRegex" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="String regex method, Pattern.matches or FileSystem.getPathMatcher is used.
+    <rule name="AvoidImplicitlyRecompilingRegex" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" message="String regex method, Pattern.matches or FileSystem.getPathMatcher is used.
 	   Implicitely compiles a regex pattern, can be expensive." typeResolution="true"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#ireu01">
         <description>A regular expression is compiled implicitely on every invocation. Problem: this can be expensive, depending on the length of the regular expression.&#13;
@@ -209,7 +209,7 @@ VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/Literal[string-le
         </properties>
     </rule>
 
-    <rule name="AvoidInMemoryStreamingDefaultConstructor" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="Default capacity constructor of ByteArrayOutputStream or StringWriter is used, it usually needs expensive expansions." typeResolution="true"
+    <rule name="AvoidInMemoryStreamingDefaultConstructor" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" message="Default capacity constructor of ByteArrayOutputStream or StringWriter is used, it usually needs expensive expansions." typeResolution="true"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#isio01">
         <description>Default constructor of ByteArrayOutputStream or StringWriter is used. Problem: It allocates a small buffer as capacity which usually needs several expensive expansions.&#13;
             Solution: Presize the ByteArrayOutputStream or StringWriter with an initial capacity such that an expansion is not needed in most cases.
@@ -227,7 +227,7 @@ VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/Literal[string-le
         </properties>
     </rule>
 
-    <rule name="AvoidMultipleConcatStatements" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="Multiple statements concatenate to the same String. Use StringBuilder append." typeResolution="true"
+    <rule name="AvoidMultipleConcatStatements" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" message="Multiple statements concatenate to the same String. Use StringBuilder append." typeResolution="true"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#isu02">
         <description>Multiple statements concatenate to the same String. Problem: Each statement with one or more +-operators creates a hidden temporary StringBuilder, a char[] and a new String object, which all have to be garbage collected.&#13;
             Solution: Use StringBuilder.append.
@@ -261,7 +261,7 @@ and
         </properties>
     </rule>
 
-    <rule name="AvoidRecompilingPatterns" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="Pattern.compile is used in a method. Compiling a regex pattern can be expensive, make it a static final field." typeResolution="true"
+    <rule name="AvoidRecompilingPatterns" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" message="Pattern.compile is used in a method. Compiling a regex pattern can be expensive, make it a static final field." typeResolution="true"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#ireu02">
         <description>A regular expression is compiled on every invocation. Problem: this can be expensive, depending on the length of the regular expression.&#13;
             Solution: Usually a pattern is a literal, not dynamic and can be compiled only once. Assign it to a private static field. java.util.Pattern objects are thread-safe so they can be shared among threads.
@@ -304,7 +304,7 @@ class Good {
 
     </rule>
 
-    <rule name="AvoidRecompilingXPathExpression" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="XPathExpression is created and compiled every time. Beware it is thread-unsafe." typeResolution="true"
+    <rule name="AvoidRecompilingXPathExpression" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" message="XPathExpression is created and compiled every time. Beware it is thread-unsafe." typeResolution="true"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#ux02">
         <description>XPathExpression is created and compiled on every method call. Problem: Creation XPath and compilation of XPathExpression takes time. It may slow down your application. &#13;
             Solution: 1. Avoid XPath usage. 2. Since XPath and XPathExpression classes are thread-unsafe, they are not easily cached. Caching in Thread locals may be a solution.
@@ -351,7 +351,7 @@ class Good {
 
     <rule name="AvoidRecreatingDateTimeFormatter"
           message="Avoid recreating DateTimeFormatter, it is relatively expensive."
-          class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
+          class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java"
           typeResolution="true" externalInfoUrl="${doc_root}/JavaCodePerformance.md#idtf02">
         <description>
             Problem: Recreating a DateTimeFormatter is relatively expensive.&#13;
@@ -384,7 +384,7 @@ ancestor::MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter/Va
         </properties>
     </rule>
 
-    <rule name="AvoidReflectionInToStringAndHashCode" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="Reflection is used in toString or hashCode, which is expensive." typeResolution="true"
+    <rule name="AvoidReflectionInToStringAndHashCode" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" message="Reflection is used in toString or hashCode, which is expensive." typeResolution="true"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#uuor01">
         <description>Problem: Reflection is relatively expensive. &#13;
             Solution: Avoid to use reflection. Use the non-reflective, explicit way, preferably using Guava.
@@ -415,7 +415,7 @@ ancestor::MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter/Va
         </properties>
     </rule>
 
-    <rule name="AvoidSimpleDateFormat" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="SimpleDateFormat is used. Since it is thread-unsafe, it needs expensive recreation."  typeResolution="true"
+    <rule name="AvoidSimpleDateFormat" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" message="SimpleDateFormat is used. Since it is thread-unsafe, it needs expensive recreation."  typeResolution="true"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#idtf01">
         <description>Problem: java.util.SimpleDateFormat is thread-unsafe. The usual solution is to create a new one when needed in a method. Creating SimpleDateFormat is relatively expensive. &#13;
             Solution: Use a Joda-Time DateTimeFormat to create a specific DateTimeFormatter or Java 8 java.time.DateTimeFormatter. These classes are immutable, thus thread-safe and can be made static.
@@ -438,7 +438,7 @@ ancestor::MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter/Va
         </properties>
     </rule>
 
-    <rule name="AvoidStringBuffer" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="StringBuffer is used. It introduces locking overhead, use StringBuilder." typeResolution="true"
+    <rule name="AvoidStringBuffer" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" message="StringBuffer is used. It introduces locking overhead, use StringBuilder." typeResolution="true"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#isu01" >
         <description>Problem: StringBuffer introduces locking overhead because it is thread safe. Its thread-safety is rarely needed.&#13;
             Solution: Replace StringBuffer by StringBuilder.  (jpinpoint-rules)</description>
@@ -453,7 +453,7 @@ ancestor::MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter/Va
         </properties>
     </rule>
 
-    <rule name="AvoidUnconditionalBuiltLogStrings" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="Log String is built irrespective of log level." typeResolution="true"
+    <rule name="AvoidUnconditionalBuiltLogStrings" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" message="Log String is built irrespective of log level." typeResolution="true"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#il02">
         <description>A String to be logged is built unconditionally. Problem: String building, concatenation and/or other operations happen before the debug, trace or info method executes, so independent of the need to actually log. Concatenation is relatively expensive. &#13;
             Solution: Build the String conditionally on the log level, within an if statement.
@@ -485,7 +485,7 @@ substring-after(@Image, '.') != 'append')]) = 0
         </properties>
     </rule>
 
-    <rule name="AvoidWideScopeXPathExpression" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="XPathExpression targets a wide scope, this is potentially slow." typeResolution="true"
+    <rule name="AvoidWideScopeXPathExpression" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" message="XPathExpression targets a wide scope, this is potentially slow." typeResolution="true"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#ux01">
         <description>The XPathExpression targets a wide scope since it starts with '//'. Problem: XPath has to search in a wide scope for occurrences, this may take a while. &#13;
             Solution: 1. Avoid XPath usage. 2. Make the scope as narrow as possible, do not start with '//'.
@@ -507,7 +507,7 @@ and
         </properties>
     </rule>
 
-    <rule name="AvoidXPathAPIUsage" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="XPathAPI is used. XPathAPI implementation has bad performance." typeResolution="true"
+    <rule name="AvoidXPathAPIUsage" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" message="XPathAPI is used. XPathAPI implementation has bad performance." typeResolution="true"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#ux03">
         <description>XPathAPI is used. Problem: XPathAPI implementation is slow.&#13;
             Solution: 1. try to avoid using XPathAPI. 2. improve performance by using jvm parameters and possibly CachedXPathAPI.
@@ -524,7 +524,7 @@ and
         </properties>
     </rule>
 
-    <rule name="AvoidXPathUsage" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="XPath is used. XPath implementation has bad performance." typeResolution="true"
+    <rule name="AvoidXPathUsage" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" message="XPath is used. XPath implementation has bad performance." typeResolution="true"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#ux03">
         <description>XPath is used. Problem: XPath implementation is slow.&#13;
             Solution: 1. avoid using XPath. 2. improve performance by using jvm parameters and possibly Cached XPath API.
@@ -545,7 +545,7 @@ ClassOrInterfaceBodyDeclaration
 
     <rule name="ImplementEqualsHashCodeOnValueObjects"
           message="Equals and/or hashCode is missing for a value object."
-          class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
+          class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java"
           typeResolution="true" externalInfoUrl="${doc_root}/JavaCodeQuality.md#incorrect-equals-and-hashcode">
         <description>
             Problem: If equals and hashCode are not defined, they don't meet the programmer's expectations and the requirements for use with the collections API. It may result in unexpected, undesired behavior.&#13;
@@ -628,7 +628,7 @@ class LombokGetterGood {
         </example>
     </rule>
 
-    <rule name="MDCPutWithoutRemove" message="MDC put is used without finally remove." class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" typeResolution="true" externalInfoUrl="${doc_root}/JavaCodePerformance.md#IL04">
+    <rule name="MDCPutWithoutRemove" message="MDC put is used without finally remove." class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" typeResolution="true" externalInfoUrl="${doc_root}/JavaCodePerformance.md#IL04">
         <description>
             MDC values are added for logging, but not removed. Problem: MDC values can leak to other user transactions (requests) and log incorrect information. Solution: remove the MDC value in a finally clause.
             (jpinpoint-rules)</description>
@@ -675,7 +675,7 @@ class Good {
         </example>
     </rule>
 
-    <rule name="MinimizeAttributesInSession" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="Attribute is set in the session, yet not removed. This may bloat the session." typeResolution="true"
+    <rule name="MinimizeAttributesInSession" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" message="Attribute is set in the session, yet not removed. This may bloat the session." typeResolution="true"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#tmsu01">
         <description>An attribute is set in the session and not removed. Problem: This may be a large object and data in the sessions takes heap space and stay in the session until time-out. This may take substantial heap space.&#13;
             Solution: remove the attribute if not really needed in the session, remove it from the session as soon as possible. Alternatively, use render parameters.
@@ -729,7 +729,7 @@ class Good {
         </example>
     </rule>
 
-    <rule name="UnconditionalConcatInLogArgument" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="String concatenation (+) is executed regardless of log level and can be expensive" typeResolution="true"
+    <rule name="UnconditionalConcatInLogArgument" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" message="String concatenation (+) is executed regardless of log level and can be expensive" typeResolution="true"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#il01">
         <description>Problem: String concatenation (+) is executed regardless of log level and can be expensive. &#13;
             Solution: Use SLF4J formatting with {}-placeholders or log and format conditionally.  (jpinpoint-rules)</description>
@@ -765,7 +765,7 @@ class Foo {
     </example>
     </rule>
 
-    <rule name="UnconditionalOperationOnLogArgument" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="Operation is executed regardless of log level and can be expensive" typeResolution="true"
+    <rule name="UnconditionalOperationOnLogArgument" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" message="Operation is executed regardless of log level and can be expensive" typeResolution="true"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#il03">
         <description>Problem: An operation is executed regardless of log level. This could be much processing while the result is typically not used. Detected are obj.toString() and operations with one or more arguments except usually cheap obj.getXXX(arg).&#13;
             Solution: Execute the operation only conditionally and utilize SLF4J formatting with {}-placeholders.  (jpinpoint-rules)</description>
@@ -827,7 +827,7 @@ class Foo {
         </example>
     </rule>
 
-    <rule name="UsingSuppressWarningsHighRisk" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="Using SuppressWarnings for a rule that is meant to prevent high risk problems." typeResolution="true"
+    <rule name="UsingSuppressWarningsHighRisk" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" message="Using SuppressWarnings for a rule that is meant to prevent high risk problems." typeResolution="true"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md">
         <description>(Informative) Problem: This rule detects high risk problems, suppressing them without full knowledge can lead to incidents like customer data mix-up, corrupt data, server crashes or very bad performance. &#13;
             Solution: Suppress warnings judiciously based on full knowledge and report reasons to suppress (false positives) to the rule maintainers so these can be fixed. (jpinpoint-rules)</description>
@@ -847,7 +847,7 @@ class Foo {
         </properties>
     </rule>
 
-    <rule name="UsingSuppressWarnings" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="Using SuppressWarnings." typeResolution="true"
+    <rule name="UsingSuppressWarnings" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" message="Using SuppressWarnings." typeResolution="true"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md">
         <description>(Informative) Problem: This rule detects problems, suppressing them without full knowledge can lead to the problems this rule is trying to prevent. &#13;
             Solution: Suppress warnings judiciously based on full knowledge and report reasons to suppress (false positives) to the rule maintainers so these can be fixed. (jpinpoint-rules)</description>
@@ -867,7 +867,7 @@ class Foo {
         </properties>
     </rule>
 
-    <rule name="AvoidTimeUnitConfusion" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="A variable identifier or @Value member ends with timeToLive, expiryTime or timeout, time unit is missing." typeResolution="true"
+    <rule name="AvoidTimeUnitConfusion" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" message="A variable identifier or @Value member ends with timeToLive, expiryTime or timeout, time unit is missing." typeResolution="true"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md">
         <description>Problem: Time unit like hours, seconds, milliseconds is not specified and may be assumed differently by readers.
             Different assumptions will lead to errors or hidden problems like ineffective caches.&#13;
@@ -898,7 +898,7 @@ public RetrieveCache(final @Value("${cache.expiryTimeMillis}") long timeToLiveMi
         </example>
     </rule>
 
-    <rule name="InconsistentEqualsAndHashCode" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="Equals and hashCode are not based on the same fields or use inconsistent conversion." typeResolution="true"
+    <rule name="InconsistentEqualsAndHashCode" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" message="Equals and hashCode are not based on the same fields or use inconsistent conversion." typeResolution="true"
           externalInfoUrl="${doc_root}/JavaCodeQuality.md#ieah03">
         <description>Problem: If equals and hashCode are inconsistent, strange things can happen like adding the object to a Set and not being able to find it back.&#13;
             Solution: Use the same fields in equals and hashCode and if conversions are needed, use identical conversions in both. So don't use equalsIgnoreCase. (jpinpoint-rules)</description>
@@ -972,7 +972,7 @@ class Bad2 {
         </example>
     </rule>
 
-    <rule name="MissingFieldInEquals" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="Field simply assigned to is missing in equals method." typeResolution="true"
+    <rule name="MissingFieldInEquals" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" message="Field simply assigned to is missing in equals method." typeResolution="true"
           externalInfoUrl="${doc_root}/JavaCodeQuality.md#ieah04">
         <description>Problem: If a field which can be assigned separately (independent of other fields) is missing in the equals method, then changing the field in one object has no effect on the equality with another object.
             However, if a field of one of two equal objects is changed, the expectation is that they are no longer equal.&#13;

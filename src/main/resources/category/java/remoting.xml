@@ -2,7 +2,7 @@
 <ruleset name="jpinpoint-common-rules" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 https://pmd.sourceforge.io/ruleset_2_0_0.xsd" xmlns="http://pmd.sourceforge.net/ruleset/2.0.0">
     <description>jPinpoint rule set for performance aware Java coding, sponsored by Rabobank.</description>
 
-    <rule name="AvoidDeprecatedHttpConnectors" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="Avoid the use of deprecated/thread-unsafe HTTP connectors" typeResolution="true"
+    <rule name="AvoidDeprecatedHttpConnectors" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" message="Avoid the use of deprecated/thread-unsafe HTTP connectors" typeResolution="true"
       externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi06" >
     <description>Problem: Several HTTP client connection managers are thread-unsafe which may cause session data mix-up or have other issues for which they were made deprecated.&#13;
         Solutions: Upgrade to httpclient-4.5+ and use org.apache.http.impl.conn.PoolingHttpClientConnectionManager and e.g. org.apache.http.impl.client.HttpClientBuilder. (jpinpoint-rules)</description>
@@ -53,7 +53,7 @@ class Good {
         </example>
 </rule>
 
-    <rule name="JAXBContextCreatedForEachMethodCall" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="JAXBContext is created for each method call, which is expensive."  typeResolution="true"
+    <rule name="JAXBContextCreatedForEachMethodCall" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" message="JAXBContext is created for each method call, which is expensive."  typeResolution="true"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#iuoxar04">
         <description>Problem: JAXBContext creation is expensive because it does much class loading.  &#13;
             Solution: Since JAXBContext objects are thread safe, they can be shared between requests and reused. So, reuse created instances, e.g. as singletons.
@@ -69,7 +69,7 @@ class Good {
         </properties>
     </rule>
 
-    <rule name="ObjectMapperCreatedForEachMethodCall" message="An ObjectMapper is created for each method call, which is expensive." class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"   typeResolution="true" externalInfoUrl="${doc_root}/JavaCodePerformance.md#IUOJAR01">
+    <rule name="ObjectMapperCreatedForEachMethodCall" message="An ObjectMapper is created for each method call, which is expensive." class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java"   typeResolution="true" externalInfoUrl="${doc_root}/JavaCodePerformance.md#IUOJAR01">
         <description>Problem: Jackson ObjectMapper creation is expensive because it does much class loading.  &#13;
             Solution: Since ObjectMapper objects are thread-safe after configuration in one thread, they can be shared afterwards between requests and reused. So, reuse created instances, from a static field.
             (jpinpoint-rules)</description>
@@ -87,7 +87,7 @@ class Good {
         </properties>
     </rule>
 
-    <rule name="GsonCreatedForEachMethodCall" message="A Gson object is created for each method call, which is expensive." class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"   typeResolution="true" externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#IUOJAR03">
+    <rule name="GsonCreatedForEachMethodCall" message="A Gson object is created for each method call, which is expensive." class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java"   typeResolution="true" externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#IUOJAR03">
         <description>Problem: Gson creation is relatively expensive. A JMH benchmark shows a 24x improvement reusing one instance. &#13;
             Solution: Since Gson objects are thread-safe after creation, they can be between threads. So, reuse created instances, from a static field. Pay attention
             to use thread-safe (custom) adapters and serializers.
@@ -111,7 +111,7 @@ class Good {
         </properties>
     </rule>
 
-    <rule name="AvoidXMLGregorianCalendar" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="XMLGregorianCalendar is used. It is slow in JAXB." typeResolution="true"
+    <rule name="AvoidXMLGregorianCalendar" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" message="XMLGregorianCalendar is used. It is slow in JAXB." typeResolution="true"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#iuoxar05">
         <description>Problem: XMLGregorianCalendar is a large object, involving substantial processing. It is created with the poorly performing DatatypeFactory.
             Solution: Add a converter for alternative date handling with joda-time or Java 8 java.time.
@@ -132,7 +132,7 @@ MethodDeclaration//LocalVariableDeclaration/Type/ReferenceType/ClassOrInterfaceT
         </properties>
     </rule>
 
-    <rule name="HttpClientBuilderWithoutDisableConnectionState" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="A HttpClient builder is used and disableConnectionState is not called. HTTP client tracks connection state while using TLS" typeResolution="true"
+    <rule name="HttpClientBuilderWithoutDisableConnectionState" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" message="A HttpClient builder is used and disableConnectionState is not called. HTTP client tracks connection state while using TLS" typeResolution="true"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi07">
         <description>Problem: NTLM authenticated connections and SSL/TLS connections with client certificate authentication are stateful: they have a specific user identity/security context per session. If HttpClients have enabled connection state tracking which is the default, established TLS connections will not be reused because it is assumed that the user identity or security context may differ.
             Then performance will suffer due to a full TLS handshake for each request.&#13;
@@ -157,7 +157,7 @@ ancestor::MethodDeclaration//PrimarySuffix/@Image="disableConnectionState")]
         </properties>
     </rule>
 
-    <rule name="HttpClientBuilderWithoutPoolSize" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
+    <rule name="HttpClientBuilderWithoutPoolSize" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java"
           message="HttpClient builder is used and the connection pool is not configured. HttpClient defaults of 2 per route and 20 max total are probably not right." typeResolution="true"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi03">
         <description>Problem: by default only 2 connections are available per route. When two external calls are being made, a third thread requesting a connection must wait for a free connection.&#13;
@@ -223,7 +223,7 @@ ancestor::MethodDeclaration//PrimarySuffix/@Image="disableConnectionState")]
         </example>
     </rule>
 
-    <rule name="HttpClientBuilderPoolSettingsIgnored" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
+    <rule name="HttpClientBuilderPoolSettingsIgnored" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java"
           message="HttpClient builder is used with a ConnectionManager and MaxConn settings on the client are ignored. Remove them." typeResolution="true"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi09">
         <description>Problem: If you use setConnectionManager, the connection pool must be configured on that Connection Manager. Pool settings on the client are ignored and lost. &#13;
@@ -276,7 +276,7 @@ ancestor::MethodDeclaration//PrimarySuffix/@Image="disableConnectionState")]
         </example>
     </rule>
 
-    <rule name="HttpClientBuilderWithoutTimeouts" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
+    <rule name="HttpClientBuilderWithoutTimeouts" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java"
           message="HttpClient builder is used and not all three timeouts are configured. The defaults are probably not optimal (e.g. infinite). " typeResolution="true"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#IBI10">
         <description>Problem: For connectionRequestTimeout, connectTimeout, socketTimeout (for HttpComponentsClientHttpRequestFactory) or readTimeout (for RequestConfig) the default timeout settings are not optimal in most cases. &#13;
@@ -384,7 +384,7 @@ public class XMLConversion {
         </example>
     </rule>
 
-    <rule name="UseCloseableForHttpClient" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="HttpClient is used instead of ClosableHttpClient. "
+    <rule name="UseCloseableForHttpClient" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" message="HttpClient is used instead of ClosableHttpClient. "
           typeResolution="true"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi08">
         <description>Problem: if HttpClient connections are not closed properly when needed, resources are not released and connections may not (or not quick enough) become available from the pool.&#13;
@@ -428,7 +428,7 @@ public class XMLConversion {
         </example>
     </rule>
 
-    <rule name="AvoidModifyingObjectMapper" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="ObjectMapper is configured/modified, only initialize it right after construction."
+    <rule name="AvoidModifyingObjectMapper" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" message="ObjectMapper is configured/modified, only initialize it right after construction."
           typeResolution="true"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#iuojar02">
         <description>Problem: ObjectMapper is thread-safe only after configuration. Configuring an ObjectMapper is not thread-safe.  &#13;
@@ -490,7 +490,7 @@ or ancestor::ClassOrInterfaceBody[count(.//MethodDeclaration/ResultType/Type[pmd
         </example>
     </rule>
 
-    <rule name="AvoidDeprecatedHystrix" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="Netflix Hystrix is deprecated. Use an alternative like resilience4j"
+    <rule name="AvoidDeprecatedHystrix" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" message="Netflix Hystrix is deprecated. Use an alternative like resilience4j"
           typeResolution="true"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi11">
         <description>Problem: Hystrix is not actively maintained anymore.&#13;
@@ -509,7 +509,7 @@ or ancestor::ClassOrInterfaceBody[count(.//MethodDeclaration/ResultType/Type[pmd
         </example>
     </rule>
 
-    <rule name="AvoidRecreatingHttpClient" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="An HttpClient is created and combined with request-response."
+    <rule name="AvoidRecreatingHttpClient" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" message="An HttpClient is created and combined with request-response."
           typeResolution="true"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi12">
         <description>Problem: Apache HttpClient with its connection pool and timeouts should be setup once and then used for many requests. It is quite expensive to create and can only provide the benefits of pooling when reused in all requests for that connection.&#13;
@@ -541,7 +541,7 @@ class Foo {
         </example>
     </rule>
 
-    <rule name="RetryCanCauseOverload" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="Be careful with retrying: multiple retry locations in a call chain can cause overload."
+    <rule name="RetryCanCauseOverload" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" message="Be careful with retrying: multiple retry locations in a call chain can cause overload."
           typeResolution="true"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi13">
         <description>Problem: Multiple Retry locations in a call chain multiply the number of calls. For 2x retry on 3 locations (service calls) in a chain calling a system which is just recovering,
@@ -575,7 +575,7 @@ public class Foo {
         </example>
     </rule>
 
-    <rule name="AvoidReactorDebugOverhead" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
+    <rule name="AvoidReactorDebugOverhead" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java"
           message="Do not use Reactor debugging in production, it has much overhead."
           typeResolution="true"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi14">
@@ -604,7 +604,7 @@ public class Foo {
         </example>
     </rule>
 
-    <rule name="AvoidDiscardingHttpClientConfig" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java"
+    <rule name="AvoidDiscardingHttpClientConfig" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java"
           message="Do not replace the configured httpClient provided in the constructor of the factory."
           typeResolution="true"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi15">
