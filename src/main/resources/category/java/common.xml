@@ -767,7 +767,7 @@ class Foo {
 
     <rule name="UnconditionalOperationOnLogArgument" class="net.sourceforge.pmd.lang.rule.XPathRule" deprecated="false" dfa="false" language="java" message="Operation is executed regardless of log level and can be expensive" typeResolution="true"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#il03">
-        <description>Problem: An operation is executed regardless of log level. This could be much processing while the result is typically not used. Detected are obj.toString() and operations with one or more arguments except usually cheap obj.get(arg).&#13;
+        <description>Problem: An operation is executed regardless of log level. This could be much processing while the result is typically not used. Detected are obj.toString() and operations with one or more arguments except usually cheap obj.getXXX(arg).&#13;
             Solution: Execute the operation only conditionally and utilize SLF4J formatting with {}-placeholders.  (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
@@ -807,8 +807,8 @@ class Foo {
                 or
                 (: a method call with an argument list :)
                 (PrimarySuffix/Arguments/ArgumentList)
-                (: exclude a simple get(i), like list.get(0) or map.get(key), assumed to be fast :)
-                and not (PrimaryPrefix/Name[ends-with(@Image,'.get')])
+                (: exclude a simple getXXX(i), like list.get(0) or env.getProperty(key), assumed to be fast :)
+                and not (PrimaryPrefix/Name[contains(@Image,'.get')])
             ]
 			]]>
                 </value>

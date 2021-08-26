@@ -103,4 +103,18 @@ public class UnconOp {
      ]]></code>
     </test-code>
 
+    <test-code>
+        <description>Avoid unconditional operation on log argument issue #158</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>4</expected-linenumbers>
+        <code><![CDATA[
+class Foo {
+    private static void bar(Environment env) {
+        LOGGER.info("Application '{}' has started!", env.getProperty("spring.application.name")); //good
+        LOGGER.info("Application", env.resolvePlaceHoldersProperty(" '${spring.application.name}' has started!")); //bad
+    }
+}
+    ]]></code>
+    </test-code>
+
 </test-data>
