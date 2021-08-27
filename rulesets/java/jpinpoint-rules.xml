@@ -2714,7 +2714,9 @@ ancestor::MethodDeclaration//PrimarySuffix/@Image="disableConnectionState")]
 ]
 ,
 (: method param PoolingHttpClientConnectionManager without setMaxTotal/setDefaultMaxPerRoute :)
-//MethodDeclaration//FormalParameter//ClassOrInterfaceType[
+//MethodDeclaration (: only when returning a connection manager :)
+    [ResultType/Type[pmd-java:typeIs('org.apache.http.impl.conn.PoolingHttpClientConnectionManager')]]
+   //FormalParameter//ClassOrInterfaceType[
    pmd-java:typeIs('org.apache.http.impl.conn.PoolingHttpClientConnectionManager')
    and count(ancestor::MethodDeclaration//(PrimaryPrefix/Name|PrimarySuffix)[ends-with(@Image, 'setMaxTotal') or ends-with(@Image, 'setDefaultMaxPerRoute')])<2
 ]

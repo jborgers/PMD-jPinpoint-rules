@@ -275,4 +275,23 @@ public class Good {
 }
    ]]></code>
     </test-code>
+
+    <test-code>
+        <description>no violation: PoolingHttpClientConnectionManager used only as input, #159</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>7</expected-linenumbers>
+        <code><![CDATA[
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+class Foo {
+    public static void registerMBean(PoolingHttpClientConnectionManager connMgr) { // good
+       PoolingHttpClientConnectionManagerStatsMXBean poolStats = new PoolingHttpClientConnectionManagerStats(connMgr);
+       // ...
+    }
+    private PoolingHttpClientConnectionManager bad(PoolingHttpClientConnectionManager connMgr) { // bad
+        return connMgr;
+    }
+}
+       ]]></code>
+    </test-code>
+
 </test-data>
