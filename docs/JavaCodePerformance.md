@@ -312,6 +312,28 @@ class Good {
 }
 ```
 
+#### IBI16
+**Observation: HttpHost constructor with only one argument is used, meant just for hostname.**   
+**Problem:** the HttpHost constructor with one argument must only be provided with a host name, the default port 80 and protocol http are implied.
+The mistake of providing a URL and assuming it will be parsed into hostname, port and protocol is easily made.
+When this HttpHost is then used for a route and stored socketConfig for, port 80 is added for the host and the socketConfig is stored with the wrong key and will not be used.
+It is typically difficult to find out if the config is actually used. Note that [http-client-monitor](http://github.com/jborgers/http-client-monitor) helps here.   
+**Solution:** Use the HttpHost constructor with 2 (including port) or preferably 3 arguments (including port and protocol).   
+**Rule name:** AvoidHttpHostOneArgumentConstructor    
+**Example**
+```java
+import org.apache.http.HttpHost;
+
+class Foo {
+  private static final String URL = "localhost:8080";
+  private static final HttpHost hostBad1 = new HttpHost("localhost:8080"); // bad
+
+  void bar() {
+    HttpHost hostBad2 = new HttpHost(URL);//bad
+    HttpHost hostGood1 = new HttpHost("localhost", 8080, "http"); //good
+  }
+}
+```
 Improper caching  
 -------------------
 
@@ -696,7 +718,7 @@ Reloading lists of values
 Inefficient database access
 ---------------------------
 
-This section now has grown out on its own as [JavaDataAccessPerformance](#Java+Data+Access+Performance).
+This section now has grown out on its own as [JavaDataAccessPerformance](https://github.com/jborgers/PMD-jPinpoint-rules/blob/master/docs/JavaDataAccessPerformance.md).
 
 Improper use of XML and remoting
 --------------------------------

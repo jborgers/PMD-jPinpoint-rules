@@ -2402,6 +2402,42 @@ class Good {
         </example>
     </rule>
 
+    <rule name="AvoidHttpHostOneArgumentConstructor" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java"
+          message="Avoid the HttpHost constructor with only hostname, provide port number and protocol as well."
+          typeResolution="true"
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#ibi16">
+        <description>Problem: the HttpHost constructor with one argument must only be provided with a host name, the default port 80 and protocol http are implied.
+            The mistake of providing a URL and assuming it will be parsed into hostname, port and protocol is easily made.
+            When this HttpHost is then used for a route and stored socketConfig for, port 80 is added for the host and the socketConfig is stored with the wrong key and will not be used.
+            It is typically difficult to find out if the config is actually used. Note that http://github.com/jborgers/http-client-monitor helps here.&#13;
+            Solution: Use the HttpHost constructor with 2 (including port) or preferably 3 arguments (including port and protocol). (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+//AllocationExpression[pmd-java:typeIs("org.apache.http.HttpHost")]/Arguments/ArgumentList[count(./Expression) = 1]/../..
+]]>
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+import org.apache.http.HttpHost;
+
+class Foo {
+    private static final String URL = "localhost:8080";
+    private static final HttpHost hostBad1 = new HttpHost("localhost:8080"); // bad
+
+    void bar() {
+        HttpHost hostBad2 = new HttpHost(URL);//bad
+        HttpHost hostGood1 = new HttpHost("localhost", 8080, "http"); //good
+    }
+}
+]]>
+        </example>
+    </rule>
+
     <rule name="AvoidJAXBUtil"
           language="java"
           message="The JAXB utility class is not optimized for performance."
