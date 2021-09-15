@@ -1771,8 +1771,9 @@ Potential memory leaks
 
 **Observation: An object field is mutable while it should not change after initialization**, for a field like an ArrayList, HashMap, StringBuilder or a custom object.  
 **Problem:** The field can unintentionally be added to, so grow and become a memory leak.  
-**Solution:** Make the field immutable and final. In a constructor, defensively copy the modifiable argument, so also the caller is not able to modify the object referenced by the field anymore. In case of an unmodifiable wrapped collection, make sure the inner collection is not directly reachable anymore after initialization. For example:
-
+**Solution:** Make the field immutable and final. In a constructor, defensively copy the modifiable argument, so also the caller is not able to modify the object referenced by the field anymore. In case of an unmodifiable wrapped collection, make sure the inner collection is not directly reachable anymore after initialization.  
+**Rule name:** AvoidMutableLists   
+**Example:**
 ```java
 class Conf {
   private final List configurationItems;

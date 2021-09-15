@@ -1081,8 +1081,13 @@ public class CalendarStuff {
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
-    (: a field of type List, exclude when JPA annotated :)
-    //FieldDeclaration[pmd-java:typeIs('java.util.List')][count(../Annotation//Name[@Image='OneToMany' or @Image='ManyToMany']) = 0]//VariableDeclaratorId[
+    (: a field of type List :)
+    //FieldDeclaration[pmd-java:typeIs('java.util.List')]
+    (: exclude ConfigurationProperties classes :)
+    [count(ancestor::TypeDeclaration/Annotation//Name[@Image='ConfigurationProperties']) = 0]
+    (: exclude when JPA annotated :)
+    [count(../Annotation//Name[@Image='OneToMany' or @Image='ManyToMany']) = 0]
+    //VariableDeclaratorId[
     (: with a method defined at that level that does not use the field with a modify operation (case field.modOp) :)
     not(@Name = ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDeclaration//PrimaryExpression/PrimaryPrefix/Name[
     starts-with(substring-after(@Image, '.'), 'add') or
@@ -1106,7 +1111,7 @@ not(@Name = ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/Metho
     (: or constructor has a simple assignment to the field, param of literal: no arguments :)
     ancestor::ClassOrInterfaceBody//ConstructorDeclaration//AssignmentOperator[exists(../Expression[pmd-java:typeIs('java.util.List')]) and not(exists(../Expression/PrimaryExpression/PrimarySuffix))]/..//Name/@Image = @Name
     )]
-	         ]]></value>
+]]></value>
             </property>
         </properties>
         <example>
