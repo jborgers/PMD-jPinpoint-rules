@@ -1284,7 +1284,7 @@ Set<YourEnumType> set = EnumSet.allOf(YourEnumType.class);
           message="Avoid unconditional creation of a log argument, it may not be needed."
           class="net.sourceforge.pmd.lang.rule.XPathRule"
           typeResolution="true"
-          externalInfoUrl="${doc_root}/JavaCodePerformance.md#iuoc06">
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#il06">
         <description>Problem: Creation of a log argument with a toString or other operation(s) may be expensive, while depending on the log level, the result may not be used.&#13;
             Solution: Create the log argument conditionally on the log level, within an if statement. For just 'obj.toString()', just pass 'obj' to the log method and leave it to SLF4J to call toString() only if needed.
         </description>
