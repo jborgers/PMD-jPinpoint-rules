@@ -38,7 +38,7 @@ public class EnumMapSetTryout {
     <test-code>
         <description>Map EnumMap and Set in enum tests</description>
         <expected-problems>4</expected-problems>
-        <expected-linenumbers>9,17,22,32</expected-linenumbers>
+        <expected-linenumbers>9,17,22,50</expected-linenumbers>
         <code><![CDATA[
 import java.util.*;
 import java.time.temporal.ChronoField; // enum
@@ -65,6 +65,24 @@ class EnumOtherFoo {
                 ChronoField.DAY_OF_WEEK, "DOW",
                 ChronoField.DAY_OF_MONTH, "DOM"
         );
+    }
+}
+// issue #162, false positives. Should not violate.
+class Foo {
+    void bar() {
+        final EnumMap<EnumTypeCode, List<SpecificModel>> specificModelsPerType = enums.stream()
+        .collect(groupingBy(EnumTypeCode.A,
+                () -> new EnumMap<>(EnumTypeCode.class),
+                toList()));
+
+        final EnumMap<ChronoField, List<SpecificModel>> chro = enums.stream()
+        .collect(groupingBy(ChronoField.NANO_OF_SECOND,
+                () -> new EnumMap<>(ChronoField.class),
+                toList()));
+
+    }
+    enum EnumTypeCode {
+        A, B;
     }
 }
 

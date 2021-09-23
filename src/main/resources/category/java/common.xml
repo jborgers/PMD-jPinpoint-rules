@@ -1211,16 +1211,19 @@ class Foo {
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
-//FieldDeclaration[Type/ReferenceType/ClassOrInterfaceType[pmd-java:typeIs('java.util.Map') or pmd-java:typeIs('java.util.Set')]
+//FieldDeclaration[Type/ReferenceType/ClassOrInterfaceType
+[(pmd-java:typeIs('java.util.Map') and not (pmd-java:typeIs('java.util.EnumMap'))) or (pmd-java:typeIs('java.util.Set') and not(pmd-java:typeIs('java.util.EnumSet')))]
 /TypeArguments/TypeArgument[1]/ReferenceType[pmd-java:typeIs('java.lang.Enum') or ClassOrInterfaceType/@Image = //EnumDeclaration/@SimpleName] and
 VariableDeclarator/VariableInitializer/Expression[not ((pmd-java:typeIs('java.util.EnumSet') or pmd-java:typeIs('java.util.EnumMap')))]]
 ,
-//LocalVariableDeclaration[Type/ReferenceType/ClassOrInterfaceType[pmd-java:typeIs('java.util.Map') or pmd-java:typeIs('java.util.Set')]
+//LocalVariableDeclaration[Type/ReferenceType/ClassOrInterfaceType
+[(pmd-java:typeIs('java.util.Map') and not (pmd-java:typeIs('java.util.EnumMap'))) or (pmd-java:typeIs('java.util.Set') and not(pmd-java:typeIs('java.util.EnumSet')))]
 /TypeArguments/TypeArgument[1]/ReferenceType[pmd-java:typeIs('java.lang.Enum') or ClassOrInterfaceType/@Image = //EnumDeclaration/@SimpleName] and
 VariableDeclarator/VariableInitializer/Expression[not ((pmd-java:typeIs('java.util.EnumSet') or pmd-java:typeIs('java.util.EnumMap')))]]
 ,
 //Initializer//StatementExpression[Expression[not ((pmd-java:typeIs('java.util.EnumSet') or pmd-java:typeIs('java.util.EnumMap')))]][PrimaryExpression//Name/@Image =
-//FieldDeclaration[Type/ReferenceType/ClassOrInterfaceType[pmd-java:typeIs('java.util.Map') or pmd-java:typeIs('java.util.Set')]
+//FieldDeclaration[Type/ReferenceType/ClassOrInterfaceType
+[(pmd-java:typeIs('java.util.Map') and not (pmd-java:typeIs('java.util.EnumMap'))) or (pmd-java:typeIs('java.util.Set') and not(pmd-java:typeIs('java.util.EnumSet')))]
 /TypeArguments/TypeArgument[1]/ReferenceType[pmd-java:typeIs('java.lang.Enum') or ClassOrInterfaceType/@Image = //EnumDeclaration/@SimpleName]]/VariableDeclarator/VariableDeclaratorId/@Name]
 ]]></value>
             </property>
