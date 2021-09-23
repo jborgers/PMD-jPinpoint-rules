@@ -1214,14 +1214,27 @@ class Foo {
 //FieldDeclaration[Type/ReferenceType/ClassOrInterfaceType
 [(pmd-java:typeIs('java.util.Map') and not (pmd-java:typeIs('java.util.EnumMap'))) or (pmd-java:typeIs('java.util.Set') and not(pmd-java:typeIs('java.util.EnumSet')))]
 /TypeArguments/TypeArgument[1]/ReferenceType[pmd-java:typeIs('java.lang.Enum') or ClassOrInterfaceType/@Image = //EnumDeclaration/@SimpleName] and
-VariableDeclarator/VariableInitializer/Expression[not ((pmd-java:typeIs('java.util.EnumSet') or pmd-java:typeIs('java.util.EnumMap')))]]
+VariableDeclarator/VariableInitializer/Expression
+[not ((pmd-java:typeIs('java.util.EnumSet') or pmd-java:typeIs('java.util.EnumMap')
+(: Set.of() with 1 or 2 elems doesn't have the HashSet overhead :)
+ or (pmd-java:typeIs('java.util.Set') and PrimaryExpression[PrimaryPrefix/Name/@Image = 'Set.of' and PrimarySuffix/Arguments/@Size <= 2])
+))]]
 ,
 //LocalVariableDeclaration[Type/ReferenceType/ClassOrInterfaceType
 [(pmd-java:typeIs('java.util.Map') and not (pmd-java:typeIs('java.util.EnumMap'))) or (pmd-java:typeIs('java.util.Set') and not(pmd-java:typeIs('java.util.EnumSet')))]
 /TypeArguments/TypeArgument[1]/ReferenceType[pmd-java:typeIs('java.lang.Enum') or ClassOrInterfaceType/@Image = //EnumDeclaration/@SimpleName] and
-VariableDeclarator/VariableInitializer/Expression[not ((pmd-java:typeIs('java.util.EnumSet') or pmd-java:typeIs('java.util.EnumMap')))]]
+VariableDeclarator/VariableInitializer/Expression
+[not ((pmd-java:typeIs('java.util.EnumSet') or pmd-java:typeIs('java.util.EnumMap')
+(: Set.of() with 1 or 2 elems doesn't have the HashSet overhead :)
+ or (pmd-java:typeIs('java.util.Set') and PrimaryExpression[PrimaryPrefix/Name/@Image = 'Set.of' and PrimarySuffix/Arguments/@Size <= 2])
+))]]
 ,
-//Initializer//StatementExpression[Expression[not ((pmd-java:typeIs('java.util.EnumSet') or pmd-java:typeIs('java.util.EnumMap')))]][PrimaryExpression//Name/@Image =
+//Initializer//StatementExpression[Expression
+[not ((pmd-java:typeIs('java.util.EnumSet') or pmd-java:typeIs('java.util.EnumMap')
+(: Set.of() with 1 or 2 elems doesn't have the HashSet overhead :)
+ or (pmd-java:typeIs('java.util.Set') and PrimaryExpression[PrimaryPrefix/Name/@Image = 'Set.of' and PrimarySuffix/Arguments/@Size <= 2])
+))]]
+[PrimaryExpression//Name/@Image =
 //FieldDeclaration[Type/ReferenceType/ClassOrInterfaceType
 [(pmd-java:typeIs('java.util.Map') and not (pmd-java:typeIs('java.util.EnumMap'))) or (pmd-java:typeIs('java.util.Set') and not(pmd-java:typeIs('java.util.EnumSet')))]
 /TypeArguments/TypeArgument[1]/ReferenceType[pmd-java:typeIs('java.lang.Enum') or ClassOrInterfaceType/@Image = //EnumDeclaration/@SimpleName]]/VariableDeclarator/VariableDeclaratorId/@Name]

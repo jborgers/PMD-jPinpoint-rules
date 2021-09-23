@@ -94,4 +94,34 @@ enum MyEnumType {
         ]]></code>
     </test-code>
 
+    <test-code>
+        <description>EnumSet using Set.of()</description>
+        <expected-problems>3</expected-problems>
+        <expected-linenumbers>8, 14, 20</expected-linenumbers>
+        <code><![CDATA[
+import java.util.*;
+import java.time.*;
+import java.util.concurrent.*;
+import java.time.temporal.ChronoField; // enum
+
+class Foo {
+    static final Set<ChronoField> CHRONO_SET; // good
+    static final Set<ChronoField> CHRONO_SET2 = new HashSet<>(); // bad
+    static final Set<ChronoField> CHRONO_SET3;
+    static final Set<ChronoField> CHRONO_SET4;
+
+    static {
+        CHRONO_SET = EnumSet.allOf(ChronoField.class); // good
+        CHRONO_SET3 = new HashSet<>(); //bad
+        CHRONO_SET4 = Set.of(TimeUnit.DAYS); //good
+    }
+
+    private static final Set<TimeUnit> TIME_UNITS_1 = Set.of(TimeUnit.DAYS);
+    private static final Set<TimeUnit> TIME_UNITS_2 = Set.of(TimeUnit.DAYS, TimeUnit.HOURS);
+    private static final Set<TimeUnit> TIME_UNITS_3 = Set.of(TimeUnit.DAYS, TimeUnit.HOURS, TimeUnit.MINUTES); // bad
+    private static final Set<TimeUnit> TIME_UNITS_4 = EnumSet.of(TimeUnit.DAYS, TimeUnit.HOURS, TimeUnit.MINUTES); // good
+}
+        ]]></code>
+    </test-code>
+
 </test-data>
