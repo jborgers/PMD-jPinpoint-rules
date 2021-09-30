@@ -101,4 +101,33 @@ public class AvoidDuplicateAssignmentsInCasesTest {
 }
      ]]></code>
     </test-code>
+
+    <test-code>
+        <description>Duplicate assignment to boolean in switch statements is OK</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+class Foo {
+    private static final Pattern NUM_PAT = Pattern.compile("^[0-9]+$");
+    private static final Pattern LET_PAT = Pattern.compile("^[A-z]+$");
+
+    private boolean formatIsValid(String format, String fieldValue) {
+        Matcher matcher;
+        boolean formatIsValid;
+        switch (format) {
+            case NUMERIC:
+                matcher = numericPattern.matcher(fieldValue);
+                formatIsValid = matcher.matches();
+                break;
+            case ALPHA:
+                matcher = lettersPattern.matcher(fieldValue);
+                formatIsValid = matcher.matches();
+                break;
+            default:
+                formatIsValid = false;
+        }
+        return formatIsValid;
+    }
+}
+     ]]></code>
+    </test-code>
 </test-data>

@@ -285,6 +285,6 @@ Suspicious code constructs
 
 **Observation: Multiple switch cases contain the same assignment**  
 **Problem:** Identical assignments to the same variable are very likely a bug. It lead to a production incident in a project.  
-**Solution:** Each case block of a switch should contain unique assignments. Common assignments should be taken out of the switch construct.  
+**Solution:** Each case block of a switch should contain unique assignments. Common assignments should be taken out of the switch construct. Exceptional case: a duplicate assignment to a boolean is considered safe since it can only hold 2 values.    
 **Perf-code-check:** [AvoidDuplicateAssignmentsInCases](https://jira.rabobank.nl/browse/JPCC-89)
 

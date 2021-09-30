@@ -110,22 +110,22 @@ public interface Foo {
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
-            <property name="version" value="1.0"/>
+            <property name="version" value="2.0"/>
             <property name="xpath">
                 <value>
                     <![CDATA[
 //SwitchStatement/BlockStatement[
-(.//AssignmentOperator/../../..//StatementExpression/Expression/PrimaryExpression/PrimaryPrefix/Name/@Image
+(.//AssignmentOperator/../../..//StatementExpression[not(pmd-java:typeIs('boolean'))]/Expression/PrimaryExpression/PrimaryPrefix/Name/@Image
 =preceding-sibling::SwitchLabel/preceding-sibling::BlockStatement//AssignmentOperator/../../..//StatementExpression/Expression/PrimaryExpression/PrimaryPrefix/Name/@Image
 or
-.//AssignmentOperator/../../..//StatementExpression/Expression/PrimaryExpression/PrimaryPrefix//Literal/@Image
+.//AssignmentOperator/../../..//StatementExpression[not(pmd-java:typeIs('boolean'))]/Expression/PrimaryExpression/PrimaryPrefix//Literal/@Image
 =preceding-sibling::SwitchLabel/preceding-sibling::BlockStatement//AssignmentOperator/../../..//StatementExpression/Expression/PrimaryExpression/PrimaryPrefix//Literal/@Image)
 and
-.//AssignmentOperator/../../..//StatementExpression/PrimaryExpression/PrimaryPrefix/Name/@Image
+.//AssignmentOperator/../../..//StatementExpression[not(pmd-java:typeIs('boolean'))]/PrimaryExpression/PrimaryPrefix/Name/@Image
 =preceding-sibling::SwitchLabel/preceding-sibling::BlockStatement//AssignmentOperator/../../..//StatementExpression/PrimaryExpression/PrimaryPrefix/Name/@Image
 and
-not(.//AssignmentOperator/../../..//StatementExpression/Expression/PrimaryExpression/PrimarySuffix/Arguments/@Size > 0
-or preceding-sibling::SwitchLabel[@Default='true'])
+not(.//AssignmentOperator/../../..//StatementExpression[not(pmd-java:typeIs('boolean'))]/Expression/PrimaryExpression/PrimarySuffix/Arguments/@Size > 0
+or preceding-sibling::SwitchLabel[@Default=true()])
 ]
 ]]>
                 </value>
