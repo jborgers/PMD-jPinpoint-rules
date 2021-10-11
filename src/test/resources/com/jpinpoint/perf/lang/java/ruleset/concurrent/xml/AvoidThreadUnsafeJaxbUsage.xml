@@ -3,6 +3,17 @@
         xmlns="http://pmd.sourceforge.net/rule-tests"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+
+    <test-code>
+        <description>Avoid thread unsafe usage of jaxb - no violation for non-jaxb Validator - #169</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+    class Validation {
+        Validator validator; // fine, self defined Validator from same package
+    }
+        ]]></code>
+    </test-code>
+
     <test-code>
         <description>Avoid thread unsafe usage of jaxb</description>
         <expected-problems>4</expected-problems>
@@ -59,7 +70,6 @@ public class AvoidThreadUnsafeJaxbUsageTest {
         };
 	}
 
-	//private javax.ejb.SessionContext mySessionCtx; // nothing wrong here
 }
      ]]></code>
     </test-code>

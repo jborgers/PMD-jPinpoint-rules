@@ -1833,16 +1833,13 @@ ancestor::StatementExpression/PrimaryExpression/PrimaryPrefix/Name/@Image = ance
             (jpinpoint-rules)</description>
         <priority>1</priority>
         <properties>
-            <property name="version" value="1.0"/>
+            <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
-//FieldDeclaration/Type/ReferenceType/ClassOrInterfaceType[typeIs('javax.xml.bind.Marshaller')]
-|
-//FieldDeclaration/Type/ReferenceType/ClassOrInterfaceType[typeIs('javax.xml.bind.Unmarshaller')]
-|
-//FieldDeclaration/Type/ReferenceType/ClassOrInterfaceType[typeIs('javax.xml.bind.Validator')]
-|
-//FieldDeclaration/Type/ReferenceType/ClassOrInterfaceType[typeIs('javax.xml.validation.Validator')]
+//FieldDeclaration[pmd-java:typeIs('javax.xml.bind.Marshaller')
+ or pmd-java:typeIs('javax.xml.bind.Unmarshaller')
+ or pmd-java:typeIs('javax.xml.bind.Validator')
+ or pmd-java:typeIs('javax.xml.validation.Validator')]
 			]]></value>
             </property>
         </properties>
