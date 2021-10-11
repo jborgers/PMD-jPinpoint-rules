@@ -2885,11 +2885,13 @@ ancestor::MethodDeclaration//PrimarySuffix/@Image="disableConnectionState")]
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
-            <property name="version" value="1.0"/>
+            <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
-//MethodDeclaration//Expression/PrimaryExpression/PrimaryPrefix/Name[@Image = 'JAXBContext.newInstance']
-			]]></value>
+//ClassOrInterfaceBodyDeclaration[not (Annotation//Name[@Image='PostConstruct'])]
+ /MethodDeclaration//Expression[pmd-java:typeIs('javax.xml.bind.JAXBContext')]
+ /PrimaryExpression/PrimaryPrefix/Name[@Image = 'JAXBContext.newInstance']
+                ]]></value>
             </property>
         </properties>
     </rule>

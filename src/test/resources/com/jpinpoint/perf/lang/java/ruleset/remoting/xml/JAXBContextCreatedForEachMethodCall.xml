@@ -42,4 +42,25 @@ public class JAXBContextReuse {
 }
      ]]></code>
     </test-code>
+
+    <test-code>
+        <description>JAXBContext object creation is expensive - allowed in @PostConstruct, #170</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import javax.annotation.PostConstruct;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+
+class Klass {
+    private JAXBContext jaxbDocument;
+
+    @PostConstruct
+    protected void init() {
+        try {
+            jaxbDocument = JAXBContext.newInstance(Document.class);
+        } catch (JAXBException e) { throw new IllegalArgumentException(e); }
+    }
+}
+     ]]></code>
+    </test-code>
 </test-data>
