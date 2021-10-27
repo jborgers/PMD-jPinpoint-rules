@@ -7,6 +7,7 @@ By Jeroen Borgers ([jPinpoint](https://www.jpinpoint.com)) and Peter Paul Bakker
 
 - [Introduction](#introduction)
 - [Improper back-end interaction / remote service calls](#improper-back-end-interaction--remote-service-calls)
+- [Improper asynchrony](#improper-asynchrony)
 - [Improper caching](#improper-caching)
 - [Too much session usage](#too-much-session-usage)
   - [Explicit session attributes](#explicit-session-attributes)
