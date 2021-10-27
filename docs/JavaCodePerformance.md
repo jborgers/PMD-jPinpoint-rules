@@ -334,6 +334,60 @@ class Foo {
   }
 }
 ```
+
+Improper asynchrony 
+-------------------
+This categry could be seen as a subcategory of the previous category. However, above mostly deals with remote connections, asynchony mostly deals with threading and parallelism.
+
+#### IA01
+
+**Observation: A Spring @Async thread pool has default sizes, or is not sized based on measurements or best practices**      
+**Problem:** Spring @Async uses a ThreadPoolTaskExecutor. This Executor and Java's ThreadPoolExecutor have a setCorePoolSize and setMaxPoolSize method. 
+Spring's Executor has default core size = 1 and max size = unlimited, which are almost never appropriate, it uses too many thread resources when the called service is slow or unavailable. 
+Setting values to e.g. 100 is likely too high, causing too much thread resources usage and scheduling/context switching overhead. 
+Setting values to 1 allows for serial execution only, while one typically wants to utilize parallelism.  
+**Solution:** The max number of threads should be based on request rate (tps) and response times of a healthy called service in peak load situations, such that all requests can be handled without queueing and no more threads are used than necessary.
+Make core size N smaller than max size to reduce overhead and resource usage in the common case when N threads is enough. E.g. core size = 10, max size = 30.
+Note that the pool will only grow bigger than core size when the queue limit is reached.  
+**Example:** 
+```java
+ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+executor.setCorePoolSize(10); // based on measurements
+executor.setMaxPoolSize(30); // based on measurements
+```
+
+#### IA02
+
+**Observation: A Spring @Async thread pool *queue* has default capacity, or is not sized based on measurements or best practices**      
+**Problem:** Spring @Async uses a ThreadPoolTaskExecutor. This Executor and Java's ThreadPoolExecutor have a setQueueCapacity method.
+Default capacity = unlimited, which is almost never appropriate, it uses too much memory when the called service is slow or unavailable.
+Setting the capacity to e.g. 100 is likely too high, causing too much response time delay.
+Setting the capacity to 0 allows for no full-function handling of spike load or hiccups in the called chain, beyond max pool size utilization.  
+**Solution:** The queue capacity should be based on request rate (tps) and response times of a healthy called service in peak load situations, and to accommodate for some level of spike load and hiccups in the called chain.
+Make queue capacity equal to pool core size to have at most 1 request waiting for each thread doing a service call.   
+**Example:**
+```java
+ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+executor.setCorePoolSize(10); // based on measurements
+executor.setMaxPoolSize(30); // based on measurements
+executor.setQueueCapacity(10); // based on measurements
+```
+
+#### IA03
+
+**Observation: A Spring @Async thread pool is used for more than one async remote service call**      
+**Problem:** Long response times or unavailability of one remote service will eat up threads of the pool so the other service will get no threads to do the remote call.  
+**Solution:** If this is undesirable, use a separate pool for each async service call. (Bulkhead pattern)
+
+#### IA04
+
+**Observation: A Spring ThreadPoolTaskExecutor is not monitored**      
+**Problem:** If you don't see the usage of threads and the queue under load, you cannot size these properly.    
+**Solution:** You need to measure to know how to size. 
+ThreadPoolTaskExecutor can be [exposed as mbean](https://stackoverflow.com/questions/53519810/exposing-threadpooltaskexecutor-as-mbean-in-jmx) and monitored by VisualVM or other mbean browser, 
+or monitored by using micrometer ([example in afterburner](https://stackoverflow.com/questions/53519810/exposing-threadpooltaskexecutor-as-mbean-in-jmx)).
+
+
 Improper caching  
 -------------------
 
