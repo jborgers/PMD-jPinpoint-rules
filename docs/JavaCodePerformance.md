@@ -339,6 +339,7 @@ class Foo {
 Improper asynchrony 
 -------------------
 This categry could be seen as a subcategory of the previous category. However, above mostly deals with remote connections, asynchony mostly deals with threading and parallelism.
+We assume asynchronous calls are typically made to remote services. 
 
 #### IA01
 
@@ -346,6 +347,7 @@ This categry could be seen as a subcategory of the previous category. However, a
 **Problem:** Spring @Async uses a ThreadPoolTaskExecutor. This Executor and Java's ThreadPoolExecutor have a setCorePoolSize and setMaxPoolSize method. 
 Spring's Executor has default core size = 1 and max size = unlimited, which are almost never appropriate, it uses too many thread resources when the called service is slow or unavailable. 
 Setting values to e.g. 100 is likely too high, causing too much thread resources usage and scheduling/context switching overhead. 
+Additionally, if remote connections use a connection pool and the number of threads is higher than the number of connections in the pool, threads will have to wait for a connection.
 Setting values to 1 allows for serial execution only, while one typically wants to utilize parallelism.  
 **Solution:** The max number of threads should be based on request rate (tps) and response times of a healthy called service in peak load situations, such that all requests can be handled without queueing and no more threads are used than necessary.
 Make core size N smaller than max size to reduce overhead and resource usage in the common case when N threads is enough. E.g. core size = 10, max size = 30.
@@ -355,6 +357,7 @@ Note that the pool will only grow bigger than core size when the queue limit is 
 ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
 executor.setCorePoolSize(10); // based on measurements
 executor.setMaxPoolSize(30); // based on measurements
+executor.setQueueCapacity(10); // see next item (IA02)
 ```
 
 #### IA02
@@ -387,7 +390,7 @@ executor.setQueueCapacity(10); // based on measurements
 **Solution:** You need to measure to know how to size. 
 ThreadPoolTaskExecutor can be [exposed as mbean](https://stackoverflow.com/questions/53519810/exposing-threadpooltaskexecutor-as-mbean-in-jmx) and monitored by VisualVM or other mbean browser, 
 or monitored by using micrometer ([example in afterburner](https://stackoverflow.com/questions/53519810/exposing-threadpooltaskexecutor-as-mbean-in-jmx)).
-
+Make sure to give the threads a proper name, this makes them easier to recognize in thread dumps, heap dumps and profiling.
 
 Improper caching  
 -------------------
