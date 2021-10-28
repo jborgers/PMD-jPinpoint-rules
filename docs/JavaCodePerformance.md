@@ -389,7 +389,7 @@ executor.setQueueCapacity(10); // based on measurements
 **Problem:** If you don't see the usage of threads and the queue under load, you cannot size these properly.    
 **Solution:** You need to measure to know how to size. 
 ThreadPoolTaskExecutor can be [exposed as mbean](https://stackoverflow.com/questions/53519810/exposing-threadpooltaskexecutor-as-mbean-in-jmx) and monitored by VisualVM or other mbean browser, 
-or monitored by using micrometer ([example in afterburner](https://stackoverflow.com/questions/53519810/exposing-threadpooltaskexecutor-as-mbean-in-jmx)).
+or monitored by using micrometer ([example in afterburner](https://github.com/stokpop/afterburner/blob/4bd9f32123bd9bd0a0c4fedace06f72f6f9e4174/afterburner-java/src/main/java/nl/stokpop/afterburner/config/AfterburnerAsyncConfig.java#L52)).
 Make sure to give the threads a proper name, this makes them easier to recognize in thread dumps, heap dumps and profiling.
 
 Improper caching  
