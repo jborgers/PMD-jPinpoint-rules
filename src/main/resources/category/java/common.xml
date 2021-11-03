@@ -878,10 +878,10 @@ class Foo {
             <property name="xpath">
                 <value><![CDATA[
 //VariableDeclaratorId[../..//Type/PrimitiveType][ends-with(lower-case(@Name), 'timetolive') or ends-with(lower-case(@Name), 'expirytime')
-or ends-with(lower-case(@Name), 'timeout')]
+or ends-with(lower-case(@Name), 'timeout') or ends-with(lower-case(@Name), 'ttl')]
 ,
 //SingleMemberAnnotation/Name[@Image='Value']/..//Literal[ends-with(lower-case(@Image), 'timetolive') or ends-with(lower-case(@Image), 'expirytime}"')
-or ends-with(lower-case(@Image), 'timeout}"')]
+or ends-with(lower-case(@Image), 'timeout}"') or ends-with(lower-case(@Image), 'ttl}"')]
 			]]>
                 </value>
             </property>

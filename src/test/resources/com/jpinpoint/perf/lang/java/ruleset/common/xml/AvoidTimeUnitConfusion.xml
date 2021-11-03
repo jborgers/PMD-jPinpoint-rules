@@ -20,14 +20,19 @@ public class RetrieveCache {
 
     <test-code>
         <description>violation: time unit missing in @Value member</description>
-        <expected-problems>2</expected-problems>
-        <expected-linenumbers>3,5</expected-linenumbers>
+        <expected-problems>5</expected-problems>
+        <expected-linenumbers>2,3,6,8,10</expected-linenumbers>
         <code><![CDATA[
 public class RetrieveCache {
+    private static final long TOKEN_TTL = 1000L * 60 * 15; // bad
+    private static final long TOKEN_TIMEOUT = 1000L * 60 * 60 * 8; // bad
+
     @Autowired
     public RetrieveCache(final @Value("${cache.expiryTime}") long timeToLiveSeconds) { // 1x bad
     }
     public confuse(@Value("${cache.timeOut}") int expiryTimeHours) { // 1x bad
+    }
+    foo(@Value("${cache.ttl}") int expiryTTLSeconds) { // 1x bad
     }
 }
      ]]></code>
@@ -38,10 +43,15 @@ public class RetrieveCache {
         <expected-problems>0</expected-problems>
         <code><![CDATA[
 public class RetrieveCache {
+    private static final long TOKEN_TTL_MS = 1000L * 60 * 15; // good
+    private static final long TOKEN_TIMEOUT_MILLIS = 1000L * 60 * 60 * 8; // good
+
     @Autowired
     public RetrieveCache(final @Value("${cache.expiryTimeSeconds}") long timeToLiveSeconds) { // good
     }
     public void confuse(@Value("${cache.expiryTimeHours}") int expiryTimeHours) { // good
+    }
+    foo(@Value("${cache.ttlSeconds}") int expiryTTLSeconds) { // good
     }
 }
      ]]></code>
