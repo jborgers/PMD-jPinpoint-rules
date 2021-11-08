@@ -549,7 +549,7 @@ ClassOrInterfaceBodyDeclaration
           typeResolution="true" externalInfoUrl="${doc_root}/JavaCodeQuality.md#incorrect-equals-and-hashcode">
         <description>
             Problem: If equals and hashCode are not defined, they don't meet the programmer's expectations and the requirements for use with the collections API. It may result in unexpected, undesired behavior.&#13;
-            Solution: Add proper equals and hashCode methods that meet the equals-hashCode contract to all objects which might anyhow be put in a Map, Set or other collection. Or use Lombok @EqualsAndHashCode, @Value or @Data.
+            Solution: Add proper equals and hashCode methods that meet the equals-hashCode contract to all objects which might anyhow be put in a Map, Set or other collection. Or use Lombok @EqualsAndHashCode, @Value or @Data. Also holds for inner classes.
             If the object should never be checked for equality or used in a collection, also add those methods and let them throw UnsupportedOperationException to fail fast. @Xml... and @Entity objects are ignored because they are assumed to be not used as value objects.
             (jpinpoint-rules)</description>
         <priority>3</priority>
@@ -558,6 +558,7 @@ ClassOrInterfaceBodyDeclaration
             <property name="xpath">
                 <value>
                     <![CDATA[
+(:-- top level class --:)
 //TypeDeclaration[not(./Annotation//Name[@Image='Data' or @Image='Value' or @Image='EqualsAndHashCode'
 or @Image='Singleton' or @Image='Component' or @Image='Service' or @Image='Repository' or @Image='Configuration' or @Image='Endpoint' or @Image='RestController' or @Image='ControllerAdvice'
 or starts-with(@Image, 'Xml') or @Image='Entity' or @Image='Embeddable' or @Image='MappedSuperclass'])]
@@ -593,6 +594,40 @@ count(ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDecla
 )]
 or
 ancestor::TypeDeclaration/Annotation//Name[@Image='Getter']
+]/.. (:--up to class --:)
+
+(:-- inner classes --:)
+,
+//ClassOrInterfaceBodyDeclaration[not(./Annotation//Name[@Image='Data' or @Image='Value' or @Image='EqualsAndHashCode'])]
+/ClassOrInterfaceDeclaration[@Interface=false() and @Abstract=false()]
+[not(./ExtendsList/ClassOrInterfaceType[ends-with(@Image, 'Exception') or ends-with(@Image, 'Throwable')])]
+/ClassOrInterfaceBody[ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Static=false()]
+[(
+ancestor::ClassOrInterfaceBody[position() = 1]/ClassOrInterfaceBodyDeclaration/MethodDeclaration
+[@Static=false() and starts-with(@Name, 'get') and string-length(@Name) > 3 or starts-with(@Name, 'is') and string-length(@Name) > 2]
+[ResultType/Type/ReferenceType/ClassOrInterfaceType/@Image =
+ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Static=false()]/Type/ReferenceType/ClassOrInterfaceType/@Image]
+)
+and
+(not (
+ancestor::ClassOrInterfaceBody[position() = 1]//MethodDeclaration[@Static=false() and @Name='equals'])
+)
+and
+((ancestor::ClassOrInterfaceBody[position() = 1]//MethodDeclaration[@Static=false() and @Name='toString']
+and
+count(ancestor::ClassOrInterfaceBody[position() = 1]/ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Static=false()]) <=
+(1 + count(ancestor::ClassOrInterfaceBody[position() = 1]/ClassOrInterfaceBodyDeclaration/MethodDeclaration
+[@Static=false() and starts-with(@Name, 'get') and string-length(@Name) > 3 or starts-with(@Name, 'is') and string-length(@Name) > 2]))
+)
+or
+ancestor::ClassOrInterfaceDeclaration[position() = 1][ends-with(@SimpleName, 'Dto')]
+or
+count(ancestor::ClassOrInterfaceBody[position() = 1]/ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Static=false()]) =
+count(ancestor::ClassOrInterfaceBody[position() = 1]/ClassOrInterfaceBodyDeclaration/MethodDeclaration
+[@Static=false() and starts-with(@Name, 'get') and string-length(@Name) > 3 or starts-with(@Name, 'is') and string-length(@Name) > 2])
+)]
+or
+ancestor::ClassOrInterfaceBodyDeclaration[position() = 1]/Annotation//Name[@Image='Getter']
 ]/.. (:--up to class --:)
 ]]>
                 </value>

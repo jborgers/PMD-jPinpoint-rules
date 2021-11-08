@@ -550,4 +550,78 @@ class LombokGetterGood {
             ]]></code>
     </test-code>
 
+    <test-code>
+        <description>violation: Implement equals and hashcode methods on inner classes</description>
+        <expected-problems>3</expected-problems>
+        <expected-linenumbers>1, 13, 22</expected-linenumbers>
+        <code><![CDATA[
+public class Klass { // bad
+    String field1;
+    String field2;
+
+    public String getField1() { return field1; }
+    public String getField2() { return field2; }
+    public void doIt() {
+        InnerKlass ik1 = new InnerKlass();
+        InnerKlass ik2 = new InnerKlass();
+        boolean isEqual = ik1.equals(ik2); // should be true, fails if equals is not defined properly
+    }
+
+    private class InnerKlass { // bad
+        String innerField1;
+        String innerField2;
+
+        String getInnerField1() { return innerField1; }
+        String getInnerField2() { return innerField2; }
+         //boolean equals(Object o) {}
+        //public toString() { return ""; }
+
+        private class InnerInnerKlass { // bad
+           String innerInnerField1;
+           String innerInnerField2;
+           String getInnerInnerField1() { return innerInnerField1; }
+           String getInnerInnerField2() { return innerInnerField2; }
+        }
+    }
+}
+            ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>violation: Implement equals and hashcode methods on inner classes, nno violations</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+public class Klass {
+    String field1;
+    String field2;
+
+    //public String getField1() { return field1; }
+    public String getField2() { return field2; }
+    public void doIt() {
+        InnerKlass ik1 = new InnerKlass();
+        InnerKlass ik2 = new InnerKlass();
+        boolean isEqual = ik1.equals(ik2); // should be true, but not if equals is not defined
+    }
+    //public boolean equals(Object o) { return false;}
+
+    private static class InnerKlass {
+        String innerField1;
+        String innerField2;
+
+        String getInnerField1() { return innerField1; }
+        String getInnerField2() { return innerField2; }
+        public boolean equals(Object o) { return false;}
+        public toString() { return ""; }
+
+        private static class InnerInnerKlass {
+           String innerInnerField1;
+           String innerInnerField2;
+           String getInnerInnerField1() { return innerInnerField1; }
+           String getInnerInnerField2() { return innerInnerField2; }
+           public boolean equals(Object o) { return false;}
+        }
+    }
+}
+            ]]></code>
+    </test-code>
 </test-data>
