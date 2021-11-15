@@ -412,7 +412,7 @@ public class Klass {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        EqHashTryoutBad3 that = (EqHashTryoutBad3) o;
+        Klass that = (Klass) o;
         return Objects.equals(field1, that.field1); // field2 missing
     }
     public int hashCode() {
@@ -440,7 +440,7 @@ public class Klass {
            public boolean equals(Object o) {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
-            InnerKlass that = (InnerKlass) o;
+            InnerInnerKlass that = (InnerInnerKlass) o;
             return Objects.equals(innerInnerField1, that.innerInnerField1)
                    && Objects.equals(innerInnerField2, that.innerInnerField2);
         }
