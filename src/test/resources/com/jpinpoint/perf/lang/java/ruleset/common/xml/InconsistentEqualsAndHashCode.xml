@@ -399,4 +399,59 @@ class MyClass1 {
 }
             ]]></code>
     </test-code>
+
+    <test-code>
+        <description>violation: field2 missing in equals, innerField2 missing in equals and innerInnerField1 missing in hashCode</description>
+        <expected-problems>3</expected-problems>
+        <expected-linenumbers>3, 17, 31</expected-linenumbers>
+        <code><![CDATA[
+public class Klass {
+    String field1;
+    String field2; //bad
+
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        EqHashTryoutBad3 that = (EqHashTryoutBad3) o;
+        return Objects.equals(field1, that.field1); // field2 missing
+    }
+    public int hashCode() {
+        return Objects.hash(field1, field2);
+    }
+
+    private static class InnerKlass {
+        String innerField1;
+        String innerField2; //bad
+
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            InnerKlass that = (InnerKlass) o;
+            return Objects.equals(innerField1, that.innerField1); // field2 missing
+        }
+
+        public int hashCode() {
+            return Objects.hash(innerField1, innerField2);
+        }
+
+        private static class InnerInnerKlass {
+           String innerInnerField1; //bad
+           String innerInnerField2;
+           public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            InnerKlass that = (InnerKlass) o;
+            return Objects.equals(innerInnerField1, that.innerInnerField1)
+                   && Objects.equals(innerInnerField2, that.innerInnerField2);
+        }
+
+        public int hashCode() {
+            return Objects.hash(innerInnerField2); // innerInnerField1 missing
+        }
+        }
+    }
+}
+     ]]></code>
+    </test-code>
+
 </test-data>

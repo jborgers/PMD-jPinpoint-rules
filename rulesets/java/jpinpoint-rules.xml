@@ -906,10 +906,10 @@ class LombokGetterGood {
             <property name="xpath">
                 <value><![CDATA[
 //FieldDeclaration//VariableDeclaratorId[
-(@Name = ancestor::ClassOrInterfaceBody//MethodDeclaration[@Name='equals' and (MethodDeclarator//FormalParameters/@Size = 1)]/Block//(Name|PrimarySuffix)/@Image or
+(@Name = ancestor::ClassOrInterfaceBody[position() = 1]//MethodDeclaration[@Name='equals' and (MethodDeclarator//FormalParameters/@Size = 1)]/Block//(Name|PrimarySuffix)/@Image or
 concat(@Name, '.equals') = ancestor::ClassOrInterfaceBody//MethodDeclaration[@Name='equals' and (MethodDeclarator//FormalParameters/@Size = 1)]/Block//(Name|PrimarySuffix)/@Image) !=
-(@Name = ancestor::ClassOrInterfaceBody//MethodDeclaration[@Name='hashCode' and (MethodDeclarator//FormalParameters/@Size = 0)]/Block//(PrimarySuffix|Name)/@Image or
-concat(@Name, '.hashCode') = ancestor::ClassOrInterfaceBody//MethodDeclaration[@Name='hashCode' and (MethodDeclarator//FormalParameters/@Size = 0)]/Block//PrimaryPrefix/Name/@Image)
+(@Name = ancestor::ClassOrInterfaceBody[position() = 1]//MethodDeclaration[@Name='hashCode' and (MethodDeclarator//FormalParameters/@Size = 0)]/Block//(PrimarySuffix|Name)/@Image or
+concat(@Name, '.hashCode') = ancestor::ClassOrInterfaceBody[position() = 1]//MethodDeclaration[@Name='hashCode' and (MethodDeclarator//FormalParameters/@Size = 0)]/Block//PrimaryPrefix/Name/@Image)
 ]
 ,
 //MethodDeclaration[@Name='equals' and (MethodDeclarator//FormalParameters/@Size = 1)]/Block//Name[ends-with(@Image, 'equalsIgnoreCase')]
