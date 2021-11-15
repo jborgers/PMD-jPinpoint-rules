@@ -603,31 +603,31 @@ ancestor::TypeDeclaration/Annotation//Name[@Image='Getter']
 [not(./ExtendsList/ClassOrInterfaceType[ends-with(@Image, 'Exception') or ends-with(@Image, 'Throwable')])]
 /ClassOrInterfaceBody[ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Static=false()]
 [(
-ancestor::ClassOrInterfaceBody[position() = 1]/ClassOrInterfaceBodyDeclaration/MethodDeclaration
+ancestor::ClassOrInterfaceBody[1]/ClassOrInterfaceBodyDeclaration/MethodDeclaration
 [@Static=false() and starts-with(@Name, 'get') and string-length(@Name) > 3 or starts-with(@Name, 'is') and string-length(@Name) > 2]
 [ResultType/Type/ReferenceType/ClassOrInterfaceType/@Image =
 ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Static=false()]/Type/ReferenceType/ClassOrInterfaceType/@Image]
 )
 and
 (not (
-ancestor::ClassOrInterfaceBody[position() = 1]//MethodDeclaration[@Static=false() and @Name='equals'])
+ancestor::ClassOrInterfaceBody[1]//MethodDeclaration[@Static=false() and @Name='equals'])
 )
 and
-((ancestor::ClassOrInterfaceBody[position() = 1]//MethodDeclaration[@Static=false() and @Name='toString']
+((ancestor::ClassOrInterfaceBody[1]//MethodDeclaration[@Static=false() and @Name='toString']
 and
-count(ancestor::ClassOrInterfaceBody[position() = 1]/ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Static=false()]) <=
-(1 + count(ancestor::ClassOrInterfaceBody[position() = 1]/ClassOrInterfaceBodyDeclaration/MethodDeclaration
+count(ancestor::ClassOrInterfaceBody[1]/ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Static=false()]) <=
+(1 + count(ancestor::ClassOrInterfaceBody[1]/ClassOrInterfaceBodyDeclaration/MethodDeclaration
 [@Static=false() and starts-with(@Name, 'get') and string-length(@Name) > 3 or starts-with(@Name, 'is') and string-length(@Name) > 2]))
 )
 or
-ancestor::ClassOrInterfaceDeclaration[position() = 1][ends-with(@SimpleName, 'Dto')]
+ancestor::ClassOrInterfaceDeclaration[1][ends-with(@SimpleName, 'Dto')]
 or
-count(ancestor::ClassOrInterfaceBody[position() = 1]/ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Static=false()]) =
-count(ancestor::ClassOrInterfaceBody[position() = 1]/ClassOrInterfaceBodyDeclaration/MethodDeclaration
+count(ancestor::ClassOrInterfaceBody[1]/ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Static=false()]) =
+count(ancestor::ClassOrInterfaceBody[1]/ClassOrInterfaceBodyDeclaration/MethodDeclaration
 [@Static=false() and starts-with(@Name, 'get') and string-length(@Name) > 3 or starts-with(@Name, 'is') and string-length(@Name) > 2])
 )]
 or
-ancestor::ClassOrInterfaceBodyDeclaration[position() = 1]/Annotation//Name[@Image='Getter']
+ancestor::ClassOrInterfaceBodyDeclaration[1]/Annotation//Name[@Image='Getter']
 ]/.. (:--up to class --:)
 ]]>
                 </value>
@@ -943,10 +943,10 @@ public RetrieveCache(final @Value("${cache.expiryTimeMillis}") long timeToLiveMi
             <property name="xpath">
                 <value><![CDATA[
 //FieldDeclaration//VariableDeclaratorId[
-(@Name = ancestor::ClassOrInterfaceBody[position() = 1]//MethodDeclaration[@Name='equals' and (MethodDeclarator//FormalParameters/@Size = 1)]/Block//(Name|PrimarySuffix)/@Image or
+(@Name = ancestor::ClassOrInterfaceBody[1]//MethodDeclaration[@Name='equals' and (MethodDeclarator//FormalParameters/@Size = 1)]/Block//(Name|PrimarySuffix)/@Image or
 concat(@Name, '.equals') = ancestor::ClassOrInterfaceBody//MethodDeclaration[@Name='equals' and (MethodDeclarator//FormalParameters/@Size = 1)]/Block//(Name|PrimarySuffix)/@Image) !=
-(@Name = ancestor::ClassOrInterfaceBody[position() = 1]//MethodDeclaration[@Name='hashCode' and (MethodDeclarator//FormalParameters/@Size = 0)]/Block//(PrimarySuffix|Name)/@Image or
-concat(@Name, '.hashCode') = ancestor::ClassOrInterfaceBody[position() = 1]//MethodDeclaration[@Name='hashCode' and (MethodDeclarator//FormalParameters/@Size = 0)]/Block//PrimaryPrefix/Name/@Image)
+(@Name = ancestor::ClassOrInterfaceBody[1]//MethodDeclaration[@Name='hashCode' and (MethodDeclarator//FormalParameters/@Size = 0)]/Block//(PrimarySuffix|Name)/@Image or
+concat(@Name, '.hashCode') = ancestor::ClassOrInterfaceBody[1]//MethodDeclaration[@Name='hashCode' and (MethodDeclarator//FormalParameters/@Size = 0)]/Block//PrimaryPrefix/Name/@Image)
 ]
 ,
 //MethodDeclaration[@Name='equals' and (MethodDeclarator//FormalParameters/@Size = 1)]/Block//Name[ends-with(@Image, 'equalsIgnoreCase')]
@@ -1017,22 +1017,22 @@ class Bad2 {
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
-//ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Static=false()]//VariableDeclaratorId[
-(: names used as left hand side in simple assignments in methods or constructor matching fields:)
- (@Name = ancestor::ClassOrInterfaceBody[1]/ClassOrInterfaceBodyDeclaration/(MethodDeclaration|ConstructorDeclaration)
-/..//BlockStatement//StatementExpression
-(: simple assignment :)
-[exists(AssignmentOperator) and not(exists(Expression/PrimaryExpression/PrimarySuffix))
-and exists(Expression/PrimaryExpression/PrimaryPrefix/Name) and not(contains(Expression/PrimaryExpression/PrimaryPrefix/Name/@Image,".")) ]
-/PrimaryExpression/(PrimaryPrefix/Name|PrimarySuffix)/@Image)
- and (
-(: with an equals method defined at that level with 1 argument and not having a throw statement :)
-ancestor::ClassOrInterfaceBody[1]/ClassOrInterfaceBodyDeclaration/MethodDeclaration[@Name='equals' and MethodDeclarator/FormalParameters/@Size=1 and not (Block/BlockStatement/Statement/ThrowStatement)]
-(: where names used in equals method matching fields are non-equal to :)
-and not(@Name = ancestor::ClassOrInterfaceBody[1]/ClassOrInterfaceBodyDeclaration/MethodDeclaration
-[@Name='equals' and MethodDeclarator/FormalParameters/@Size=1]/Block//
-(: name or this.name and name before dot if present :)
-(Name|PrimarySuffix)/(substring-before(concat(@Image, '.'), '.'))) )]
+    //ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Static=false()]//VariableDeclaratorId[
+    (: names used as left hand side in simple assignments in methods or constructor matching fields:)
+     (@Name = ancestor::ClassOrInterfaceBody[1]/ClassOrInterfaceBodyDeclaration/(MethodDeclaration|ConstructorDeclaration)
+    /..//BlockStatement//StatementExpression
+    (: simple assignment :)
+    [exists(AssignmentOperator) and not(exists(Expression/PrimaryExpression/PrimarySuffix))
+    and exists(Expression/PrimaryExpression/PrimaryPrefix/Name) and not(contains(Expression/PrimaryExpression/PrimaryPrefix/Name/@Image,".")) ]
+    /PrimaryExpression/(PrimaryPrefix/Name|PrimarySuffix)/@Image)
+     and (
+    (: with an equals method defined at that level with 1 argument and not having a throw statement :)
+    ancestor::ClassOrInterfaceBody[1]/ClassOrInterfaceBodyDeclaration/MethodDeclaration[@Name='equals' and MethodDeclarator/FormalParameters/@Size=1 and not (Block/BlockStatement/Statement/ThrowStatement)]
+    (: where names used in equals method matching fields are non-equal to :)
+    and not(@Name = ancestor::ClassOrInterfaceBody[1]/ClassOrInterfaceBodyDeclaration/MethodDeclaration
+    [@Name='equals' and MethodDeclarator/FormalParameters/@Size=1]/Block//
+    (: name or this.name and name before dot if present :)
+    (Name|PrimarySuffix)/(substring-before(concat(@Image, '.'), '.'))) )]
 			]]>
                 </value>
             </property>

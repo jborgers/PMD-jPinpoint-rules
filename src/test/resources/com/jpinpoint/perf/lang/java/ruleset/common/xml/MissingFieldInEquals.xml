@@ -293,5 +293,66 @@ class ErrorInfo {
     ]]></code>
     </test-code>
 
+    <test-code>
+        <description>violation: missing fields equals of inner classes</description>
+        <expected-problems>3</expected-problems>
+        <expected-linenumbers>3, 20, 36</expected-linenumbers>
+        <code><![CDATA[
+public class Klass {
+    String field1;
+    String field2; //bad
+
+    public Klass(String arg2) {
+        field2 = arg2;
+    }
+    public void setField1(String arg1) {
+        field1 = arg1;
+    }
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Klass that = (Klass) o;
+        return Objects.equals(field1, that.field1); // field2 missing
+    }
+
+    private static class InnerKlass {
+        String innerField1;
+        String innerField2; //bad
+
+        InnerKlass(String arg2) {
+            innerField2 = arg2;
+        }
+         void setField1(String arg1) {
+            innerField1 = arg1;
+        }
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            InnerKlass that = (InnerKlass) o;
+            return Objects.equals(innerField1, that.innerField1); // field2 missing
+        }
+
+        private static class InnerInnerKlass {
+           String innerInnerField1; //bad
+           String innerInnerField2;
+
+         void setField1(String arg1) {
+            innerInnerField1 = arg1;
+        }
+         void setField2(String arg1) {
+            innerInnerField2 = arg1;
+        }
+            public boolean equals(Object o) {
+                if (this == o) return true;
+                if (o == null || getClass() != o.getClass()) return false;
+                InnerInnerKlass that = (InnerInnerKlass) o;
+                return Objects.equals(innerInnerField2, that.innerInnerField2);
+            }
+        }
+    }
+}
+    ]]></code>
+    </test-code>
+
 
 </test-data>
