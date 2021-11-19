@@ -364,7 +364,8 @@ ORA-01555: snapshot too old: rollback segment number 1 with name "_SYSSMU_170782
 
 **Observation: All query result rows are requested while only one element should be returned.**  
 **Problem:** Unnecessarily heap is allocated in JDBC buffers. Unnecessary work is performed.  
-**Solution:** An API call which is meant for fetching the one and only result row. This also validates the fact that only one can be returned.
+**Solution:** An API call which is meant for fetching the one and only result row. This also validates the fact that only one can be returned.  
+**Rule name:** AvoidFetchingWholeList
 
 #### Hibernate details
 

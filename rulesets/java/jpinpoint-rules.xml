@@ -3404,6 +3404,47 @@ class Foo {
 
 <!-- END Included file 'spring.xml' -->
 <!-- BEGIN Included file 'sql.xml' -->
+    <rule name="AvoidFetchingWholeList"
+          message="Avoid fetching the whole list of entities for the query, while only one entity is used"
+          class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java"
+          typeResolution="true" externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaDataAccessPerformance.md#ida-trr05">
+        <description>
+            Problem: Unused rows are fetched and transported, and unused jdbc buffer is allocated.&#13;
+            Solution: Use query.getSingleResult() in stead of query.getResultList().
+            (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value>
+                    <![CDATA[
+(: if getResultList is used to fetsch entities and entities(0) is returned :)
+//ReturnStatement//PrimaryExpression[./PrimarySuffix/Arguments//Literal[@Image='0']][./PrimaryPrefix/Name/@Image=
+concat(ancestor::MethodDeclaration//VariableDeclarator[./VariableInitializer//Name[ends-with(@Image,'.getResultList')]]/VariableDeclaratorId/@Image,'.get')
+(: not when also the whole list of entities is returnd :)
+and not(ancestor::MethodDeclaration//ReturnStatement//PrimaryExpression[./PrimaryPrefix/Name/@Image=
+ancestor::MethodDeclaration//VariableDeclarator[./VariableInitializer//Name[ends-with(@Image,'.getResultList')]]/VariableDeclaratorId/@Image])
+(: not when also another elem of entities is returned :)
+and not (ancestor::MethodDeclaration//ReturnStatement//PrimaryExpression[./PrimarySuffix/Arguments//Literal[@Image!='0']][./PrimaryPrefix/Name/@Image=
+concat(ancestor::MethodDeclaration//VariableDeclarator[./VariableInitializer//Name[ends-with(@Image,'.getResultList')]]/VariableDeclaratorId/@Image,'.get')])
+]/ancestor::MethodDeclaration//VariableDeclarator[./VariableInitializer//Name[ends-with(@Image,'.getResultList')]]
+]]>
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+    public Object findByQueryBad(TypedQuery<Object> query) {
+        final List<SomeEntity> entities = query.getResultList();
+        return !entities.isEmpty() ? entities.get(0) : null;
+    }
+    public Object findByQueryGood(TypedQuery<Object> query) throws NoResultException {
+        return query.getSingleResult();
+    }
+            ]]>
+        </example>
+    </rule>
+
     <rule name="AvoidHugeQueryFetchSize"
           message="Avoid a huge query fetch size, it consumes much memory."
           class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java"
