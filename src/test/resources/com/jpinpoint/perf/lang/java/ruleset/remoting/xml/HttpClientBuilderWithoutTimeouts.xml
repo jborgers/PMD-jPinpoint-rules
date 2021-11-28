@@ -317,4 +317,41 @@ class HttpClientGood {
 }
      ]]></code>
     </test-code>
+
+    <test-code>
+        <description>no violation: Spring HttpComponentsClientHttpRequestFactory has ctor arg of HttpClient build from HttpClients. Issue #163</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import org.apache.http.client.config.*;
+import org.apache.http.impl.client.*;
+import org.springframework.http.client.*;
+import org.apache.http.client.*;
+
+class HttpClientGood2 {
+    private HttpComponentsClientHttpRequestFactory getRequestFactory(SSLContext sslContext) {
+        RequestConfig requestConfig = RequestConfig.custom()
+            .setConnectionRequestTimeout(properties.getConnectionRequestTimeOutInMillis())
+            .setConnectTimeout(properties.getConnectTimeOutInMillis())
+            .setSocketTimeout(properties.getReadTimeOutInMillis())
+            .build();
+
+        HttpComponentsClientHttpRequestFactory clientHttpRequestFactory = new HttpComponentsClientHttpRequestFactory(
+                HttpClients.custom()
+                        .setDefaultRequestConfig(requestConfig)
+                        .setMaxConnTotal(DEFAULT_MAXIMUM_CONNECTIONS_TOTAL)
+                        .setMaxConnPerRoute(DEFAULT_MAXIMUM_CONNECTIONS_PER_ROUTE)
+                        .disableConnectionState()
+                        .build()
+        );
+
+        //clientHttpRequestFactory.setConnectTimeout(properties.getConnectTimeOutInMillis()); // false positives: were needed
+        //clientHttpRequestFactory.setConnectionRequestTimeout(properties.getConnectionRequestTimeOutInMillis());
+        //clientHttpRequestFactory.setReadTimeout(properties.getReadTimeOutInMillis());
+
+        return clientHttpRequestFactory;
+    }
+}
+     ]]></code>
+    </test-code>
+
 </test-data>
