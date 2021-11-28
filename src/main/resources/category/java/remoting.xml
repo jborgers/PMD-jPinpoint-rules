@@ -319,8 +319,12 @@ ancestor::MethodDeclaration//PrimarySuffix/@Image="disableConnectionState")]
 (: HttpComponentsClientHttpRequestFactory without httpClient and without setConnectionRequestTimeout/setConnectTimeout/setReadTimeout :)
 //MethodDeclaration//AllocationExpression/ClassOrInterfaceType[
    pmd-java:typeIs('org.springframework.http.client.HttpComponentsClientHttpRequestFactory')
+   (: not if setHttpClient called on it :)
    and not(ancestor::Block//(PrimaryPrefix/Name|PrimarySuffix)[ends-with(@Image, 'setHttpClient')]
-        or ancestor::Expression//Arguments//PrimaryPrefix[pmd-java:typeIs('org.apache.http.client.HttpClient')])
+        (: not if HttpClient provided as ctor arg :)
+        or ancestor::Expression//Arguments//PrimaryPrefix[pmd-java:typeIs('org.apache.http.client.HttpClient')]
+        (: not if method provided as ctor arg which has return type HttpClient :)
+        or ancestor::Expression//Arguments//PrimaryPrefix/Name[@Image = ancestor::ClassOrInterfaceBody[1]//MethodDeclaration[ResultType/Type[pmd-java:typeIs('org.apache.http.client.HttpClient')]]/@Name])
    and count(ancestor::MethodDeclaration//(PrimaryPrefix/Name|PrimarySuffix)[ends-with(@Image, 'setConnectionRequestTimeout') or ends-with(@Image, 'setConnectTimeout') or ends-with(@Image, 'setReadTimeout')])<3
 ]
 ,

@@ -288,4 +288,33 @@ class Good {
 }
      ]]></code>
     </test-code>
+
+    <test-code>
+        <description>no violation: Spring HttpComponentsClientHttpRequestFactory has ctor arg which is method with return type HttpClient. Issue #160</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import org.apache.http.client.config.*;
+import org.apache.http.impl.client.*;
+import org.springframework.http.client.*;
+import org.apache.http.client.*;
+
+class HttpClientGood {
+    private ClientHttpRequestFactory getClientHttpRequestFactory() {
+        return new HttpComponentsClientHttpRequestFactory(createHttpClient());
+    }
+
+    private CloseableHttpClient createHttpClient () {
+        RequestConfig requestConfig = RequestConfig.custom()
+                .setConnectionRequestTimeout(350)
+                .setConnectTimeout(250)
+                .setSocketTimeout(4000)
+                .build(); // good, all timeouts set
+
+        return HttpClientBuilder.create()
+                .setDefaultRequestConfig(requestConfig) // good, all timeouts set, if missing > default timeouts?
+                .build();
+    }
+}
+     ]]></code>
+    </test-code>
 </test-data>
