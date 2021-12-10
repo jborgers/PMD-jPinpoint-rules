@@ -791,7 +791,7 @@ ClassOrInterfaceBodyDeclaration
             <property name="xpath">
                 <value>
                     <![CDATA[
-(:-- top level class --:)
+(:-- top level class - not annotated that would make it a non-value object --:)
 //TypeDeclaration[not(./Annotation//Name[@Image='Data' or @Image='Value' or @Image='EqualsAndHashCode'
 or @Image='Singleton' or @Image='Component' or @Image='Service' or @Image='Repository' or @Image='Configuration' or @Image='Endpoint' or @Image='RestController' or @Image='ControllerAdvice'
 or starts-with(@Image, 'Xml') or @Image='Entity' or @Image='Embeddable' or @Image='MappedSuperclass'])]
@@ -801,16 +801,18 @@ or starts-with(@Image, 'Xml') or @Image='Entity' or @Image='Embeddable' or @Imag
 [
 (not (../Annotation//Name[@Image = 'XmlElement']))
 and
+(:-- a getter with result type of a field --:)
 (
 ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDeclaration
 [@Public=true() and @Static=false() and starts-with(@Name, 'get') and string-length(@Name) > 3 or starts-with(@Name, 'is') and string-length(@Name) > 2]
 [ResultType/Type/ReferenceType/ClassOrInterfaceType/@Image =
 ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Static=false()]/Type/ReferenceType/ClassOrInterfaceType/@Image]
+or
+ancestor::TypeDeclaration/Annotation//Name[@Image='Getter']
 )
-and
-(not (
-ancestor::ClassOrInterfaceBody//MethodDeclaration[@Public=true() and @Static=false() and @Name='equals' or @Name='hashCode'])
-)
+(:-- and class has no equals or hashCode method --:)
+and (not (ancestor::ClassOrInterfaceBody//MethodDeclaration[@Public=true() and @Static=false() and @Name='equals' or @Name='hashCode']))
+(:-- and class has a toString and #fields <= 1+#getters --:)
 and
 ((ancestor::ClassOrInterfaceBody//MethodDeclaration[@Public=true() and @Static=false() and @Name='toString']
 and
@@ -821,12 +823,13 @@ count(ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclar
 or
 ancestor::ClassOrInterfaceDeclaration[ends-with(@SimpleName, 'Dto')]
 or
+(:-- #fields == #getters --:)
 count(ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Static=false()]) =
 count(ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDeclaration
 [@Public=true() and @Static=false() and starts-with(@Name, 'get') and string-length(@Name) > 3 or starts-with(@Name, 'is') and string-length(@Name) > 2])
-)]
 or
 ancestor::TypeDeclaration/Annotation//Name[@Image='Getter']
+)]
 ]/.. (:--up to class --:)
 
 (:-- inner classes --:)

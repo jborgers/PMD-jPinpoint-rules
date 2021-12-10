@@ -588,7 +588,7 @@ public class Klass { // bad
     </test-code>
 
     <test-code>
-        <description>violation: Implement equals and hashcode methods on inner classes, nno violations</description>
+        <description>violation: Implement equals and hashcode methods on inner classes, no violations</description>
         <expected-problems>0</expected-problems>
         <code><![CDATA[
 public class Klass {
@@ -620,6 +620,38 @@ public class Klass {
            String getInnerInnerField2() { return innerInnerField2; }
            public boolean equals(Object o) { return false;}
         }
+    }
+}
+            ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>violation: Implement equals and hashcode methods on a @Getter and equals/hashCode implemented, no violations. Issue #175</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
+public class FailingPMDRule {
+
+    private String prop1;
+    private String prop2;
+
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        FailingPMDRule that = (FailingPMDRule) o;
+        return Objects.equals(prop1, that.prop1) && Objects.equals(prop2, that.prop2);
+    }
+
+    public int hashCode() {
+        return Objects.hash(prop1, prop2);
     }
 }
             ]]></code>
