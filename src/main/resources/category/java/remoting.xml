@@ -690,4 +690,62 @@ class Foo {
         </example>
     </rule>
 
+
+    <rule name="AvoidClientHttpRequestFactorySupplier" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java"
+          message="Avoid use of ClientHttpRequestFactorySupplier."
+          typeResolution="true"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi17">
+        <description>Problem: The org.springframework.boot.web.client.ClientHttpRequestFactorySupplier may return a HttpComponentsClientHttpRequestFactory which you supply as @Bean, however,
+            this can silently go wrong and e.g. an unconfigured SimpleClientHttpRequestFactory can be returned.
+            Default pool size and timeouts will be used, possibly resulting in very slow connection use.&#13;
+            Solution: Provide you own supplier with explicit pool sizing and timeouts by a class implementing Supplier. (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+//AllocationExpression[pmd-java:typeIsExactly('org.springframework.boot.web.client.ClientHttpRequestFactorySupplier')]
+]]>
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+import org.springframework.boot.web.client.ClientHttpRequestFactorySupplier;
+import org.springframework.web.client.RestTemplate;
+
+class Bad {
+    void bad() {
+        RestTemplate restTemplate = new RestTemplateBuilder(rt -> rt.getInterceptors()
+               .add((request, body, execution) -> {
+                   request.getHeaders().add("SomeKey", someKey);
+                   return execution.execute(request, body);
+               }))
+               .requestFactory(new ClientHttpRequestFactorySupplier()) // bad
+               .uriTemplateHandler(defaultUriBuilderFactory)
+               .build();
+       return restTemplate;
+    }
+}
+
+class MyClientHttpRequestFactorySupplier implements Supplier<ClientHttpRequestFactory> {
+
+    public ClientHttpRequestFactory get() {
+           PoolingHttpClientConnectionManager poolingHttpClientConnectionManager = new PoolingHttpClientConnectionManager();
+           poolingHttpClientConnectionManager.setDefaultMaxPerRoute(MAX_CONN_PER_ROUTE);
+           poolingHttpClientConnectionManager.setMaxTotal(MAX_CONN_TOTAL);
+
+           CloseableHttpClient httpClient = HttpClients.custom()
+                 .setConnectionManager(poolingHttpClientConnectionManager)
+                 .disableConnectionState()
+                 .build();
+           return new HttpComponentsClientHttpRequestFactory(httpClient);
+    }
+}
+and use it to replace the bad line in Bad example:
+            .requestFactory(new MyClientHttpRequestFactorySupplier()) // good
+]]>
+        </example>
+    </rule>
+
 </ruleset>

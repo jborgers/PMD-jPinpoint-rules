@@ -202,7 +202,7 @@ This has impact on the stability of the app if too many threads are blocked wait
 depends largely on use case and expected latency of remote calls),
 Connect timeout ~250 ms, Connection Manager/Request timeout = connect timeout + slack 250+100 = ~350 ms.  
 **Rule name:** HttpClientBuilderWithoutTimeouts   
-**Example**
+**Example:**
 ```java
 RequestConfig requestConfig = RequestConfig.custom()
         .setConnectionRequestTimeout(350)
@@ -235,7 +235,7 @@ and [resilience4j on GitHub](https://github.com/resilience4j/resilience4j#fault-
 It is quite expensive to create and can only provide the benefits of pooling when reused in all requests for that connection.  
 **Solution:** Create/build HttpClient with proper connection pooling and timeouts once, and then use it for requests.  
 **Rule name:** AvoidRecreatingHttpClient   
-**Example**
+**Example:**
 ```java
     ResponseEntity<Object> connectBad(Object req) {
         HttpEntity<Object> requestEntity = new HttpEntity<>(req);
@@ -255,7 +255,7 @@ results in 3 x 3 x 3 = 27 calls instead of 1. This may cause it not being able t
 This could be achieved with passing a token/header which indicates whether retrying is already managed.   
 **Rule name:** RetryCanCauseOverload   
 **See:** [AWS Timeouts, retries, and backoff with jitter](https://d1.awsstatic.com/builderslibrary/pdfs/timeouts-retries-and-backoff-with-jitter.pdf)  
-**Example**
+**Example:**
 ```java
 import io.github.resilience4j.retry.annotation.Retry;
 
@@ -274,7 +274,7 @@ public class Foo {
 **Note:** Enabling the system property reactor.trace.operatorStacktrace (default=false) is another way to retain the stack traces with the same problem.   
 **Rule name:** AvoidReactorDebugOverhead   
 **See:** 1. [JDK 11 performance problem](https://bugs.openjdk.java.net/browse/JDK-8222942) and 2. [100% CPU usage of Log4j2](https://www.programmersought.com/article/63006298939/)  
-**Example**
+**Example:**
 ```java
 import reactor.core.publisher.Hooks;
 
@@ -290,7 +290,7 @@ public class Foo {
 **Problem:** If you use both on the same factory, you discard all configuration done on the one provided in the constructor because it is replaced by the one provided to the setter.   
 **Solution:** Don't use both on the same factory, provide the HttpClient only once to the factory.   
 **Rule name:** AvoidDiscardingHttpClientConfig    
-**Example**
+**Example:**
 ```java
 class Bad {
     ClientHttpRequestFactory getFactory(HttpClientConfiguration config) {
@@ -321,7 +321,7 @@ When this HttpHost is then used for a route and stored socketConfig for, port 80
 It is typically difficult to find out if the config is actually used. Note that [http-client-monitor](http://github.com/jborgers/http-client-monitor) helps here.   
 **Solution:** Use the HttpHost constructor with 2 (including port) or preferably 3 arguments (including port and protocol).   
 **Rule name:** AvoidHttpHostOneArgumentConstructor    
-**Example**
+**Example:**
 ```java
 import org.apache.http.HttpHost;
 
@@ -334,6 +334,52 @@ class Foo {
     HttpHost hostGood1 = new HttpHost("localhost", 8080, "http"); //good
   }
 }
+```
+
+#### IBI17
+**Observation: Spring RestTemplate uses a ClientHttpRequestFactorySupplier as a @Bean to configure connection pooling and timeouts.**   
+**Problem:** The org.springframework.boot.web.client.ClientHttpRequestFactorySupplier may return a HttpComponentsClientHttpRequestFactory which you supply as @Bean, however,
+this can silently go wrong and e.g. an unconfigured SimpleClientHttpRequestFactory can be returned.
+Default pool size and timeouts will be used, possibly resulting in very slow connection use.   
+**Solution:** Provide you own supplier with explicit pool sizing and timeouts by a class implementing Supplier.   
+**Rule name:** AvoidClientHttpRequestFactorySupplier    
+**Example:**
+```java
+import org.springframework.boot.web.client.ClientHttpRequestFactorySupplier;
+import org.springframework.web.client.RestTemplate;
+
+class Bad {
+  void bad() {
+    RestTemplate restTemplate = new RestTemplateBuilder(rt -> rt.getInterceptors()
+            .add((request, body, execution) -> {
+              request.getHeaders().add("SomeKey", someKey);
+              return execution.execute(request, body);
+            }))
+            .requestFactory(new ClientHttpRequestFactorySupplier()) // bad
+            .uriTemplateHandler(defaultUriBuilderFactory)
+            .build();
+    return restTemplate;
+  }
+}
+
+class MyClientHttpRequestFactorySupplier implements Supplier<ClientHttpRequestFactory> {
+
+  public ClientHttpRequestFactory get() {
+    PoolingHttpClientConnectionManager poolingHttpClientConnectionManager = new PoolingHttpClientConnectionManager();
+    poolingHttpClientConnectionManager.setDefaultMaxPerRoute(MAX_CONN_PER_ROUTE);
+    poolingHttpClientConnectionManager.setMaxTotal(MAX_CONN_TOTAL);
+
+    CloseableHttpClient httpClient = HttpClients.custom()
+            .setConnectionManager(poolingHttpClientConnectionManager)
+            .disableConnectionState()
+            .build();
+    return new HttpComponentsClientHttpRequestFactory(httpClient);
+  }
+}
+```
+  and use it to replace the bad line in Bad example:
+```
+        .requestFactory(new MyClientHttpRequestFactorySupplier()) // good
 ```
 
 Improper asynchrony 
@@ -756,7 +802,7 @@ public void action(@ModelAttribute SomeForm form, BindingResult errors, ActionRe
   map.clear();
 }
 
-@RenderMapping(params=“error=true”)
+@RenderMapping(params="error=true")
 public String renderErrorPage(…) {
   // Make use of the implicit model of Spring. This model contains the original model as well as the error binding (for each field)
   return "page.ftl";

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>violation: AvoidClientHttpRequestFactorySupplier</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>10</expected-linenumbers>
+        <code><![CDATA[
+import org.springframework.boot.web.client.ClientHttpRequestFactorySupplier;
+
+class Bad {
+    void bad() {
+        RestTemplate restTemplate = new RestTemplateBuilder(rt -> rt.getInterceptors()
+               .add((request, body, execution) -> {
+                   request.getHeaders().add("SomeKey", someKey);
+                   return execution.execute(request, body);
+               }))
+               .requestFactory(new ClientHttpRequestFactorySupplier()) // bad
+               .uriTemplateHandler(defaultUriBuilderFactory)
+               .build();
+       return restTemplate;
+    }
+}
+     ]]></code>
+    </test-code>
+
+</test-data>
