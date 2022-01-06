@@ -1253,6 +1253,8 @@ class Foo {
     /VariableDeclaratorId/@Name
     (: and it is not used in a return :)
     and (not(@Image = ancestor::Block//ReturnStatement//Name/@Image))
+    (: and it is not used in a constructor of a local var :)
+    and (not(@Image = ancestor::Block//AllocationExpression//Name/@Image))
     (: and it is not used as an argument in another method call than log :)
     and (not(@Image = ancestor::Block//PrimaryExpression[PrimaryPrefix/Name
         [not(ends-with(@Image, 'trace') or ends-with(@Image, 'debug') or ends-with(@Image, 'info'))]]/PrimarySuffix/Arguments//Name/@Image))

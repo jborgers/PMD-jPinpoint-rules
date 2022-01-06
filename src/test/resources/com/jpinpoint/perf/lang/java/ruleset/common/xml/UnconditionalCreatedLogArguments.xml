@@ -118,4 +118,28 @@ class Foo {
 }
      ]]></code>
     </test-code>
+
+    <test-code>
+        <description>Avoid unconditional creation of log arguments, issue #176</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+class Klass {
+
+    Logger log = new Logger("Klass");
+    Map map = new HashMap();
+
+    void foo() {
+        String val = calcVal();
+        log.info("value is=" + val); // false positive, it is used in the next line in a constructor
+        Wrapper wrapper = new Wrapper(val);
+        map.put("wrap", wrapper);
+    }
+
+    String calcVal() {
+        // calculate val work
+        return calculatedVal;
+    }
+}
+     ]]></code>
+    </test-code>
 </test-data>
