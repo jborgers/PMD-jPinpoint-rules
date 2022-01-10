@@ -438,6 +438,23 @@ ThreadPoolTaskExecutor can be [exposed as mbean](https://stackoverflow.com/quest
 or monitored by using micrometer ([example in afterburner](https://github.com/stokpop/afterburner/blob/4bd9f32123bd9bd0a0c4fedace06f72f6f9e4174/afterburner-java/src/main/java/nl/stokpop/afterburner/config/AfterburnerAsyncConfig.java#L52)).
 Make sure to give the threads a proper name, this makes them easier to recognize in thread dumps, heap dumps and profiling.
 
+#### IA05
+**Observation: A Spring ThreadPoolTaskExecutor queue capacity is not configured**      
+**Problem:** The org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor has a default queue capacity which is unlimited which can lead to an out of memory situation.      
+**Solution:** Call setQueueCapacity, for instance with a value equal to CorePoolSize.
+Note that the pool will only grow beyond CorePoolSize up to MaxPoolSize when the queue is full.  
+**Example:**
+```java
+   private ThreadPoolTaskExecutor createExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(10);
+        executor.setQueueCapacity(10); // bad if missing
+        executor.setMaxPoolSize(20);
+        executor.initialize();
+        return executor;
+   }
+```
+
 Improper caching  
 -------------------
 

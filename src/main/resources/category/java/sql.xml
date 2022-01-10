@@ -127,13 +127,13 @@ ancestor::BlockStatement//PrimaryExpression/PrimaryPrefix/Name[ends-with(@Image,
                     <![CDATA[
 (: if getResultList is used to fetsch entities and entities(0) is returned :)
 //ReturnStatement//PrimaryExpression[./PrimarySuffix/Arguments//Literal[@Image='0']][./PrimaryPrefix/Name/@Image=
-concat(ancestor::MethodDeclaration//VariableDeclarator[./VariableInitializer//Name[ends-with(@Image,'.getResultList')]]/VariableDeclaratorId/@Image,'.get')
+concat(ancestor::MethodDeclaration//VariableDeclarator[./VariableInitializer//Name[ends-with(@Image,'.getResultList')]]/VariableDeclaratorId/@Name,'.get')
 (: not when also the whole list of entities is returnd :)
 and not(ancestor::MethodDeclaration//ReturnStatement//PrimaryExpression[./PrimaryPrefix/Name/@Image=
-ancestor::MethodDeclaration//VariableDeclarator[./VariableInitializer//Name[ends-with(@Image,'.getResultList')]]/VariableDeclaratorId/@Image])
+ancestor::MethodDeclaration//VariableDeclarator[./VariableInitializer//Name[ends-with(@Image,'.getResultList')]]/VariableDeclaratorId/@Name])
 (: not when also another elem of entities is returned :)
 and not (ancestor::MethodDeclaration//ReturnStatement//PrimaryExpression[./PrimarySuffix/Arguments//Literal[@Image!='0']][./PrimaryPrefix/Name/@Image=
-concat(ancestor::MethodDeclaration//VariableDeclarator[./VariableInitializer//Name[ends-with(@Image,'.getResultList')]]/VariableDeclaratorId/@Image,'.get')])
+concat(ancestor::MethodDeclaration//VariableDeclarator[./VariableInitializer//Name[ends-with(@Image,'.getResultList')]]/VariableDeclaratorId/@Name,'.get')])
 ]/ancestor::MethodDeclaration//VariableDeclarator[./VariableInitializer//Name[ends-with(@Image,'.getResultList')]]
 ]]>
                 </value>

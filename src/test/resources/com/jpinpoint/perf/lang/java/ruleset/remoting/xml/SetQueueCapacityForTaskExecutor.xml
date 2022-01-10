@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>violation: setQueueCapacity missing</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>5</expected-linenumbers>
+        <code><![CDATA[
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+
+public class Klass {
+   private ThreadPoolTaskExecutor bad() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor(); //bad
+        executor.setCorePoolSize(10);
+        //executor.setQueueCapacity(10);
+        executor.setMaxPoolSize(20);
+        executor.initialize();
+        return executor;
+   }
+
+   private ThreadPoolTaskExecutor good() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(10);
+        executor.setQueueCapacity(10);
+        executor.setMaxPoolSize(20);
+        executor.initialize();
+        return executor;
+   }
+}
+     ]]></code>
+    </test-code>
+</test-data>

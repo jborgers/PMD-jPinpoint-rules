@@ -2353,7 +2353,7 @@ class SingletonGood {
         <description>Problem: The org.springframework.boot.web.client.ClientHttpRequestFactorySupplier may return a HttpComponentsClientHttpRequestFactory which you supply as @Bean, however,
             this can silently go wrong and e.g. an unconfigured SimpleClientHttpRequestFactory can be returned.
             Default pool size and timeouts will be used, possibly resulting in very slow connection use.&#13;
-            Solution: Provide you own supplier with explicit pool sizing and timeouts by a class implementing Supplier. (jpinpoint-rules)</description>
+            Solution: Provide your own supplier with explicit pool sizing and timeouts by a class implementing Supplier. (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
             <property name="version" value="2.0"/>
@@ -3047,6 +3047,48 @@ public class Foo {
         </example>
     </rule>
 
+    <rule name="SetQueueCapacityForTaskExecutor" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java"
+          message="Configure the queue capacity for the ThreadPoolTaskExecutor."
+          typeResolution="true"
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#ia05">
+        <description>The org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor queue capacity is not configured.
+            Problem: It has a default queue capacity which is unlimited which can lead to an out of memory situation. &#13;
+            Solution: Call setQueueCapacity, for instance with a value equal to CorePoolSize.
+            Note that the pool will only grow beyond CorePoolSize up to MaxPoolSize when the queue is full. (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+//LocalVariableDeclaration//AllocationExpression/ClassOrInterfaceType[@Image='ThreadPoolTaskExecutor']
+/ancestor::MethodDeclaration[.//Name[ends-with(@Image,'setCorePoolSize') or ends-with(@Image,'setMaxPoolSize')] and not(.//Name[ends-with(@Image,'.setQueueCapacity')])]
+//AllocationExpression/ClassOrInterfaceType[@Image='ThreadPoolTaskExecutor']
+]]>
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+   private ThreadPoolTaskExecutor bad() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor(); // bad
+        executor.setCorePoolSize(10);
+        executor.setMaxPoolSize(20);
+        executor.initialize();
+        return executor;
+    }
+
+   private ThreadPoolTaskExecutor good() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(10);
+        executor.setQueueCapacity(10); // good
+        executor.setMaxPoolSize(20);
+        executor.initialize();
+        return executor;
+    }
+]]>
+        </example>
+    </rule>
+
     <rule name="UseCloseableForHttpClient" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" message="HttpClient is used instead of ClosableHttpClient. "
           typeResolution="true"
           externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#ibi08">
@@ -3484,13 +3526,13 @@ class Foo {
                     <![CDATA[
 (: if getResultList is used to fetsch entities and entities(0) is returned :)
 //ReturnStatement//PrimaryExpression[./PrimarySuffix/Arguments//Literal[@Image='0']][./PrimaryPrefix/Name/@Image=
-concat(ancestor::MethodDeclaration//VariableDeclarator[./VariableInitializer//Name[ends-with(@Image,'.getResultList')]]/VariableDeclaratorId/@Image,'.get')
+concat(ancestor::MethodDeclaration//VariableDeclarator[./VariableInitializer//Name[ends-with(@Image,'.getResultList')]]/VariableDeclaratorId/@Name,'.get')
 (: not when also the whole list of entities is returnd :)
 and not(ancestor::MethodDeclaration//ReturnStatement//PrimaryExpression[./PrimaryPrefix/Name/@Image=
-ancestor::MethodDeclaration//VariableDeclarator[./VariableInitializer//Name[ends-with(@Image,'.getResultList')]]/VariableDeclaratorId/@Image])
+ancestor::MethodDeclaration//VariableDeclarator[./VariableInitializer//Name[ends-with(@Image,'.getResultList')]]/VariableDeclaratorId/@Name])
 (: not when also another elem of entities is returned :)
 and not (ancestor::MethodDeclaration//ReturnStatement//PrimaryExpression[./PrimarySuffix/Arguments//Literal[@Image!='0']][./PrimaryPrefix/Name/@Image=
-concat(ancestor::MethodDeclaration//VariableDeclarator[./VariableInitializer//Name[ends-with(@Image,'.getResultList')]]/VariableDeclaratorId/@Image,'.get')])
+concat(ancestor::MethodDeclaration//VariableDeclarator[./VariableInitializer//Name[ends-with(@Image,'.getResultList')]]/VariableDeclaratorId/@Name,'.get')])
 ]/ancestor::MethodDeclaration//VariableDeclarator[./VariableInitializer//Name[ends-with(@Image,'.getResultList')]]
 ]]>
                 </value>
