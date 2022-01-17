@@ -135,4 +135,21 @@ import java.util.Map;
     }
     ]]></code>
     </test-code>
+
+    <test-code>
+        <description>Avoid mutable static EnumMap fields</description>
+        <expected-problems>2</expected-problems>
+        <expected-linenumbers>6,7</expected-linenumbers>
+        <code><![CDATA[
+public final class BadWithEnum {
+    private static final EnumMap<SomeType, String> map1;
+    private static final Map<SomeType, String> map2;
+
+    static {
+        map1 = new EnumMap<>(SomeType.class); // bad
+        map2 = new EnumMap<>(SomeType.class); // bad
+    }
+}
+    ]]></code>
+    </test-code>
 </test-data>

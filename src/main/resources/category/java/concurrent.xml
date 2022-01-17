@@ -139,7 +139,7 @@ or Expression/PrimaryExpression/PrimaryPrefix/Name[@Image='Arrays.asList']
 //Initializer//AllocationExpression[((ArrayDimsAndInits and ((xs:int(ArrayDimsAndInits/Expression//Literal/@Image) > 0) or exists(ArrayDimsAndInits/Expression//Name) or exists(ArrayDimsAndInits/ArrayInitializer//Expression)))
 or
 (: static-block allocations of known mutable types :)
-ClassOrInterfaceType[pmd-java:typeIs('java.util.ArrayList') or pmd-java:typeIs('java.util.HashMap') or pmd-java:typeIs('java.util.HashSet')])
+ClassOrInterfaceType[pmd-java:typeIs('java.util.ArrayList') or pmd-java:typeIs('java.util.HashMap') or pmd-java:typeIs('java.util.HashSet') or pmd-java:typeIs('java.util.EnumMap')])
 and
 (: given the field is not @GuardedBy :)
 ancestor::StatementExpression/PrimaryExpression/PrimaryPrefix/Name/@Image = ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration[count(Annotation//Name[@Image='GuardedBy']) = 0]/FieldDeclaration//VariableDeclaratorId/@Name
