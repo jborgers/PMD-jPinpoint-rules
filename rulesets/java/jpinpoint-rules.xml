@@ -415,9 +415,9 @@ public class Good {
                 <value><![CDATA[
 //TypeDeclaration/ClassOrInterfaceDeclaration/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDeclaration
 //PrimaryExpression/PrimaryPrefix/Name[pmd-java:typeIs('java.util.regex.Pattern') and ends-with(@Image, '.compile') and
-count(../../PrimarySuffix/Arguments/ArgumentList/Expression//PrimaryExpression) = 1
+count(../../PrimarySuffix[1]/Arguments/ArgumentList/Expression//PrimaryExpression) = 1
 and not (
-../../PrimarySuffix/Arguments/ArgumentList/Expression/PrimaryExpression/PrimaryPrefix/Name/@Image=
+../../PrimarySuffix[1]/Arguments/ArgumentList/Expression/PrimaryExpression/PrimaryPrefix/Name/@Image=
 ancestor::MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter/VariableDeclaratorId/@Name)]
 	]]></value>
             </property>
