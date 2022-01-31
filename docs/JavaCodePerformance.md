@@ -382,6 +382,29 @@ class MyClientHttpRequestFactorySupplier implements Supplier<ClientHttpRequestFa
         .requestFactory(new MyClientHttpRequestFactorySupplier()) // good
 ```
 
+#### IBI18
+**Observation: Spring BufferingClientHttpRequestFactory is used.**   
+**Problem:** org.springframework.http.client.BufferingClientHttpRequestFactory buffers all incoming and outgoing streams fully in memory which may result in high memory usage.   
+**Solution:** Avoid multiple reads of the response body so it is not needed.   
+**Rule name:** BufferingClientHttpRequestFactoryIsMemoryGreedy    
+**Example:**
+```java
+import org.springframework.http.client.*;
+import org.springframework.web.client.RestTemplate;
+
+public class Foo {
+  public RestTemplate createMemoryGreedyRestTemplate(HttpClientConfiguration httpClientConfiguration) {
+    ClientHttpRequestFactory factory = getClientHttpRequestFactory(httpClientConfiguration);
+    return new RestTemplate(new BufferingClientHttpRequestFactory(factory)); // bad
+  }
+
+  public RestTemplate createStreamTroughRestTemplate(HttpClientConfiguration httpClientConfiguration) {
+    ClientHttpRequestFactory factory = getClientHttpRequestFactory(httpClientConfiguration);
+    return new RestTemplate(factory); // good
+  }
+}
+```
+
 Improper asynchrony 
 -------------------
 This categry could be seen as a subcategory of the previous category. However, above mostly deals with remote connections, asynchony mostly deals with threading and parallelism.

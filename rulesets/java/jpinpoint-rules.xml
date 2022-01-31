@@ -2729,6 +2729,43 @@ MethodDeclaration//LocalVariableDeclaration/Type/ReferenceType/ClassOrInterfaceT
         </properties>
     </rule>
 
+    <rule name="BufferingClientHttpRequestFactoryIsMemoryGreedy" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java"
+          message="BufferingClientHttpRequestFactory is memory greedy. Only use when multiple reads of the response body cannot be avoided."
+          typeResolution="true"
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#ibi18">
+        <description>org.springframework.http.client.BufferingClientHttpRequestFactory is used.
+            Problem: It buffers all incoming and outgoing streams fully in memory which may result in high memory usage. &#13;
+            Solution: Avoid multiple reads of the response body so it is not needed. (jpinpoint-rules)</description>
+        <priority>3</priority>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+//AllocationExpression[pmd-java:typeIs('org.springframework.http.client.BufferingClientHttpRequestFactory')]
+]]>
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+import org.springframework.http.client.*;
+import org.springframework.web.client.RestTemplate;
+
+public class Foo {
+    public RestTemplate createMemoryGreedyRestTemplate(HttpClientConfiguration httpClientConfiguration) {
+        ClientHttpRequestFactory factory = getClientHttpRequestFactory(httpClientConfiguration);
+        return new RestTemplate(new BufferingClientHttpRequestFactory(factory)); // bad
+    }
+
+    public RestTemplate createStreamTroughRestTemplate(HttpClientConfiguration httpClientConfiguration) {
+        ClientHttpRequestFactory factory = getClientHttpRequestFactory(httpClientConfiguration);
+        return new RestTemplate(factory); // good
+    }
+}
+]]>
+        </example>
+    </rule>
+
     <rule name="GsonCreatedForEachMethodCall" message="A Gson object is created for each method call, which is expensive." class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java"   typeResolution="true" externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#IUOJAR03">
         <description>Problem: Gson creation is relatively expensive. A JMH benchmark shows a 24x improvement reusing one instance. &#13;
             Solution: Since Gson objects are thread-safe after creation, they can be between threads. So, reuse created instances, from a static field. Pay attention
