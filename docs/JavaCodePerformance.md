@@ -1614,6 +1614,30 @@ the fields can possibly be modified from other classes.
 **Solution:** Make the fields private and make sure that they are used in a threadsafe way.  
 **Rule name:** AvoidNonPrivateFieldsInSharedObjects
 
+#### TUTC12
+
+**Observation: Only local variables are accessed in a synchronized block.**  
+**Problem:** Synchronization has overhead and may introduce lock contention.  
+**Solution:** Remove the synchronized statement because local variables are only accessible by the owning thread and are not shared.  
+**Rule name:** SynchronizingForLocalVars
+**Example:** 
+```java
+public class Foo {
+  private Map<String, String> mapField;
+
+  protected Map<String, String> bad() {
+    Map<String, String> addHeaders = MDC.getCopyOfContextMap();
+
+    synchronized (this) { // bad, no use
+      if (addHeaders == null) {
+        addHeaders = new HashMap<>();
+      }
+    }
+    return addHeaders;
+  }
+}
+```
+
 Unnecessary execution
 ---------------------
 

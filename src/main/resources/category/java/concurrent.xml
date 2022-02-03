@@ -705,4 +705,58 @@ class Good {
         </example>
     </rule>
 
+    <rule name="SynchronizingForLocalVars" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" message="Local variables don't need synchronization" typeResolution="true"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#tutc12">
+        <description>In the synchronized block, only local variables seem to be accessed. Problem: synchronization has overhead and may introduce lock contention. &#13;
+            Solution: Remove synchronized because local variables are only accessible by the owning thread and are not shared. (jpinpoint-rules)</description>
+        <priority>3</priority>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+(: var.x() in synchronized block, var in list of local vars and all var.x in synchronized block are local vars:)
+//SynchronizedStatement[count(./Block//PrimaryPrefix/Name[index-of(ancestor::MethodDeclaration//LocalVariableDeclaration//VariableDeclaratorId/@Name, substring-before(@Image, '.')) >= 0]) =
+count(./Block//PrimaryPrefix/Name[substring-before(@Image, '.')])
+and
+(: vars used in synchronized block are all local vars :)
+count(distinct-values(ancestor::MethodDeclaration//LocalVariableDeclaration//VariableDeclaratorId/@Name | ./Block//PrimaryPrefix/Name[not(contains(@Image, '.'))]/@Image))
+ = count(distinct-values(ancestor::MethodDeclaration//LocalVariableDeclaration//VariableDeclaratorId/@Name ))]
+
+                        ]]>
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+public class Foo {
+    private Map<String, String> mapField;
+
+    protected Map<String, String> bad() {
+      Map<String, String> addHeaders = MDC.getCopyOfContextMap();
+
+      synchronized (this) { // bad
+          if (addHeaders == null) {
+              addHeaders = new HashMap<>();
+          }
+      }
+      return addHeaders;
+    }
+
+  protected Map<String, String> good() {
+      Map<String, String> addHeaders = MDC.getCopyOfContextMap();
+
+      synchronized (this) {
+          if (mapField == null) {
+              mapField = new HashMap<>();
+              addHeaders = new HashMap<>();
+          }
+      }
+      return addHeaders;
+    }
+            ]]>
+        </example>
+    </rule>
+
 </ruleset>
+
+
