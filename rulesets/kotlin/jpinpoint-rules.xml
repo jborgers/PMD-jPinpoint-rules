@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ruleset name="jpinpoint-rules" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 http://pmd.sourceforge.net/ruleset_2_0_0.xsd" xmlns="http://pmd.sourceforge.net/ruleset/2.0.0" xmlns:fn="http://www.w3.org/TR/xpath-functions/">
+    <description>jPinpoint specific Kotlin rules for performance aware Java coding, sponsored by Rabobank.(jpinpoint-rules)</description>
+    <rule name="HttpClientBuilderWithoutDisableConnectionState"
+          since="7.0"
+          language="kotlin"
+          message="A HttpClient builder is used and disableConnectionState is not called. HTTP client tracks connection state while using TLS."
+          class="net.sourceforge.pmd.lang.rule.XPathRule"
+          typeResolution="true"
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#ibi07">
+        <description>
+                Problem: NTLM authenticated connections and SSL/TLS connections with client certificate authentication are stateful: they have a specific user identity/security context per session. If HttpClients have enabled connection state tracking which is the default, established TLS connections will not be reused because it is assumed that the user identity or security context may differ.
+                Then performance will suffer due to a full TLS handshake for each request.&#13;
+                Solution: HttpClients should disable connection state tracking in order to reuse TLS connections, since service calls for one pool have the same user identity/security context for all sessions. (jpinpoint-rules)
+        </description>
+        <priority>2</priority>
+        <properties>
+            <property name="version" value="3.1"/>
+            <property name="xpath">
+                <value><![CDATA[
+(:locally created http client builder without disableConnectionState :)
+//PostfixUnarySuffix//SimpleIdentifier/T-Identifier[@Text="custom"
+  and ancestor::PostfixUnaryExpression/PrimaryExpression/SimpleIdentifier/T-Identifier/@Text="HttpClients"
+  and not(ancestor::PostfixUnaryExpression/PostfixUnarySuffix/NavigationSuffix/SimpleIdentifier/T-Identifier/@Text="disableConnectionState")]
+,
+//PostfixUnarySuffix//SimpleIdentifier/T-Identifier[@Text="create"
+  and ancestor::PostfixUnaryExpression/PrimaryExpression/SimpleIdentifier/T-Identifier/(@Text="HttpClientBuilder" or @Text="HttpAsyncClientBuilder")
+  and not(ancestor::PostfixUnaryExpression/PostfixUnarySuffix/NavigationSuffix/SimpleIdentifier/T-Identifier/@Text="disableConnectionState")]
+,
+(: method param http client builder without disableConnectionState :)
+//FunctionValueParameter/Parameter/Type/TypeReference/UserType/SimpleUserType/SimpleIdentifier/T-Identifier[(@Text="HttpClients" or @Text="HttpClientBuilder" or @Text="HttpAsyncClientBuilder")
+  and not(ancestor::FunctionDeclaration//PostfixUnarySuffix/NavigationSuffix/SimpleIdentifier/T-Identifier/@Text="disableConnectionState")]
+                ]]></value>
+            </property>
+        </properties>
+        <example><![CDATA[
+    private fun createHttpClientBuilder(properties: ConnectionProperties) =
+        HttpClients.custom()
+            .setDefaultRequestConfig(createRequestConfig(properties))
+            .setMaxConnTotal(properties.maxConnTotal)
+            .setMaxConnPerRoute(properties.maxConnPerRoute) // violation, no disableConnectionState() call
+]]>
+        </example>
+    </rule>
+</ruleset>
