@@ -415,9 +415,9 @@ public class Good {
                 <value><![CDATA[
 //TypeDeclaration/ClassOrInterfaceDeclaration/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDeclaration
 //PrimaryExpression/PrimaryPrefix/Name[pmd-java:typeIs('java.util.regex.Pattern') and ends-with(@Image, '.compile') and
-count(../../PrimarySuffix/Arguments/ArgumentList/Expression//PrimaryExpression) = 1
+count(../../PrimarySuffix[1]/Arguments/ArgumentList/Expression//PrimaryExpression) = 1
 and not (
-../../PrimarySuffix/Arguments/ArgumentList/Expression/PrimaryExpression/PrimaryPrefix/Name/@Image=
+../../PrimarySuffix[1]/Arguments/ArgumentList/Expression/PrimaryExpression/PrimaryPrefix/Name/@Image=
 ancestor::MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter/VariableDeclaratorId/@Name)]
 	]]></value>
             </property>
@@ -2289,6 +2289,58 @@ or ancestor::SynchronizedStatement/Expression//Name)]
         </example>
     </rule>
 
+    <rule name="SynchronizingForLocalVars" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" message="Local variables don't need synchronization" typeResolution="true"
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#tutc10">
+        <description>In the synchronized block, only local variables seem to be accessed. Problem: synchronization has overhead and may introduce lock contention. &#13;
+            Solution: Remove synchronized because local variables are only accessible by the owning thread and are not shared. (jpinpoint-rules)</description>
+        <priority>3</priority>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+(: var.x() in synchronized block, var in list of local vars and all var.x in synchronized block are local vars:)
+//SynchronizedStatement[count(./Block//PrimaryPrefix/Name[index-of(ancestor::MethodDeclaration//LocalVariableDeclaration//VariableDeclaratorId/@Name, substring-before(@Image, '.')) >= 0]) =
+count(./Block//PrimaryPrefix/Name[substring-before(@Image, '.')])
+and
+(: vars used in synchronized block are all local vars :)
+count(distinct-values(ancestor::MethodDeclaration//LocalVariableDeclaration//VariableDeclaratorId/@Name | ./Block//PrimaryPrefix/Name[not(contains(@Image, '.'))]/@Image))
+ = count(distinct-values(ancestor::MethodDeclaration//LocalVariableDeclaration//VariableDeclaratorId/@Name ))]
+
+                        ]]>
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+public class Foo {
+    private Map<String, String> mapField;
+
+    protected Map<String, String> bad() {
+      Map<String, String> addHeaders = MDC.getCopyOfContextMap();
+
+      synchronized (this) { // bad
+          if (addHeaders == null) {
+              addHeaders = new HashMap<>();
+          }
+      }
+      return addHeaders;
+    }
+
+  protected Map<String, String> good() {
+      Map<String, String> addHeaders = MDC.getCopyOfContextMap();
+
+      synchronized (this) {
+          if (mapField == null) {
+              mapField = new HashMap<>();
+              addHeaders = new HashMap<>();
+          }
+      }
+      return addHeaders;
+    }
+            ]]>
+        </example>
+    </rule>
+
 <!-- END Included file 'concurrent.xml' -->
 <!-- BEGIN Included file 'enterprise.xml' -->
     <rule name="DefineConcurrencyForJavaEESingleton"
@@ -2727,6 +2779,43 @@ MethodDeclaration//LocalVariableDeclaration/Type/ReferenceType/ClassOrInterfaceT
 	]]></value>
             </property>
         </properties>
+    </rule>
+
+    <rule name="BufferingClientHttpRequestFactoryIsMemoryGreedy" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java"
+          message="BufferingClientHttpRequestFactory is memory greedy. Only use when multiple reads of the response body cannot be avoided."
+          typeResolution="true"
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#ibi18">
+        <description>org.springframework.http.client.BufferingClientHttpRequestFactory is used.
+            Problem: It buffers all incoming and outgoing streams fully in memory which may result in high memory usage. &#13;
+            Solution: Avoid multiple reads of the response body so it is not needed. (jpinpoint-rules)</description>
+        <priority>3</priority>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+//AllocationExpression[pmd-java:typeIs('org.springframework.http.client.BufferingClientHttpRequestFactory')]
+]]>
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+import org.springframework.http.client.*;
+import org.springframework.web.client.RestTemplate;
+
+public class Foo {
+    public RestTemplate createMemoryGreedyRestTemplate(HttpClientConfiguration httpClientConfiguration) {
+        ClientHttpRequestFactory factory = getClientHttpRequestFactory(httpClientConfiguration);
+        return new RestTemplate(new BufferingClientHttpRequestFactory(factory)); // bad
+    }
+
+    public RestTemplate createStreamTroughRestTemplate(HttpClientConfiguration httpClientConfiguration) {
+        ClientHttpRequestFactory factory = getClientHttpRequestFactory(httpClientConfiguration);
+        return new RestTemplate(factory); // good
+    }
+}
+]]>
+        </example>
     </rule>
 
     <rule name="GsonCreatedForEachMethodCall" message="A Gson object is created for each method call, which is expensive." class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java"   typeResolution="true" externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#IUOJAR03">

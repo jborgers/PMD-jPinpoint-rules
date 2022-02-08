@@ -67,4 +67,27 @@ class MyCompiler {
      ]]></code>
     </test-code>
 
+    <test-code>
+        <description>violation: Avoid recompiling patterns, with chained operations, issue #180</description>
+        <expected-problems>2</expected-problems>
+        <expected-linenumbers>8,11</expected-linenumbers>
+        <code><![CDATA[
+import java.util.regex.Pattern;
+
+public class Foo {
+    private static final Integer LIMIT = 11;
+    private static final String SEP = "[.|,]";
+
+    private boolean isAmountAllowed(String amount) {
+        return LIMIT > Pattern.compile(SEP).matcher(amount).replaceAll("").length(); // bad
+    }
+    private boolean isAmountAllowed2() {
+        String bla = Pattern.compile("[.|,]").matcher("5.000,00").replaceAll(""); // bad
+        boolean b = (11 > bla.length());
+        return b;
+    }
+}
+     ]]></code>
+    </test-code>
+
 </test-data>

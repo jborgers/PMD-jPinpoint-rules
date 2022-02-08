@@ -382,6 +382,29 @@ class MyClientHttpRequestFactorySupplier implements Supplier<ClientHttpRequestFa
         .requestFactory(new MyClientHttpRequestFactorySupplier()) // good
 ```
 
+#### IBI18
+**Observation: Spring BufferingClientHttpRequestFactory is used.**   
+**Problem:** org.springframework.http.client.BufferingClientHttpRequestFactory buffers all incoming and outgoing streams fully in memory which may result in high memory usage.   
+**Solution:** Avoid multiple reads of the response body so it is not needed.   
+**Rule name:** BufferingClientHttpRequestFactoryIsMemoryGreedy    
+**Example:**
+```java
+import org.springframework.http.client.*;
+import org.springframework.web.client.RestTemplate;
+
+public class Foo {
+  public RestTemplate createMemoryGreedyRestTemplate(HttpClientConfiguration httpClientConfiguration) {
+    ClientHttpRequestFactory factory = getClientHttpRequestFactory(httpClientConfiguration);
+    return new RestTemplate(new BufferingClientHttpRequestFactory(factory)); // bad
+  }
+
+  public RestTemplate createStreamTroughRestTemplate(HttpClientConfiguration httpClientConfiguration) {
+    ClientHttpRequestFactory factory = getClientHttpRequestFactory(httpClientConfiguration);
+    return new RestTemplate(factory); // good
+  }
+}
+```
+
 Improper asynchrony 
 -------------------
 This categry could be seen as a subcategory of the previous category. However, above mostly deals with remote connections, asynchony mostly deals with threading and parallelism.
@@ -1590,6 +1613,30 @@ prototype scope means that each invocation creates a new object so the field is 
 the fields can possibly be modified from other classes.
 **Solution:** Make the fields private and make sure that they are used in a threadsafe way.  
 **Rule name:** AvoidNonPrivateFieldsInSharedObjects
+
+#### TUTC12
+
+**Observation: Only local variables are accessed in a synchronized block.**  
+**Problem:** Synchronization has overhead and may introduce lock contention.  
+**Solution:** Remove the synchronized statement because local variables are only accessible by the owning thread and are not shared.  
+**Rule name:** SynchronizingForLocalVars
+**Example:** 
+```java
+public class Foo {
+  private Map<String, String> mapField;
+
+  protected Map<String, String> bad() {
+    Map<String, String> addHeaders = MDC.getCopyOfContextMap();
+
+    synchronized (this) { // bad, no use
+      if (addHeaders == null) {
+        addHeaders = new HashMap<>();
+      }
+    }
+    return addHeaders;
+  }
+}
+```
 
 Unnecessary execution
 ---------------------
