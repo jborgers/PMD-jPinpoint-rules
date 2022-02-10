@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ruleset name="jpinpoint-rules" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 http://pmd.sourceforge.net/ruleset_2_0_0.xsd" xmlns="http://pmd.sourceforge.net/ruleset/2.0.0" xmlns:fn="http://www.w3.org/TR/xpath-functions/">
     <description>jPinpoint specific Kotlin rules for performance aware Java coding, sponsored by Rabobank.(jpinpoint-rules)</description>
+
     <rule name="HttpClientBuilderWithoutDisableConnectionState"
           since="7.0"
           language="kotlin"
@@ -42,4 +43,28 @@
 ]]>
         </example>
     </rule>
+
+    <rule name="AvoidDeprecatedHystrix"
+          since="7.0"
+          language="kotlin"
+          class="net.sourceforge.pmd.lang.rule.XPathRule"
+          message="Netflix Hystrix is deprecated. Use an alternative like resilience4j"
+          typeResolution="true"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi11">
+        <description>Problem: Hystrix is not actively maintained anymore.&#13;
+            Solution: Netflix recommends to use open source alternatives like resilience4j. (jpinpoint-rules)</description>
+        <priority>3</priority>
+        <properties>
+            <property name="version" value="3.1"/>
+            <property name="xpath">
+                <value><![CDATA[
+//ImportHeader[starts-with(@joinTokenText, 'importcom.netflix.hystrix')]
+]]>
+                </value>
+            </property>
+        </properties>
+        <example>
+        </example>
+    </rule>
+
 </ruleset>
