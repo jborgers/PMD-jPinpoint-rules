@@ -1,4 +1,4 @@
-# PMD-jpinpoint-rules
+# PMD-jPinpoint-rules
 PMD rule set for performance aware Java coding, sponsored by Rabobank. 
 
 The purpose of this project is to create and manage automatic java code checks.
