@@ -146,7 +146,7 @@
 
     <profiles>
         <profile>
-            <id>pmd6</id>
+            <id>java-pmd6</id>
             <activation>
                 <activeByDefault>true</activeByDefault>
             </activation>
@@ -168,7 +168,7 @@
             </build>
         </profile>
         <profile>
-            <id>pmd7</id>
+            <id>kotlin-pmd7</id>
             <properties>
                 <pmd.version>7.0.0-kotlin-SNAPSHOT</pmd.version>
             </properties>
