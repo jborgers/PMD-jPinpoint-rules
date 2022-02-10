@@ -14,7 +14,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <pmd.version>6.29.0</pmd.version>
+        <pmd.version>7.0.0-kotlin-SNAPSHOT</pmd.version>
     </properties>
 
     <build>
@@ -49,6 +49,12 @@
         <dependency>
             <groupId>net.sourceforge.pmd</groupId>
             <artifactId>pmd-java</artifactId>
+            <version>${pmd.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>net.sourceforge.pmd</groupId>
+            <artifactId>pmd-kotlin</artifactId>
             <version>${pmd.version}</version>
             <scope>test</scope>
         </dependency>
