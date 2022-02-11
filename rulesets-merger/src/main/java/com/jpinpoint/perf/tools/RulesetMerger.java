@@ -18,12 +18,12 @@ public class RulesetMerger {
     private static final String COMPANY_SPECIFIC = "jPinpoint";
     private static final String RESULT_COMPANY_RULES_NAME = "jpinpoint-rules";
     private static final String RESULT_ALL_RULES_NAME = "jpinpoint-rules";
-    private static final String PATH_TO_CAT_RULES = "src/main/resources/category/java/";
+    private static final String PATH_TO_CAT_RULES = "src/main/resources/category/%s/";
     private static final String COMPANY_DOC_ROOT = "https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs";
     private static final boolean IS_ADD_TAG_TO_DESCRIPTION_AND_DOC = true;
 
     // constants unlikely to have to change
-    private static final String MERGED_RULESETS_DIR = "rulesets/java";
+    private static final String MERGED_RULESETS_DIR = "rulesets/%s";
     private static final String RESULT_START_LINE = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
     private static final String RESULT_END_LINE = "</ruleset>";
     private static final String DESCRIPTION_END_TAG = "</description>";
@@ -33,14 +33,30 @@ public class RulesetMerger {
             "xmlns=\"http://pmd.sourceforge.net/ruleset/2.0.0\" " +
             "xmlns:fn=\"http://www.w3.org/TR/xpath-functions/\">";
     private static final String MERGED_WITH_TEMPLATE = "merged with the %s ";
-    private static final String RESULT_DESC_LINE_TEMPLATE = "<description>%s specific rules %sfor performance aware Java coding, sponsored by Rabobank.</description>";
+    private static final String RESULT_DESC_LINE_TEMPLATE = "<description>%s specific rules %sfor performance aware %s coding, sponsored by Rabobank.</description>";
     private static final String LSEP = IOUtils.LINE_SEPARATOR;
     private static final String BEGIN_INCLUDED_FILE_COMMENT_TEMPLATE = "<!-- BEGIN Included file '%s' -->";
     private static final String END_INCLUDED_FILE_COMMENT_TEMPLATE = "<!-- END Included file '%s' -->";
     private static final String DESCRIPTION_END_TAG_PATTERN = DESCRIPTION_END_TAG.replace('<','.').replace('>', '.');
     public static final Pattern TAGGED_DESCRIPTION_END_TAG_PATTERN = Pattern.compile("\\(.*\\) *" + DESCRIPTION_END_TAG_PATTERN);
 
+    private enum RulesType { java, kotlin }
+
     public static void main(String[] args) {
+
+        if (args.length < 1) {
+            System.out.println(String.format("ERROR: specify 'java' or 'kotlin' as first argument"));
+            System.exit(1);
+        }
+
+        String rulesTypeArg = args[0];
+        RulesType rulesType = RulesType.java;
+        try {
+            rulesType = RulesType.valueOf(rulesTypeArg);
+        } catch (IllegalArgumentException e) {
+            System.out.printf("ERROR: specify 'java' or 'kotlin' as first argument, now: '%s'%n", rulesTypeArg);
+            System.exit(1);
+        }
 
         // Find our project base working directory (differs when running from jar or using your IDE to run this main)
         File repositoryBaseDir = getRepositoryBaseDir();
@@ -59,39 +75,36 @@ public class RulesetMerger {
 
         if (COMPANY_SPECIFIC.equals("jPinpoint")) {
             //merge once for one file: jpinpoint-rules.xml
-            mergeRuleFiles(repositoryBaseDir, null, null, RESULT_ALL_RULES_NAME);
+            mergeRuleFiles(repositoryBaseDir, null, null, RESULT_ALL_RULES_NAME, rulesType);
         }
         else {
             File optionalExtRulesFile;
             String mergeWithRepoName;
-            if (args.length >= 3) {
-                mergeWithRepoName = args[0];
-                optionalExtRulesFile = new MergeWithExternalHelper(args, repositoryBaseDir).lookupRulesFileMustBeThere();
+            if (args.length >= 4) {
+                mergeWithRepoName = args[1];
+                String repoRelativeRulesDir = args[2];
+                String repoRulesFilename = args[3];
+                optionalExtRulesFile = new MergeWithExternalHelper(mergeWithRepoName, repoRelativeRulesDir, repoRulesFilename, repositoryBaseDir).lookupRulesFileMustBeThere();
             } else { // default
                 mergeWithRepoName = "PMD-jPinpoint-rules";
-                MergeWithExternalHelper helper = new MergeWithExternalHelper(mergeWithRepoName, "rulesets/java", "jpinpoint-rules.xml", repositoryBaseDir);
+                MergeWithExternalHelper helper = new MergeWithExternalHelper(mergeWithRepoName, "rulesets/" + rulesType.toString(), "jpinpoint-rules.xml", repositoryBaseDir);
                 optionalExtRulesFile = helper.lookupRulesFileMayBeThere(); // may be null
             }
             //merge company specific into company-rules.xml
-            mergeRuleFiles(repositoryBaseDir, null, mergeWithRepoName, RESULT_COMPANY_RULES_NAME);
+            mergeRuleFiles(repositoryBaseDir, null, mergeWithRepoName, RESULT_COMPANY_RULES_NAME, rulesType);
 
             if (optionalExtRulesFile != null) {
                 // merge all into company-jpinpoint-rules.xml
-                mergeRuleFiles(repositoryBaseDir, optionalExtRulesFile, mergeWithRepoName, RESULT_ALL_RULES_NAME);
+                mergeRuleFiles(repositoryBaseDir, optionalExtRulesFile, mergeWithRepoName, RESULT_ALL_RULES_NAME, rulesType);
             }
         }
     }
 
-    private static void mergeRuleFiles(File repositoryBaseDir, File optionalExtRulesFile, String mergeWithRepoName, String resultRulesName) {
+    private static void mergeRuleFiles(File repositoryBaseDir, File optionalExtRulesFile, String mergeWithRepoName, String resultRulesName, RulesType rulesType) {
         // Get rule files
-        File ourProjectRulesDir = new File(repositoryBaseDir, PATH_TO_CAT_RULES);
-        String[] ourRulesFiles = ourProjectRulesDir.list(new FilenameFilter() {
-            @Override
-            public boolean accept(File dir, String name) {
-                return name.endsWith(".xml");
-            }
-        });
-        File outputDir = new File(repositoryBaseDir, MERGED_RULESETS_DIR);
+        File ourProjectRulesDir = new File(repositoryBaseDir, String.format(PATH_TO_CAT_RULES, rulesType));
+        String[] ourRulesFiles = ourProjectRulesDir.list((dir, name) -> name.endsWith(".xml"));
+        File outputDir = new File(repositoryBaseDir, String.format(MERGED_RULESETS_DIR, rulesType));
         File resultFile = new File(outputDir, resultRulesName + ".xml");
         System.out.println("INFO: start on '" + resultFile.getName() + "'");
         checkIfValid(ourProjectRulesDir, ourRulesFiles, outputDir, resultFile);
@@ -104,11 +117,11 @@ public class RulesetMerger {
         }
         Arrays.sort(ourRulesFiles);
         try {
-            List<String> mergedFileLines = new ArrayList<String>();
+            List<String> mergedFileLines = new ArrayList<>();
             mergedFileLines.add(RESULT_START_LINE);
             mergedFileLines.add(String.format(RESULT_RULE_SET_LINE_TEMPLATE, resultRulesName));
             String mergeWithText = mergeWithRepoName == null ? "" : String.format(MERGED_WITH_TEMPLATE, mergeWithRepoName);
-            String resultDescription = String.format(RESULT_DESC_LINE_TEMPLATE, COMPANY_SPECIFIC, mergeWithText);
+            String resultDescription = String.format(RESULT_DESC_LINE_TEMPLATE, COMPANY_SPECIFIC, mergeWithText, capitalize(rulesType.toString()));
             mergedFileLines.add(resultDescription);
             mergedFileLines.add("");
             mergedFileLines.add("<!-- IMPORTANT NOTICE: The content of this file is generated. Do not edit this file directly since changes may be lost when this file is regenerated! -->");
@@ -132,6 +145,13 @@ public class RulesetMerger {
             System.out.println(String.format("Error while trying to merge rules into '%s'.", resultFile.getPath()));
             System.out.println(e);
         }
+    }
+
+    private static String capitalize(String text) {
+        if (text == null) return null;
+        if (text.length() == 0) return text;
+        if (text.length() == 1) return text.toUpperCase();
+        return text.substring(0, 1).toUpperCase() + text.substring(1);
     }
 
     private static void mergeFileIntoLines(File file, List<String> mergedFileLines) throws IOException {
@@ -245,13 +265,6 @@ public class RulesetMerger {
         private final String repoRulesFilename;
         private final File repoBaseDir;
 
-        public MergeWithExternalHelper(String[] args, File repoBaseDir) {
-            mergeWithRepoName = args[0];
-            repoRelativeRulesDir = args[1];
-            repoRulesFilename = args[2];
-            this.repoBaseDir = repoBaseDir;
-        }
-
         public MergeWithExternalHelper(String mergeWithRepoName, String repoRelativeRulesDir, String repoRulesFilename, File repoBaseDir) {
             this.mergeWithRepoName = mergeWithRepoName;
             this.repoRelativeRulesDir = repoRelativeRulesDir;
@@ -290,7 +303,7 @@ public class RulesetMerger {
         }
 
         /**
-         * Return the rules file based on the fields, null if not available
+         * Lookup the rules file based on the fields.
          * @return the rules file based on the fields, null if not available
          */
         public File lookupRulesFileMayBeThere() {

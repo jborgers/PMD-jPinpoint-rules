@@ -1,4 +1,11 @@
 #!/bin/sh
+
+if [ -n "$1" ]; then
+  ARG1=$1
+else
+  ARG1="java"
+fi
+
 cd rulesets-merger
-mvn exec:java
+mvn exec:java -Dexec.args="$ARG1"
 cd ..

@@ -1,5 +1,5 @@
 # PMD-jPinpoint-rules
-PMD rule set for performance aware Java coding, sponsored by Rabobank. 
+PMD rule set for performance aware Java and Kotlin coding, sponsored by Rabobank. 
 
 The purpose of this project is to create and manage automatic java code checks.
  
@@ -103,6 +103,8 @@ You can add new rules using the steps below.
 The steps basically tell you to create 3 files. 
 As an example you can copy existing files and change the content according to your needs.
 
+For Kotlin: use the paths that contain `/kotlin/` instead of `/java/`.
+
 - document the pitfall in the proper page in docs/ and [regenerate the ToC](https://luciopaiva.com/markdown-toc/)
 - add the Test class in `src/test/java/com/.../perf/lang/java/ruleset/yourruleset/YourRule.java` 
 elements from the package structure are used to lookup the rules xml file you add next. 
@@ -118,6 +120,8 @@ Pay attention to the package structure which is also dictated by the first java 
 
 Depending on what you want to add you may also find it is sufficient to change one or more of the existing files.
 Or to add only a Test class and unit test xml file (steps 1 and 3).
+
+
 
 ### Conventions for XML Unit test files
 
@@ -147,7 +151,7 @@ construct the unit test files:
 
 ## Merging rules
 
-- rulesets-merger/src contains RulesetMerger.java for merging jpinpoint-rules.
+- `rulesets-merger/src` contains RulesetMerger.java for merging jpinpoint-rules.
 
  The merger tool can be built with:
 
@@ -159,11 +163,15 @@ construct the unit test files:
  Run the merger tool as follows:
 
     cd rulesets-merger
-    mvn exec:java
+    mvn exec:java -Dexec.args="java"
     
  or simply:
  
     ./merge
+
+or for Kotlin instead of Java:
+
+    ./merge kotlin
 
  It will merge the rules from ``src/main/resources/category/java/*.xml`` to create the jpinpoint-rules.xml file which can be used in your IDE.
 
@@ -172,18 +180,26 @@ construct the unit test files:
 Company specific rules are useful for instance for checking the right use of company specific or company-bought frameworks and libraries. 
 Or for rules which are candidates for inclusion into jpinpoint rules, yet need to be validated first.
 
-- rulesets-merger/src contains RulesetMerger.java for merging jpinpoint-rules with company specific rules. 
+- `rulesets-merger/src` contains RulesetMerger.java for merging jpinpoint-rules with company specific rules. 
 Copy rulesets-merger to your company specific rules directory and adjust a few constants at the top to make it work for your company.
+
+The merge tool runs either for the java or the kotlin rules. Use the first argument to choose: java or kotlin.
     
  After building, the merger tool can be run with:
  
-     rulesets-merger/mvn exec:java
+    cd rulesets-merger
+    mvn exec:java -Dexec.args="java"
+
 or simply
 
     ./merge
 
+or for Kotlin instead of Java:
+
+    ./merge kotlin
+
  This will attempt to lookup the PMD-jPinpoint-rules project (next to your own project)
- and merge rulesets/java/jpinpoint-rules.xml together with your rule files (from ``src/main/resources/category/java/*.xml``)     
+ and merge `rulesets/[java|kotlin]/jpinpoint-rules.xml` together with your rule files (from `src/main/resources/category/[java|kotlin]/*.xml`)     
  The resulting file can be used in your IDE.
  
  It assumes you have the following repositories in directories next to each other:
@@ -204,8 +220,13 @@ or simply
   You can also do it yourself and specify the external repo to merge with explicitly:
    
       cd target
-      java -jar rulesets-merger-1.0-SNAPSHOT.jar PMD-jPinpoint-rules rulesets/java jpinpoint-rules.xml 
-   
+      java -jar java rulesets-merger-1.0-SNAPSHOT.jar PMD-jPinpoint-rules rulesets/java jpinpoint-rules.xml 
+
+or for Kotlin:
+
+      cd target
+      java -jar kotlin rulesets-merger-1.0-SNAPSHOT.jar PMD-jPinpoint-rules rulesets/kotlin jpinpoint-rules.xml 
+
 ## Tools to create documentation
 1. Confluence export as HTML
 2. [Converting HTML to Markdown](https://domchristie.github.io/turndown/)
