@@ -530,6 +530,7 @@ See our [presentation on Java Performance Pitfall: improper caching.](https://yo
 ```
 
 *   This is efficient because it prevents String concatenation of the arguments when accessing the cache.
+*   Actually Spring's SimpleKey is a more generic solution, see IC13.
 
 **Rule name:** partly implemented: AvoidDefaultCacheKeyGenerator.
 
@@ -673,7 +674,9 @@ class Good implements KeyGenerator {
             throw new IllegalArgumentException("KeyGenerator for GetProfileCache assumes 1 parameter 'profileId', found: " + params);
         }
         String profileId = (String)params[0];
-        return profileId;
+	StringJoiner joiner = new StringJoiner("_");
+	joiner.add(target.getClass().getSimpleName()).add(method.getName()).add(profileId);
+        return joiner.toString();
     }
 }
 
@@ -684,6 +687,7 @@ class Better implements KeyGenerator {
     }
 }
 ```
+In the above, class name and method name are included to ensure to get different keys if this KeyGenerator is used on different classes/methods.
 
 ### IC14
 
