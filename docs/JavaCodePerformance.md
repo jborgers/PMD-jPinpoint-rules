@@ -405,6 +405,23 @@ public class Foo {
 }
 ```
 
+#### IBI19
+**Observation: A primitive variable identifier or @Value member ends with time, duration or similar: time unit is missing.**   
+**Problem:** Time unit like hours, seconds, milliseconds is not specified and may be assumed differently by readers.
+Different assumptions will lead to errors or hidden problems like ineffective caches.   
+**Solution:** Specify the time unit in the identifier, like connectTimeoutMillis.   
+**Rule name:** AvoidTimeUnitConfusion    
+**Example:**
+```java
+class RetrieveCache {
+    @Autowired
+    public RetrieveCache(final @Value("${cache.expiryTime}") long timeToLive) { // 2x bad
+    }
+    @Autowired
+    public RetrieveCache(final @Value("${cache.expiryTimeMillis}") long timeToLiveMillis){ // 2x good
+    }
+}
+```
 Improper asynchrony 
 -------------------
 This categry could be seen as a subcategory of the previous category. However, above mostly deals with remote connections, asynchony mostly deals with threading and parallelism.
