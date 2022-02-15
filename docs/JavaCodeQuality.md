@@ -272,11 +272,17 @@ class Bad1 {
 Potential Session Data Mix-up
 -----------------------------
 
-Session data mixup is one of the worst problems that can occur. Customers seeing data of other customers is bad. Therefore, we want to have defence mechanisms to protect against these problems. There can be several causes of session data mixup, like:
+Session data mixup is one of the worst problems that can occur. Customers seeing data of other customers is bad, for the users and for the reputation of the company. Therefore, we want to have defence mechanisms to protect against these problems. There can be several causes of session data mixup, like:
 
 *   a response over a connection being bound to the wrong request, so request-response mixup.
 *   shared variables like singleton fields, e.g. a Spring controller
 *   cache key mixup.
+
+#### PSDM01
+
+**Observation: a response from a service call is not validated on business level with the request **  
+**Problem:** Infrastructure with problems like misconfiguration or bugs, can cause a response being returned for a different request than the original. So a request-response mixup.  
+**Solution:** Check if a business value like customerId or accountNumber is equal for the request and the response. If not, log an error and do *not* show the data to the user.
 
 Suspicious code constructs
 --------------------------
