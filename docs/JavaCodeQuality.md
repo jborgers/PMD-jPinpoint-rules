@@ -281,7 +281,7 @@ Session data mixup is one of the worst problems that can occur. Customers seeing
 #### PSDM01
 
 **Observation: a response from a service call is not validated on business level with the request**   
-**Problem:** Infrastructure with problems like misconfiguration or bugs, can cause a response being returned for a different request than the original. So a request-response mixup.   
+**Problem:** Software infrastructure (pool, queue) with problems like misconfiguration or bugs, can cause a response being returned for a different request than the original. So a request-response mixup.   
 **Solution:** Check if a business value like customerId or accountNumber is equal for the request and the response. If not, log an error and do *not* show the data to the user.   
 
 Suspicious code constructs
