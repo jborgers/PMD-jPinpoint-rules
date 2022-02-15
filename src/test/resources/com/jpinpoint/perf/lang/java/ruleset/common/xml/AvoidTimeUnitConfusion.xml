@@ -82,7 +82,7 @@ public class Issue134 {
     </test-code>
 
     <test-code>
-        <description>violation: support fields and time, duration, durationout </description>
+        <description>violation: support fields and time, duration, durationout, issue #186 </description>
         <expected-problems>6</expected-problems>
         <expected-linenumbers>2, 3, 5, 6, 8, 9</expected-linenumbers>
         <code><![CDATA[
