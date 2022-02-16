@@ -8,7 +8,7 @@
         <expected-problems>1</expected-problems>
         <expected-linenumbers>1</expected-linenumbers>
         <code><![CDATA[
-import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
+import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand
 class HystrixTryout {
 }
 ]]></code>

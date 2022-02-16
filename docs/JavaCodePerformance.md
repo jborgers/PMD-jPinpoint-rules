@@ -422,6 +422,37 @@ class RetrieveCache {
     }
 }
 ```
+
+#### IBI20
+**Observation: Apache HttpClient RequestConfig connectionRequestTimeout and connectTimeout have typical improper values, that is, too high.**   
+**Problem:** org.apache.http.client.config.RequestConfig is used with connectionRequestTimeout and connectTimeout values > 500 milli seconds.
+
+1. connectTimeout is for establishing a (secure) connection which should be quick, say below 200 ms.   
+2. connectionRequestTimeout is for requesting a connection from the connection manager, which should be almost as quick, say below 250 ms.   
+
+If timeouts are long, requests will wait long for an unavailable service and cause high thread usage and possibly overload.   
+**Solution:** Set connectTimeout and connectionRequestTimeout to values based on network tests, for instance 200 ms and 250 ms. respectively.   
+**Rule name:** HttpClientImproperConnectionTimeouts    
+**Example:**
+```java
+import org.apache.http.client.config.RequestConfig;
+
+public class HttpClientStuff {
+  private static final int CONNECTION_TIMEOUTMILLIS = 1000; // bad // timeout until a connection is established
+  private static final int CONNECTIONREQUEST_TIMEOUTMILLIS = 5000; // bad // timeout when requesting a connection from the connection manager
+  private static final int SOCKET_TIMEOUTMILLIS = 5000; // timeout of waiting for data
+
+  public RequestConfig requestConfigWithTimeouts() {
+    RequestConfig requestConfig = RequestConfig.custom()
+            .setConnectionRequestTimeout(CONNECTIONREQUEST_TIMEOUTMILLIS)
+            .setConnectTimeout(CONNECTION_TIMEOUTMILLIS)
+            .setSocketTimeout(SOCKET_TIMEOUTMILLIS)
+            .build();
+    return requestConfig;
+  }
+}
+```
+
 Improper asynchrony 
 -------------------
 This categry could be seen as a subcategory of the previous category. However, above mostly deals with remote connections, asynchony mostly deals with threading and parallelism.

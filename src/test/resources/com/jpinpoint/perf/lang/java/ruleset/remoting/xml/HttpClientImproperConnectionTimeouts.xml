@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>violation: HttpClientImproperConnectionTimeouts</description>
+        <expected-problems>2</expected-problems>
+        <expected-linenumbers>3,4</expected-linenumbers>
+        <code><![CDATA[
+import org.apache.http.client.config.RequestConfig;
+public class HttpClientStuff {
+    private static final int CONNECTION_TIMEOUTMILLIS = 1000; // bad // Determines the timeout in milliseconds until a connection is established
+    private static final int CONNECTIONREQUEST_TIMEOUTMILLIS = 5000; // bad // The timeout when requesting a connection from the connection manager
+    private static final int SOCKET_TIMEOUTMILLIS = 5000; // The timeout of waiting for data
+
+    public RequestConfig requestConfigWithTimeouts() {
+        RequestConfig requestConfig = RequestConfig.custom()
+                .setConnectionRequestTimeout(CONNECTIONREQUEST_TIMEOUTMILLIS)
+                .setConnectTimeout(CONNECTION_TIMEOUTMILLIS)
+                .setSocketTimeout(SOCKET_TIMEOUTMILLIS)
+                .build();
+        return requestConfig;
+    }
+}
+     ]]></code>
+    </test-code>
+
+</test-data>
