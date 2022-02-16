@@ -80,4 +80,24 @@ public class Issue134 {
 }
         ]]></code>
     </test-code>
+
+    <test-code>
+        <description>violation: support fields and time, duration, durationout, issue #186 </description>
+        <expected-problems>6</expected-problems>
+        <expected-linenumbers>2, 3, 5, 6, 8, 9</expected-linenumbers>
+        <code><![CDATA[
+public class RetrieveCache {
+    private static final long EXPIRY_TIME = 100;// bad
+    private static final long MAX_IDLE_TIME = 5L;// bad
+    private static final int MAX_PER_ROUTE = 20;
+    private static final int CONNECTION_DURATIONOUT = 200;// bad
+    private static final int READ_DURATIONOUT = 5000;// bad
+
+    public void confuse(int expiryTime) { // bad
+        int time = 0;// bad
+    }
+}
+        ]]></code>
+    </test-code>
+
 </test-data>

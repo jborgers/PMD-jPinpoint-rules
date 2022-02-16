@@ -405,6 +405,23 @@ public class Foo {
 }
 ```
 
+#### IBI19
+**Observation: A primitive variable identifier or @Value member ends with time, duration or similar: time unit is missing.**   
+**Problem:** Time unit like hours, seconds, milliseconds is not specified and may be assumed differently by readers.
+Different assumptions will lead to errors or hidden problems like ineffective caches.   
+**Solution:** Specify the time unit in the identifier, like connectTimeoutMillis.   
+**Rule name:** AvoidTimeUnitConfusion    
+**Example:**
+```java
+class RetrieveCache {
+    @Autowired
+    public RetrieveCache(final @Value("${cache.expiryTime}") long timeToLive) { // 2x bad
+    }
+    @Autowired
+    public RetrieveCache(final @Value("${cache.expiryTimeMillis}") long timeToLiveMillis){ // 2x good
+    }
+}
+```
 Improper asynchrony 
 -------------------
 This categry could be seen as a subcategory of the previous category. However, above mostly deals with remote connections, asynchony mostly deals with threading and parallelism.
@@ -530,6 +547,7 @@ See our [presentation on Java Performance Pitfall: improper caching.](https://yo
 ```
 
 *   This is efficient because it prevents String concatenation of the arguments when accessing the cache.
+*   Actually Spring's SimpleKey is a more generic solution, see IC13.
 
 **Rule name:** partly implemented: AvoidDefaultCacheKeyGenerator.
 
@@ -673,7 +691,9 @@ class Good implements KeyGenerator {
             throw new IllegalArgumentException("KeyGenerator for GetProfileCache assumes 1 parameter 'profileId', found: " + params);
         }
         String profileId = (String)params[0];
-        return profileId;
+	StringJoiner joiner = new StringJoiner("_");
+	joiner.add(target.getClass().getSimpleName()).add(method.getName()).add(profileId);
+        return joiner.toString();
     }
 }
 
@@ -684,6 +704,7 @@ class Better implements KeyGenerator {
     }
 }
 ```
+In the above, class name and method name are included to ensure to get different keys if this KeyGenerator is used on different classes/methods.
 
 ### IC14
 
