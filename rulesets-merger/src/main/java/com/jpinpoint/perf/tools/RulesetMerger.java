@@ -14,15 +14,27 @@ import java.util.regex.Pattern;
  */
 public class RulesetMerger {
 
+    private enum RulesType { java, kotlin }
+
     // parameters likely to have to change for a different company
     private static final String COMPANY_SPECIFIC = "jPinpoint";
-    private static final String RESULT_COMPANY_RULES_NAME = "jpinpoint-rules";
-    private static final String RESULT_ALL_RULES_NAME = "jpinpoint-rules";
+    private static final Map<RulesType, String> RESULT_COMPANY_RULES_NAMES;
+    private static final Map<RulesType, String> RESULT_ALL_RULES_NAMES;
+
+    static {
+        Map<RulesType, String> map = new EnumMap<>(RulesType.class);
+        map.put(RulesType.java, "jpinpoint-rules");
+        map.put(RulesType.kotlin, "jpinpoint-kotlin-rules");
+        RESULT_COMPANY_RULES_NAMES = Collections.unmodifiableMap(map);
+        // same for now, can also be different?
+        RESULT_ALL_RULES_NAMES = RESULT_COMPANY_RULES_NAMES;
+    }
+
     private static final String PATH_TO_CAT_RULES = "src/main/resources/category/%s/";
     private static final String COMPANY_DOC_ROOT = "https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs";
     private static final boolean IS_ADD_TAG_TO_DESCRIPTION_AND_DOC = true;
-
     // constants unlikely to have to change
+
     private static final String MERGED_RULESETS_DIR = "rulesets/%s";
     private static final String RESULT_START_LINE = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
     private static final String RESULT_END_LINE = "</ruleset>";
@@ -38,9 +50,7 @@ public class RulesetMerger {
     private static final String BEGIN_INCLUDED_FILE_COMMENT_TEMPLATE = "<!-- BEGIN Included file '%s' -->";
     private static final String END_INCLUDED_FILE_COMMENT_TEMPLATE = "<!-- END Included file '%s' -->";
     private static final String DESCRIPTION_END_TAG_PATTERN = DESCRIPTION_END_TAG.replace('<','.').replace('>', '.');
-    public static final Pattern TAGGED_DESCRIPTION_END_TAG_PATTERN = Pattern.compile("\\(.*\\) *" + DESCRIPTION_END_TAG_PATTERN);
-
-    private enum RulesType { java, kotlin }
+    private static final Pattern TAGGED_DESCRIPTION_END_TAG_PATTERN = Pattern.compile("\\(.*\\) *" + DESCRIPTION_END_TAG_PATTERN);
 
     public static void main(String[] args) {
 
@@ -61,21 +71,24 @@ public class RulesetMerger {
         // Find our project base working directory (differs when running from jar or using your IDE to run this main)
         File repositoryBaseDir = getRepositoryBaseDir();
 
-        // validity check
-        if (COMPANY_SPECIFIC.equals("jPinpoint") && RESULT_COMPANY_RULES_NAME.equals("jpinpoint-rules") && RESULT_ALL_RULES_NAME.equals("jpinpoint-rules")) {
-            // valid, merge only in jpinpoint-rules.xml
+        // validity check: also another RulesetMerger code base with different constant values exists
+        if (COMPANY_SPECIFIC.equals("jPinpoint") &&
+                (RESULT_COMPANY_RULES_NAMES.get(RulesType.java).equals("jpinpoint-rules") && RESULT_ALL_RULES_NAMES.get(RulesType.java).equals("jpinpoint-rules")) ||
+                (RESULT_COMPANY_RULES_NAMES.get(RulesType.kotlin).equals("jpinpoint-kotlin-rules") && RESULT_ALL_RULES_NAMES.get(RulesType.kotlin).equals("jpinpoint-kotlin-rules"))
+        ) {
+            // valid, merge only in jpinpoint-rules.xml or jpinpoint-kotlin-rules.xml
         }
-        else if (!COMPANY_SPECIFIC.equals("jPinpoint") && !RESULT_COMPANY_RULES_NAME.equals(RESULT_ALL_RULES_NAME)) {
+        else if (!COMPANY_SPECIFIC.equals("jPinpoint") && !RESULT_COMPANY_RULES_NAMES.get(rulesType).equals(RESULT_ALL_RULES_NAMES.get(rulesType))) {
             //valid, merge into company-rules.xml and company-jpinpoint-rules.xml
         }
         else {
-            System.out.println(String.format("ERROR: invalid combination of COMPANY_SPECIFIC=%s, RESULT_COMPANY_RULES_NAME=%s RESULT_ALL_RULES_NAME=%s", COMPANY_SPECIFIC, RESULT_COMPANY_RULES_NAME, RESULT_ALL_RULES_NAME));
+            System.out.println(String.format("ERROR: invalid combination of COMPANY_SPECIFIC=%s, RESULT_COMPANY_RULES_NAME=%s RESULT_ALL_RULES_NAME=%s", COMPANY_SPECIFIC, RESULT_COMPANY_RULES_NAMES, RESULT_ALL_RULES_NAMES));
             System.exit(1);
         }
 
         if (COMPANY_SPECIFIC.equals("jPinpoint")) {
-            //merge once for one file: jpinpoint-rules.xml
-            mergeRuleFiles(repositoryBaseDir, null, null, RESULT_ALL_RULES_NAME, rulesType);
+            //merge once for one file: jpinpoint-rules.xml or jpinpoint-kotlin-rules.xml
+            mergeRuleFiles(repositoryBaseDir, null, null, RESULT_ALL_RULES_NAMES.get(rulesType), rulesType);
         }
         else {
             File optionalExtRulesFile;
@@ -87,15 +100,15 @@ public class RulesetMerger {
                 optionalExtRulesFile = new MergeWithExternalHelper(mergeWithRepoName, repoRelativeRulesDir, repoRulesFilename, repositoryBaseDir).lookupRulesFileMustBeThere();
             } else { // default
                 mergeWithRepoName = "PMD-jPinpoint-rules";
-                MergeWithExternalHelper helper = new MergeWithExternalHelper(mergeWithRepoName, "rulesets/" + rulesType.toString(), "jpinpoint-rules.xml", repositoryBaseDir);
+                MergeWithExternalHelper helper = new MergeWithExternalHelper(mergeWithRepoName, "rulesets/" + rulesType.toString(), RESULT_ALL_RULES_NAMES.get(rulesType), repositoryBaseDir);
                 optionalExtRulesFile = helper.lookupRulesFileMayBeThere(); // may be null
             }
             //merge company specific into company-rules.xml
-            mergeRuleFiles(repositoryBaseDir, null, mergeWithRepoName, RESULT_COMPANY_RULES_NAME, rulesType);
+            mergeRuleFiles(repositoryBaseDir, null, mergeWithRepoName, RESULT_COMPANY_RULES_NAMES.get(rulesType), rulesType);
 
             if (optionalExtRulesFile != null) {
                 // merge all into company-jpinpoint-rules.xml
-                mergeRuleFiles(repositoryBaseDir, optionalExtRulesFile, mergeWithRepoName, RESULT_ALL_RULES_NAME, rulesType);
+                mergeRuleFiles(repositoryBaseDir, optionalExtRulesFile, mergeWithRepoName, RESULT_ALL_RULES_NAMES.get(rulesType), rulesType);
             }
         }
     }
