@@ -52,14 +52,14 @@ class Good {
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
-            <property name="version" value="1.0"/>
+            <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
 //ClassOrInterfaceBodyDeclaration
-[MethodDeclaration[@Public='true'] and
-(MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter/Type/ReferenceType/ClassOrInterfaceType[typeIs('org.springframework.ui.ModelMap')] or
+[MethodDeclaration[@Public=true()] and
+(MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter/Type/ReferenceType/ClassOrInterfaceType[pmd-java:typeIs('org.springframework.ui.ModelMap')] or
 MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter/Annotation/MarkerAnnotation/Name[@Image='ModelAttribute']) and
-(MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter/Type/ReferenceType/ClassOrInterfaceType[typeIs('javax.portlet.RenderRequest') or typeIs('javax.portlet.PortletRequest')] or
+(MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter/Type/ReferenceType/ClassOrInterfaceType[pmd-java:typeIs('javax.portlet.RenderRequest') or pmd-java:typeIs('javax.portlet.PortletRequest')] or
 Annotation//Name[@Image='RenderMapping'])]
 	]]></value>
             </property>
@@ -102,7 +102,7 @@ and (
             redirect:/redirectUrl?someAttribute={someAttribute}.</description>
         <priority>1</priority>
         <properties>
-            <property name="version" value="1.0"/>
+            <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
 (
@@ -114,20 +114,20 @@ and (
     //Block//PrimaryExpression
     [
         PrimaryPrefix/Name[ends-with(@Image,'.setViewName')]
-        or (PrimaryPrefix/AllocationExpression/ClassOrInterfaceType[typeIs('org.springframework.web.servlet.ModelAndView')])
+        or (PrimaryPrefix/AllocationExpression/ClassOrInterfaceType[pmd-java:typeIs('org.springframework.web.servlet.ModelAndView')])
     ]
     [
         PrimarySuffix/Arguments/ArgumentList//PrimaryPrefix/Name[
             (@Image = ancestor::MethodDeclaration//VariableDeclaratorId/@Name)
-            or (@Image = ancestor::ClassOrInterfaceBody//FieldDeclaration[@Final='false']//VariableDeclaratorId/@Name)]
+            or (@Image = ancestor::ClassOrInterfaceBody//FieldDeclaration[@Final=false()]//VariableDeclaratorId/@Name)]
     |
             PrimaryPrefix/AllocationExpression/Arguments/ArgumentList/Expression[1]/PrimaryExpression/PrimaryPrefix/Name[
             (@Image = ancestor::MethodDeclaration//VariableDeclaratorId/@Name)
-            or (@Image = ancestor::ClassOrInterfaceBody//FieldDeclaration[@Final='false']//VariableDeclaratorId/@Name)]
+            or (@Image = ancestor::ClassOrInterfaceBody//FieldDeclaration[@Final=false()]//VariableDeclaratorId/@Name)]
     |
             PrimaryPrefix/AllocationExpression/Arguments/ArgumentList/Expression//Arguments//PrimaryExpression/PrimaryPrefix/Name[
             (@Image = ancestor::MethodDeclaration//VariableDeclaratorId/@Name)
-            or (@Image = ancestor::ClassOrInterfaceBody//FieldDeclaration[@Final='false']//VariableDeclaratorId/@Name)]
+            or (@Image = ancestor::ClassOrInterfaceBody//FieldDeclaration[@Final=false()]//VariableDeclaratorId/@Name)]
     ]
 )
             ]]></value>
@@ -149,7 +149,7 @@ and (
             (jpinpoint-rules)</description>
         <priority>3</priority>
         <properties>
-            <property name="version" value="1.0"/>
+            <property name="version" value="2.0"/>
             <property name="xpath">
                 <value>
                     <![CDATA[
@@ -159,7 +159,7 @@ and not (ancestor::TypeDeclaration/Annotation/NormalAnnotation/Name[@Image='Scop
 and not (ancestor::TypeDeclaration/Annotation/MarkerAnnotation/Name[@Image='NotThreadSafe'])
 and not ((ancestor::TypeDeclaration/Annotation/NormalAnnotation/Name[@Image='ConfigurationProperties'])
              and not (ancestor::TypeDeclaration/Annotation/MarkerAnnotation/Name[@Image='Setter']))]
-/../../..//ClassOrInterfaceDeclaration[@Static='false']/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Final='false' and @Volatile='false'
+/../../..//ClassOrInterfaceDeclaration[@Static=false()]/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Final=false() and @Volatile=false()
 and not (../Annotation//Name[@Image='Autowired' or @Image='PersistenceContext' or @Image='EJB' or @Image='Resource' or @Image='Inject' or @Image='Value' or @Image='GuardedBy'])
 and  (../../ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='Autowired']
 /../../../ConstructorDeclaration//BlockStatement/Statement//StatementExpression/AssignmentOperator/../PrimaryExpression//@Image=
@@ -178,13 +178,13 @@ and  (../../ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='Autowired']
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
-            <property name="version" value="1.0"/>
+            <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
 //ClassOrInterfaceBodyDeclaration
-[MethodDeclaration[@Public='true'] and
-MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter/Type/ReferenceType/ClassOrInterfaceType[typeIs('org.springframework.ui.ModelMap')] and
-(MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter/Type/ReferenceType/ClassOrInterfaceType[typeIs('javax.portlet.ActionRequest')] or
+[MethodDeclaration[@Public=true()] and
+MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter/Type/ReferenceType/ClassOrInterfaceType[pmd-java:typeIs('org.springframework.ui.ModelMap')] and
+(MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter/Type/ReferenceType/ClassOrInterfaceType[pmd-java:typeIs('javax.portlet.ActionRequest')] or
 Annotation//Name[@Image='ActionMapping']) and
 count(.//PrimaryExpression/PrimaryPrefix/Name[ends-with(@Image,'.clear')])=0]
 	]]></value>

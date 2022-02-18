@@ -12,24 +12,24 @@
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
-            <property name="version" value="1.0"/>
+            <property name="version" value="2.0"/>
             <property name="xpath">
                 <value>
                     <![CDATA[
   //MethodDeclaration//PrimaryPrefix/Name[ends-with(@Image, '.take')]
     [(starts-with(@Image, concat(ancestor::MethodDeclaration//FormalParameter/Type/ReferenceType/ClassOrInterfaceType[
-    typeIs('java.util.concurrent.CompletionService')
-    or typeIs('java.util.concurrent.ExecutorCompletionService')
+    pmd-java:typeIs('java.util.concurrent.CompletionService')
+    or pmd-java:typeIs('java.util.concurrent.ExecutorCompletionService')
     ]/../../../VariableDeclaratorId/@Name, '.'))
     or
     starts-with(@Image, concat(ancestor::MethodDeclaration//LocalVariableDeclaration/Type/ReferenceType/ClassOrInterfaceType[
-     typeIs('java.util.concurrent.CompletionService')
-    or typeIs('java.util.concurrent.ExecutorCompletionService')
+     pmd-java:typeIs('java.util.concurrent.CompletionService')
+    or pmd-java:typeIs('java.util.concurrent.ExecutorCompletionService')
     ]/../../../VariableDeclarator/VariableDeclaratorId/@Name, '.'))
     or
     starts-with(@Image, concat(ancestor::ClassOrInterfaceBody//FieldDeclaration/Type/ReferenceType/ClassOrInterfaceType[
-     typeIs('java.util.concurrent.CompletionService')
-    or typeIs('java.util.concurrent.ExecutorCompletionService')
+     pmd-java:typeIs('java.util.concurrent.CompletionService')
+    or pmd-java:typeIs('java.util.concurrent.ExecutorCompletionService')
     ]/../../../VariableDeclarator/VariableDeclaratorId/@Name, '.')))
 ]    ]]>
                 </value>
