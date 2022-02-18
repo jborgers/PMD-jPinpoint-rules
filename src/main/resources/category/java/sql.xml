@@ -17,12 +17,12 @@
                 <value>
                     <![CDATA[
 //MethodDeclaration//PrimaryExpression[PrimaryPrefix/Name[ends-with(@Image, '.setFetchSize')]
-[ancestor::PrimaryExpression/PrimarySuffix/Arguments/ArgumentList/Expression/PrimaryExpression/PrimaryPrefix/Literal[@Image > 500]]]
+[ancestor::PrimaryExpression/PrimarySuffix/Arguments/ArgumentList/Expression/PrimaryExpression/PrimaryPrefix/Literal[number(@Image) > 500]]]
 |
 //MethodDeclaration//PrimaryExpression[PrimaryPrefix/Name[ends-with(@Image, '.setFetchSize')]
 [ancestor::PrimaryExpression/PrimarySuffix/Arguments/ArgumentList/Expression/PrimaryExpression/PrimaryPrefix/Name[@Image =
 ancestor::ClassOrInterfaceBody//VariableDeclarator/VariableDeclaratorId/@Name
-[ancestor::VariableDeclarator/VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/Literal[@Image > 500]]]]]
+[ancestor::VariableDeclarator/VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/Literal[number(@Image) > 500]]]]]
 ]]>
                 </value>
             </property>
