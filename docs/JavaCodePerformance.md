@@ -424,7 +424,7 @@ class RetrieveCache {
 ```
 
 #### IBI20
-**Observation: Apache HttpClient RequestConfig connectionRequestTimeout and connectTimeout have typical improper values, that is, too high.**   
+**Observation: Apache HttpClient RequestConfig connectionRequestTimeout and connectTimeout have values which are typically too high.**   
 **Problem:** org.apache.http.client.config.RequestConfig is used with connectionRequestTimeout and connectTimeout values > 500 milli seconds.
 
 1. connectTimeout is for establishing a (secure) connection which should be quick, say below 200 ms.   

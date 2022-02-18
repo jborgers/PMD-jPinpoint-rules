@@ -828,7 +828,7 @@ public class Foo {
     </rule>
 
     <rule name="HttpClientImproperConnectionTimeouts" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java"
-          message="ApacheHttpClient RequestConfig connectionRequestTimeout and connectTimeout have typical improper values, that is, too high."
+          message="ApacheHttpClient RequestConfig connectionRequestTimeout and connectTimeout have values which are typically too high."
           typeResolution="true"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi20">
         <description>org.apache.http.client.config.RequestConfig is used with connectionRequestTimeout and connectTimeout values above 500 milli seconds.
