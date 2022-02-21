@@ -3698,17 +3698,17 @@ concat(ancestor::MethodDeclaration//VariableDeclarator[./VariableInitializer//Na
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
-            <property name="version" value="1.0"/>
+            <property name="version" value="2.0"/>
             <property name="xpath">
                 <value>
                     <![CDATA[
 //MethodDeclaration//PrimaryExpression[PrimaryPrefix/Name[ends-with(@Image, '.setFetchSize')]
-[ancestor::PrimaryExpression/PrimarySuffix/Arguments/ArgumentList/Expression/PrimaryExpression/PrimaryPrefix/Literal[number(@Image) > 500]]]
+[../..//ArgumentList//Literal[number(@Image) > 500]]]
 |
-//MethodDeclaration//PrimaryExpression[PrimaryPrefix/Name[ends-with(@Image, '.setFetchSize')]
-[ancestor::PrimaryExpression/PrimarySuffix/Arguments/ArgumentList/Expression/PrimaryExpression/PrimaryPrefix/Name[@Image =
+//MethodDeclaration//PrimaryExpression[PrimaryPrefix/Name[ends-with(@Image, '.setFetchSize')]]
+[PrimarySuffix//ArgumentList//Name[@Image =
 ancestor::ClassOrInterfaceBody//VariableDeclarator/VariableDeclaratorId/@Name
-[ancestor::VariableDeclarator/VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/Literal[number(@Image) > 500]]]]]
+[../../VariableInitializer//Literal[number(@Image) > 500]]]]
 ]]>
                 </value>
             </property>
