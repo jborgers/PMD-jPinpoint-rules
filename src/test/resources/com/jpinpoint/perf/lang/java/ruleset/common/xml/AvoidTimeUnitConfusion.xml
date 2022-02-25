@@ -100,4 +100,22 @@ public class RetrieveCache {
         ]]></code>
     </test-code>
 
+    <test-code>
+        <description>violation: no primitive formal parameter false positive, issue #189 </description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+public final class TimeUtils {
+
+    private TimeUtils(){}
+    public static boolean isExpired(LocalDateTime lastModifiedTime, long expiryDurationInHours){ // good
+        LocalDateTime now = LocalDateTime.now();
+        Duration duration = Duration.between(lastModifiedTime, now);
+        long durationInHours = duration.abs().toHours();
+        return durationInHours > expiryDurationInHours;
+    }
+}
+]]></code>
+    </test-code>
+
+
 </test-data>

@@ -705,6 +705,13 @@ class Good {
         </example>
     </rule>
 
+    <!-- for pmd-7
+    //FieldDeclaration[index-of(pmd-java:explicitModifiers(), 'volatile') > 0 and
+    ancestor::ClassOrInterfaceDeclaration//Annotation[@SimpleName='Scope']//MemberValuePair[
+    FieldAccess[ends-with(@Name,'SCOPE_PROTOTYPE')] | StringLiteral[contains(@Image, 'prototype')]]]
+    -->
+
+
     <rule name="SynchronizingForLocalVars" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" message="Local variables don't need synchronization" typeResolution="true"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#tutc12">
         <description>In the synchronized block, only local variables seem to be accessed. Problem: synchronization has overhead and may introduce lock contention. &#13;
