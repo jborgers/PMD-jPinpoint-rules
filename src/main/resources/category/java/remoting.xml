@@ -300,7 +300,7 @@ ancestor::MethodDeclaration//PrimarySuffix/@Image="disableConnectionState")]
   and not(ancestor::MethodDeclaration//(PrimaryPrefix/Name|PrimarySuffix)[ends-with(@Image, 'setDefaultRequestConfig')])
 ]
 ,
-(: method param http client builder without setDefaultRequestConfig to set timeouts :)
+(: method param http client builder without setDefaultRequestConfig or by RequestConfigCallback to set timeouts :)
 //MethodDeclaration//FormalParameter//ClassOrInterfaceType[
  (
    pmd-java:typeIs('org.apache.http.impl.client.HttpClientBuilder')
@@ -308,6 +308,9 @@ ancestor::MethodDeclaration//PrimarySuffix/@Image="disableConnectionState")]
    or pmd-java:typeIs('org.apache.http.impl.client.HttpClients')
   )
   and not(ancestor::MethodDeclaration//(PrimaryPrefix/Name|PrimarySuffix)[ends-with(@Image, 'setDefaultRequestConfig')])
+  and not(ancestor::ClassOrInterfaceBody//PrimarySuffix[@Image='setRequestConfigCallback']
+    and ancestor::ClassOrInterfaceBody//MethodDeclaration[ResultType//ClassOrInterfaceType[@Image='RequestConfig.Builder']]
+    /Block[count(.//PrimaryExpression/(PrimaryPrefix/Name|PrimarySuffix)[ends-with(@Image, 'setConnectionRequestTimeout') or ends-with(@Image, 'setConnectTimeout') or ends-with(@Image, 'setSocketTimeout')]) = 3] )
 ]
 ,
 (: RequestConfig creation without setConnectionRequestTimeout/setConnectTimeout/setSocketTimeout :)

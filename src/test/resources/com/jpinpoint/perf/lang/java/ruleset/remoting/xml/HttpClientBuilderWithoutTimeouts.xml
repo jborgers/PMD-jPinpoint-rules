@@ -354,4 +354,60 @@ class HttpClientGood2 {
      ]]></code>
     </test-code>
 
+    <test-code>
+        <description>violation: HttpAsyncClientBuilder with callbacks not all three timeouts set. Issue #191</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>36</expected-linenumbers>
+        <code><![CDATA[
+import org.apache.http.client.config.*;
+import org.apache.http.impl.client.*;
+import org.springframework.http.client.*;
+import org.apache.http.client.*;
+import org.apache.http.impl.nio.client.HttpAsyncClientBuilder;
+import org.elasticsearch.client.RestClient;
+import org.elasticsearch.client.RestClientBuilder;
+
+class DataStoreConfigGood {
+    private RestClientBuilder getRestClientBuilder() {
+        return RestClient.builder(hosts)
+                .setHttpClientConfigCallback(this::createHttpClientConfigCallback)
+                .setRequestConfigCallback(this::createRequestConfigCallbackGood);
+    }
+    private HttpAsyncClientBuilder createHttpClientConfigCallback(final HttpAsyncClientBuilder clientBuilder) {
+        clientBuilder
+                .setMaxConnPerRoute(20)
+                .setMaxConnTotal(20)
+                .disableConnectionState();
+        return clientBuilder;
+    }
+    private RequestConfig.Builder createRequestConfigCallbackGood(RequestConfig.Builder builder) {
+        return builder
+                .setConnectTimeout(200)
+                .setConnectionRequestTimeout(200)
+                .setSocketTimeout(4000);
+    }
+}
+
+class DataStoreConfigBad {
+    private RestClientBuilder getRestClientBuilder() {
+        return RestClient.builder(hosts)
+                .setHttpClientConfigCallback(this::createHttpClientConfigCallback)
+                .setRequestConfigCallback(this::createRequestConfigCallbackBad);
+    }
+    private HttpAsyncClientBuilder createHttpClientConfigCallback(final HttpAsyncClientBuilder clientBuilder) { // bad
+        clientBuilder
+                .setMaxConnPerRoute(20)
+                .setMaxConnTotal(20)
+                .disableConnectionState();
+        return clientBuilder;
+    }
+    private RequestConfig.Builder createRequestConfigCallbackBad(RequestConfig.Builder builder) {
+        return builder
+                .setConnectTimeout(200)
+                .setSocketTimeout(4000); // one timeout missing
+    }
+}
+     ]]></code>
+    </test-code>
+
 </test-data>
