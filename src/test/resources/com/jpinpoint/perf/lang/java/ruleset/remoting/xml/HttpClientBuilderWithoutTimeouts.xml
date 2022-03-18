@@ -357,12 +357,9 @@ class HttpClientGood2 {
     <test-code>
         <description>violation: HttpAsyncClientBuilder with callbacks not all three timeouts set. Issue #191</description>
         <expected-problems>1</expected-problems>
-        <expected-linenumbers>36</expected-linenumbers>
+        <expected-linenumbers>32</expected-linenumbers>
         <code><![CDATA[
-import org.apache.http.client.config.*;
-import org.apache.http.impl.client.*;
-import org.springframework.http.client.*;
-import org.apache.http.client.*;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.impl.nio.client.HttpAsyncClientBuilder;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestClientBuilder;
@@ -376,8 +373,7 @@ class DataStoreConfigGood {
     private HttpAsyncClientBuilder createHttpClientConfigCallback(final HttpAsyncClientBuilder clientBuilder) {
         clientBuilder
                 .setMaxConnPerRoute(20)
-                .setMaxConnTotal(20)
-                .disableConnectionState();
+                .setMaxConnTotal(20);
         return clientBuilder;
     }
     private RequestConfig.Builder createRequestConfigCallbackGood(RequestConfig.Builder builder) {
@@ -397,8 +393,7 @@ class DataStoreConfigBad {
     private HttpAsyncClientBuilder createHttpClientConfigCallback(final HttpAsyncClientBuilder clientBuilder) { // bad
         clientBuilder
                 .setMaxConnPerRoute(20)
-                .setMaxConnTotal(20)
-                .disableConnectionState();
+                .setMaxConnTotal(20);
         return clientBuilder;
     }
     private RequestConfig.Builder createRequestConfigCallbackBad(RequestConfig.Builder builder) {

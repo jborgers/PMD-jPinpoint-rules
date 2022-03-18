@@ -55,7 +55,7 @@ class Good {
      ]]></code>
     </test-code>
     <test-code>
-        <description>no violation: returning HttpClient with assymed pool sizes set through Connection Manager </description>
+        <description>no violation: returning HttpClient with assumed pool sizes set through Connection Manager </description>
         <expected-problems>0</expected-problems>
         <code><![CDATA[
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -68,4 +68,68 @@ class Good {
 }
      ]]></code>
     </test-code>
+
+    <test-code>
+        <description>no violation: returning HttpAsyncClientBuilder with pool sizes set through only Connection Manager or only setters </description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.impl.nio.client.HttpAsyncClientBuilder;
+import org.elasticsearch.client.RestClient;
+import org.elasticsearch.client.RestClientBuilder;
+
+class DataStoreConfigGood1 {
+    private RestClientBuilder getRestClientBuilder() {
+        return RestClient.builder(hosts)
+                .setHttpClientConfigCallback(this::createHttpClientConfigCallback);
+    }
+
+    private HttpAsyncClientBuilder createHttpClientConfigCallback(final HttpAsyncClientBuilder clientBuilder) {
+        clientBuilder
+                .setMaxConnPerRoute(20)
+                .setMaxConnTotal(20);
+        return clientBuilder;
+    }
+}
+class DataStoreConfigGood2 {
+    private RestClientBuilder getRestClientBuilder() {
+        return RestClient.builder(hosts)
+                .setHttpClientConfigCallback(this::createHttpClientConfigCallback);
+    }
+
+    private HttpAsyncClientBuilder createHttpClientConfigCallback(final HttpAsyncClientBuilder clientBuilder) {
+        clientBuilder.setConnectionManager(connMgr);
+        return clientBuilder;
+    }
+}
+    ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>violation: returning HttpAsyncClientBuilder with pool sizes set through both Connection Manager and setters </description>
+        <expected-problems>2</expected-problems>
+        <expected-linenumbers>15, 16</expected-linenumbers>
+        <code><![CDATA[
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.impl.nio.client.HttpAsyncClientBuilder;
+import org.elasticsearch.client.RestClient;
+import org.elasticsearch.client.RestClientBuilder;
+
+class DataStoreConfigBad {
+    private RestClientBuilder getRestClientBuilder() {
+        return RestClient.builder(hosts)
+                .setHttpClientConfigCallback(this::createHttpClientConfigCallback);
+    }
+
+    private HttpAsyncClientBuilder createHttpClientConfigCallback(final HttpAsyncClientBuilder clientBuilder) {
+        clientBuilder
+                .setConnectionManager(connMgr)
+                .setMaxConnPerRoute(20) // bad
+                .setMaxConnTotal(20); // bad
+        return clientBuilder;
+    }
+}
+]]></code>
+    </test-code>
+
 </test-data>

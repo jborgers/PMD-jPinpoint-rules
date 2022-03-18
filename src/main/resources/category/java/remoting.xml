@@ -255,7 +255,7 @@ ancestor::MethodDeclaration//PrimarySuffix/@Image="disableConnectionState")]
    or pmd-java:typeIs('org.apache.http.impl.nio.client.HttpAsyncClientBuilder')
    or pmd-java:typeIs('org.apache.http.impl.client.HttpClients')
   )
-  and not(ancestor::MethodDeclaration//(PrimaryPrefix/Name|PrimarySuffix)[ends-with(@Image, 'setConnectionManager')])
+  and (ancestor::MethodDeclaration//(PrimaryPrefix/Name|PrimarySuffix)[ends-with(@Image, 'setConnectionManager')])
 ]/ancestor::MethodDeclaration//(PrimaryPrefix/Name|PrimarySuffix)[ends-with(@Image, 'setMaxConnTotal') or ends-with(@Image, 'setMaxConnPerRoute')]
 ]]>
                 </value>
