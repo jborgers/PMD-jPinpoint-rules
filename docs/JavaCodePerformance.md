@@ -98,16 +98,7 @@ Note that class PoolingClientConnectionManager and several others are deprecated
 **Rule name:** HttpClientBuilderWithoutPoolSize.
 
 #### IBI04
-
-**Observation: A blocking asynchronous call future.get() without time-out is used.**  
-**Problem:** It cannot deal with hanging threads. Threads may get stuck in database, a remote system, because of a network hiccup, in error or other exceptional situations.  
-**Solution:** Use the version with timeout and handle a timeout situation.
-
-```java
-future.get(long timeout, TimeUnit unit)
-```
-
-See: [Monix Best Practice](https://monix.io/docs/2x/best-practices/blocking.html)
+Moved to [Improper asychrony category](#ia06)
 
 #### IBI05
 
@@ -514,6 +505,7 @@ Make sure to give the threads a proper name, this makes them easier to recognize
 **Problem:** The org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor has a default queue capacity which is unlimited which can lead to an out of memory situation.      
 **Solution:** Call setQueueCapacity, for instance with a value equal to CorePoolSize.
 Note that the pool will only grow beyond CorePoolSize up to MaxPoolSize when the queue is full.  
+**Rule name:** SetQueueCapacityForTaskExecutor   
 **Example:**
 ```java
    private ThreadPoolTaskExecutor createExecutor() {
@@ -524,6 +516,50 @@ Note that the pool will only grow beyond CorePoolSize up to MaxPoolSize when the
         executor.initialize();
         return executor;
    }
+```
+#### IA06
+**Observation: A blocking asynchronous call future.get() without time-out is used.**  
+**Problem:** Stalls indefinitely in case of hanging thread(s) and consumes a thread. Threads may get stuck in database, a remote system, because of a network hiccup, in error or other exceptional situations.  
+**Solution:** Use the version with timeout and handle a timeout situation.
+**Rule name:** AvoidFutureGetWithoutTimeout
+**Example:**   
+```java
+future.get(long timeout, TimeUnit unit)
+```
+
+See: [Monix Best Practice](https://monix.io/docs/2x/best-practices/blocking.html)
+
+#### IA07
+**Observation: A blocking future.join() is called without a timeout.**  
+**Problem:** It cannot deal with hanging threads. Threads may get stuck in database, a remote system, because of a network hiccup, in error or other exceptional situations.  
+**Solution:** Provide a timeout before the join and handle the timeout. For example a future.get(timeout, unit), a orTimeout() or a completeOnTimeout(). You may want to use CompletableFuture.allOf().   
+**Rule name:** AvoidFutureJoinWithoutTimeout   
+**Example:**
+```java
+class Foo {
+  private List<Order> getOrdersBad(List<CompletableFuture<Order>> getOrdersFutures) {
+
+    List<Order> orders = getOrdersFutures.stream()
+            .map(CompletableFuture::join) // bad, NO timeout provided above
+            .collect(Collectors.toList());
+    return orders;
+  }
+
+  private List<Order> getOrdersGood(List<CompletableFuture<Order>> getOrdersFutures) {
+    // added to deal with timeout
+    CompletableFuture<Void> allFuturesResult = CompletableFuture.allOf(getOrdersFutures.toArray(new CompletableFuture[getOrdersFutures.size()]));
+    try {
+      allFuturesResult.get(5L, TimeUnit.SECONDS); // good
+    } catch (Exception e) { // should make explicit Exceptions
+      //log error
+    }
+    List<Order> orders = getOrdersFutures.stream()
+            .filter(future -> future.isDone() && !future.isCompletedExceptionally()) // keep only the ones completed -- added to deal with timeout
+            .map(CompletableFuture::join) // good, timeout provided above
+            .collect(Collectors.toList());
+    return orders;
+  }
+}
 ```
 
 Improper caching  

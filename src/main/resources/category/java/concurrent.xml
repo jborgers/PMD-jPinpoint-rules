@@ -764,6 +764,61 @@ public class Foo {
         </example>
     </rule>
 
+    <rule name="AvoidFutureJoinWithoutTimeout"
+          message="Avoid future.join without timeout"
+          class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java"
+          typeResolution="true" externalInfoUrl="${doc_root}/JavaCodePerformance.md#ia07">
+        <description>
+            Problem: Stalls indefinitely in case of hanging thread(s) and consumes a thread.&#13;
+            Solution: Provide a timeout before the join and handle the timeout. For example a future.get(timeout, unit), a orTimeout() or a completeOnTimeout(). You may want to use CompletableFuture.allOf() too.
+            (jpinpoint-rules)</description>
+        <priority>1</priority>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value>
+                    <![CDATA[
+(: future.join method reference without timeout in method :)
+//PrimaryExpression/PrimaryPrefix[pmd-java:typeIs('java.util.concurrent.Future')
+and not(ancestor::MethodDeclaration//PrimaryPrefix/Name[ends-with(@Image, '.get') or ends-with(@Image, 'Timeout')][../../PrimarySuffix//ArgumentList])
+]
+/../PrimarySuffix//MethodReference[@Image='join']
+,
+(: future.join in lambda without timeout in method :)
+//PrimaryExpression/PrimaryPrefix/LambdaExpression//Name[ends-with(@Image, '.join')
+and not(ancestor::MethodDeclaration//PrimaryPrefix/Name[ends-with(@Image, '.get') or ends-with(@Image, 'Timeout')][../../PrimarySuffix//ArgumentList])
+]
+]]>
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+    private List<Order> getOrdersBad(List<CompletableFuture<Order>> getOrdersFutures) {
+
+        List<Order> orders = getOrdersFutures.stream()
+            .map(CompletableFuture::join) // bad, NO timeout provided above
+            .collect(Collectors.toList());
+        return orders;
+    }
+
+    private List<Order> getOrdersGood(List<CompletableFuture<Order>> getOrdersFutures) {
+        // added to deal with timeout
+        CompletableFuture<Void> allFuturesResult = CompletableFuture.allOf(getOrdersFutures.toArray(new CompletableFuture[getOrdersFutures.size()]));
+        try {
+            allFuturesResult.get(5L, TimeUnit.SECONDS); // good
+        } catch (Exception e) { // should make explicit Exceptions
+            //log error
+        }
+        List<Order> orders = getOrdersFutures.stream()
+                .filter(future -> future.isDone() && !future.isCompletedExceptionally()) // keep only the ones completed -- added to deal with timeout
+                .map(CompletableFuture::join) // good, timeout provided above
+                .collect(Collectors.toList());
+        return orders;
+    }
+            ]]>
+        </example>
+    </rule>
 </ruleset>
 
 

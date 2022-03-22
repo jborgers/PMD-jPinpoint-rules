@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>Avoid Future Join Without Timeout</description>
+        <expected-problems>2</expected-problems>
+        <expected-linenumbers>13, 34</expected-linenumbers>
+        <code><![CDATA[
+import java.util.*;
+import java.util.concurrent.*;
+
+class Bad1 {
+    private Orders getOrders(OrderSearchOptions searchOptions, List<IGetOrdersService> getOrdersServices) {
+
+            List<CompletableFuture<Object>> completableFutures = getOrdersServices.stream()
+                    .map(orderManager -> this.createCompletableFuture(orderManager, searchOptions))
+                    .collect(Collectors.toList());
+
+            List<Object> orderSearchResults = completableFutures.stream()
+                    .filter(future -> future.isDone() && !future.isCompletedExceptionally()) // keep only the ones completed -- added to deal with timeout
+                    .map(CompletableFuture::join) // bad since NO timeout used above in method
+                    //.map(future -> future.join())
+                    .collect(Collectors.toList());
+
+            return new Orders(orderSearchResults);
+    }
+}
+
+class Bad2 {
+        private List<Object> getOrders(List<CompletableFuture<Object>> getOrdersFutures) {
+
+            // added to deal with timeout
+            CompletableFuture<Void> allFuturesResult = CompletableFuture.allOf(getOrdersFutures.toArray(new CompletableFuture[getOrdersFutures.size()]));
+            try {
+                allFuturesResult.get(); // missing timeout
+            } catch (Exception e) { // should make explicit Exceptions
+                //log error
+            }
+
+            List<Object> orderSearchResults = getOrdersFutures.stream()
+                    .filter(future -> future.isDone() && !future.isCompletedExceptionally()) // keep only the ones completed -- added to deal with timeout
+                    .map(future -> future.join()) // bad since has NO timeout above
+                    .collect(Collectors.toList());
+
+            return orderSearchResults;
+        }
+}
+
+class Good1 {
+        private List<Object> getOrders(List<CompletableFuture<Object>> getOrdersFutures) {
+
+            // added to deal with timeout
+            CompletableFuture<Void> allFuturesResult = CompletableFuture.allOf(getOrdersFutures.toArray(new CompletableFuture[getOrdersFutures.size()]));
+            try {
+                //allFuturesResult.get(); // bad
+                allFuturesResult.get(5L, TimeUnit.SECONDS); // good
+                //allFuturesResult.orTimeout(5L, TimeUnit.SECONDS); // should also be ok
+                //allFuturesResult.completeOnTimeout(NO_ORDER, 5L, TimeUnit.SECONDS); // should also be ok
+            } catch (Exception e) { // should make explicit Exceptions
+                //log error
+            }
+
+            List<Object> orderSearchResults = getOrdersFutures.stream()
+                    .filter(future -> future.isDone() && !future.isCompletedExceptionally()) // keep only the ones completed -- added to deal with timeout
+                    .map(CompletableFuture::join) // good since has timeout above
+                    .collect(Collectors.toList());
+
+            return orderSearchResults;
+        }
+}
+
+class Good2 {
+        private List<Object> getOrders(List<CompletableFuture<Object>> getOrdersFutures) {
+
+            // added to deal with timeout
+            CompletableFuture<Void> allFuturesResult = CompletableFuture.allOf(getOrdersFutures.toArray(new CompletableFuture[getOrdersFutures.size()]));
+            try {
+                //allFuturesResult.get(); // bad
+                //allFuturesResult.get(5L, TimeUnit.SECONDS); // good
+                allFuturesResult.orTimeout(5L, TimeUnit.SECONDS); // should also be ok
+                //allFuturesResult.completeOnTimeout(NO_ORDER, 5L, TimeUnit.SECONDS); // should also be ok
+            } catch (Exception e) { // should make explicit Exceptions
+                //log error
+            }
+
+            List<Object> orderSearchResults = getOrdersFutures.stream()
+                    .filter(future -> future.isDone() && !future.isCompletedExceptionally()) // keep only the ones completed -- added to deal with timeout
+                    .map(future -> future.join()) // good since has timeout above
+                    .collect(Collectors.toList());
+
+            return orderSearchResults;
+        }
+}
+]]></code>
+    </test-code>
+</test-data>
