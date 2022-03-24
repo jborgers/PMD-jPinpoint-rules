@@ -251,19 +251,23 @@ VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/Literal[string-le
         </properties>
     </rule>
 
-    <rule name="AvoidInMemoryStreamingDefaultConstructor" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" message="Default capacity constructor of ByteArrayOutputStream or StringWriter is used, it usually needs expensive expansions." typeResolution="true"
+    <rule name="AvoidInMemoryStreamingDefaultConstructor" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" message="Default capacity or smaller is used for ByteArrayOutputStream or StringWriter, it usually needs expensive expansions." typeResolution="true"
           externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#isio01">
-        <description>Default constructor of ByteArrayOutputStream or StringWriter is used. Problem: It allocates a small buffer as capacity which usually needs several expensive expansions.&#13;
-            Solution: Presize the ByteArrayOutputStream or StringWriter with an initial capacity such that an expansion is not needed in most cases.
+        <description>The default constructor of ByteArrayOutputStream creates a 32 bytes initial capacity and for StringWriter 16 chars. Problem: Such a small buffer as capacity usually needs several expensive expansions.&#13;
+            Solution: Presize the ByteArrayOutputStream or StringWriter with an initial capacity such that an expansion is not needed in most cases, typically much larger than 32, for instance 4096.
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
-	//TypeDeclaration/ClassOrInterfaceDeclaration/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration
 //PrimaryExpression/PrimaryPrefix/AllocationExpression/ClassOrInterfaceType[pmd-java:typeIs('java.io.ByteArrayOutputStream') or pmd-java:typeIs('java.io.StringWriter')]
-[not(../Arguments/ArgumentList)]
+[not(../Arguments/ArgumentList)
+or
+(pmd-java:typeIs('java.io.ByteArrayOutputStream') and (../Arguments//Literal[number(@Image) <= 32] or ../Arguments//Name[@Image = ancestor::ClassOrInterfaceDeclaration//FieldDeclaration//VariableDeclaratorId[number(..//Literal/@Image) <= 32]/@Image]))
+or
+(pmd-java:typeIs('java.io.StringWriter') and (../Arguments//Literal[number(@Image) <= 16] or ../Arguments//Name[@Image = ancestor::ClassOrInterfaceDeclaration//FieldDeclaration//VariableDeclaratorId[number(..//Literal/@Image) <= 16]/@Image]))
+]/..
 	]]></value>
             </property>
         </properties>
@@ -942,7 +946,7 @@ class LombokGetterGood {
 
     <rule name="InconsistentEqualsAndHashCode" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" message="Equals does not use all fields used by hashCode or it uses inconsistent conversion." typeResolution="true"
           externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodeQuality.md#ieah03">
-        <description>Problem: Equal objects may have different hashCodes and end-up in different buckets. Strange things can happen like adding an object to a Set and not being able to find it back.&#13;
+        <description>Problem: Equal objects may have different hashCodes and end-up in different buckets of a Map/Set. Strange things can happen like adding an object to a Set and not being able to find it back.&#13;
             Solution: Use the same fields in equals and hashCode and if conversions are needed, use identical conversions in both. So don't use equalsIgnoreCase. (jpinpoint-rules)</description>
         <priority>1</priority>
         <properties>
@@ -1172,7 +1176,7 @@ class Bad1 {
     </rule>
 
     <rule name="MissingFieldInHashCode" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" message="Equals uses a field which is missing in hashCode." typeResolution="true"
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodeQuality.md#ieah0">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodeQuality.md#ieah03">
         <description>Problem: Two unequal objects can have the same hashCode and end up in the same bucket of a Map. This may result in bad performance, O(n) lookup instead of O(1).&#13;
             Solution: Use the same fields in hashCode as are used in equals. (jpinpoint-rules)</description>
         <priority>2</priority>

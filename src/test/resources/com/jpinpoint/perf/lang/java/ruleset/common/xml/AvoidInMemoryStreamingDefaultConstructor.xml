@@ -35,7 +35,7 @@ import java.io.StringWriter;
 public class Bar {
     public static void testNoViolation1()  {
         ByteArrayOutputStream baos = null;
-        baos = new ByteArrayOutputStream(8*1024);
+        baos = new ByteArrayOutputStream(8192); // 8 kiB
     }
     public static void testNoViolation2()  {
         ByteArrayOutputStream baos = new ByteArrayOutputStream(4096);
@@ -46,4 +46,30 @@ public class Bar {
 }
      ]]></code>
      </test-code>
+
+    <test-code>
+        <description>violation: Avoid XxxStream constructor with less than or equal to default capacity #95</description>
+        <expected-problems>2</expected-problems>
+        <expected-linenumbers>7,13</expected-linenumbers>
+        <code><![CDATA[
+ class Foo2 {
+    int SW_SIZE_1 = 16;
+    int SW_SIZE_2 = 17;
+
+    public static void testViolation1()  {
+        ByteArrayOutputStream baos = null;
+        baos = new ByteArrayOutputStream(32); //bad
+    }
+    public static void testViolation2()  {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream(33); //good
+    }
+    public static void testViolation3()  {
+        StringWriter sw = new StringWriter(SW_SIZE_1); //bad
+    }
+    public static void testViolation4()  {
+        StringWriter sw = new StringWriter(SW_SIZE_2); //good
+    }
+}
+     ]]></code>
+    </test-code>
 </test-data>

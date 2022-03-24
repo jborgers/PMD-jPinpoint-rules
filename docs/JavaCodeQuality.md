@@ -184,8 +184,13 @@ Tip 2: [Project Lombok](https://projectlombok.org/features/index.html) provides 
 #### IEAH03
 
 **Observation: Equals and hashCode are inconsistent: they are not based on the same fields or use inconsistent conversion.**  
-**Problem:** If equals and hashCode are inconsistent, strange things can happen like adding the object to a Set and not being able to find it back.  
+**Problem:** 
+Actually, two cases: 
+1. Equal objects can have different hashCodes and end-up in different buckets of a Map/Set. Strange things can happen like adding an object to a Set and not being able to find it back.
+2. Two unequal objects can have the same hashCode and end up in the same bucket of a Map. This may result in bad performance, O(n) lookup instead of O(1).   
+
 **Solution:** Use the same fields in equals and hashCode and if conversions are needed, use identical conversions in both. So don't use equalsIgnoreCase.  
+**Rule-names:** InconsistentEqualsAndHashCode, MissingFieldInHashCode   
 **Examples:**  
 ````java
 class Good {
@@ -211,7 +216,7 @@ class Bad1 {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Bad1 that = (Bad1) o;
-        return Objects.equals(field1, that.field1); // field2 missing
+        return Objects.equals(field1, that.field1); // field2 missing in equals
     }
     public int hashCode() {
         return Objects.hash(field1, field2); 
@@ -236,7 +241,7 @@ class Bad2 {
     }
 }
 ````
-**Rule-name:** InconsistentEqualsAndHashCode
+
 
 #### IEAH04
 
