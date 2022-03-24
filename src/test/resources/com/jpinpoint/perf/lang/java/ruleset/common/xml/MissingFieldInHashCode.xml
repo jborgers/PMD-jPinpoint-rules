@@ -43,8 +43,9 @@ class EqHashTryout2 {
     </test-code>
 
     <test-code>
-        <description>no violation: field2 missing in hashCode</description>
-        <expected-problems>0</expected-problems>
+        <description>violation: field2 missing in hashCode</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>3</expected-linenumbers>
         <code><![CDATA[
 class EqHashTryoutBad1 {
     String field1;
@@ -67,9 +68,8 @@ class EqHashTryoutBad1 {
     </test-code>
 
     <test-code>
-        <description>violation: field2 missing in equals</description>
-        <expected-problems>1</expected-problems>
-        <expected-linenumbers>3</expected-linenumbers>
+        <description>no violation: field2 missing in equals</description>
+        <expected-problems>0</expected-problems>
         <code><![CDATA[
 class EqHashTryoutBad2 {
     String field1;
@@ -94,8 +94,9 @@ class EqHashTryoutBad2 {
     </test-code>
 
     <test-code>
-        <description>no violation: field2 missing in hashCode java7 notation</description>
-        <expected-problems>0</expected-problems>
+        <description>violation: field2 missing in hashCode java7 notation</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>3</expected-linenumbers>
         <code><![CDATA[
 class EqHashTryoutBad3 {
     String field1;
@@ -117,9 +118,8 @@ class EqHashTryoutBad3 {
     </test-code>
 
     <test-code>
-        <description>violation: field2 missing in equals java7 notation</description>
-        <expected-problems>1</expected-problems>
-        <expected-linenumbers>3</expected-linenumbers>
+        <description>no violation: field2 missing in equals java7 notation</description>
+        <expected-problems>0</expected-problems>
         <code><![CDATA[
 class EqHashTryoutBad4 {
     String field1;
@@ -139,8 +139,9 @@ class EqHashTryoutBad4 {
     </test-code>
 
     <test-code>
-        <description>no violation: field1 missing in hashCode java7 notation</description>
-        <expected-problems>0</expected-problems>
+        <description>violation: field1 missing in hashCode java7 notation</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>2</expected-linenumbers>
         <code><![CDATA[
 class EqHashTryoutBad5 {
     String field1; //bad
@@ -161,9 +162,8 @@ class EqHashTryoutBad5 {
     </test-code>
 
     <test-code>
-        <description>violation: lowercase field2 only in equals, java7 notation</description>
-        <expected-problems>1</expected-problems>
-        <expected-linenumbers>3</expected-linenumbers>
+        <description>no violation: lowercase field2 only in equals, java7 notation</description>
+        <expected-problems>0</expected-problems>
         <code><![CDATA[
 class EqHashTryoutBad6 {
     String field1;
@@ -184,9 +184,8 @@ class EqHashTryoutBad6 {
     </test-code>
 
     <test-code>
-        <description>violation: equalsIgnoreCase field2 only in equals</description>
-        <expected-problems>1</expected-problems>
-        <expected-linenumbers>10</expected-linenumbers>
+        <description>no violation: equalsIgnoreCase field2 only in equals</description>
+        <expected-problems>0</expected-problems>
         <code><![CDATA[
 class EqHashTryoutBad7 { // equalsIgnoreCase
     String field1;
@@ -278,8 +277,9 @@ public class BadFromIssue {
     </test-code>
 
     <test-code>
-        <description>no violation: Only deal with equals with one argument and hashCode with 0 arguments, issue 130</description>
-        <expected-problems>0</expected-problems>
+        <description>violation: Only deal with equals with one argument and hashCode with 0 arguments, issue 130</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>43</expected-linenumbers>
         <code><![CDATA[
 public class EqHashTryoutGoodIssue130NoEqHc {
     String field1;// good
@@ -345,9 +345,8 @@ class EqHashTryoutBadIssue130Related {
         </test-code>
 
     <test-code>
-        <description>1 violation: equals on fields without null check, issue #153</description>
-        <expected-problems>1</expected-problems>
-        <expected-linenumbers>25</expected-linenumbers>
+        <description>no violation: equals on fields without null check, issue #153</description>
+        <expected-problems>0</expected-problems>
         <code><![CDATA[
 class MyClassOk {
     String header;
@@ -398,8 +397,8 @@ class MyClass1 {
 
     <test-code>
         <description>violation: field2 missing in equals, innerField2 missing in equals and innerInnerField1 missing in hashCode</description>
-        <expected-problems>2</expected-problems>
-        <expected-linenumbers>3, 17</expected-linenumbers>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>31</expected-linenumbers>
         <code><![CDATA[
 public class Klass {
     String field1;

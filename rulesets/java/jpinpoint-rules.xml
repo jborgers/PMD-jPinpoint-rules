@@ -940,9 +940,9 @@ class LombokGetterGood {
         </example>
     </rule>
 
-    <rule name="InconsistentEqualsAndHashCode" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" message="Equals and hashCode are not based on the same fields or use inconsistent conversion." typeResolution="true"
+    <rule name="InconsistentEqualsAndHashCode" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" message="Equals does not use all fields used by hashCode or it uses inconsistent conversion." typeResolution="true"
           externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodeQuality.md#ieah03">
-        <description>Problem: If equals and hashCode are inconsistent, strange things can happen like adding the object to a Set and not being able to find it back.&#13;
+        <description>Problem: Equal objects may have different hashCodes and end-up in different buckets. Strange things can happen like adding an object to a Set and not being able to find it back.&#13;
             Solution: Use the same fields in equals and hashCode and if conversions are needed, use identical conversions in both. So don't use equalsIgnoreCase. (jpinpoint-rules)</description>
         <priority>1</priority>
         <properties>
@@ -951,7 +951,7 @@ class LombokGetterGood {
                 <value><![CDATA[
 //FieldDeclaration//VariableDeclaratorId[
 (@Name = ancestor::ClassOrInterfaceBody[1]//MethodDeclaration[@Name='equals' and (MethodDeclarator//FormalParameters/@Size = 1)]/Block//(Name|PrimarySuffix)/@Image or
-concat(@Name, '.equals') = ancestor::ClassOrInterfaceBody//MethodDeclaration[@Name='equals' and (MethodDeclarator//FormalParameters/@Size = 1)]/Block//(Name|PrimarySuffix)/@Image) !=
+concat(@Name, '.equals') = ancestor::ClassOrInterfaceBody//MethodDeclaration[@Name='equals' and (MethodDeclarator//FormalParameters/@Size = 1)]/Block//(Name|PrimarySuffix)/@Image) <
 (@Name = ancestor::ClassOrInterfaceBody[1]//MethodDeclaration[@Name='hashCode' and (MethodDeclarator//FormalParameters/@Size = 0)]/Block//(PrimarySuffix|Name)/@Image or
 concat(@Name, '.hashCode') = ancestor::ClassOrInterfaceBody[1]//MethodDeclaration[@Name='hashCode' and (MethodDeclarator//FormalParameters/@Size = 0)]/Block//PrimaryPrefix/Name/@Image)
 ]
@@ -1165,6 +1165,62 @@ class Bad1 {
     }
     public int hashCode() {
         return Objects.hash(field1);
+    }
+}
+            ]]>
+        </example>
+    </rule>
+
+    <rule name="MissingFieldInHashCode" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" message="Equals uses a field which is missing in hashCode." typeResolution="true"
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodeQuality.md#ieah0">
+        <description>Problem: Two unequal objects can have the same hashCode and end up in the same bucket of a Map. This may result in bad performance, O(n) lookup instead of O(1).&#13;
+            Solution: Use the same fields in hashCode as are used in equals. (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+//FieldDeclaration//VariableDeclaratorId[
+(@Name = ancestor::ClassOrInterfaceBody[1]//MethodDeclaration[@Name='equals' and (MethodDeclarator//FormalParameters/@Size = 1)]/Block//(Name|PrimarySuffix)/@Image or
+concat(@Name, '.equals') = ancestor::ClassOrInterfaceBody//MethodDeclaration[@Name='equals' and (MethodDeclarator//FormalParameters/@Size = 1)]/Block//(Name|PrimarySuffix)/@Image) >
+(@Name = ancestor::ClassOrInterfaceBody[1]//MethodDeclaration[@Name='hashCode' and (MethodDeclarator//FormalParameters/@Size = 0)]/Block//(PrimarySuffix|Name)/@Image or
+concat(@Name, '.hashCode') = ancestor::ClassOrInterfaceBody[1]//MethodDeclaration[@Name='hashCode' and (MethodDeclarator//FormalParameters/@Size = 0)]/Block//PrimaryPrefix/Name/@Image)
+]
+			]]>
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+class Good {
+    String field1, field2;
+
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        EqHashTryout2 that = (EqHashTryout2) o;
+        return Objects.equals(field1, that.field1) &&
+                Objects.equals(field2, that.field2);
+    }
+    public int hashCode() {
+        return Objects.hash(field1, field2);
+    }
+}
+
+class Bad {
+    String field1;
+    String field2; //bad - missing in hashCode
+
+   public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        EqHashTryout2 that = (EqHashTryout2) o;
+        return Objects.equals(field1, that.field1) &&
+                Objects.equals(field2, that.field2);
+    }
+    public int hashCode() {
+        int result = field1 != null ? field1.hashCode() : 0;
+        return result;
     }
 }
             ]]>
