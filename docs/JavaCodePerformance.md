@@ -1367,8 +1367,24 @@ If you know what the minimum or typical size will be, this garbage and processin
 **Solution:** Presize the ByteArrayOutputStream or StringWriter with an initial capacity such that a resize is not needed in most cases. By using the [ByteArrayOutputStream](http://docs.oracle.com/javase/6/docs/api/java/io/ByteArrayOutputStream.html#ByteArrayOutputStream%28int%29) or 
 [StringWriter](http://docs.oracle.com/javase/6/docs/api/java/io/StringWriter.html#StringWriter%28int%29) alternative constructor.  
 If the buffer is send/received through I/O, then the size should be 8192 bytes or a multiple of it, 8 KiB being the default TCP buffer size on most systems. This value of 8 [KiB (kibibyte)](http://en.wikipedia.org/wiki/Kibibyte) is used as default buffer size in all I/O buffering classes in the Java libraries. 
-If the buffer contents is not send or receiceved from I/O, than take 4 kiB or a multiple of it, 4 KiB being the default memory page size.
-
+If the buffer contents is not send or receiceved from I/O, than take 4 kiB or a multiple of it, 4 KiB being the default memory page size.   
+**Rule name**: AvoidInMemoryStreamingDefaultConstructor   
+**Example**: 
+```java
+class Bad {
+    public static void bad()  {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream(); //bad
+        StringWriter sw = new StringWriter(); //bad
+        baos = new ByteArrayOutputStream(32); //bad - not larger than default
+    }
+}
+class Good {
+    public static void good()  {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream(8192); // 8 kiB
+        StringWriter sw = new StringWriter(2048);
+    }
+}
+```
 #### ISIO02
 
 **Observation: An unbuffered input or output is used.** Applicable to InputStream, OutputStream, Reader and Writer  

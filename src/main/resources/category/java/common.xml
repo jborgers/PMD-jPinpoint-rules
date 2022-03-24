@@ -229,6 +229,24 @@ or
 	]]></value>
             </property>
         </properties>
+        <example>
+            <![CDATA[
+class Bad {
+    public static void bad()  {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream(); //bad
+        StringWriter sw = new StringWriter(); //bad
+        baos = new ByteArrayOutputStream(32); //bad - not larger than default
+    }
+}
+class Good {
+    public static void good()  {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream(8192); // 8 kiB
+        StringWriter sw = new StringWriter(2048);
+    }
+}
+            ]]>
+        </example>
+
     </rule>
 
     <rule name="AvoidMultipleConcatStatements" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" message="Multiple statements concatenate to the same String. Use StringBuilder append." typeResolution="true"
