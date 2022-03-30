@@ -561,6 +561,7 @@ class Foo {
   }
 }
 ```
+See: [completablefuture-and-timeout](https://stackoverflow.com/questions/60419311/completablefuture-does-not-complete-on-timeout) and  [completablefuture-allof-and-errors](https://kalpads.medium.com/fantastic-completablefuture-allof-and-how-to-handle-errors-27e8a97144a0)
 
 Improper caching  
 -------------------
