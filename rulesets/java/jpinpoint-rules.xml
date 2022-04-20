@@ -271,6 +271,24 @@ or
 	]]></value>
             </property>
         </properties>
+        <example>
+            <![CDATA[
+class Bad {
+    public static void bad()  {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream(); //bad
+        StringWriter sw = new StringWriter(); //bad
+        baos = new ByteArrayOutputStream(32); //bad - not larger than default
+    }
+}
+class Good {
+    public static void good()  {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream(8192); // 8 kiB
+        StringWriter sw = new StringWriter(2048);
+    }
+}
+            ]]>
+        </example>
+
     </rule>
 
     <rule name="AvoidLombokAnnotationForNonExistentFields"
@@ -735,6 +753,8 @@ and
 concat(substring-before(@Image, '.'), '.toString') = ancestor::Block//PrimaryPrefix/Name[ends-with(@Image, '.toString')]/@Image)
 (: and not append on var used in inner block like a ForStatement :)
 and not(ancestor::Block//Block//PrimaryPrefix/Name[ends-with(@Image, '.append')])
+(: and not append in lambda expression, issue 195 :)
+and not(ancestor::LambdaExpression)
 (: and var not passed as argument to method :)
 and not(substring-before(@Image, '.') = ancestor::Block//Statement//PrimarySuffix/Arguments//Name/@Image)
 ]

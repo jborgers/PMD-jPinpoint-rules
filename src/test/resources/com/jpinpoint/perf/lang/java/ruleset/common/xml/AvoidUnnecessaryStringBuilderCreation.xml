@@ -157,4 +157,17 @@ public class Foo {
         ]]></code>
     </test-code>
 
+    <test-code>
+        <description>no violation: StringBuilder.append in lambda expression (issue #195)</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+class Issue195 {
+ String foo(List<Object> list) {
+   StringBuilder stringBuilder = new StringBuilder();
+   list.forEach(e -> stringBuilder.append(e).append(" "));
+   return stringBuilder.toString();
+ }
+}
+        ]]></code>
+    </test-code>
 </test-data>
