@@ -375,7 +375,7 @@ ancestor::MethodDeclaration//PrimarySuffix/@Image="disableConnectionState")]
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
-//PrimaryExpression[pmd-java:typeIs('javax.xml.bind.JAXB')]
+//PrimaryExpression/PrimaryPrefix[pmd-java:typeIs('javax.xml.bind.JAXB')]
 	         ]]></value>
             </property>
         </properties>
@@ -595,7 +595,7 @@ public class Foo {
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
-//StatementExpression[pmd-java:typeIs('reactor.core.publisher.Hooks')]//Name[ends-with(@Image, 'Hooks.onOperatorDebug')]
+//StatementExpression/PrimaryExpression/PrimaryPrefix[pmd-java:typeIs('reactor.core.publisher.Hooks')]//Name[ends-with(@Image, 'Hooks.onOperatorDebug')]
 ]]>
                 </value>
             </property>

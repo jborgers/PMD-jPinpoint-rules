@@ -1,5 +1,5 @@
 # PMD-jPinpoint-rules
-PMD rule set for performance aware Java and Kotlin coding, sponsored by Rabobank. 
+PMD rule set for performance aware Java and Kotlin coding, sponsored by [Rabobank](https://www.rabobank.com/). 
 
 The purpose of this project is to create and manage automatic java code checks.
  
