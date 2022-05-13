@@ -124,4 +124,50 @@ class Foo {
         ]]></code>
     </test-code>
 
+    <test-code>
+        <description>Indirect EnumMap, behind interface #194</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import com.google.common.collect.Maps;
+import lombok.Data;
+import java.util.*;
+import java.util.stream.Stream;
+
+class Foo {
+    private final BarGenerator barGenerator;
+
+    public Foo(BarGenerator barCodeListMap) {
+        this.barGenerator = barCodeListMap;
+    }
+
+    public Map<BarCode, List<String>> bar() {
+        Map<BarCode, List<String>> barCodeListMap = barGenerator.generateBarCodeListMap(); // false positive
+        // do something
+        return barCodeListMap;
+    }
+
+    public void foo(List<BarConfig> barConfigs){
+        Map<BarCode, String> barCodeDescriptionMap = barConfigs.stream() // false positive
+                .collect(Maps.toImmutableEnumMap(BarConfig::getBarCode, BarConfig::getDescription));
+    }
+}
+
+@Data
+class BarConfig {
+    private BarCode barCode;
+    private String description;
+}
+
+interface BarGenerator {
+    Map<BarCode, List<String>> generateBarCodeListMap();
+}
+
+enum BarCode {
+    CHOCOLATE,
+    NUTS
+}
+
+        ]]></code>
+    </test-code>
+
 </test-data>
