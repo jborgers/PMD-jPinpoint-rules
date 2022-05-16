@@ -26,4 +26,43 @@ public class HttpClientStuff {
      ]]></code>
     </test-code>
 
+    <test-code>
+        <description>violation: HttpClientImproperConnectionTimeouts issue #199</description>
+        <expected-problems>6</expected-problems>
+        <expected-linenumbers>3,4, 19,20, 26,27</expected-linenumbers>
+        <code><![CDATA[
+import org.apache.http.client.config.RequestConfig;
+class HttpClientStuffLocal {
+    private static final int CONNECTION_TIMEOUTMILLIS = 1000; // bad // timeout until a connection is established
+    private static final int CONNECTIONREQUEST_TIMEOUTMILLIS = 5000; // bad // timeout when requesting a connection from the connection manager
+    private static final int SOCKET_TIMEOUTMILLIS = 5000; // timeout of waiting for data
+
+    public RequestConfig requestConfigWithTimeouts() {
+        return RequestConfig.custom()
+                .setConnectionRequestTimeout(CONNECTIONREQUEST_TIMEOUTMILLIS)
+                .setConnectTimeout(CONNECTION_TIMEOUTMILLIS)
+                .setSocketTimeout(SOCKET_TIMEOUTMILLIS)
+                .build();
+    }
+}
+
+class Foo {
+    private RequestConfig getDefaultConnectionConfigLiterals() {
+        return RequestConfig.custom()
+                .setConnectionRequestTimeout(60000)// bad
+                .setConnectTimeout(60000)// bad
+                .setSocketTimeout(60000)
+                .build();
+    }
+    private RequestConfig getDefaultConnectionConfigLiteralsLocal() {
+        RequestConfig rq = RequestConfig.custom()
+                .setConnectionRequestTimeout(60000)// bad
+                .setConnectTimeout(60000)// bad
+                .setSocketTimeout(60000)
+                .build();
+        return rq;
+    }
+}
+]]></code>
+    </test-code>
 </test-data>

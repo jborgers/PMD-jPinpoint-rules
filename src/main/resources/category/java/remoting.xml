@@ -844,9 +844,17 @@ public class Foo {
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
-//FieldDeclaration[Type/PrimitiveType[@Image='int' or @Image='long']]//VariableDeclaratorId[@Image =
-//LocalVariableDeclaration/Type[pmd-java:typeIs('org.apache.http.client.config.RequestConfig')]/..//VariableInitializer//PrimarySuffix[@Image="setConnectionRequestTimeout" or @Image="setConnectTimeout"]/following-sibling::PrimarySuffix[1]//Name/@Image]
+(: use of field, local var and return statement :)
+//FieldDeclaration[Type/PrimitiveType[@Image='int' or @Image='long']]//VariableDeclaratorId[@Name =
+ancestor::ClassOrInterfaceDeclaration[//LocalVariableDeclaration/Type[pmd-java:typeIs('org.apache.http.client.config.RequestConfig')]/..//VariableInitializer
+|.//ReturnStatement//PrimaryExpression[.//Name/@Image='RequestConfig.custom']]
+//PrimarySuffix[@Image='setConnectionRequestTimeout' or @Image='setConnectTimeout']/following-sibling::PrimarySuffix[1]//Name/@Image]
 /../VariableInitializer//Literal[number(@Image) > 500]
+,
+(: use of literal, local var and return statement : :)
+//ClassOrInterfaceDeclaration[//LocalVariableDeclaration/Type[pmd-java:typeIs('org.apache.http.client.config.RequestConfig')]/..//VariableInitializer
+|.//ReturnStatement//PrimaryExpression[.//Name/@Image='RequestConfig.custom']]
+//PrimarySuffix[@Image='setConnectionRequestTimeout' or @Image='setConnectTimeout']/following-sibling::PrimarySuffix[1]//Literal[number(@Image) > 500]
 ]]>
                 </value>
             </property>
