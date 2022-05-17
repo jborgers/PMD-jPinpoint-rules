@@ -788,6 +788,10 @@ and not(ancestor::MethodDeclaration//PrimaryPrefix/Name[ends-with(@Image, '.get'
 //PrimaryExpression/PrimaryPrefix/LambdaExpression//Name[ends-with(@Image, '.join')
 and not(ancestor::MethodDeclaration//PrimaryPrefix/Name[ends-with(@Image, '.get') or ends-with(@Image, 'Timeout')][../../PrimarySuffix//ArgumentList])
 ]
+(: join has no arguments, #198 :)
+[../../PrimarySuffix/Arguments[@Size=0]]
+(: dealing with Futures, #198 :)
+[ancestor::ClassOrInterfaceBodyDeclaration//ClassOrInterfaceType[pmd-java:typeIs('java.util.concurrent.Future')]]
 ]]>
                 </value>
             </property>
