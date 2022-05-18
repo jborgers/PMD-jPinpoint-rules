@@ -1271,8 +1271,11 @@ class Bad {
 VariableDeclarator/VariableInitializer/Expression
 [not ((pmd-java:typeIs('java.util.EnumSet') or pmd-java:typeIs('java.util.EnumMap')
 (: Set.of() with 1 or 2 elems doesn't have the HashSet overhead :)
- or (pmd-java:typeIs('java.util.Set') and PrimaryExpression[PrimaryPrefix/Name/@Image = 'Set.of' and PrimarySuffix/Arguments/@Size <= 2])
- (: cannot determine type, indirect #194 :)
+ or (PrimaryExpression[PrimaryPrefix/Name/@Image = 'Set.of' and PrimarySuffix/Arguments/@Size <= 2])
+ (: it is exactly a Map or Set, cannot determine implementation #194 :)
+ or ((pmd-java:typeIsExactly('java.util.Set') and not(PrimaryExpression[PrimaryPrefix/Name/@Image = 'Set.of']))
+ or (pmd-java:typeIsExactly('java.util.Map') and not(PrimaryExpression[PrimaryPrefix/Name/@Image = 'Map.of'])))
+ (: cannot determine type, indirect #194 :) (: cannot determine type, indirect #194 :)
  or (not(pmd-java:typeIs('java.util.Set') or pmd-java:typeIs('java.util.Map')))
 ))]]
 ,
@@ -1282,7 +1285,10 @@ VariableDeclarator/VariableInitializer/Expression
 VariableDeclarator/VariableInitializer/Expression
 [not ((pmd-java:typeIs('java.util.EnumSet') or pmd-java:typeIs('java.util.EnumMap')
 (: Set.of() with 1 or 2 elems doesn't have the HashSet overhead :)
- or (pmd-java:typeIs('java.util.Set') and PrimaryExpression[PrimaryPrefix/Name/@Image = 'Set.of' and PrimarySuffix/Arguments/@Size <= 2])
+ or (PrimaryExpression[PrimaryPrefix/Name/@Image = 'Set.of' and PrimarySuffix/Arguments/@Size <= 2])
+ (: it is exactly a Map or Set, cannot determine implementation #194 :)
+ or ((pmd-java:typeIsExactly('java.util.Set') and not(PrimaryExpression[PrimaryPrefix/Name/@Image = 'Set.of']))
+ or (pmd-java:typeIsExactly('java.util.Map') and not(PrimaryExpression[PrimaryPrefix/Name/@Image = 'Map.of'])))
  (: cannot determine type, indirect #194 :)
  or (not(pmd-java:typeIs('java.util.Set') or pmd-java:typeIs('java.util.Map')))
 ))]]
@@ -1290,7 +1296,10 @@ VariableDeclarator/VariableInitializer/Expression
 //Initializer//StatementExpression[Expression
 [not ((pmd-java:typeIs('java.util.EnumSet') or pmd-java:typeIs('java.util.EnumMap')
 (: Set.of() with 1 or 2 elems doesn't have the HashSet overhead :)
- or (pmd-java:typeIs('java.util.Set') and PrimaryExpression[PrimaryPrefix/Name/@Image = 'Set.of' and PrimarySuffix/Arguments/@Size <= 2])
+ or (PrimaryExpression[PrimaryPrefix/Name/@Image = 'Set.of' and PrimarySuffix/Arguments/@Size <= 2])
+ (: it is exactly a Map or Set, cannot determine implementation #194 :)
+ or ((pmd-java:typeIsExactly('java.util.Set') and not(PrimaryExpression[PrimaryPrefix/Name/@Image = 'Set.of']))
+ or (pmd-java:typeIsExactly('java.util.Map') and not(PrimaryExpression[PrimaryPrefix/Name/@Image = 'Map.of'])))
  (: cannot determine type, indirect #194 :)
  or (not(pmd-java:typeIs('java.util.Set') or pmd-java:typeIs('java.util.Map')))
 ))]]
@@ -1837,6 +1846,10 @@ and not(ancestor::MethodDeclaration//PrimaryPrefix/Name[ends-with(@Image, '.get'
 //PrimaryExpression/PrimaryPrefix/LambdaExpression//Name[ends-with(@Image, '.join')
 and not(ancestor::MethodDeclaration//PrimaryPrefix/Name[ends-with(@Image, '.get') or ends-with(@Image, 'Timeout')][../../PrimarySuffix//ArgumentList])
 ]
+(: join has no arguments, #198 :)
+[../../PrimarySuffix/Arguments[@Size=0]]
+(: dealing with Futures, #198 :)
+[ancestor::ClassOrInterfaceBodyDeclaration//ClassOrInterfaceType[pmd-java:typeIs('java.util.concurrent.Future')]]
 ]]>
                 </value>
             </property>

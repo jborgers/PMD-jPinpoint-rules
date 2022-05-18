@@ -146,6 +146,12 @@ class Foo {
         return barCodeListMap;
     }
 
+    public Map<BarCode, List<String>> barfoo() {
+        Map<BarCode, List<String>> barCodeListMap = (Map)Collections.emptyMap(); // false positive
+        // do something
+        return barCodeListMap;
+    }
+
     public void foo(List<BarConfig> barConfigs){
         Map<BarCode, String> barCodeDescriptionMap = barConfigs.stream() // false positive
                 .collect(Maps.toImmutableEnumMap(BarConfig::getBarCode, BarConfig::getDescription));
