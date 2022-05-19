@@ -297,5 +297,18 @@ Suspicious code constructs
 **Observation: Multiple switch cases contain the same assignment**  
 **Problem:** Identical assignments to the same variable are very likely a bug. It lead to a production incident in a project.  
 **Solution:** Each case block of a switch should contain unique assignments. Common assignments should be taken out of the switch construct. Exceptional case: a duplicate assignment to a boolean is considered safe since it can only hold 2 values.    
-**Perf-code-check:** [AvoidDuplicateAssignmentsInCases](https://jira.rabobank.nl/browse/JPCC-89)
+**Rule name:** AvoidDuplicateAssignmentsInCases
+
+Improved Sonar rules
+--------------------
+We found that several Sonar rules do not meet our needs. We need an improved version.
+
+### ISR01
+**Issue:** [202](https://github.com/jborgers/PMD-jPinpoint-rules/issues/202)   
+**Observation: The number of static imports with a wildcard exceeds the limit (default = 3)**  
+**Problem:** If you import the public static members of too many classes, your code can become confusing and difficult to maintain.  
+**Solution:** Import class members individually.     
+**Rule name:** LimitWildcardStaticImports   
+**Sonar rule(s):** java:S3030 - Classes should not have too many "static" imports (inadequate rule)    
+java:S2208 - Wildcard imports should not be used - static imports are ignored by this rule.
 

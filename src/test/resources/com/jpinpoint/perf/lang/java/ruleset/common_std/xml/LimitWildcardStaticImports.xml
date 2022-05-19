@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>violation: too many wildcard static imports</description>
+        <expected-problems>2</expected-problems>
+        <expected-linenumbers>5,6</expected-linenumbers>
+        <code><![CDATA[
+//With the default threshold value: 3
+import static java.lang.Math.*;
+import static java.util.Collections.*;
+import static com.co.division.Constants.*;
+import static com.co.department.Constants.*;  // bad
+import static com.co.external.Constants.*;  // bad
+
+import static com.co.corporate.Constants.NUTS;
+import static com.co.corporate.Constants.CRAZY;
+import static com.co.corporate.Constants.FOOLISH;
+import static com.co.corporate.Constants.AWESOME; // good
+import static com.co.corporate.Constants.GREAT; // good
+
+     ]]></code>
+    </test-code>
+
+</test-data>
