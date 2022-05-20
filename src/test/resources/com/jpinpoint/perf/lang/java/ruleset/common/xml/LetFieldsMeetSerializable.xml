@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>violations in LetFieldsMeetSerializable</description>
+        <expected-problems>4</expected-problems>
+        <expected-linenumbers>11, 14, 16, 27</expected-linenumbers>
+        <code><![CDATA[
+import java.lang.*;
+import java.util.*;
+import java.io.*;
+import java.rmi.RemoteException;
+
+class ShouldMeetSerializable implements Serializable {
+    long primMeets;
+    String strMeets;
+    Exception exMeets;
+    Serializable ser;
+    Thread t1NotMeets; // bad, Thread is not serializable
+    transient Thread t2meets;
+    List<String> listOfStrings = new ArrayList();
+    List<Thread> listOfThreads = new ArrayList(); // bad
+    Map<String,String> mapToString = new HashMap();
+    Map<String,Thread> mapToThread = new HashMap(); //bad
+}
+
+class NotNeededToMeetSerializable extends Exception {
+    Serializable ser;
+    Thread t1NotMeets;
+    transient Thread t2meets;
+}
+
+class ShouldAlsoMeetSerializable extends RemoteException {
+    Serializable ser;
+    Thread t1NotMeets; // bad
+    transient Thread t2meets;
+}
+     ]]></code>
+    </test-code>
+
+
+</test-data>

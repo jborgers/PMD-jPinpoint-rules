@@ -1044,6 +1044,60 @@ class Bad2 {
         </example>
     </rule>
 
+    <rule name="LetFieldsMeetSerializable"
+          language="java"
+          message="Fields in a Serializable class should be serializable or transient."
+          class="net.sourceforge.pmd.lang.rule.XPathRule"
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodeQuality.md#isr02">
+        <description>Problem: Field in a Serializable class is not serializable nor transient. When (de)serialization happens, a RuntimeException will be thrown.
+            Solution: make the field either transient or make its class implement Serializable.
+            Note: classes extending Throwable do implement Serializable, yet are excluded in this rule, except RemoteException. They are typically never actually serialized.
+        (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+//ClassOrInterfaceDeclaration[ImplementsList/ClassOrInterfaceType[@Image='Serializable']
+or pmd-java:typeIs('java.io.Serializable')
+(: Throwable is the exception, except RemoteException :)
+and not(pmd-java:typeIs('java.lang.Throwable') and not(pmd-java:typeIs('java.rmi.RemoteException')))]
+//FieldDeclaration[@Transient=false()][not(.//PrimitiveType)]
+[not(pmd-java:typeIs('java.io.Serializable'))
+(: if has type args, type args which are not serializable like List<String, Thread>):)
+and (not(exists(.//TypeArgument))
+or exists(.//TypeArgument[not(pmd-java:typeIs('java.io.Serializable'))]))
+]
+                ]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+class Foo implements Serializable {
+    String meets;
+    Exception exMeets;
+    Serializable ser;
+    Thread t1NotMeets; // bad, Thread is not serializable
+    transient Thread t2meets;
+    List<String> listOfStrings = new ArrayList();
+    List<Thread> listOfThreads = new ArrayList(); // bad
+    Map<String,String> mapToString = new HashMap();
+    Map<String,Thread> mapToThread = new HashMap(); //bad
+}
+
+class Bar extends Exception {
+    Thread t1NotMeets;
+    transient Thread t2meets;
+}
+
+class Baz extends RemoteException {
+    Thread t1NotMeets; // bad
+    transient Thread t2meets;
+}
+            ]]>
+        </example>
+    </rule>
+
     <rule name="MDCPutWithoutRemove" message="MDC put is used without finally remove." class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" typeResolution="true" externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#IL04">
         <description>
             MDC values are added for logging, but not removed. Problem: MDC values can leak to other user transactions (requests) and log incorrect information. Solution: remove the MDC value in a finally clause.
@@ -1421,6 +1475,7 @@ class Foo {
     void good(Object obj) {
       log.debug("object to String: {}", obj); //good
     }
+}
             ]]>
         </example>
     </rule>
