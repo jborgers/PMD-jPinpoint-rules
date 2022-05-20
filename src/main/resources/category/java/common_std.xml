@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<ruleset name="jpinpoint-common-rules" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 https://pmd.sourceforge.io/ruleset_2_0_0.xsd" xmlns="http://pmd.sourceforge.net/ruleset/2.0.0">
+<ruleset name="jpinpoint-common_std-rules"
+         xmlns="http://pmd.sourceforge.net/ruleset/2.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 https://pmd.sourceforge.io/ruleset_2_0_0.xsd">
     <description>jPinpoint rule set for performance aware Java coding, sponsored by Rabobank.</description>
 
     <rule name="AvoidApacheCommonsFileItemNonStreaming"

@@ -13,18 +13,19 @@ import java.util.regex.Pattern;
  * Merger tool for merging categories and company specific custom rules with the generic jpinpoint rules.
  */
 public class RulesetMerger {
+    private static final String LSEP = IOUtils.LINE_SEPARATOR;
 
-    private enum RulesType { java, kotlin }
+    private enum Language { java, kotlin }
 
     // parameters likely to have to change for a different company
     private static final String COMPANY_SPECIFIC = "jPinpoint";
-    private static final Map<RulesType, String> RESULT_COMPANY_RULES_NAMES;
-    private static final Map<RulesType, String> RESULT_ALL_RULES_NAMES;
+    private static final Map<Language, String> RESULT_COMPANY_RULES_NAMES;
+    private static final Map<Language, String> RESULT_ALL_RULES_NAMES;
 
     static {
-        Map<RulesType, String> map = new EnumMap<>(RulesType.class);
-        map.put(RulesType.java, "jpinpoint-rules");
-        map.put(RulesType.kotlin, "jpinpoint-kotlin-rules");
+        Map<Language, String> map = new EnumMap<>(Language.class);
+        map.put(Language.java, "jpinpoint-rules");
+        map.put(Language.kotlin, "jpinpoint-kotlin-rules");
         RESULT_COMPANY_RULES_NAMES = Collections.unmodifiableMap(map);
         // same for now, can also be different?
         RESULT_ALL_RULES_NAMES = RESULT_COMPANY_RULES_NAMES;
@@ -33,24 +34,22 @@ public class RulesetMerger {
     private static final String PATH_TO_CAT_RULES = "src/main/resources/category/%s/";
     private static final String COMPANY_DOC_ROOT = "https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs";
     private static final boolean IS_ADD_TAG_TO_DESCRIPTION_AND_DOC = true;
-    // constants unlikely to have to change
 
+    // constants unlikely to have to change
     private static final String MERGED_RULESETS_DIR = "rulesets/%s";
     private static final String RESULT_START_LINE = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
     private static final String RESULT_END_LINE = "</ruleset>";
     private static final String DESCRIPTION_END_TAG = "</description>";
-    private static final String RESULT_RULE_SET_LINE_TEMPLATE = "<ruleset name=\"%s\" " +
-            "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" " +
-            "xsi:schemaLocation=\"http://pmd.sourceforge.net/ruleset/2.0.0 http://pmd.sourceforge.net/ruleset_2_0_0.xsd\" " +
-            "xmlns=\"http://pmd.sourceforge.net/ruleset/2.0.0\" " +
-            "xmlns:fn=\"http://www.w3.org/TR/xpath-functions/\">";
+    private static final String RESULT_RULE_SET_LINE_TEMPLATE = "<ruleset name=\"%s\" %n" +
+            "         xmlns=\"http://pmd.sourceforge.net/ruleset/2.0.0\" %n"  +
+            "         xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" %n" +
+            "         xsi:schemaLocation=\"http://pmd.sourceforge.net/ruleset/2.0.0 http://pmd.sourceforge.net/ruleset_2_0_0.xsd\"> ";
     private static final String MERGED_WITH_TEMPLATE = "merged with the %s ";
-    private static final String RESULT_DESC_LINE_TEMPLATE = "<description>%s specific rules %sfor performance aware %s coding, sponsored by Rabobank.</description>";
-    private static final String LSEP = IOUtils.LINE_SEPARATOR;
+    private static final String RESULT_DESC_LINE_TEMPLATE = "<description>%n         %s specific rules %sfor performance aware %s coding, sponsored by Rabobank.%n</description>";
     private static final String BEGIN_INCLUDED_FILE_COMMENT_TEMPLATE = "<!-- BEGIN Included file '%s' -->";
     private static final String END_INCLUDED_FILE_COMMENT_TEMPLATE = "<!-- END Included file '%s' -->";
     private static final String DESCRIPTION_END_TAG_PATTERN = DESCRIPTION_END_TAG.replace('<','.').replace('>', '.');
-    private static final Pattern TAGGED_DESCRIPTION_END_TAG_PATTERN = Pattern.compile("\\(.*\\) *" + DESCRIPTION_END_TAG_PATTERN);
+    private static final Pattern TAGGED_DESCRIPTION_END_TAG_PATTERN = Pattern.compile("\\(.*\\)\\s*" + DESCRIPTION_END_TAG_PATTERN);
 
     public static void main(String[] args) {
 
@@ -59,12 +58,12 @@ public class RulesetMerger {
             System.exit(1);
         }
 
-        String rulesTypeArg = args[0];
-        RulesType rulesType = RulesType.java;
+        String LanguageArg = args[0];
+        Language language = Language.java;
         try {
-            rulesType = RulesType.valueOf(rulesTypeArg);
+            language = Language.valueOf(LanguageArg);
         } catch (IllegalArgumentException e) {
-            System.out.printf("ERROR: specify 'java' or 'kotlin' as first argument, now: '%s'%n", rulesTypeArg);
+            System.out.printf("ERROR: specify 'java' or 'kotlin' as first argument, now: '%s'%n", LanguageArg);
             System.exit(1);
         }
 
@@ -73,12 +72,12 @@ public class RulesetMerger {
 
         // validity check: also another RulesetMerger code base with different constant values exists
         if (COMPANY_SPECIFIC.equals("jPinpoint") &&
-                (RESULT_COMPANY_RULES_NAMES.get(RulesType.java).equals("jpinpoint-rules") && RESULT_ALL_RULES_NAMES.get(RulesType.java).equals("jpinpoint-rules")) ||
-                (RESULT_COMPANY_RULES_NAMES.get(RulesType.kotlin).equals("jpinpoint-kotlin-rules") && RESULT_ALL_RULES_NAMES.get(RulesType.kotlin).equals("jpinpoint-kotlin-rules"))
+                (RESULT_COMPANY_RULES_NAMES.get(Language.java).equals("jpinpoint-rules") && RESULT_ALL_RULES_NAMES.get(Language.java).equals("jpinpoint-rules")) ||
+                (RESULT_COMPANY_RULES_NAMES.get(Language.kotlin).equals("jpinpoint-kotlin-rules") && RESULT_ALL_RULES_NAMES.get(Language.kotlin).equals("jpinpoint-kotlin-rules"))
         ) {
             // valid, merge only in jpinpoint-rules.xml or jpinpoint-kotlin-rules.xml
         }
-        else if (!COMPANY_SPECIFIC.equals("jPinpoint") && !RESULT_COMPANY_RULES_NAMES.get(rulesType).equals(RESULT_ALL_RULES_NAMES.get(rulesType))) {
+        else if (!COMPANY_SPECIFIC.equals("jPinpoint") && !RESULT_COMPANY_RULES_NAMES.get(language).equals(RESULT_ALL_RULES_NAMES.get(language))) {
             //valid, merge into company-rules.xml and company-jpinpoint-rules.xml
         }
         else {
@@ -88,7 +87,7 @@ public class RulesetMerger {
 
         if (COMPANY_SPECIFIC.equals("jPinpoint")) {
             //merge once for one file: jpinpoint-rules.xml or jpinpoint-kotlin-rules.xml
-            mergeRuleFiles(repositoryBaseDir, null, null, RESULT_ALL_RULES_NAMES.get(rulesType), rulesType);
+            mergeRuleFiles(repositoryBaseDir, null, null, RESULT_ALL_RULES_NAMES.get(language), language);
         }
         else {
             File optionalExtRulesFile;
@@ -100,24 +99,24 @@ public class RulesetMerger {
                 optionalExtRulesFile = new MergeWithExternalHelper(mergeWithRepoName, repoRelativeRulesDir, repoRulesFilename, repositoryBaseDir).lookupRulesFileMustBeThere();
             } else { // default
                 mergeWithRepoName = "PMD-jPinpoint-rules";
-                MergeWithExternalHelper helper = new MergeWithExternalHelper(mergeWithRepoName, "rulesets/" + rulesType.toString(), RESULT_ALL_RULES_NAMES.get(rulesType), repositoryBaseDir);
+                MergeWithExternalHelper helper = new MergeWithExternalHelper(mergeWithRepoName, "rulesets/" + language.toString(), RESULT_ALL_RULES_NAMES.get(language), repositoryBaseDir);
                 optionalExtRulesFile = helper.lookupRulesFileMayBeThere(); // may be null
             }
             //merge company specific into company-rules.xml
-            mergeRuleFiles(repositoryBaseDir, null, mergeWithRepoName, RESULT_COMPANY_RULES_NAMES.get(rulesType), rulesType);
+            mergeRuleFiles(repositoryBaseDir, null, mergeWithRepoName, RESULT_COMPANY_RULES_NAMES.get(language), language);
 
             if (optionalExtRulesFile != null) {
                 // merge all into company-jpinpoint-rules.xml
-                mergeRuleFiles(repositoryBaseDir, optionalExtRulesFile, mergeWithRepoName, RESULT_ALL_RULES_NAMES.get(rulesType), rulesType);
+                mergeRuleFiles(repositoryBaseDir, optionalExtRulesFile, mergeWithRepoName, RESULT_ALL_RULES_NAMES.get(language), language);
             }
         }
     }
 
-    private static void mergeRuleFiles(File repositoryBaseDir, File optionalExtRulesFile, String mergeWithRepoName, String resultRulesName, RulesType rulesType) {
+    private static void mergeRuleFiles(File repositoryBaseDir, File optionalExtRulesFile, String mergeWithRepoName, String resultRulesName, Language language) {
         // Get rule files
-        File ourProjectRulesDir = new File(repositoryBaseDir, String.format(PATH_TO_CAT_RULES, rulesType));
+        File ourProjectRulesDir = new File(repositoryBaseDir, String.format(PATH_TO_CAT_RULES, language));
         String[] ourRulesFiles = ourProjectRulesDir.list((dir, name) -> name.endsWith(".xml"));
-        File outputDir = new File(repositoryBaseDir, String.format(MERGED_RULESETS_DIR, rulesType));
+        File outputDir = new File(repositoryBaseDir, String.format(MERGED_RULESETS_DIR, language));
         File resultFile = new File(outputDir, resultRulesName + ".xml");
         System.out.println("INFO: start on '" + resultFile.getName() + "'");
         checkIfValid(ourProjectRulesDir, ourRulesFiles, outputDir, resultFile);
@@ -130,28 +129,32 @@ public class RulesetMerger {
         }
         Arrays.sort(ourRulesFiles);
         try {
-            List<String> mergedFileLines = new ArrayList<>();
-            mergedFileLines.add(RESULT_START_LINE);
-            mergedFileLines.add(String.format(RESULT_RULE_SET_LINE_TEMPLATE, resultRulesName));
+            List<String> headerLines = new ArrayList<>();
+            headerLines.add(RESULT_START_LINE);
+            headerLines.add(String.format(RESULT_RULE_SET_LINE_TEMPLATE, resultRulesName));
             String mergeWithText = mergeWithRepoName == null ? "" : String.format(MERGED_WITH_TEMPLATE, mergeWithRepoName);
-            String resultDescription = String.format(RESULT_DESC_LINE_TEMPLATE, COMPANY_SPECIFIC, mergeWithText, capitalize(rulesType.toString()));
-            mergedFileLines.add(resultDescription);
-            mergedFileLines.add("");
-            mergedFileLines.add("<!-- IMPORTANT NOTICE: The content of this file is generated. Do not edit this file directly since changes may be lost when this file is regenerated! -->");
-            mergedFileLines.add("");
+            String resultDescription = String.format(RESULT_DESC_LINE_TEMPLATE, COMPANY_SPECIFIC, mergeWithText, capitalize(language.toString()));
+            headerLines.add("");
+            headerLines.add(resultDescription);
+            headerLines.add("");
+            headerLines.add("<!-- IMPORTANT NOTICE: The content of this file is generated. Do not edit this file directly since changes may be lost when this file is regenerated! -->");
+            headerLines.add("");
 
+            List<String> mergedFileLines = new ArrayList<>();
             if (optionalExtRulesFile != null) {
                 mergeFileIntoLines(optionalExtRulesFile, mergedFileLines);
             }
             for (String eachFileName: ourRulesFiles) {
                 mergeFileIntoLines(new File(ourProjectRulesDir, eachFileName), mergedFileLines);
             }
-            mergedFileLines.add(RESULT_END_LINE);
-
             if (IS_ADD_TAG_TO_DESCRIPTION_AND_DOC) {
                 mergedFileLines = addTagToDescriptionAndDoc(mergedFileLines, String.format("(%s)%s", resultRulesName, DESCRIPTION_END_TAG));
             }
-            IOUtils.writeLines(mergedFileLines, LSEP, new FileOutputStream(resultFile), Charset.defaultCharset());
+            mergedFileLines.add(RESULT_END_LINE);
+
+            List<String> allLines = new ArrayList<>(headerLines);
+            allLines.addAll(mergedFileLines);
+            IOUtils.writeLines(allLines, LSEP, new FileOutputStream(resultFile), Charset.defaultCharset());
             System.out.println(String.format("INFO: merged files into '%s'.", resultFile.getPath()));
         }
         catch(IOException e) {
