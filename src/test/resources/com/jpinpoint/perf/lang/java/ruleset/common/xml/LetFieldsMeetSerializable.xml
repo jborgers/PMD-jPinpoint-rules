@@ -6,7 +6,7 @@
     <test-code>
         <description>violations in LetFieldsMeetSerializable</description>
         <expected-problems>4</expected-problems>
-        <expected-linenumbers>11, 14, 16, 27</expected-linenumbers>
+        <expected-linenumbers>11, 15, 17, 28</expected-linenumbers>
         <code><![CDATA[
 import java.lang.*;
 import java.util.*;
@@ -20,6 +20,7 @@ class ShouldMeetSerializable implements Serializable {
     Serializable ser;
     Thread t1NotMeets; // bad, Thread is not serializable
     transient Thread t2meets;
+    static Thread t3meets;
     List<String> listOfStrings = new ArrayList();
     List<Thread> listOfThreads = new ArrayList(); // bad
     Map<String,String> mapToString = new HashMap();
