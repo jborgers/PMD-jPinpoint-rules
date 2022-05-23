@@ -6,12 +6,13 @@
     <test-code>
         <description>violations in LetFieldsMeetSerializable</description>
         <expected-problems>4</expected-problems>
-        <expected-linenumbers>11, 15, 17, 28</expected-linenumbers>
+        <expected-linenumbers>12, 16, 18, 30</expected-linenumbers>
         <code><![CDATA[
 import java.lang.*;
 import java.util.*;
 import java.io.*;
 import java.rmi.RemoteException;
+import java.time.temporal.ChronoField;
 
 class ShouldMeetSerializable implements Serializable {
     long primMeets;
@@ -25,6 +26,7 @@ class ShouldMeetSerializable implements Serializable {
     List<Thread> listOfThreads = new ArrayList(); // bad
     Map<String,String> mapToString = new HashMap();
     Map<String,Thread> mapToThread = new HashMap(); //bad
+    Set<ChronoField> CHRONO_SET; // fine, enums are Serializable
 }
 
 class NotNeededToMeetSerializable extends Exception {

@@ -14,7 +14,7 @@ public class Foo {
     protected Map<String, String> bad() {
       Map<String, String> addHeaders = MDC.getCopyOfContextMap();
 
-      synchronized (this) { //bad
+      synchronized(this) { // bad
           if (addHeaders == null) {
               addHeaders = new HashMap<>();
           }
