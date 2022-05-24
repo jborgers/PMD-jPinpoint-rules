@@ -1044,61 +1044,6 @@ class Bad2 {
         </example>
     </rule>
 
-    <rule name="LetFieldsMeetSerializable"
-          language="java"
-          message="Fields in a Serializable class should be serializable or transient."
-          class="net.sourceforge.pmd.lang.rule.XPathRule"
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodeQuality.md#isr02">
-        <description>Problem: Field in a Serializable class is not serializable nor transient. When (de)serialization happens, a RuntimeException will be thrown.
-            Solution: make the field either transient or make its class implement Serializable.
-            Note: classes extending Throwable do implement Serializable, yet are excluded in this rule, except RemoteException. They are typically never actually serialized.
-        (jpinpoint-rules)</description>
-        <priority>2</priority>
-        <properties>
-            <property name="version" value="2.0"/>
-            <property name="xpath">
-                <value><![CDATA[
-//ClassOrInterfaceDeclaration[ImplementsList/ClassOrInterfaceType[@Image='Serializable']
-or pmd-java:typeIs('java.io.Serializable')
-(: Throwable is the exception, except RemoteException :)
-and not(pmd-java:typeIs('java.lang.Throwable') and not(pmd-java:typeIs('java.rmi.RemoteException')))]
-(: non-transient, non-static, non-primitive fields :)
-//FieldDeclaration[@Transient=false() and @Static=false()][not(.//PrimitiveType)]
-[not(pmd-java:typeIs('java.io.Serializable'))
-(: if has type args, type args which are not serializable like List<String, Thread>):)
-and (not(exists(.//TypeArgument))
-or exists(.//TypeArgument[not(pmd-java:typeIs('java.io.Serializable'))]))
-]
-                ]]></value>
-            </property>
-        </properties>
-        <example>
-            <![CDATA[
-class Foo implements Serializable {
-    String meets;
-    Exception exMeets;
-    Serializable ser;
-    Thread t1NotMeets; // bad, Thread is not serializable
-    transient Thread t2meets;
-    List<String> listOfStrings = new ArrayList();
-    List<Thread> listOfThreads = new ArrayList(); // bad
-    Map<String,String> mapToString = new HashMap();
-    Map<String,Thread> mapToThread = new HashMap(); //bad
-}
-
-class Bar extends Exception {
-    Thread t1NotMeets;
-    transient Thread t2meets;
-}
-
-class Baz extends RemoteException {
-    Thread t1NotMeets; // bad
-    transient Thread t2meets;
-}
-            ]]>
-        </example>
-    </rule>
-
     <rule name="MDCPutWithoutRemove" message="MDC put is used without finally remove." class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" typeResolution="true" externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#IL04">
         <description>
             MDC values are added for logging, but not removed. Problem: MDC values can leak to other user transactions (requests) and log incorrect information. Solution: remove the MDC value in a finally clause.
@@ -1682,6 +1627,77 @@ public class DateStuff {
         </example>
     </rule>
 
+    <rule name="AvoidComplexLambdas"
+          language="java"
+          message="Avoid complex Lambda expressions, keep them clear."
+          class="net.sourceforge.pmd.lang.rule.XPathRule"
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodeQuality.md#isr03">
+        <description>Problem: lambda expressions with many statements or nested lambdas are hard to understand and maintain.
+            Solution: extract the lambda expression code block into one or more separate method(s).
+        (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="max" value="4" type="String" description="Maximum number of allowed non-setter statements"/>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+//LambdaExpression
+(: number of statements should be limited, setters are ignored. Chained methods are one statement  :)
+[(count(.//Statement) - count(.//StatementExpression/PrimaryExpression/PrimaryPrefix/Name[contains(@Image, '.set')]) > number($max))
+(: nested Lambda :)
+or .//LambdaExpression
+]
+                ]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+class Foo {
+       void bar(List additionals) {
+            additionals.forEach(entity -> {
+                if (entity.getKNr() != null) {
+                    action.withActions(
+                            new Action().withFoId(actionFoId.incrementAndGet())
+                                    .withEntityPlanFoId(1)
+                                    .withEntity(mapLogicType(true))
+                    );
+                }
+            });
+       }
+
+       void baz(List additionals) {
+            additionals.forEach(entity -> {         // bad, too many statements (5)
+                if (entity.getKNr() != null) {
+                    action.withActions(
+                            new Action().withFoId(actionFoId.incrementAndGet())
+                                    .withEntityPlanFoId(1)
+                                    .withEntity(mapLogicType(true))
+                    );
+                }
+                else { action.withActions(new Action().withFoId(0)); }
+            });
+        }
+
+        public List<ProductEntity> booz(final Consent consent){
+            List<ProductEntity> products = new ArrayList<>();
+            consent.getScopes().forEach(
+                scope -> {                                      // bad, too complex, nested lambda in lambda
+                    List<ProductEntity> productEntities = scope.getProducts().stream().map(
+                        product -> ProductEntity.builder()
+                            .newEntity(true)
+                            .state(State.VALID)
+                            .build()
+                        ).collect(toList());
+                    products.addAll(productEntities);
+                }
+            );
+            return products;
+        }
+}
+            ]]>
+        </example>
+    </rule>
+
     <rule name="AvoidConcatInAppend"
           language="java"
           message="Concatenation inside append. Use extra append."
@@ -1777,6 +1793,62 @@ public class StringStuff {
         }
         return sb.toString();
    }
+}
+            ]]>
+        </example>
+    </rule>
+
+    <rule name="LetFieldsMeetSerializable"
+          language="java"
+          message="Fields in a Serializable class should be serializable or transient."
+          class="net.sourceforge.pmd.lang.rule.XPathRule"
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodeQuality.md#isr02">
+        <description>Problem: Field in a Serializable class is not serializable nor transient. When (de)serialization happens, a RuntimeException will be thrown and (de)serialization fails.
+            Solution: make the field either transient or make its class implement Serializable.
+            Note: Classes extending Throwable do, by inheritance, implement Serializable, yet are excluded in this rule, since they are typically never actually serialized.
+            An exception to this exception is when extending RemoteException, then fields should be transient or serializable.
+        (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+//ClassOrInterfaceDeclaration[ImplementsList/ClassOrInterfaceType[@Image='Serializable']
+or pmd-java:typeIs('java.io.Serializable')
+(: Throwable is the exception, except RemoteException :)
+and not(pmd-java:typeIs('java.lang.Throwable') and not(pmd-java:typeIs('java.rmi.RemoteException')))]
+(: non-transient, non-static, non-primitive fields :)
+//FieldDeclaration[@Transient=false() and @Static=false()][not(.//PrimitiveType)]
+[not(pmd-java:typeIs('java.io.Serializable'))
+(: if has type args, type args which are not serializable like List<String, Thread>):)
+and (not(exists(.//TypeArgument))
+or exists(.//TypeArgument[not(pmd-java:typeIs('java.io.Serializable'))]))
+]
+                ]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+class Foo implements Serializable {
+    String meets;
+    Exception exMeets;
+    Serializable ser;
+    Thread t1NotMeets; // bad, Thread is not serializable
+    transient Thread t2meets;
+    List<String> listOfStrings = new ArrayList();
+    List<Thread> listOfThreads = new ArrayList(); // bad
+    Map<String,String> mapToString = new HashMap();
+    Map<String,Thread> mapToThread = new HashMap(); //bad
+}
+
+class Bar extends Exception {
+    Thread t1NotMeets;
+    transient Thread t2meets;
+}
+
+class Baz extends RemoteException {
+    Thread t1NotMeets; // bad
+    transient Thread t2meets;
 }
             ]]>
         </example>

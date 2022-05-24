@@ -1,7 +1,7 @@
 
 Java code quality - pitfalls and best practices
 =============================================
-By Jeroen Borgers ([jPinpoint](www.jpinpoint.com)) and Peter Paul Bakker ([Stokpop](www.stokpop.com)), sponsored by Rabobank
+By Jeroen Borgers ([jPinpoint](http://www.jpinpoint.com)) and Peter Paul Bakker ([Stokpop](http://www.stokpop.com)), sponsored by Rabobank
 
 # Table of contents
 
@@ -253,7 +253,7 @@ However, if a field of one of two equal objects is changed, the expectation is t
 ````java
 class Bad1 {
     String field1;
-    String final field2; // bad, missing in equals
+    final String field2; // bad, missing in equals
 
     public Bad1(String arg2) {
         field2 = arg2;
@@ -312,3 +312,20 @@ We found that several Sonar rules do not meet our needs. We need an improved ver
 **Sonar rule(s):** java:S3030 - Classes should not have too many "static" imports (inadequate rule)    
 java:S2208 - Wildcard imports should not be used - static imports are ignored by this rule.
 
+### ISR02
+**Issue:** [201](https://github.com/jborgers/PMD-jPinpoint-rules/issues/201)   
+**Observation: Field in a Serializable class is not serializable nor transient.**  
+**Problem:** When (de)serialization happens, a RuntimeException will be thrown and (de)serialization fails.   
+**Solution:** make the field either transient or make its class implement Serializable.     
+**Note:** Classes extending Throwable do, by inheritance, implement Serializable, yet are excluded in this rule, since they are typically never actually serialized. 
+An exception to this exception is when extending RemoteException, then fields should be transient or serializable.
+**Rule name:** LetFieldsMeetSerializable   
+**Sonar rule(s):** S1948 - Fields in a "Serializable" class should either be transient or serializable (inadequate rule).   
+
+### ISR03
+**Issue:** [202](https://github.com/jborgers/PMD-jPinpoint-rules/issues/200)   
+**Observation: A lambda expression has many statements: it exceeds the limit (default = 4), or has a nested lambda.**  
+**Problem:** lambda expressions with many statements or nested lambdas are hard to understand and maintain.  
+**Solution:** extract the lambda expression code block into one or more separate method(s).     
+**Rule name:** AvoidComplexLambdas   
+**Sonar rule(s):** java:S5612 - Lambdas should not have too many lines (inadequate rule).   

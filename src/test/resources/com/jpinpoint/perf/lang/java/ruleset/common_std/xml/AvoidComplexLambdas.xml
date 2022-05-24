@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>violations in LetFieldsMeetSerializable</description>
+        <expected-problems>3</expected-problems>
+        <expected-linenumbers>35, 83, 102</expected-linenumbers>
+        <code><![CDATA[
+import java.lang.*;
+import java.util.*;
+class Foo {
+       void bar(List additionals, Object y) {
+            additionals.forEach(entity -> {
+                if (entity.getKNr() != null) {
+                    action.withActions(
+                            new Action()
+                                    .withFoId(actionFoId.incrementAndGet())
+                                    .withEntityPlanFoId(1)
+                                    .withEntity(mapLogischType(true))
+                                    .withX(y)
+                    );
+                }
+            });
+        }
+      void bar2(List additionals, Object y) {
+            additionals.forEach(entity -> {
+                if (entity.getKNr() != null) {
+                    action.withActions(
+                            new Action()
+                                    .withFoId(actionFoId.incrementAndGet())
+                                    .withEntityPlanFoId(1)
+                                    .withEntity(mapLogischType(true))
+                                    .withX(y)
+                                    .withFoId2(actionFoId.incrementAndGet())
+                                    .withEntityPlanFoId2(1)
+                                    .withEntity2(mapLogischType(true))
+                                    .withX2(y)
+                            );
+                }
+            });
+        }
+       void bar3(List additionals, Object y) {
+            additionals.forEach(entity -> { // bad, too many statements (5)
+                if (entity.getKNr() != null) {
+                    action.withActions(
+                            new Action()
+                                    .withFoId(actionFoId.incrementAndGet())
+                                    .withEntityPlanFoId(1)
+                                    .withEntity(mapLogischType(true))
+                                    .withX(y)
+                    );
+                }
+                else {
+                    action.withActions(
+                            new Action()
+                                    .withFoId(0)
+                    );
+                }
+            });
+        }
+
+   private static Map<String, Status> valueMap =
+        Arrays.stream(Status.values()).collect(Collectors.toMap(Status::getName,
+                Function.identity(),
+                (u, v) -> v,
+                () -> new TreeMap<>(String.CASE_INSENSITIVE_ORDER)));
+
+     static Set<Violation<?>> extractViolations(final String rootName, String message) {
+        Matcher m = PATTERN.matcher(message);
+        if (m.matches()) {
+            return Arrays.stream(m.group(1).split("\\s*,\\s*"))
+                    .map(property -> toConstraintViolation(rootName, property)).collect(Collectors.toSet());
+         }
+     }
+
+    private static final Function<String, InfoResponse> toInfoResponse = orderId -> {
+        if (orderId!=null) {
+            InfoResponse infoResponse = new InfoResponse();
+            infoResponse.setAccount(SINGLE_ACCOUNT);
+            infoResponse.setName(SINGLE_NAME);
+            infoResponse.setCurrency(CURRENCY_EUR);
+            infoResponse.setAccount2(ACCOUNT2);
+            infoResponse.setName2(NAME_2);
+            infoResponse.setCurrency2(CURRENCY2);
+            return infoResponse;
+        }
+        return ERROR_BAD_REQUEST.apply(orderId);
+    };
+
+
+    private static final Function<String, InfoResponse> toInfoResponse2 = orderId -> { // bad, too many non-setter statements (6)
+        if (orderId!=null) {
+            InfoResponse infoResponse = new InfoResponse();
+            infoResponse.setAccount(SINGLE_ACCOUNT);
+            infoResponse.setName(SINGLE_NAME);
+            infoResponse.setCurrency(CURRENCY_EUR);
+            infoResponse.setAccount2(ACCOUNT2);
+            infoResponse.setName2(NAME_2);
+            infoResponse.setCurrency2(CURRENCY2);
+            orderId.doStuff();
+            infoResponse.doStuff();
+            return infoResponse;
+        }
+        return ERROR_BAD_REQUEST.apply(orderId);
+    };
+
+     public List<ProductEntity> createProducts(final Consent consent){
+        List<ProductEntity> products = new ArrayList<>();
+         consent.getScopes().forEach(
+            scope -> {                                      // bad, too complex, nested lambda in lambda
+                List<ProductEntity> productEntities = scope.getProducts().stream().map(
+                    product -> ProductEntity.builder()
+                        .newEntity(true)
+                        .state(State.VALID)
+                        .build()
+                    ).collect(toList());
+                products.addAll(productEntities);
+            }
+        );
+         return products;
+    }
+}
+     ]]></code>
+    </test-code>
+
+
+</test-data>
