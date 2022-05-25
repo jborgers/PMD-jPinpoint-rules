@@ -103,7 +103,7 @@
     </rule>
 
     <rule name="AvoidMutableStaticFields"
-          message="Avoid non-final or mutable static fields. Make final immutable or access thread-safely and use @GuardedBy."
+          message="Avoid non-final or mutable static fields. Make final immutable or access thread-safely AND use @GuardedBy."
           class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java"
           typeResolution="true" externalInfoUrl="${doc_root}/JavaCodePerformance.md#tutc08">
         <description>
@@ -185,7 +185,7 @@ ancestor::StatementExpression/PrimaryExpression/PrimaryPrefix/Name/@Image = ance
     </rule>
 
     <rule name="AvoidUnguardedAssignmentToNonFinalFieldsInSharedObjects"
-          message="Avoid unguarded assignments to non-final fields in objects shared among threads. Access thread-safely and use @GuardedBy."
+          message="Avoid unguarded assignments to non-final fields in objects shared among threads. Access thread-safely AND use @GuardedBy."
           class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java"
           typeResolution="true" externalInfoUrl="${doc_root}/JavaCodePerformance.md#tutc07">
         <description>
@@ -278,7 +278,7 @@ or ancestor::MethodDeclaration[@Name='afterPropertiesSet']
     </rule>
 
     <rule name="AvoidUnguardedMutableFieldsInSharedObjects"
-          message="Avoid unguarded non-final or mutable fields in objects shared among threads. Make final immutable or access thread-safely and use @GuardedBy."
+          message="Avoid unguarded non-final or mutable fields in objects shared among threads. Make final immutable or access thread-safely AND use @GuardedBy."
           class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java"
           typeResolution="true" externalInfoUrl="${doc_root}/JavaCodePerformance.md#tutc07">
         <description>
@@ -335,7 +335,7 @@ and not (../Annotation//Name[@Image='GuardedBy'])
     </rule>
 
     <rule name="AvoidUnguardedMutableInheritedFieldsInSharedObjects"
-          message="Mutator method called on inherited field. Avoid unguarded mutable inherited fields in objects shared among threads. Make final immutable or access thread-safely and use @GuardedBy."
+          message="Mutator method called on inherited field. Avoid unguarded mutable inherited fields in objects shared among threads. Make final immutable or access thread-safely AND use @GuardedBy."
           class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java"
           typeResolution="true" externalInfoUrl="${doc_root}/JavaCodePerformance.md#tutc07">
         <description>
@@ -388,7 +388,7 @@ or (ancestor::ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='VisibleFo
     </rule>
 
     <rule name="AvoidUnguardedAssignmentToNonFinalFieldsInObjectsUsingSynchronized"
-          message="Avoid unguarded assignments to non-final fields in objects using synchronized. Access thread-safely and use @GuardedBy."
+          message="Avoid unguarded assignments to non-final fields in objects using synchronized. Access thread-safely AND use @GuardedBy."
           class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java"
           typeResolution="true" externalInfoUrl="${doc_root}/JavaCodePerformance.md#tutc07">
         <description>
@@ -423,7 +423,7 @@ or (ancestor::ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='VisibleFo
     </rule>
 
     <rule name="AvoidUnguardedMutableFieldsInObjectsUsingSynchronized"
-          message="Avoid unguarded non-final or mutable fields in objects using synchronized. Make final immutable or access thread-safely and use @GuardedBy."
+          message="Avoid unguarded non-final or mutable fields in objects using synchronized. Make final immutable or access thread-safely AND use @GuardedBy."
           class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java"
           typeResolution="true" externalInfoUrl="${doc_root}/JavaCodePerformance.md#tutc07">
         <description>
@@ -722,13 +722,14 @@ class Good {
             <property name="xpath">
                 <value><![CDATA[
 (: var.x() in synchronized block, var in list of local vars and all var.x in synchronized block are local vars:)
-//SynchronizedStatement[count(./Block//PrimaryPrefix/Name[index-of(ancestor::MethodDeclaration//LocalVariableDeclaration//VariableDeclaratorId/@Name, substring-before(@Image, '.')) >= 0]) =
-count(./Block//PrimaryPrefix/Name[substring-before(@Image, '.')])
+//SynchronizedStatement[count(./Block//PrimaryPrefix/Name[
+    index-of(ancestor::MethodDeclaration//LocalVariableDeclaration//VariableDeclaratorId/@Name, substring-before(@Image, '.')) >= 0]) =
+count(./Block//(PrimaryPrefix/Name|PrimarySuffix)[substring-before(@Image, '.')])
 and
 (: vars used in synchronized block are all local vars :)
-count(distinct-values(ancestor::MethodDeclaration//LocalVariableDeclaration//VariableDeclaratorId/@Name | ./Block//PrimaryPrefix/Name[not(contains(@Image, '.'))]/@Image))
+count(distinct-values(ancestor::MethodDeclaration//LocalVariableDeclaration//VariableDeclaratorId/@Name |
+     ./Block//(PrimaryPrefix/Name|PrimarySuffix)[@Image != '' and not(contains(@Image, '.'))]/@Image))
  = count(distinct-values(ancestor::MethodDeclaration//LocalVariableDeclaration//VariableDeclaratorId/@Name ))]
-
                         ]]>
                 </value>
             </property>

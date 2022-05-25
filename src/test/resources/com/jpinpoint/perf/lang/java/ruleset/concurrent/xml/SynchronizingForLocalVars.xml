@@ -51,4 +51,44 @@ public class Foo {
 }
      ]]></code>
     </test-code>
+
+    <test-code>
+        <description>SynchronizingForLocalVars false positive #204</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+@Data
+@AllArgsConstructor
+public class Information {
+    private int delay;
+    private final Object delayLock = new Object();
+
+    public void setDelay(int delay) {
+        synchronized (delayLock) {
+            this.delay = delay;
+        }
+    }
+    public int getDelay() {
+        synchronized(delayLock) { // false positive
+            return this.delay;
+        }
+    }
+}
+
+class Information2 {
+    private int delay;
+    private final Object delayLock = new Object();
+
+    public void setDelay(int d) {
+        synchronized (delayLock) {
+            delay = d;
+        }
+    }
+    public int getDelay() {
+        synchronized(delayLock) { // false positive
+            return delay;
+        }
+    }
+}
+     ]]></code>
+    </test-code>
 </test-data>
