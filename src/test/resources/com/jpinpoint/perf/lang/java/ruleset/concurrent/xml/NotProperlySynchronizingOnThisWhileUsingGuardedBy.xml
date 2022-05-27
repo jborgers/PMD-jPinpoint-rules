@@ -236,4 +236,38 @@
      ]]></code>
     </test-code>
 
+    <test-code>
+        <description>missed case of NotProperlySynchronizingOnThisWhileUsingGuardedBy #205</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>24</expected-linenumbers>
+        <code><![CDATA[
+import java.util.*;
+import javax.annotation.concurrent.GuardedBy;
+
+public enum Category {
+    ERROR("ERROR"), WARNING("WARNING");
+
+    @GuardedBy("this")
+    private static final Map<String, Category> mapping = new HashMap<>();
+
+    static {
+        Arrays.stream(Category.values()).forEach(unit -> mapping.put(unit.getValue(), unit));
+    }
+
+    @Getter(onMethod = @__({ @JsonValue }))
+    private String value;
+
+
+    Category(String value) {
+        this.value = value;
+    }
+
+    @JsonCreator
+    public static Category fromValue(String value) {
+        return EnumUtil.getValue( mapping, value); // bad
+    }
+}
+     ]]></code>
+    </test-code>
+
 </test-data>

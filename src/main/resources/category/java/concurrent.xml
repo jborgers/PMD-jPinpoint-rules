@@ -485,10 +485,10 @@ or (VariableDeclarator/VariableDeclaratorId/@Name = ancestor::ClassOrInterfaceBo
             <property name="xpath">
                 <value>
                     <![CDATA[
-//MethodDeclaration[@Synchronized=false()
+//MethodDeclaration[(@Synchronized=false() or @Static=true())
 and not (../Annotation//Name[@Image='Autowired' or @Image='PostConstruct' or @Image='BeforeStep' or @Image='Value' or @Image='Inject'])]
 //PrimaryPrefix/Name[substring-before(concat(@Image,'.'), '.') =
-ancestor::ClassOrInterfaceBody//Annotation//Name[@Image='GuardedBy']/..//Literal[@Image='"this"']/
+(ancestor::ClassOrInterfaceBody|ancestor::EnumBody)//Annotation//Name[@Image='GuardedBy']/..//Literal[@Image='"this"']/
 ancestor::ClassOrInterfaceBodyDeclaration/FieldDeclaration//VariableDeclaratorId/@Name
 and (
 not (ancestor::SynchronizedStatement)
