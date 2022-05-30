@@ -90,4 +90,31 @@ public class SomeClient {
 }
 ]]></code>
     </test-code>
+    <test-code>
+        <description>Fix Request: support defaults in HttpClientImproperConnectionTimeouts #207</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>8</expected-linenumbers>
+        <code><![CDATA[
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+
+public class SomeClient {
+    private final RestTemplate restTemplate;
+    private final String path;
+    @Value("${http.read.timeout:4000}")
+    int CONN_READ_TIMEOUT_IN_MILLISECONDS;
+    @Value("${http.connect.timeout:5000}") // missed case
+    int CONN_TIMEOUT_IN_MILLISECONDS;
+
+    private void submitHttpRequest(HttpEntity<SomeRequest> request) {
+            HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
+            requestFactory.setConnectTimeout(CONN_TIMEOUT_IN_MILLISECONDS);
+            requestFactory.setReadTimeout(CONN_READ_TIMEOUT_IN_MILLISECONDS);
+            requestFactory.setConnectionRequestTimeout(CONN_TIMEOUT_IN_MILLISECONDS);
+            restTemplate.setRequestFactory(requestFactory);
+            ResponseEntity<?> response = restTemplate.exchange(path, HttpMethod.PUT, request, SomeResponse.class);
+    }
+}
+]]></code>
+    </test-code>
+
 </test-data>

@@ -854,7 +854,8 @@ ancestor::ClassOrInterfaceDeclaration[//LocalVariableDeclaration/Type
 //(PrimarySuffix[@Image='setConnectionRequestTimeout' or @Image='setConnectTimeout']
     |PrimaryPrefix[./Name[ends-with(@Image, 'setConnectionRequestTimeout')] or ./Name[ends-with(@Image, 'setConnectTimeout')]])
 /following-sibling::PrimarySuffix[1]//Name/@Image]
-/(../VariableInitializer//Literal[number(@Image) > 500])
+/(../VariableInitializer//Literal[number(@Image) > 500]|
+  ancestor::ClassOrInterfaceBodyDeclaration//SingleMemberAnnotation[Name/@Image='Value']//Literal[number(substring-before(substring-after(@Image, ':'), '}')) > 500])
 ,
 (: use of literal, local var and return statement : :)
 //ClassOrInterfaceDeclaration[//LocalVariableDeclaration/Type[pmd-java:typeIs('org.apache.http.client.config.RequestConfig')
