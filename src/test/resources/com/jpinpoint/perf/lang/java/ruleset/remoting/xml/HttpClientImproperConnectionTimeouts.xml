@@ -65,4 +65,29 @@ class Foo {
 }
 ]]></code>
     </test-code>
+
+    <test-code>
+        <description>Fix Request: HttpClientImproperConnectionTimeouts missing Spring support #206</description>
+        <expected-problems>2</expected-problems>
+        <expected-linenumbers>7, 13</expected-linenumbers>
+        <code><![CDATA[
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+
+public class SomeClient {
+    private final RestTemplate restTemplate;
+    private final String path;
+    int CONN_READ_TIMEOUT_IN_MILLISECONDS = 4000;
+    int CONN_TIMEOUT_IN_MILLISECONDS = 5000; // missed case
+
+    private void submitHttpRequest(HttpEntity<SomeRequest> request) {
+            HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
+            requestFactory.setConnectTimeout(CONN_TIMEOUT_IN_MILLISECONDS);
+            requestFactory.setReadTimeout(CONN_READ_TIMEOUT_IN_MILLISECONDS);
+            requestFactory.setConnectionRequestTimeout(6000); // missed case
+            restTemplate.setRequestFactory(requestFactory);
+            ResponseEntity<?> response = restTemplate.exchange(path, HttpMethod.PUT, request, SomeResponse.class);
+    }
+}
+]]></code>
+    </test-code>
 </test-data>

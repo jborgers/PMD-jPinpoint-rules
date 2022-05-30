@@ -846,15 +846,25 @@ public class Foo {
                 <value><![CDATA[
 (: use of field, local var and return statement :)
 //FieldDeclaration[Type/PrimitiveType[@Image='int' or @Image='long']]//VariableDeclaratorId[@Name =
-ancestor::ClassOrInterfaceDeclaration[//LocalVariableDeclaration/Type[pmd-java:typeIs('org.apache.http.client.config.RequestConfig')]/..//VariableInitializer
+ancestor::ClassOrInterfaceDeclaration[//LocalVariableDeclaration/Type
+[pmd-java:typeIs('org.apache.http.client.config.RequestConfig')
+ or pmd-java:typeIs('org.springframework.http.client.HttpComponentsClientHttpRequestFactory')
+ or @TypeImage='HttpComponentsClientHttpRequestFactory']/..//VariableInitializer
 |.//ReturnStatement//PrimaryExpression[.//Name/@Image='RequestConfig.custom']]
-//PrimarySuffix[@Image='setConnectionRequestTimeout' or @Image='setConnectTimeout']/following-sibling::PrimarySuffix[1]//Name/@Image]
-/../VariableInitializer//Literal[number(@Image) > 500]
+//(PrimarySuffix[@Image='setConnectionRequestTimeout' or @Image='setConnectTimeout']
+    |PrimaryPrefix[./Name[ends-with(@Image, 'setConnectionRequestTimeout')] or ./Name[ends-with(@Image, 'setConnectTimeout')]])
+/following-sibling::PrimarySuffix[1]//Name/@Image]
+/(../VariableInitializer//Literal[number(@Image) > 500])
 ,
 (: use of literal, local var and return statement : :)
-//ClassOrInterfaceDeclaration[//LocalVariableDeclaration/Type[pmd-java:typeIs('org.apache.http.client.config.RequestConfig')]/..//VariableInitializer
+//ClassOrInterfaceDeclaration[//LocalVariableDeclaration/Type[pmd-java:typeIs('org.apache.http.client.config.RequestConfig')
+ or pmd-java:typeIs('org.springframework.http.client.HttpComponentsClientHttpRequestFactory')
+ or @TypeImage='HttpComponentsClientHttpRequestFactory'
+]/..//VariableInitializer
 |.//ReturnStatement//PrimaryExpression[.//Name/@Image='RequestConfig.custom']]
-//PrimarySuffix[@Image='setConnectionRequestTimeout' or @Image='setConnectTimeout']/following-sibling::PrimarySuffix[1]//Literal[number(@Image) > 500]
+//(PrimarySuffix[@Image='setConnectionRequestTimeout' or @Image='setConnectTimeout']
+    |PrimaryPrefix[./Name[ends-with(@Image, 'setConnectionRequestTimeout')] or ./Name[ends-with(@Image, 'setConnectTimeout')]])
+/following-sibling::PrimarySuffix[1]//Literal[number(@Image) > 500]
 ]]>
                 </value>
             </property>
