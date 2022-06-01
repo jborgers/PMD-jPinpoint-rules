@@ -1519,5 +1519,40 @@ class Foo {
         </example>
     </rule>
 
+    <rule name="ImproperVariableName"
+          language="java"
+          message="Give variables and fields a meaningful name."
+          class="net.sourceforge.pmd.lang.rule.XPathRule"
+          typeResolution="true"
+          externalInfoUrl="${doc_root}/JavaCodeQuality.md#m1">
+        <description>Problem: Variables like 'var3' and fields like 'FOUR = 4', do not express what they are used for. This is bad for maintainability.&#13;
+            Solution: Let variable names express what they are used for, like 'key' and 'MAX_KEYS = 4'
+        </description>
+        <priority>3</priority>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+//VariableDeclaratorId[matches(@Image, 'ZERO|ONE|TWO|TREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|TEN', 'i')
+and replace(@Image, 'ZERO|ONE|TWO|TREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|TEN|_', '', 'i') = ''
+or starts-with(@Image, 'var') and number(substring-after(@Image, 'var'))]
+                ]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+class Foo {
+    private static final int FOUR_ZERO_NINE_SIX = 4096; // bad
+    private static int six = 6; // bad
+    private int five = 6; // really bad
+    private static final int SIXTIES_START = 1960; // good
+
+    void bar() {
+        String var1 = "baz"; // bad
+    }
+}
+            ]]>
+        </example>
+    </rule>
 
 </ruleset>

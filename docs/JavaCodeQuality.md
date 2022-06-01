@@ -299,6 +299,28 @@ Suspicious code constructs
 **Solution:** Each case block of a switch should contain unique assignments. Common assignments should be taken out of the switch construct. Exceptional case: a duplicate assignment to a boolean is considered safe since it can only hold 2 values.    
 **Rule name:** AvoidDuplicateAssignmentsInCases
 
+Maintainability
+---------------
+
+### M01
+**Observation: Variable does not have a meaningful name, like 'var3' and fields like 'FOUR = 4'**  
+**Problem:** Variable does not express what it is used for. This is bad for maintainability.  
+**Solution:** Let variable names express what they are used for, like 'key' and 'MAX_KEYS = 4'.    
+**Rule name:** ImproperVariableName
+**Example:**
+````java
+class Foo {
+private static final int FOUR_ZERO_NINE_SIX = 4096; // bad
+private static int six = 6; // bad
+private int five = 6; // really bad
+private static final int SIXTIES_START = 1960; // good
+
+    void bar() {
+        String var1 = "baz"; // bad
+    }
+}
+````
+ 
 Improved Sonar rules
 --------------------
 We found that several Sonar rules do not meet our needs. We need an improved version.
