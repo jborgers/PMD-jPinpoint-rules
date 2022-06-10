@@ -975,7 +975,7 @@ class LombokGetterGood {
           message="Give variables and fields a meaningful name."
           class="net.sourceforge.pmd.lang.rule.XPathRule"
           typeResolution="true"
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodeQuality.md#m1">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodeQuality.md#m01">
         <description>Problem: Variables like 'var3' and fields like 'FOUR = 4', do not express what they are used for. This is bad for maintainability.&#13;
             Solution: Let variable names express what they are used for, like 'key' and 'MAX_KEYS = 4'
         (jpinpoint-rules)</description>
@@ -1427,8 +1427,10 @@ class Foo {
     (: equals a declared var :)
     (PrimaryPrefix/Name[@Image = ancestor::MethodDeclaration//VariableDeclarator
         (: with initializer not like obj.get[Xxx], we assume a simple getter is quick, unless this is in a loop :)
-        [not(contains(string-join(./VariableInitializer//PrimaryPrefix/Name/@Image, '-'), '.get')) or ancestor::WhileStatement or ancestor::ForStatement or ancestor::DoStatement]
-    /VariableDeclaratorId/@Name
+        [not(contains(string-join(./VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/Name/@Image, '-'), '.get')
+             (: this.field.get[Xxx] case #209 :)
+             or ./VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix[@Image = '']/../PrimarySuffix[starts-with(@Image, 'get')])
+         or ancestor::WhileStatement or ancestor::ForStatement or ancestor::DoStatement]/VariableDeclaratorId/@Name
     (: and it is not used in a return :)
     and (not(@Image = ancestor::Block//ReturnStatement//Name/@Image))
     (: and it is not used in a constructor of a local var :)

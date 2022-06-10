@@ -4,7 +4,7 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
     <test-code>
-        <description>Avoid unconditional creation of log arguments</description>
+        <description>UnconditionalCreatedLogArguments - Avoid unconditional creation of log arguments</description>
         <expected-problems>6</expected-problems>
         <expected-linenumbers>11,28,34,40,91,105</expected-linenumbers>
         <code><![CDATA[
@@ -141,5 +141,29 @@ class Klass {
     }
 }
      ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>Fix Request: false positive and missed case in UnconditionalCreatedLogArguments #209</description>
+        <expected-problems>2</expected-problems>
+        <expected-linenumbers>8,9</expected-linenumbers>
+        <code><![CDATA[
+class Foo {
+    Bar field1;
+    Bar field2;
+
+    void bad(Bar param) {
+      String log = param.baz(field1.get());
+      String logThis = param.baz(this.field1.get());
+      log.debug("field: {}", log); //bad, missed
+      log.debug("field: {}", logThis); //bad
+
+      String fieldGet = field1.getClass();
+      String fieldGetThis = this.field2.getClass();
+      log.debug("field getter: {}", fieldGet); // good
+      log.debug("field this.getter: {}", fieldGetThis); // good, false positive
+    }
+}
+]]></code>
     </test-code>
 </test-data>
