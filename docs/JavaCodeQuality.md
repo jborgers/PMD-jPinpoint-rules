@@ -240,6 +240,23 @@ class Bad2 {
         return result;
     }
 }
+
+class Bad3 {
+    String field1;
+    String field2; //bad - missing in hashCode
+
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        EqHashTryout2 that = (EqHashTryout2) o;
+        return Objects.equals(field1, that.field1) &&
+                Objects.equals(field2, that.field2);
+    }
+    public int hashCode() {
+        int result = field1 != null ? field1.hashCode() : 0;
+        return result;
+    }
+}
 ````
 
 

@@ -656,4 +656,30 @@ public class FailingPMDRule {
 }
             ]]></code>
     </test-code>
+
+    <test-code>
+        <description>no violation: Implement equals and hashcode methods on a Executor, no violations. Issue #211</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import java.util.concurrent.*;
+
+class ExtendedThreadPoolExecutor extends ThreadPoolExecutor {
+    String a = "a";
+    String b = "b";
+
+    public String getA() {return a;}
+    public String getB() {return b;}
+}
+
+ class OtherExecutor implements Executor {
+    String a = "a";
+    String b = "b";
+
+    public void execute(Runnable command) {}
+    public String getA() {return a;}
+    public String getB() {return b;}
+}
+            ]]></code>
+    </test-code>
+
 </test-data>
