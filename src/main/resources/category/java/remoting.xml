@@ -71,9 +71,9 @@ class Good {
         </properties>
     </rule>
 
-    <rule name="ObjectMapperCreatedForEachMethodCall" message="An ObjectMapper is created for each method call, which is expensive." class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java"   typeResolution="true" externalInfoUrl="${doc_root}/JavaCodePerformance.md#IUOJAR01">
-        <description>Problem: Jackson ObjectMapper creation is expensive because it does much class loading.  &#13;
-            Solution: Since ObjectMapper objects are thread-safe after configuration in one thread, they can be shared afterwards between requests and reused. So, reuse created instances, from a static field.
+    <rule name="ObjectMapperCreatedForEachMethodCall" message="An ObjectMapper or JsonMapper is created for each method call, which is expensive." class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java"   typeResolution="true" externalInfoUrl="${doc_root}/JavaCodePerformance.md#IUOJAR01">
+        <description>Problem: Jackson ObjectMapper/JsonMapper creation is expensive because it does much class loading.  &#13;
+            Solution: Since ObjectMapper/JsonMapper objects are thread-safe after configuration in one thread, they can be shared afterwards between requests and reused. So, reuse created instances, from a static field.
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
@@ -83,10 +83,29 @@ class Good {
 //MethodDeclaration//Expression/PrimaryExpression/PrimaryPrefix/AllocationExpression/ClassOrInterfaceType[
 	(pmd-java:typeIs('com.fasterxml.jackson.databind.ObjectMapper')) and
 	not(ancestor::TypeDeclaration/Annotation/MarkerAnnotation/Name/@Image='Configuration')
-]
+],
+//MethodDeclaration//PrimaryPrefix[
+	(pmd-java:typeIs('com.fasterxml.jackson.databind.json.JsonMapper') and
+         ancestor::PrimaryExpression//(PrimaryPrefix/Name|PrimarySuffix)[ends-with(@Image, 'build')]) and
+	not(ancestor::TypeDeclaration/Annotation/MarkerAnnotation/Name/@Image='Configuration')
+],
+//MethodDeclaration//VariableDeclarator[
+    pmd-java:typeIs('com.fasterxml.jackson.databind.ObjectMapper')
+]/VariableInitializer//PrimaryPrefix/Name[ends-with(@Image, 'build')]
 			]]></value>
             </property>
-        </properties>
+         </properties>
+        <example>
+            <![CDATA[
+public static ObjectMapper createMapper() {
+    return new ObjectMapper(); // violation
+}
+
+public static JsonMapper createMapper() {
+    return JsonMapper.builder().build(); // violation
+}
+            ]]>
+        </example>
     </rule>
 
     <rule name="GsonCreatedForEachMethodCall" message="A Gson object is created for each method call, which is expensive." class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java"   typeResolution="true" externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#IUOJAR03">
