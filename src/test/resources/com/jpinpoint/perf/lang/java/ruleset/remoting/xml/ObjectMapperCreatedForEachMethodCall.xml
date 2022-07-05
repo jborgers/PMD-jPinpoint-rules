@@ -50,4 +50,54 @@ class BankSpringRootConfig {
 }
      ]]></code>
     </test-code>
+    <test-code>
+        <description>Jackson JsonMapper.builder().build() creation is expensive instances should be reused</description>
+        <expected-problems>4</expected-problems>
+        <expected-linenumbers>18,24,25,27</expected-linenumbers>
+        <code><![CDATA[
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
+import com.fasterxml.jackson.databind.Module;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+import java.io.IOException;
+
+public class JsonMapperReuse {
+	private static final JsonMapper sharedMapper;
+
+	static {
+	        sharedMapper = JsonMapper.builder().build();
+	}
+
+	public static JsonMapper createMapper() {
+	        return JsonMapper.builder()
+                        .enable(JsonParser.Feature.ALLOW_SINGLE_QUOTES)
+                        .build(); // violation
+	}
+
+	public void myMethod() throws IOException, JsonMappingException {
+	    final JsonMapper mapper = JsonMapper.builder().build(); // violation
+		String json = JsonMapper.builder().build().writeValueAsString("authorizations"); // violation
+		JsonMapper.Builder builder = JsonMapper.builder();
+        JsonMapper myMapper = builder.build(); // violation
+	}
+
+	public void myMethodOk() throws IOException, JsonMappingException {
+		final JsonMapper mapper = sharedMapper; // OK
+		String json = mapper.writeValueAsString("authorizations"); // OK
+        List<Module> modules = JsonMapper.findModules(this.getClass().getClassLoader()); // OK
+	}
+}
+
+@Configuration
+class BankSpringRootConfig {
+	@Bean
+	public JsonMapper jsonMapper() {
+		return JsonMapper.builder().build(); // OK because configuration is only executed once
+	}
+}
+     ]]></code>
+    </test-code>
 </test-data>
