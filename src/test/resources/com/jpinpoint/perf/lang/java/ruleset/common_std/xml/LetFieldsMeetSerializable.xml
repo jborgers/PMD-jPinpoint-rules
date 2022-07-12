@@ -43,5 +43,28 @@ class ShouldAlsoMeetSerializable extends RemoteException {
      ]]></code>
     </test-code>
 
+    <test-code>
+        <description>no violations in LetFieldsMeetSerializable, for case classes cannot be resolved #214</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import java.lang.*;
+import java.util.*;
+import java.io.*;
+
+public class ShouldMeetSerializable implements Serializable {
+    String strMeets;
+    SerializableOther other;
+    SerializableUnresolved unresolvedOther;
+
+    List<SerializableOther> list1;
+    List<SerializableUnresolved> list2;
+}
+
+class SerializableOther implements Serializable {
+    Serializable ser;
+    String str;
+}
+     ]]></code>
+    </test-code>
 
 </test-data>

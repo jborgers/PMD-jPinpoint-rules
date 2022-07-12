@@ -854,7 +854,7 @@ ClassOrInterfaceBodyDeclaration
         <description>
             Problem: If equals and hashCode are not defined, they don't meet the programmer's expectations and the requirements for use with the collections API. It may result in unexpected, undesired behavior.&#13;
             Solution: Add proper equals and hashCode methods that meet the equals-hashCode contract to all objects which might anyhow be put in a Map, Set or other collection. Or use Lombok @EqualsAndHashCode, @Value or @Data. Also holds for inner classes.
-            If the object should never be checked for equality or used in a collection, also add those methods and let them throw UnsupportedOperationException to fail fast. @Xml... and @Entity objects are ignored because they are assumed to be not used as value objects.
+            If the object should never be checked for equality or used in a collection, also add those methods and let them throw UnsupportedOperationException to fail fast. @Xml... , @Entity, Throwable and Executor objects are ignored because they are assumed to be not used as value objects.
             (jpinpoint-rules)</description>
         <priority>3</priority>
         <properties>
@@ -866,8 +866,7 @@ ClassOrInterfaceBodyDeclaration
 //TypeDeclaration[not(./Annotation//Name[@Image='Data' or @Image='Value' or @Image='EqualsAndHashCode'
 or @Image='Singleton' or @Image='Component' or @Image='Service' or @Image='Repository' or @Image='Configuration' or @Image='Endpoint' or @Image='RestController' or @Image='ControllerAdvice'
 or starts-with(@Image, 'Xml') or @Image='Entity' or @Image='Embeddable' or @Image='MappedSuperclass'])]
-/ClassOrInterfaceDeclaration[@Interface=false() and @Abstract=false()]
-[not(./ExtendsList/ClassOrInterfaceType[ends-with(@Image, 'Exception') or ends-with(@Image, 'Throwable')])]
+/ClassOrInterfaceDeclaration[@Interface=false() and @Abstract=false() and not(pmd-java:typeIs('java.util.concurrent.Executor') or pmd-java:typeIs('java.lang.Throwable'))]
 /ClassOrInterfaceBody[ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Static=false()]
 [
 (not (../Annotation//Name[@Image = 'XmlElement']))
@@ -906,8 +905,7 @@ ancestor::TypeDeclaration/Annotation//Name[@Image='Getter']
 (:-- inner classes --:)
 ,
 //ClassOrInterfaceBodyDeclaration[not(./Annotation//Name[@Image='Data' or @Image='Value' or @Image='EqualsAndHashCode'])]
-/ClassOrInterfaceDeclaration[@Interface=false() and @Abstract=false()]
-[not(./ExtendsList/ClassOrInterfaceType[ends-with(@Image, 'Exception') or ends-with(@Image, 'Throwable')])]
+/ClassOrInterfaceDeclaration[@Interface=false() and @Abstract=false() and not(pmd-java:typeIs('java.util.concurrent.Executor') or pmd-java:typeIs('java.lang.Throwable'))]
 /ClassOrInterfaceBody[ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Static=false()]
 [(
 ancestor::ClassOrInterfaceBody[1]/ClassOrInterfaceBodyDeclaration/MethodDeclaration
@@ -984,7 +982,7 @@ class LombokGetterGood {
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
-//VariableDeclaratorId[matches(@Image, 'ZERO|ONE|TWO|TREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|TEN', 'i')
+//VariableDeclaratorId[matches(@Name, 'ZERO|ONE|TWO|TREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|TEN', 'i')
 and replace(@Image, 'ZERO|ONE|TWO|TREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|TEN|_', '', 'i') = ''
 or starts-with(@Image, 'var') and number(substring-after(@Image, 'var'))]
                 ]]></value>
@@ -1858,9 +1856,13 @@ and not(pmd-java:typeIs('java.lang.Throwable') and not(pmd-java:typeIs('java.rmi
 (: non-transient, non-static, non-primitive fields :)
 //FieldDeclaration[@Transient=false() and @Static=false()][not(.//PrimitiveType)]
 [not(pmd-java:typeIs('java.io.Serializable'))
+(: and can be resolved :)
+and (pmd-java:typeIs('java.lang.Object'))
 (: if has type args, type args which are not serializable like List<String, Thread>):)
 and (not(exists(.//TypeArgument))
-or exists(.//TypeArgument[not(pmd-java:typeIs('java.io.Serializable'))]))
+or exists(.//TypeArgument[not(pmd-java:typeIs('java.io.Serializable'))
+(: and can be resolved :)
+and (pmd-java:typeIs('java.lang.Object'))]))
 ]
                 ]]></value>
             </property>
