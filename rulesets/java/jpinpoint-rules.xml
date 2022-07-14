@@ -3109,6 +3109,38 @@ or ancestor::ClassOrInterfaceBody[count(.//MethodDeclaration/ResultType/Type[pmd
         </example>
     </rule>
 
+    <rule name="AvoidObjectMapperAsField" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" message="Avoid ObjectMapper as field, use ObjectReader or ObjectWriter instead."
+          typeResolution="true"
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#iuojar02">
+        <description>Problem: Configuring an ObjectMapper is thread-unsafe.  &#13;
+            Solution: Create ObjectReaders and ObjectWriters from ObjectMapper and only share those as field, since they are immutable and therefore thread-safe. (jpinpoint-rules)</description>
+        <priority>3</priority>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+//FieldDeclaration[pmd-java:typeIs('com.fasterxml.jackson.databind.ObjectMapper')
+(: if class not in classpath, can use following :)
+(:or (.//Type//ClassOrInterfaceType[@Image='ObjectMapper'] and //ImportDeclaration/Name[starts-with(@Image, 'com.fasterxml.jackson.databind.')]):)]
+]]>
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+    public class BadStyle {
+        private static final ObjectMapper staticObjectMapper = new ObjectMapper(); // bad
+        private final ObjectMapper mapperField = new ObjectMapper(); //bad
+    }
+
+    public class GoodStyle {
+        private static final ObjectWriter staticObjectWriter =
+            new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL).writer(); // good
+    }
+            ]]>
+        </example>
+    </rule>
+
     <rule name="AvoidReactorDebugOverhead" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java"
           message="Do not use Reactor debugging in production, it has much overhead."
           typeResolution="true"
@@ -3559,9 +3591,9 @@ public class HttpClientStuff {
         </properties>
     </rule>
 
-    <rule name="ObjectMapperCreatedForEachMethodCall" message="An ObjectMapper is created for each method call, which is expensive." class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java"   typeResolution="true" externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#IUOJAR01">
-        <description>Problem: Jackson ObjectMapper creation is expensive because it does much class loading.  &#13;
-            Solution: Since ObjectMapper objects are thread-safe after configuration in one thread, they can be shared afterwards between requests and reused. So, reuse created instances, from a static field.
+    <rule name="ObjectMapperCreatedForEachMethodCall" message="An ObjectMapper or JsonMapper is created for each method call, which is expensive." class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java"   typeResolution="true" externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#IUOJAR01">
+        <description>Problem: Jackson ObjectMapper/JsonMapper creation is expensive because it does much class loading.  &#13;
+            Solution: Since ObjectMapper/JsonMapper objects are thread-safe after configuration in one thread, they can be shared afterwards between requests and reused. So, reuse created instances, from a static field.
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
@@ -3571,10 +3603,29 @@ public class HttpClientStuff {
 //MethodDeclaration//Expression/PrimaryExpression/PrimaryPrefix/AllocationExpression/ClassOrInterfaceType[
 	(pmd-java:typeIs('com.fasterxml.jackson.databind.ObjectMapper')) and
 	not(ancestor::TypeDeclaration/Annotation/MarkerAnnotation/Name/@Image='Configuration')
-]
+],
+//MethodDeclaration//PrimaryPrefix[
+	(pmd-java:typeIs('com.fasterxml.jackson.databind.json.JsonMapper') and
+         ancestor::PrimaryExpression//(PrimaryPrefix/Name|PrimarySuffix)[ends-with(@Image, 'build')]) and
+	not(ancestor::TypeDeclaration/Annotation/MarkerAnnotation/Name/@Image='Configuration')
+],
+//MethodDeclaration//VariableDeclarator[
+    pmd-java:typeIs('com.fasterxml.jackson.databind.ObjectMapper')
+]/VariableInitializer//PrimaryPrefix/Name[ends-with(@Image, 'build')]
 			]]></value>
             </property>
-        </properties>
+         </properties>
+        <example>
+            <![CDATA[
+public static ObjectMapper createMapper() {
+    return new ObjectMapper(); // violation
+}
+
+public static JsonMapper createMapper() {
+    return JsonMapper.builder().build(); // violation
+}
+            ]]>
+        </example>
     </rule>
 
     <rule name="RetryCanCauseOverload" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" message="Be careful with retrying: multiple retry locations in a call chain can cause overload."

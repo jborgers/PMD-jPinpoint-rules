@@ -1111,23 +1111,23 @@ Better is using and sharing ObjectReaders and ObjectWriters created from ObjectM
 
 #### IUOJAR02
 
-**Observation: An existing ObjectMapper object is configured/modified.**  
-**Problem:** ObjectMapper is thread-safe only after configuration. Configuring an ObjectMapper is not thread-safe.  
-**Solution:** Avoid configuring objectMappers except when initializing: right after construction, in one thread. 
-The safe and recommended approach is to create configured ObjectReaders and ObjectWriters from ObjectMapper and share those, since they are immutable and therefore guaranteed to be thread-safe.  
-**Rule name:** AvoidModifyingObjectMapper   
+**Observation: An ObjectMapper is used as field; an existing one is modified.**  
+**Problem:** Configuring/modifying an ObjectMapper is thread-unsafe.  
+**Helpful:** Only configure objectMappers when initializing: right after construction, in one thread.   
+**Solution:** Create configured ObjectReaders and ObjectWriters from ObjectMapper and share those as field, since they are immutable and therefore guaranteed to be thread-safe.  
+**Rule names:** AvoidObjectMapperAsField, AvoidModifyingObjectMapper   
 **Example:**   
 ```java
-public class OldStyle {
-    private static final ObjectMapper staticObjectMapper = new ObjectMapper();
-    private final ObjectMapper mapperField = new ObjectMapper();
+public class ToAvoidStyle {
+    private static final ObjectMapper staticObjectMapper = new ObjectMapper(); // bad
+    private final ObjectMapper mapperField = new ObjectMapper(); // bad
 
     static {
-        staticObjectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL); // good
+        staticObjectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL); 
     }
 
-    public OldStyle() {
-        mapperField.setSerializationInclusion(JsonInclude.Include.NON_NULL); // good
+    public ToAvoidStyle() {
+        mapperField.setSerializationInclusion(JsonInclude.Include.NON_NULL); 
     }
 
     ObjectMapper bad(ObjectMapper mapper) {
@@ -1136,7 +1136,7 @@ public class OldStyle {
     }
 }
 
-class NewStyle {
+class GoodStyle {
     private static final ObjectWriter staticObjectWriter =
         new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL).writer(); // good
 }
