@@ -116,4 +116,27 @@ class Foo {
 ]]></code>
     </test-code>
 
+    <test-code>
+        <description>Avoid Future Join Without Timeout, missed case chained join #216</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>5</expected-linenumbers>
+        <code><![CDATA[
+import java.util.*;
+import java.util.concurrent.*;
+public class Bar {
+  public List<AccountDto> foo(final List<AccountDto> accounts, final CompletableFuture<Pair<String, Boolean>>[] futures) {
+        CompletableFuture.allOf(futures).join(); // bad
+
+        final Map<String, Boolean> accountBlockedMap = Arrays.stream(futures)
+                .map(this::unWrapFuture)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toMap(Pair::getFirst, Pair::getSecond));
+
+        return accounts.stream()
+                .filter(account -> !accountBlockedMap.get(account.getNumber()))
+                .collect(Collectors.toList());
+    }
+}
+]]></code>
+    </test-code>
 </test-data>

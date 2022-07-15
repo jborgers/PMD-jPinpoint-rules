@@ -787,12 +787,17 @@ and not(ancestor::MethodDeclaration//PrimaryPrefix/Name[ends-with(@Image, '.get'
 ,
 (: future.join in lambda without timeout in method :)
 //PrimaryExpression/PrimaryPrefix/LambdaExpression//Name[ends-with(@Image, '.join')
-and not(ancestor::MethodDeclaration//PrimaryPrefix/Name[ends-with(@Image, '.get') or ends-with(@Image, 'Timeout')][../../PrimarySuffix//ArgumentList])
+and not(ancestor::MethodDeclaration//PrimaryPrefix[pmd-java:typeIs('java.util.concurrent.Future')]/Name[ends-with(@Image, '.get') or ends-with(@Image, 'Timeout')]
+[../../PrimarySuffix//ArgumentList])
 ]
 (: join has no arguments, #198 :)
 [../../PrimarySuffix/Arguments[@Size=0]]
-(: dealing with Futures, #198 :)
-[ancestor::ClassOrInterfaceBodyDeclaration//ClassOrInterfaceType[pmd-java:typeIs('java.util.concurrent.Future')]]
+,
+(: CompletableFuture.allOf(futures).join() without timeout :)
+//PrimaryExpression/PrimaryPrefix[pmd-java:typeIs('java.util.concurrent.Future')]/../PrimarySuffix[@Image='join'
+and not(ancestor::MethodDeclaration//PrimaryPrefix[pmd-java:typeIs('java.util.concurrent.Future')]/Name[ends-with(@Image, '.get') or ends-with(@Image, 'Timeout')])]
+(: join has no arguments, #198 :)
+[../PrimarySuffix/Arguments[@Size=0]]
 ]]>
                 </value>
             </property>
