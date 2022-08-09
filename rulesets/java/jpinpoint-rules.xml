@@ -1935,6 +1935,48 @@ import static com.co.corporate.Constants.GREAT; // good
 
 <!-- END Included file 'common_std.xml' -->
 <!-- BEGIN Included file 'concurrent.xml' -->
+    <rule name="AvoidCommonPoolForFutureAsync"
+          message="Avoid using the common thread pool for future.supplyAsync, use a separate pool."
+          class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java"
+          typeResolution="true" externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#ia08">
+        <description>
+            Problem: Future.supplyAsync is typically used for remote calls. By default, it uses the common pool.
+            The number of threads in the common pool is equal to the number of CPU's, which is suitable for in-memory calculations.
+            For I/O, however, this number is typically not suitable because most time is spent waiting for the response and not in CPU.&#13;
+            Solution: A separate, properly sized, pool of threads (an Executor) should be used for the async calls.
+            (jpinpoint-rules)</description>
+        <priority>1</priority>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value>
+                    <![CDATA[
+//PrimaryPrefix/Name[@Image='CompletableFuture.supplyAsync']/../../PrimarySuffix/Arguments/ArgumentList[count(Expression) = 1]
+]]>
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+public class Foo {
+    private final ExecutorService asyncPool = Executors.newFixedThreadPool(8);
+
+    void bad() {
+        CompletableFuture<Pair<String, Boolean>>[] futures = accounts.stream()
+         .map(account -> CompletableFuture.supplyAsync(() -> isAccountBlocked(account))) // bad
+         .toArray(CompletableFuture[]::new);
+    }
+
+    void good() {
+        CompletableFuture<Pair<String, Boolean>>[] futures = accounts.stream()
+         .map(account -> CompletableFuture.supplyAsync(() -> isAccountBlocked(account), asyncPool)) // good
+         .toArray(CompletableFuture[]::new);
+    }
+}
+]]>
+        </example>
+    </rule>
+
     <rule name="AvoidCompletionServiceTake"
           message="Avoid completionService.take, use poll"
           class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java"

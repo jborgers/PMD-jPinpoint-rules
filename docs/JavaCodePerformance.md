@@ -563,6 +563,30 @@ class Foo {
 ```
 See: [completablefuture-and-timeout](https://stackoverflow.com/questions/60419311/completablefuture-does-not-complete-on-timeout) and  [completablefuture-allof-and-errors](https://kalpads.medium.com/fantastic-completablefuture-allof-and-how-to-handle-errors-27e8a97144a0)
 
+#### IA08
+**Observation: Future.supplyAsync is used for remote calls and it uses the common pool (the default).**  
+**Problem:** The number of threads in the common pool is equal to the number of CPU's, which is suitable for in-memory calculations.
+For I/O, however, this number is typically not suitable because most time is spent waiting for the response and not in CPU.  
+**Solution:** A separate, properly sized, pool of threads (an Executor) should be used for the async calls.   
+**Rule name:** AvoidCommonPoolForFutureAsync   
+**Example:**
+```java
+public class Foo {
+  private final ExecutorService asyncPool = Executors.newFixedThreadPool(8);
+
+  void bad() {
+    CompletableFuture<Pair<String, Boolean>>[] futures = accounts.stream()
+            .map(account -> CompletableFuture.supplyAsync(() -> isAccountBlocked(account))) // bad
+            .toArray(CompletableFuture[]::new);
+  }
+
+  void good() {
+    CompletableFuture<Pair<String, Boolean>>[] futures = accounts.stream()
+            .map(account -> CompletableFuture.supplyAsync(() -> isAccountBlocked(account), asyncPool)) // good
+            .toArray(CompletableFuture[]::new);
+  }
+}
+```
 Improper caching  
 -------------------
 
