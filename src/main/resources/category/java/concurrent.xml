@@ -836,7 +836,7 @@ and not(ancestor::MethodDeclaration//PrimaryPrefix[pmd-java:typeIs('java.util.co
           typeResolution="true" externalInfoUrl="${doc_root}/JavaCodePerformance.md#ia08">
         <description>
             Problem: Future.supplyAsync is typically used for remote calls. By default, it uses the common pool.
-            The number of threads in the common pool is equal to the number of CPU's, which is suitable for in-memory calculations.
+            The number of threads in the common pool is equal to the number of CPU's, which is suitable for in-memory processing.
             For I/O, however, this number is typically not suitable because most time is spent waiting for the response and not in CPU.&#13;
             Solution: A separate, properly sized, pool of threads (an Executor) should be used for the async calls.
             (jpinpoint-rules)</description>

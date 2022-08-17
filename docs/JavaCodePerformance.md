@@ -565,7 +565,7 @@ See: [completablefuture-and-timeout](https://stackoverflow.com/questions/6041931
 
 #### IA08
 **Observation: Future.supplyAsync is used for remote calls and it uses the common pool (the default).**  
-**Problem:** The number of threads in the common pool is equal to the number of CPU's, which is suitable for in-memory calculations.
+**Problem:** The number of threads in the common pool is equal to the number of CPU's, which is suitable for in-memory processing.
 For I/O, however, this number is typically not suitable because most time is spent waiting for the response and not in CPU.  
 **Solution:** A separate, properly sized, pool of threads (an Executor) should be used for the async calls.   
 **Rule name:** AvoidCommonPoolForFutureAsync   
