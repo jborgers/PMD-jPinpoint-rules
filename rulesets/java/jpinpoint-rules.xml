@@ -1834,6 +1834,46 @@ public class StringStuff {
         </example>
     </rule>
 
+    <rule name="AvoidUnusedAssignments"
+          language="java"
+          message="Avoid assignments for which the assigned value is never used."
+          class="net.sourceforge.pmd.lang.rule.XPathRule"
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodeQuality.md#isr04">
+        <description>Problem: Assignments to variables for which the assigned value is not used because a new value is assigned before actual use, is unnecessary work and my indicate a bug.
+            Solution: remove the first assignment and make sure that is as intended.
+        (jpinpoint-rules)</description>
+        <priority>3</priority>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+(: for each local variable declaration or assignment node :)
+(for $node in (//StatementExpression[AssignmentOperator][not(ancestor::IfStatement or ancestor::TryStatement or ancestor::SwitchStatement)]/PrimaryExpression/PrimaryPrefix/Name
+| //LocalVariableDeclaration/VariableDeclarator[VariableInitializer]//VariableDeclaratorId)
+(: match if for that node the next occurrence of ((assignment without use in same statement) union with (use) is an assignment to the var) :)
+return ($node[
+(: assignment without use, Name is result :)
+((following::BlockStatement//StatementExpression[AssignmentOperator][not(ancestor::IfStatement or ancestor::TryStatement or ancestor::SwitchStatement)]/PrimaryExpression/PrimaryPrefix/Name[@Image=$node/@Image]
+[not(ancestor::BlockStatement//PrimaryExpression[not(../AssignmentOperator) and (not(PrimarySuffix/Arguments) or PrimaryPrefix[contains(Name/@Image, '.')])]
+/PrimaryPrefix[substring-before(concat(Name/@Image, '.'), '.')=$node/@Image])]
+)[1]
+|
+(: use, PrimaryPrefix is result, so @Image is empty string :)
+(following::BlockStatement//PrimaryExpression[not(../AssignmentOperator) and (not(PrimarySuffix/Arguments) or PrimaryPrefix[contains(Name/@Image, '.')])]
+/PrimaryPrefix[substring-before(concat(Name/@Image, '.'), '.')=$node/@Image])[1])
+(: first is the var name :)
+[1]/@Image = $node/@Image])
+)
+                ]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+
+            ]]>
+        </example>
+    </rule>
+
     <rule name="LetFieldsMeetSerializable"
           language="java"
           message="Fields in a Serializable class should be serializable or transient."
@@ -1941,7 +1981,7 @@ import static com.co.corporate.Constants.GREAT; // good
           typeResolution="true" externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#ia08">
         <description>
             Problem: Future.supplyAsync is typically used for remote calls. By default, it uses the common pool.
-            The number of threads in the common pool is equal to the number of CPU's, which is suitable for in-memory calculations.
+            The number of threads in the common pool is equal to the number of CPU's, which is suitable for in-memory processing.
             For I/O, however, this number is typically not suitable because most time is spent waiting for the response and not in CPU.&#13;
             Solution: A separate, properly sized, pool of threads (an Executor) should be used for the async calls.
             (jpinpoint-rules)</description>
@@ -2384,7 +2424,7 @@ or (ancestor::ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='VisibleFo
             Problem: Multiple threads typically access fields of a singleton or may access fields in session scoped objects. Unguarded assignment to a non-final field is thread-unsafe and may cause corruption or visibility problems. It may also unintentionally mixup session data. &#13;
             Solution: Make the fields final and unmodifiable.  If they really need to be mutable, make access thread-safe: use synchronized and jcip @GuardedBy or use volatile.&#13;
             Notes&#13;
-            1. Autowiring/injection is thread safe, yet make sure no other thread-unsafe assignment is made to that field.&#13;
+            1. For autowiring/injection, the assignment of the reference is thread safe, so final is not required. The unmodifiable/thread-safe requirement for that field still holds. Also make sure no other thread-unsafe assignment is made to that field.&#13;
             2. In case you are sure the Component is used in single threaded context only (e.g. a Tasklet), annotate the class with @NotThreadSafe to make this explicit. &#13;
             3. Use package-private and @VisibleForTesting for methods (e.g. setters) used for JUnit only.
             4. Use synchronized for accessors to inherited fields, or better: make field private and use proper accessors on base class level using @GuardedBy.
@@ -2440,7 +2480,7 @@ or ancestor::MethodDeclaration[@Name='afterPropertiesSet']
             Notes&#13;
             1. Instances of Date, StringBuilder, URL and File are examples of mutable objects and should be avoided (or else guarded) as fields of shared objects. In case mutable fields are final and not modified after initialization (read-only) they are thread safe, however any modification to it is thread-unsafe. Since field modification is easily coded, avoid this situation.
             &#13;2. Instances of classes like ArrayList, HashMap and HashSet are also mutable and should be properly wrapped with e.g. Collections.unmodifiableList after initialization (see TUTC03), or accessed thread-safely with e.g. Collections.synchronizedList or thread-safe implementations like ConcurrentHashMap.
-            &#13;3. Autowiring/injection is thread safe, yet make sure no other thread-unsafe assignment is made to that field.
+            &#13;3. For autowiring/injection, the assignment of the reference is thread safe, so final is not required. The unmodifiable/thread-safe requirement for that field still holds. Also make sure no other thread-unsafe assignment is made to that field.
             &#13;4. In case you are sure the class is used in single threaded context only, annotate the class with @NotThreadSafe to make this explicit.
             &#13;5. Use package private and @VisibleForTesting for methods used for JUnit only.
             (jpinpoint-rules)</description>
@@ -2488,7 +2528,7 @@ or (VariableDeclarator/VariableDeclaratorId/@Name = ancestor::ClassOrInterfaceBo
             Notes&#13;
             1. Instances of Date, StringBuilder, URL and File are examples of mutable objects and should be avoided (or else guarded) as fields of shared objects. In case mutable fields are final and not modified after initialization (read-only) they are thread safe, however any modification to it is thread-unsafe. Since field modification is easily coded, avoid this situation.
             &#13;2. Instances of classes like ArrayList, HashMap and HashSet are also mutable and should be properly wrapped with e.g. Collections.unmodifiableList after initialization (see TUTC03), or accessed thread-safely with e.g. Collections.synchronizedList or thread-safe implementations like ConcurrentHashMap.
-            &#13;3. Autowiring/injection is thread safe, yet make sure no other thread-unsafe assignment is made to that field.
+            &#13;3. For autowiring/injection, the assignment of the reference is thread safe, so final is not required. The unmodifiable/thread-safe requirement for that field still holds. Also make sure no other thread-unsafe assignment is made to that field.
             &#13;4. In case you are sure the Component is used in single threaded context only (e.g. a Tasklet), annotate the class with @NotThreadSafe to make this explicit.
             &#13;5. Use package private and @VisibleForTesting for methods used for JUnit only.
             (jpinpoint-rules)</description>
@@ -2545,7 +2585,7 @@ and not (../Annotation//Name[@Image='GuardedBy'])
             Notes&#13;
             1. Instances of Date, StringBuilder, URL and File are examples of mutable objects and should be avoided (or else guarded) as fields of shared objects. In case mutable fields are final and not modified after initialization (read-only) they are thread safe, however any modification to it is thread-unsafe. Since field modification is easily coded, avoid this situation.
             &#13;2. Instances of classes like ArrayList, HashMap and HashSet are also mutable and should be properly wrapped with e.g. Collections.unmodifiableList after initialization (see TUTC03), or accessed thread-safely with e.g. Collections.synchronizedList or thread-safe implementations like ConcurrentHashMap.
-            &#13;3. Autowiring/injection is thread safe, yet make sure no other thread-unsafe assignment is made to that field.
+            &#13;3. For autowiring/injection, the assignment of the reference is thread safe, so final is not required. The unmodifiable/thread-safe requirement for that field still holds. Also make sure no other thread-unsafe assignment is made to that field.
             &#13;4. In case you are sure the Component is used in single threaded context only (e.g. a Tasklet), annotate the class with @NotThreadSafe to make this explicit.
             &#13;5. Use package private and @VisibleForTesting for methods used for JUnit only.
             (jpinpoint-rules)</description>

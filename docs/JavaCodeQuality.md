@@ -362,9 +362,17 @@ An exception to this exception is when extending RemoteException, then fields sh
 **Sonar rule(s):** S1948 - Fields in a "Serializable" class should either be transient or serializable (inadequate rule).   
 
 ### ISR03
-**Issue:** [202](https://github.com/jborgers/PMD-jPinpoint-rules/issues/200)   
+**Issue:** [200](https://github.com/jborgers/PMD-jPinpoint-rules/issues/200)   
 **Observation: A lambda expression has many statements: it exceeds the limit (default = 4), or has a nested lambda.**  
 **Problem:** lambda expressions with many statements or nested lambdas are hard to understand and maintain.  
 **Solution:** extract the lambda expression code block into one or more separate method(s).     
 **Rule name:** AvoidComplexLambdas   
 **Sonar rule(s):** java:S5612 - Lambdas should not have too many lines (inadequate rule).   
+
+### ISR04
+**Issue:** [220](https://github.com/jborgers/PMD-jPinpoint-rules/issues/220)   
+**Observation: A value assigned to a local variable is never used.**   
+**Problem:** Assignments to variables for which the assigned value is not used because a new value is assigned before actual use, is unnecessary work and my indicate a bug.  
+**Solution:** Remove the first assignment and make sure that is as intended.     
+**Rule name:** AvoidUnusedAssignments   
+**Sonar rule(s):** java:S1854 - Unused assignments should be removed (inadequate rule).   
