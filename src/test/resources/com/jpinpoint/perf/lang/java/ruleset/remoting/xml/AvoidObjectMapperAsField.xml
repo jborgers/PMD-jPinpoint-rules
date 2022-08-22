@@ -23,4 +23,23 @@
      ]]></code>
     </test-code>
 
+    <test-code>
+        <description>violation: ObjectMapper used as static and instance field with exception for convertValue,
+            Fix Request: AvoidObjectMapperAsField exception for case with methods only available from ObjectMapper #218</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>4</expected-linenumbers>
+        <code><![CDATA[
+    import com.fasterxml.jackson.databind.*;
+    public class BadStyleException {
+        private static final ObjectMapper staticObjectMapper = new ObjectMapper(); // exception, not bad
+        private final ObjectMapper mapperField = new ObjectMapper(); //bad
+
+        public UserProfileDto getUserProfileDto(UserProfile userProfile) {
+            return staticObjectMapper.convertValue(userProfile, UserProfileDto.class);
+        }
+    }
+
+     ]]></code>
+    </test-code>
+
 </test-data>

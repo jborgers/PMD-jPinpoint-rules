@@ -1135,16 +1135,17 @@ Better is using and sharing ObjectReaders and ObjectWriters created from ObjectM
 
 #### IUOJAR02
 
-**Observation: An ObjectMapper is used as field; an existing one is modified.**  
+**Observation: An ObjectMapper is used as field; an existing ObjectMapper is modified.**  
 **Problem:** Configuring/modifying an ObjectMapper is thread-unsafe.  
 **Helpful:** Only configure objectMappers when initializing: right after construction, in one thread.   
 **Solution:** Create configured ObjectReaders and ObjectWriters from ObjectMapper and share those as field, since they are immutable and therefore guaranteed to be thread-safe.  
+**Exception:** A convertValue method is not provided by Reader/Writer, therefore use of an ObjectMapper as field cannot easily be avoided in this case. The AvoidObjectMapperAsField rule is not applied.   
 **Rule names:** AvoidObjectMapperAsField, AvoidModifyingObjectMapper   
 **Example:**   
 ```java
-public class ToAvoidStyle {
-    private static final ObjectMapper staticObjectMapper = new ObjectMapper(); // bad
-    private final ObjectMapper mapperField = new ObjectMapper(); // bad
+class ToAvoidStyle {
+    private static final ObjectMapper staticObjectMapper = new ObjectMapper(); // bad by AvoidObjectMapperAsField
+    private final ObjectMapper mapperField = new ObjectMapper(); // bad by AvoidObjectMapperAsField
 
     static {
         staticObjectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL); 
@@ -1155,9 +1156,18 @@ public class ToAvoidStyle {
     }
 
     ObjectMapper bad(ObjectMapper mapper) {
-        mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL); // bad
+        mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL); // bad by AvoidModifyingObjectMapper
         return mapper;
     }
+}
+
+class ExceptionCase {
+  private static final ObjectMapper staticObjectMapper = new ObjectMapper(); //accepted by AvoidObjectMapperAsField
+  private final ObjectMapper mapperField = new ObjectMapper(); //bad by AvoidObjectMapperAsField
+
+  public UserProfileDto getUserProfileDto(UserProfile userProfile) {
+        return staticObjectMapper.convertValue(userProfile, UserProfileDto.class);
+  }
 }
 
 class GoodStyle {
