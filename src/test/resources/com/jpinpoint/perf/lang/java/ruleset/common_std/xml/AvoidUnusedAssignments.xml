@@ -74,4 +74,20 @@ public class Foo {
      ]]></code>
     </test-code>
 
+    <test-code>
+        <description>no violation: false positive in AvoidUnusedAsignments #221</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+class CarStuff {
+    String[] licenses;
+    String license;
+
+    void doIt() {
+        licenses = new LicenseResponse[1];
+        license = new LicenseResponse();
+        licenses[0] = license;
+    }
+}
+     ]]></code>
+    </test-code>
 </test-data>

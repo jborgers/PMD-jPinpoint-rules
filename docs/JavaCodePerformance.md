@@ -1635,7 +1635,7 @@ public class StringBuilder {
 **Notes**
 
 1.  Instances of Date, StringBuilder, URL and File are examples of mutable objects and should be avoided (or else guarded) as fields of shared objects. In case mutable fields are final and not modified after initialization (read-only) they are thread safe, however any modification to it is thread-unsafe. Since field modification is easily coded, avoid this situation.
-2.  Instances of classes like ArrayList, HashMap and HashSet are also mutable and should be properly wrapped with e.g. Collections.unmodifiableList after initialization (see [TUTC03](#TUTC03)), or accessed thread-safely with e.g. Collections.synchronizedList or thread-safe implementations like ConcurrentHashMap.
+2.  Instances of classes like ArrayList, HashMap and HashSet are also mutable and should be properly wrapped with e.g. Collections.unmodifiableList after initialization (see [TUTC03](#TUTC03)), made immmutable by e.g. List.copyOf() or accessed thread-safely with e.g. Collections.synchronizedList or thread-safe implementations like ConcurrentHashMap.
 3.  For autowiring/injection, the assignment of the reference is thread safe, so final is not required. The unmodifiable/thread-safe requirement for that field still holds. Also make sure no other thread-unsafe assignment is made to that field.
 4.  In case you are sure the Component is used in single threaded context only (e.g. a Tasklet), annotate the class with @NotThreadSafe to make this explicit.
 5.  Use package private and @VisibleForTesting for methods used for JUnit only.
@@ -1869,7 +1869,7 @@ Improper use of collections
 **Solution:** Only use ConcurrentHashMap with multiple threads and when modified. Otherwise, for read-write access by a single thread just use HashMap en with multiple threads and read-only use:
 
 ```java
-Collections.unmodifiableMap(initializeHashMap())
+Map readOnlyMap = Collections.unmodifiableMap(initializeHashMap());
 ```
 
 #### IUOC03

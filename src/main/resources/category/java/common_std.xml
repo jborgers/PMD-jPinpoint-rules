@@ -398,7 +398,7 @@ return ($node[
 )[1]
 |
 (: use, PrimaryPrefix is result, so @Image is empty string :)
-(following::BlockStatement//PrimaryExpression[not(../AssignmentOperator) and (not(PrimarySuffix/Arguments) or PrimaryPrefix[contains(Name/@Image, '.')])]
+(following::BlockStatement//PrimaryExpression[not(../AssignmentOperator and not(PrimarySuffix/Expression)) and (not(PrimarySuffix/Arguments) or PrimaryPrefix[contains(Name/@Image, '.')])]
 /PrimaryPrefix[substring-before(concat(Name/@Image, '.'), '.')=$node/@Image])[1])
 (: first is the var name :)
 [1]/@Image = $node/@Image])
