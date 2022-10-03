@@ -565,8 +565,11 @@ See: [completablefuture-and-timeout](https://stackoverflow.com/questions/6041931
 
 #### IA08
 **Observation: Future.supplyAsync is used for remote calls and it uses the common pool (the default).**  
-**Problem:** The number of threads in the common pool is equal to the number of CPU's, which is suitable for in-memory processing.
-For I/O, however, this number is typically not suitable because most time is spent waiting for the response and not in CPU.  
+**Problem:** The common pool is meant for processing of in-memory data. The number of threads in the common pool is equal to the number of CPU's,
+which is suitable to keep all CPU's busy with in-memory processing.
+For I/O, however, this number is typically not suitable because relatively much time is spent waiting for the response and not in CPU.
+This likely exhausts the common pool for some time thereby blocking all other use of the common pool. 
+The common pool must *not* be used for blocking calls, see [Be Aware of ForkJoinPool#commonPool()](https://dzone.com/articles/be-aware-of-forkjoinpoolcommonpo)   
 **Solution:** A separate, properly sized, pool of threads (an Executor) should be used for the async calls.   
 **Rule name:** AvoidCommonPoolForFutureAsync   
 **Example:**
@@ -587,6 +590,48 @@ public class Foo {
   }
 }
 ```
+
+#### IA09
+**Observation: parallelStream which uses the ForkJoinPool::commonPool is used for blocking (I/O, remote) calls.**  
+**Problem:** The common pool is meant for processing of in-memory data. The number of threads in the common pool is equal to the number of CPU's, 
+which is suitable to keep all CPU's busy with in-memory processing.
+For I/O or other blocking calls, however, this number is typically not suitable because relatively much time is spent waiting for the response and not in CPU.
+This likely exhausts the common pool for some time thereby blocking all other use of the common pool.
+The common pool must *not* be used for blocking calls, see [Be Aware of ForkJoinPool#commonPool()](https://dzone.com/articles/be-aware-of-forkjoinpoolcommonpo)   
+**Solution:** A separate, properly sized, pool of threads (an Executor or ForkJoinPool) should be used for the async calls.
+**Rule name:** AvoidCommonPoolForBlockingCalls   
+**Example:**
+```java
+public class Foo {
+  final List<String> list = new ArrayList();
+  final ForkJoinPool myFjPool = new ForkJoinPool(10);
+  final ExecutorService myExePool = Executors.newFixedThreadPool(10);
+
+  void bad1() {
+    list.parallelStream().forEach(elem -> storeDataRemoteCall(elem));
+  }
+
+  void good1() {
+    CompletableFuture[] futures = list.stream().map(elem -> CompletableFuture.supplyAsync(() -> storeDataRemoteCall(elem), myExePool))
+            .toArray(CompletableFuture[]::new);
+    CompletableFuture.allOf(futures).get(10, TimeUnit.MILLISECONDS);
+  }
+
+  void good2() throws ExecutionException, InterruptedException {
+    myFjPool.submit(() ->
+            list.parallelStream().forEach(elem -> storeDataRemoteCall(elem))
+    ).get();
+  }
+
+  String storeDataRemoteCall(String elem) {
+    // do remote call, blocking. We don't use the returned value.
+    RestTemplate tmpl;
+    return "";
+  }
+}
+```
+See for the example good2: [custom-thread-pool-in-parallel-stream](https://stackoverflow.com/questions/21163108/custom-thread-pool-in-java-8-parallel-stream/34930831#34930831).   
+
 Improper caching  
 -------------------
 

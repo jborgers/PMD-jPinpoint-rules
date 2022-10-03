@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>violation: parallelStreaming in class with RestTemplate import</description>
+        <expected-problems>2</expected-problems>
+        <expected-linenumbers>13, 16</expected-linenumbers>
+        <code><![CDATA[
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.stream.*;
+import org.springframework.web.client.RestTemplate;
+
+public class Foo {
+    final Map<String, String> map = new HashMap();
+    final List<String> list = new ArrayList();
+    final ForkJoinPool myFjPool = new ForkJoinPool(10);
+    final ExecutorService myExePool = Executors.newFixedThreadPool(10);
+
+    void bad1() {
+        list.parallelStream().forEach(elem -> storeDataRemoteCall(elem));
+    }
+    void bad2() {
+        map.entrySet().parallelStream().forEach(entry -> storeDataRemoteCall(entry.getValue()));
+    }
+
+    void good1() {
+        CompletableFuture[] futures = list.stream().map(elem -> CompletableFuture.supplyAsync(() -> storeDataRemoteCall(elem), myExePool))
+                .toArray(CompletableFuture[]::new);
+        CompletableFuture.allOf(futures).get(3, TimeUnit.SECONDS);
+    }
+    void good2() throws ExecutionException, InterruptedException {
+        myFjPool.submit(() ->
+                list.parallelStream().forEach(elem -> storeDataRemoteCall(elem))
+        ).get();
+    }
+
+    String storeDataRemoteCall(String elem) {
+        // do remote call, blocking. We don't use the returned value.
+        RestTemplate templ;
+        return "";
+    }
+}
+     ]]></code>
+    </test-code>
+
+
+</test-data>

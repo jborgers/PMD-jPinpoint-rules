@@ -837,7 +837,8 @@ and not(ancestor::MethodDeclaration//PrimaryPrefix[pmd-java:typeIs('java.util.co
         <description>
             Problem: Future.supplyAsync is typically used for remote calls. By default, it uses the common pool.
             The number of threads in the common pool is equal to the number of CPU's, which is suitable for in-memory processing.
-            For I/O, however, this number is typically not suitable because most time is spent waiting for the response and not in CPU.&#13;
+            For I/O, however, this number is typically not suitable because most time is spent waiting for the response and not in CPU.
+            The common pool must not be used for blocking calls. &#13;
             Solution: A separate, properly sized, pool of threads (an Executor) should be used for the async calls.
             (jpinpoint-rules)</description>
         <priority>1</priority>
@@ -871,6 +872,65 @@ public class Foo {
 ]]>
         </example>
     </rule>
+
+    <rule name="AvoidCommonPoolForBlockingCalls" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" message="Avoid the ForkJoinPool::commonPool used in parallelStream for blocking calls."
+          typeResolution="true"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ia09">
+        <description>Problem: Blocking calls for instance remote calls, may exhaust the common pool for some time thereby blocking all other use of the common pool. In addition, nested use of the common pool can lead to deadlock. Do not use the common pool for blocking calls. The parallelStream() call uses the common pool.&#13;
+            Solution: Use a dedicated thread pool with enough threads to get proper parallelism. The numner of threads in the common pool is equal to the number of CPUs-1 and meant to utilize all of them. It assumes non-blocking processing of in-memory data.  (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+(: assumption: if import of web client / http client is present, parallelStreaming is for remote calls :)
+//ImportDeclaration/Name[starts-with(@Image, 'org.springframework.web.client') or starts-with(@Image, 'org.apache.commons.httpclient')]/
+ancestor::CompilationUnit//PrimaryExpression
+[(PrimarySuffix/@Image='parallelStream' or ends-with(PrimaryPrefix/Name/@Image, 'parallelStream')
+and exists(PrimarySuffix/pmd-java:typeIs('java.util.stream.Stream'))
+and not(ancestor::Block//StatementExpression/PrimaryExpression/PrimaryPrefix/Name[ends-with(@Image, '.submit') and pmd-java:typeIs('java.util.concurrent.ExecutorService')]))
+]
+]]>
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+import java.util.concurrent.*;
+import java.util.stream.*;
+import java.util.*;
+import org.springframework.web.client.RestTemplate;
+
+public class Foo {
+    final List<String> list = new ArrayList();
+    final ForkJoinPool myFjPool = new ForkJoinPool(10);
+    final ExecutorService myExePool = Executors.newFixedThreadPool(10);
+
+    void bad1() {
+        list.parallelStream().forEach(elem -> storeDataRemoteCall(elem));
+    }
+
+    void good1() {
+        CompletableFuture[] futures = list.stream().map(elem -> CompletableFuture.supplyAsync(() -> storeDataRemoteCall(elem), myExePool))
+                .toArray(CompletableFuture[]::new);
+        CompletableFuture.allOf(futures).get(10, TimeUnit.MILLISECONDS));
+    }
+
+    void good2() throws ExecutionException, InterruptedException {
+        myFjPool.submit(() ->
+                list.parallelStream().forEach(elem -> storeDataRemoteCall(elem))
+        ).get();
+    }
+
+    String storeDataRemoteCall(String elem) {
+        // do remote call, blocking. We don't use the returned value.
+        RestTemplate tmpl;
+        return "";
+    }
+]]>
+        </example>
+    </rule>
+
 </ruleset>
 
 
