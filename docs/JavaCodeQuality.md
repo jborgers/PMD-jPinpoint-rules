@@ -11,6 +11,8 @@ By Jeroen Borgers ([jPinpoint](http://www.jpinpoint.com)) and Peter Paul Bakker 
 - [Incorrect equals and hashCode](#incorrect-equals-and-hashcode)
 - [Potential Session Data Mix-up](#potential-session-data-mix-up)
 - [Suspicious code constructs](#suspicious-code-constructs)
+- [Maintainability](#maintainability)
+- [Improved Sonar rules](#improved-sonar-rules)
 
 Introduction 
 ------------
@@ -315,6 +317,19 @@ Suspicious code constructs
 **Problem:** Identical assignments to the same variable are very likely a bug. It lead to a production incident in a project.  
 **Solution:** Each case block of a switch should contain unique assignments. Common assignments should be taken out of the switch construct. Exceptional case: a duplicate assignment to a boolean is considered safe since it can only hold 2 values.    
 **Rule name:** AvoidDuplicateAssignmentsInCases
+
+### SSC02
+
+**Observation: Improper combination of annotations.**   
+**Problem:** These annotations are not meant to be combined and may cause unexpected and unwanted behavior, e.g. data mix-up.
+Don't combine:
+  * 2+ of [@Component, @Service, @Configuration, @Controller, @RestController, @Repository, @Entity] (Spring/JPA)   
+  * @Aspect with one of [@Service, @Configuration, @Controller, @RestController, @Repository, @Entity] (Spring/AspectJ)   
+  * [@Data with @Value] and [@Data or @Value] with any of [@ToString, @EqualsHashCode, @Getter, @Setter, @RequiredArgsConstructor] (Lombok)   
+  * @Data with any of [@Component, @Service, @Configuration, @Controller, @RestController, @Repository], it may cause user data mix-up.  
+
+**Solution:** Don't combine the annotations. Understand what they do and choose and keep only the right one.     
+**Rule name:** AvoidImproperAnnotationCombinations
 
 Maintainability
 ---------------
