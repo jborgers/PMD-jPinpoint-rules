@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>Axual (Kafka) Producer is created in a method, it is expensive, instances should be reused</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>5</expected-linenumbers>
+        <code><![CDATA[
+import io.axual.client.producer.Producer;
+
+public class AxualProducerBad {
+    public void publishToEventStream() {
+        Producer<String, String> producer = axualClient.buildProducer(axualConfig.getEventProducerConfig()); // bad
+    }
+}
+
+class AxualProducerGood1{
+    private final Producer<String, String> producer = AxualClient.buildProducer(axualConfig.getEventProducerConfig());
+}
+
+@Configuration
+class AxualProducerGood2{
+    public Producer<String, String> axualProducer() {
+        Producer<String, String> producer = axualClient.buildProducer(axualConfig.getEventProducerConfig());
+        return producer;
+    }
+}
+     ]]></code>
+    </test-code>
+</test-data>

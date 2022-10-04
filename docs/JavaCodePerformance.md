@@ -632,6 +632,35 @@ public class Foo {
 ```
 See for the example good2: [custom-thread-pool-in-parallel-stream](https://stackoverflow.com/questions/21163108/custom-thread-pool-in-java-8-parallel-stream/34930831#34930831).   
 
+#### IA10
+**Observation: An Axual (Kafka) producer is created for each method call.**  
+**Problem:** each Producer takes threads and memory. If you create it in each method call, and call this frequently, it will result in an explosion of threads and memory used and lead to Out Of Memory Error.   
+**Solution:** Since the Axual Producer is thread-safe, it should be shared e.g. from a static field. Note that the AxualClient is not thread-safe.   
+**Rule name:** AxualProducerCreatedForEachMethodCall   
+**Example:**
+```java
+import io.axual.client.producer.Producer;
+
+public class AxualProducerBad {
+  public void publishToEventStream() {
+    Producer<String, String> producer = axualClient.buildProducer(producerConfig); // bad
+    producer.produce(msg);
+  }
+}
+
+class AxualProducerGood1{
+  private static final Producer<String, String> producer = AxualClient.buildProducer(producerConfig);
+}
+
+@Configuration
+class AxualProducerGood2{
+  public Producer<String, String> axualProducer() {
+    Producer<String, String> producer = axualClient.buildProducer(producerConfig);
+    return producer;
+  }
+}
+```
+
 Improper caching  
 -------------------
 

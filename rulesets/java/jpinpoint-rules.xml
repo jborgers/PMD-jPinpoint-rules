@@ -983,8 +983,8 @@ class LombokGetterGood {
             <property name="xpath">
                 <value><![CDATA[
 //VariableDeclaratorId[matches(@Name, 'ZERO|ONE|TWO|TREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|TEN', 'i')
-and replace(@Image, 'ZERO|ONE|TWO|TREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|TEN|_', '', 'i') = ''
-or starts-with(@Image, 'var') and number(substring-after(@Image, 'var'))]
+and replace(@Name, 'ZERO|ONE|TWO|TREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|TEN|_', '', 'i') = ''
+or starts-with(@Name, 'var') and number(substring-after(@Name, 'var'))]
                 ]]></value>
             </property>
         </properties>
@@ -3373,6 +3373,52 @@ MethodDeclaration//LocalVariableDeclaration/Type/ReferenceType/ClassOrInterfaceT
         </properties>
     </rule>
 
+    <rule name="AxualProducerCreatedForEachMethodCall"
+          message="An Axual (Kafka) producer is created for each method call, which is expensive and takes resources."
+          class="net.sourceforge.pmd.lang.rule.XPathRule"
+          dfa="false"
+          language="java"
+          typeResolution="true"
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#ia10">
+        <description>Problem: each Producer takes threads and memory. If you create it in each method call, and call this frequently, it will result in an explosion of threads and memory used and lead to Out Of Memory Error.  &#13;
+            Solution: Since the Axual Producer is thread-safe, it should be shared e.g. from a static field.
+            (jpinpoint-rules)</description>
+        <priority>1</priority>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+//MethodDeclaration//VariableDeclarator[pmd-java:typeIs('io.axual.client.producer.Producer')]
+[ancestor::TypeDeclaration[count(./Annotation//Name[@Image='Configuration'])=0]]
+			]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+import io.axual.client.producer.Producer;
+
+public class AxualProducerBad {
+    public void publishToEventStream() {
+        Producer<String, String> producer = axualClient.buildProducer(producerConfig); // bad
+        producer.produce(msg);
+    }
+}
+
+class AxualProducerGood1{
+    private static final Producer<String, String> producer = AxualClient.buildProducer(producerConfig);
+}
+
+@Configuration
+class AxualProducerGood2{
+    public Producer<String, String> axualProducer() {
+        Producer<String, String> producer = axualClient.buildProducer(producerConfig);
+        return producer;
+    }
+}
+            ]]>
+        </example>
+    </rule>
+
     <rule name="BufferingClientHttpRequestFactoryIsMemoryGreedy" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java"
           message="BufferingClientHttpRequestFactory is memory greedy. Only use when multiple reads of the response body cannot be avoided."
           typeResolution="true"
@@ -3983,7 +4029,7 @@ public class Good implements KeyGenerator {
     <rule name="AvoidImproperAnnotationCombinations"
           language="java"
           message="Don't combine these annotations"
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#annotations"
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodeQuality.md#ssc02"
           class="net.sourceforge.pmd.lang.rule.XPathRule">
         <description>
             Improper combination of annotations. Problem: these annotations are not meant to be combined and may cause unexpected and unwanted behavior, e.g. data mix-up.&#13;

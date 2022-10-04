@@ -947,4 +947,50 @@ return ($node[not(ancestor::ClassOrInterfaceDeclaration//PrimaryPrefix/Name[@Ima
         </example>
     </rule>
 
+    <rule name="AxualProducerCreatedForEachMethodCall"
+          message="An Axual (Kafka) producer is created for each method call, which is expensive and takes resources."
+          class="net.sourceforge.pmd.lang.rule.XPathRule"
+          dfa="false"
+          language="java"
+          typeResolution="true"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ia10">
+        <description>Problem: each Producer takes threads and memory. If you create it in each method call, and call this frequently, it will result in an explosion of threads and memory used and lead to Out Of Memory Error.  &#13;
+            Solution: Since the Axual Producer is thread-safe, it should be shared e.g. from a static field.
+            (jpinpoint-rules)</description>
+        <priority>1</priority>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+//MethodDeclaration//VariableDeclarator[pmd-java:typeIs('io.axual.client.producer.Producer')]
+[ancestor::TypeDeclaration[count(./Annotation//Name[@Image='Configuration'])=0]]
+			]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+import io.axual.client.producer.Producer;
+
+public class AxualProducerBad {
+    public void publishToEventStream() {
+        Producer<String, String> producer = axualClient.buildProducer(producerConfig); // bad
+        producer.produce(msg);
+    }
+}
+
+class AxualProducerGood1{
+    private static final Producer<String, String> producer = AxualClient.buildProducer(producerConfig);
+}
+
+@Configuration
+class AxualProducerGood2{
+    public Producer<String, String> axualProducer() {
+        Producer<String, String> producer = axualClient.buildProducer(producerConfig);
+        return producer;
+    }
+}
+            ]]>
+        </example>
+    </rule>
+
 </ruleset>
