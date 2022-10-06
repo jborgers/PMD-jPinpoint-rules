@@ -175,7 +175,7 @@
         <profile>
             <id>kotlin-pmd7</id>
             <properties>
-                <pmd.version>7.0.0-kotlin-SNAPSHOT</pmd.version>
+                <pmd.version>7.0.0-SNAPSHOT</pmd.version>
             </properties>
             <dependencies>
                 <dependency>

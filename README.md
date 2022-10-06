@@ -120,8 +120,6 @@ Pay attention to the package structure which is also dictated by the first java 
 Depending on what you want to add you may also find it is sufficient to change one or more of the existing files.
 Or to add only a Test class and unit test xml file (steps 1 and 3).
 
-
-
 ### Conventions for XML Unit test files
 
 Following are some conventions and recommendations on how to
@@ -138,6 +136,12 @@ construct the unit test files:
   - use method names like **``bad``** and **``good``**
   - add comment at the end of bad lines **``//bad``**  
   - remove useless code and **``import``** statements
+
+### Run Kotlin Unit Tests
+
+When running unit tests for Kotlin PMD 7 is needed. Make sure you have access to the PMD jars of the `7.0.0-SNAPSHOT`
+branch (e.g. mvn install the PMD 7.0.x jars from https://github.com/pmd/pmd). Use the Maven `kotlin-pmd7` profile 
+when running the Kotlin unit tests.
 
 ## Code Style Indentation
 
