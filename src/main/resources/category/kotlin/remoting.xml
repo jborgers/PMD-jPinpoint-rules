@@ -8,7 +8,7 @@
           message="A HttpClient builder is used and disableConnectionState is not called. HTTP client tracks connection state while using TLS."
           class="net.sourceforge.pmd.lang.rule.XPathRule"
           typeResolution="true"
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#ibi07">
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi07">
         <description>
             Problem: NTLM authenticated connections and SSL/TLS connections with client certificate authentication are stateful: they have a specific user identity/security context per session. If HttpClients have enabled connection state tracking which is the default, established TLS connections will not be reused because it is assumed that the user identity or security context may differ.
             Then performance will suffer due to a full TLS handshake for each request.&#13;
@@ -25,13 +25,14 @@
   and not(ancestor::PostfixUnaryExpression/PostfixUnarySuffix/NavigationSuffix/SimpleIdentifier/T-Identifier/@Text="disableConnectionState")]
 ,
 //PostfixUnarySuffix//SimpleIdentifier/T-Identifier[@Text="create"
-  and ancestor::PostfixUnaryExpression/PrimaryExpression/SimpleIdentifier/T-Identifier/(@Text="HttpClientBuilder" or @Text="HttpAsyncClientBuilder")
-  and not(ancestor::PostfixUnaryExpression/PostfixUnarySuffix/NavigationSuffix/SimpleIdentifier/T-Identifier/@Text="disableConnectionState")]
+  and ancestor::PostfixUnaryExpression/PrimaryExpression/SimpleIdentifier/T-Identifier[(@Text="HttpClientBuilder" or @Text="HttpAsyncClientBuilder")
+  and not(ancestor::PostfixUnaryExpression/PostfixUnarySuffix/NavigationSuffix/SimpleIdentifier/T-Identifier/@Text="disableConnectionState")]]
 ,
 (: method param http client builder without disableConnectionState :)
 //FunctionValueParameter/Parameter/Type/TypeReference/UserType/SimpleUserType/SimpleIdentifier/T-Identifier[(@Text="HttpClients" or @Text="HttpClientBuilder" or @Text="HttpAsyncClientBuilder")
   and not(ancestor::FunctionDeclaration//PostfixUnarySuffix/NavigationSuffix/SimpleIdentifier/T-Identifier/@Text="disableConnectionState")]
-                ]]></value>
+]]>
+                </value>
             </property>
         </properties>
         <example><![CDATA[

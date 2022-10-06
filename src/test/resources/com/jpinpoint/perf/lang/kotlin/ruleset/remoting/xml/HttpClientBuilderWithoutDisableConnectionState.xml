@@ -139,4 +139,13 @@ internal class Bad {
      ]]></code>
     </test-code>
 
+    <test-code>
+        <description>no violation: this code was failing at scan time: "XPathException: Effective boolean value is not defined for a sequence of two or more items starting with a boolean"</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+fun getSomething(): Something {
+    return Something(Other.create())
+}
+     ]]></code>
+    </test-code>
 </test-data>
