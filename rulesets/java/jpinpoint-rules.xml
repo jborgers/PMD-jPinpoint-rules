@@ -854,7 +854,7 @@ ClassOrInterfaceBodyDeclaration
         <description>
             Problem: If equals and hashCode are not defined, they don't meet the programmer's expectations and the requirements for use with the collections API. It may result in unexpected, undesired behavior.&#13;
             Solution: Add proper equals and hashCode methods that meet the equals-hashCode contract to all objects which might anyhow be put in a Map, Set or other collection. Or use Lombok @EqualsAndHashCode, @Value or @Data. Also holds for inner classes.
-            If the object should never be checked for equality or used in a collection, also add those methods and let them throw UnsupportedOperationException to fail fast. @Xml... and @Entity objects are ignored because they are assumed to be not used as value objects.
+            If the object should never be checked for equality or used in a collection, also add those methods and let them throw UnsupportedOperationException to fail fast. @Xml... , @Entity, Throwable and Executor objects are ignored because they are assumed to be not used as value objects.
             (jpinpoint-rules)</description>
         <priority>3</priority>
         <properties>
@@ -866,8 +866,7 @@ ClassOrInterfaceBodyDeclaration
 //TypeDeclaration[not(./Annotation//Name[@Image='Data' or @Image='Value' or @Image='EqualsAndHashCode'
 or @Image='Singleton' or @Image='Component' or @Image='Service' or @Image='Repository' or @Image='Configuration' or @Image='Endpoint' or @Image='RestController' or @Image='ControllerAdvice'
 or starts-with(@Image, 'Xml') or @Image='Entity' or @Image='Embeddable' or @Image='MappedSuperclass'])]
-/ClassOrInterfaceDeclaration[@Interface=false() and @Abstract=false()]
-[not(./ExtendsList/ClassOrInterfaceType[ends-with(@Image, 'Exception') or ends-with(@Image, 'Throwable')])]
+/ClassOrInterfaceDeclaration[@Interface=false() and @Abstract=false() and not(pmd-java:typeIs('java.util.concurrent.Executor') or pmd-java:typeIs('java.lang.Throwable'))]
 /ClassOrInterfaceBody[ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Static=false()]
 [
 (not (../Annotation//Name[@Image = 'XmlElement']))
@@ -906,8 +905,7 @@ ancestor::TypeDeclaration/Annotation//Name[@Image='Getter']
 (:-- inner classes --:)
 ,
 //ClassOrInterfaceBodyDeclaration[not(./Annotation//Name[@Image='Data' or @Image='Value' or @Image='EqualsAndHashCode'])]
-/ClassOrInterfaceDeclaration[@Interface=false() and @Abstract=false()]
-[not(./ExtendsList/ClassOrInterfaceType[ends-with(@Image, 'Exception') or ends-with(@Image, 'Throwable')])]
+/ClassOrInterfaceDeclaration[@Interface=false() and @Abstract=false() and not(pmd-java:typeIs('java.util.concurrent.Executor') or pmd-java:typeIs('java.lang.Throwable'))]
 /ClassOrInterfaceBody[ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Static=false()]
 [(
 ancestor::ClassOrInterfaceBody[1]/ClassOrInterfaceBodyDeclaration/MethodDeclaration
@@ -984,9 +982,9 @@ class LombokGetterGood {
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
-//VariableDeclaratorId[matches(@Image, 'ZERO|ONE|TWO|TREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|TEN', 'i')
-and replace(@Image, 'ZERO|ONE|TWO|TREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|TEN|_', '', 'i') = ''
-or starts-with(@Image, 'var') and number(substring-after(@Image, 'var'))]
+//VariableDeclaratorId[matches(@Name, 'ZERO|ONE|TWO|TREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|TEN', 'i')
+and replace(@Name, 'ZERO|ONE|TWO|TREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|TEN|_', '', 'i') = ''
+or starts-with(@Name, 'var') and number(substring-after(@Name, 'var'))]
                 ]]></value>
             </property>
         </properties>
@@ -1836,6 +1834,46 @@ public class StringStuff {
         </example>
     </rule>
 
+    <rule name="AvoidUnusedAssignments"
+          language="java"
+          message="Avoid assignments for which the assigned value is never used."
+          class="net.sourceforge.pmd.lang.rule.XPathRule"
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodeQuality.md#isr04">
+        <description>Problem: Assignments to variables for which the assigned value is not used because a new value is assigned before actual use, is unnecessary work and my indicate a bug.
+            Solution: remove the first assignment and make sure that is as intended.
+        (jpinpoint-rules)</description>
+        <priority>3</priority>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+(: for each local variable declaration or assignment node :)
+(for $node in (//StatementExpression[AssignmentOperator][not(ancestor::IfStatement or ancestor::TryStatement or ancestor::SwitchStatement)]/PrimaryExpression/PrimaryPrefix/Name
+| //LocalVariableDeclaration/VariableDeclarator[VariableInitializer]//VariableDeclaratorId)
+(: match if for that node the next occurrence of ((assignment without use in same statement) union with (use) is an assignment to the var) :)
+return ($node[
+(: assignment without use, Name is result :)
+((following::BlockStatement//StatementExpression[AssignmentOperator][not(ancestor::IfStatement or ancestor::TryStatement or ancestor::SwitchStatement)]/PrimaryExpression/PrimaryPrefix/Name[@Image=$node/@Image]
+[not(ancestor::BlockStatement//PrimaryExpression[not(../AssignmentOperator) and (not(PrimarySuffix/Arguments) or PrimaryPrefix[contains(Name/@Image, '.')])]
+/PrimaryPrefix[substring-before(concat(Name/@Image, '.'), '.')=$node/@Image])]
+)[1]
+|
+(: use, PrimaryPrefix is result, so @Image is empty string :)
+(following::BlockStatement//PrimaryExpression[not(../AssignmentOperator and not(PrimarySuffix/Expression)) and (not(PrimarySuffix/Arguments) or PrimaryPrefix[contains(Name/@Image, '.')])]
+/PrimaryPrefix[substring-before(concat(Name/@Image, '.'), '.')=$node/@Image])[1])
+(: first is the var name :)
+[1]/@Image = $node/@Image])
+)
+                ]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+
+            ]]>
+        </example>
+    </rule>
+
     <rule name="LetFieldsMeetSerializable"
           language="java"
           message="Fields in a Serializable class should be serializable or transient."
@@ -1858,9 +1896,13 @@ and not(pmd-java:typeIs('java.lang.Throwable') and not(pmd-java:typeIs('java.rmi
 (: non-transient, non-static, non-primitive fields :)
 //FieldDeclaration[@Transient=false() and @Static=false()][not(.//PrimitiveType)]
 [not(pmd-java:typeIs('java.io.Serializable'))
+(: and can be resolved :)
+and (pmd-java:typeIs('java.lang.Object'))
 (: if has type args, type args which are not serializable like List<String, Thread>):)
 and (not(exists(.//TypeArgument))
-or exists(.//TypeArgument[not(pmd-java:typeIs('java.io.Serializable'))]))
+or exists(.//TypeArgument[not(pmd-java:typeIs('java.io.Serializable'))
+(: and can be resolved :)
+and (pmd-java:typeIs('java.lang.Object'))]))
 ]
                 ]]></value>
             </property>
@@ -1933,6 +1975,107 @@ import static com.co.corporate.Constants.GREAT; // good
 
 <!-- END Included file 'common_std.xml' -->
 <!-- BEGIN Included file 'concurrent.xml' -->
+    <rule name="AvoidCommonPoolForBlockingCalls" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" message="Avoid the ForkJoinPool::commonPool used in parallelStream for blocking calls."
+          typeResolution="true"
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#ia09">
+        <description>Problem: Blocking calls for instance remote calls, may exhaust the common pool for some time thereby blocking all other use of the common pool. In addition, nested use of the common pool can lead to deadlock. Do not use the common pool for blocking calls. The parallelStream() call uses the common pool.&#13;
+            Solution: Use a dedicated thread pool with enough threads to get proper parallelism. The numner of threads in the common pool is equal to the number of CPUs-1 and meant to utilize all of them. It assumes non-blocking processing of in-memory data.  (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+(: assumption: if import of web client / http client is present, parallelStreaming is for remote calls :)
+//ImportDeclaration/Name[starts-with(@Image, 'org.springframework.web.client') or starts-with(@Image, 'org.apache.commons.httpclient')]/
+ancestor::CompilationUnit//PrimaryExpression
+[(PrimarySuffix/@Image='parallelStream' or ends-with(PrimaryPrefix/Name/@Image, 'parallelStream')
+and exists(PrimarySuffix/pmd-java:typeIs('java.util.stream.Stream'))
+and not(ancestor::Block//StatementExpression/PrimaryExpression/PrimaryPrefix/Name[ends-with(@Image, '.submit') and pmd-java:typeIs('java.util.concurrent.ExecutorService')]))
+]
+]]>
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+import java.util.concurrent.*;
+import java.util.stream.*;
+import java.util.*;
+import org.springframework.web.client.RestTemplate;
+
+public class Foo {
+    final List<String> list = new ArrayList();
+    final ForkJoinPool myFjPool = new ForkJoinPool(10);
+    final ExecutorService myExePool = Executors.newFixedThreadPool(10);
+
+    void bad1() {
+        list.parallelStream().forEach(elem -> storeDataRemoteCall(elem));
+    }
+
+    void good1() {
+        CompletableFuture[] futures = list.stream().map(elem -> CompletableFuture.supplyAsync(() -> storeDataRemoteCall(elem), myExePool))
+                .toArray(CompletableFuture[]::new);
+        CompletableFuture.allOf(futures).get(10, TimeUnit.MILLISECONDS));
+    }
+
+    void good2() throws ExecutionException, InterruptedException {
+        myFjPool.submit(() ->
+                list.parallelStream().forEach(elem -> storeDataRemoteCall(elem))
+        ).get();
+    }
+
+    String storeDataRemoteCall(String elem) {
+        // do remote call, blocking. We don't use the returned value.
+        RestTemplate tmpl;
+        return "";
+    }
+]]>
+        </example>
+    </rule>
+
+    <rule name="AvoidCommonPoolForFutureAsync"
+          message="Avoid using the common thread pool for future.supplyAsync, use a separate pool."
+          class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java"
+          typeResolution="true" externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#ia08">
+        <description>
+            Problem: Future.supplyAsync is typically used for remote calls. By default, it uses the common pool.
+            The number of threads in the common pool is equal to the number of CPU's, which is suitable for in-memory processing.
+            For I/O, however, this number is typically not suitable because most time is spent waiting for the response and not in CPU.
+            The common pool must not be used for blocking calls. &#13;
+            Solution: A separate, properly sized, pool of threads (an Executor) should be used for the async calls.
+            (jpinpoint-rules)</description>
+        <priority>1</priority>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value>
+                    <![CDATA[
+//PrimaryPrefix/Name[@Image='CompletableFuture.supplyAsync']/../../PrimarySuffix/Arguments/ArgumentList[count(Expression) = 1]
+]]>
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+public class Foo {
+    private final ExecutorService asyncPool = Executors.newFixedThreadPool(8);
+
+    void bad() {
+        CompletableFuture<Pair<String, Boolean>>[] futures = accounts.stream()
+         .map(account -> CompletableFuture.supplyAsync(() -> isAccountBlocked(account))) // bad
+         .toArray(CompletableFuture[]::new);
+    }
+
+    void good() {
+        CompletableFuture<Pair<String, Boolean>>[] futures = accounts.stream()
+         .map(account -> CompletableFuture.supplyAsync(() -> isAccountBlocked(account), asyncPool)) // good
+         .toArray(CompletableFuture[]::new);
+    }
+}
+]]>
+        </example>
+    </rule>
+
     <rule name="AvoidCompletionServiceTake"
           message="Avoid completionService.take, use poll"
           class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java"
@@ -2055,12 +2198,17 @@ and not(ancestor::MethodDeclaration//PrimaryPrefix/Name[ends-with(@Image, '.get'
 ,
 (: future.join in lambda without timeout in method :)
 //PrimaryExpression/PrimaryPrefix/LambdaExpression//Name[ends-with(@Image, '.join')
-and not(ancestor::MethodDeclaration//PrimaryPrefix/Name[ends-with(@Image, '.get') or ends-with(@Image, 'Timeout')][../../PrimarySuffix//ArgumentList])
+and not(ancestor::MethodDeclaration//PrimaryPrefix[pmd-java:typeIs('java.util.concurrent.Future')]/Name[ends-with(@Image, '.get') or ends-with(@Image, 'Timeout')]
+[../../PrimarySuffix//ArgumentList])
 ]
 (: join has no arguments, #198 :)
 [../../PrimarySuffix/Arguments[@Size=0]]
-(: dealing with Futures, #198 :)
-[ancestor::ClassOrInterfaceBodyDeclaration//ClassOrInterfaceType[pmd-java:typeIs('java.util.concurrent.Future')]]
+,
+(: CompletableFuture.allOf(futures).join() without timeout :)
+//PrimaryExpression/PrimaryPrefix[pmd-java:typeIs('java.util.concurrent.Future')]/../PrimarySuffix[@Image='join'
+and not(ancestor::MethodDeclaration//PrimaryPrefix[pmd-java:typeIs('java.util.concurrent.Future')]/Name[ends-with(@Image, '.get') or ends-with(@Image, 'Timeout')])]
+(: join has no arguments, #198 :)
+[../PrimarySuffix/Arguments[@Size=0]]
 ]]>
                 </value>
             </property>
@@ -2335,7 +2483,7 @@ or (ancestor::ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='VisibleFo
             Problem: Multiple threads typically access fields of a singleton or may access fields in session scoped objects. Unguarded assignment to a non-final field is thread-unsafe and may cause corruption or visibility problems. It may also unintentionally mixup session data. &#13;
             Solution: Make the fields final and unmodifiable.  If they really need to be mutable, make access thread-safe: use synchronized and jcip @GuardedBy or use volatile.&#13;
             Notes&#13;
-            1. Autowiring/injection is thread safe, yet make sure no other thread-unsafe assignment is made to that field.&#13;
+            1. For autowiring/injection, the assignment of the reference is thread safe, so final is not required. The unmodifiable/thread-safe requirement for that field still holds. Also make sure no other thread-unsafe assignment is made to that field.&#13;
             2. In case you are sure the Component is used in single threaded context only (e.g. a Tasklet), annotate the class with @NotThreadSafe to make this explicit. &#13;
             3. Use package-private and @VisibleForTesting for methods (e.g. setters) used for JUnit only.
             4. Use synchronized for accessors to inherited fields, or better: make field private and use proper accessors on base class level using @GuardedBy.
@@ -2391,7 +2539,7 @@ or ancestor::MethodDeclaration[@Name='afterPropertiesSet']
             Notes&#13;
             1. Instances of Date, StringBuilder, URL and File are examples of mutable objects and should be avoided (or else guarded) as fields of shared objects. In case mutable fields are final and not modified after initialization (read-only) they are thread safe, however any modification to it is thread-unsafe. Since field modification is easily coded, avoid this situation.
             &#13;2. Instances of classes like ArrayList, HashMap and HashSet are also mutable and should be properly wrapped with e.g. Collections.unmodifiableList after initialization (see TUTC03), or accessed thread-safely with e.g. Collections.synchronizedList or thread-safe implementations like ConcurrentHashMap.
-            &#13;3. Autowiring/injection is thread safe, yet make sure no other thread-unsafe assignment is made to that field.
+            &#13;3. For autowiring/injection, the assignment of the reference is thread safe, so final is not required. The unmodifiable/thread-safe requirement for that field still holds. Also make sure no other thread-unsafe assignment is made to that field.
             &#13;4. In case you are sure the class is used in single threaded context only, annotate the class with @NotThreadSafe to make this explicit.
             &#13;5. Use package private and @VisibleForTesting for methods used for JUnit only.
             (jpinpoint-rules)</description>
@@ -2439,7 +2587,7 @@ or (VariableDeclarator/VariableDeclaratorId/@Name = ancestor::ClassOrInterfaceBo
             Notes&#13;
             1. Instances of Date, StringBuilder, URL and File are examples of mutable objects and should be avoided (or else guarded) as fields of shared objects. In case mutable fields are final and not modified after initialization (read-only) they are thread safe, however any modification to it is thread-unsafe. Since field modification is easily coded, avoid this situation.
             &#13;2. Instances of classes like ArrayList, HashMap and HashSet are also mutable and should be properly wrapped with e.g. Collections.unmodifiableList after initialization (see TUTC03), or accessed thread-safely with e.g. Collections.synchronizedList or thread-safe implementations like ConcurrentHashMap.
-            &#13;3. Autowiring/injection is thread safe, yet make sure no other thread-unsafe assignment is made to that field.
+            &#13;3. For autowiring/injection, the assignment of the reference is thread safe, so final is not required. The unmodifiable/thread-safe requirement for that field still holds. Also make sure no other thread-unsafe assignment is made to that field.
             &#13;4. In case you are sure the Component is used in single threaded context only (e.g. a Tasklet), annotate the class with @NotThreadSafe to make this explicit.
             &#13;5. Use package private and @VisibleForTesting for methods used for JUnit only.
             (jpinpoint-rules)</description>
@@ -2496,7 +2644,7 @@ and not (../Annotation//Name[@Image='GuardedBy'])
             Notes&#13;
             1. Instances of Date, StringBuilder, URL and File are examples of mutable objects and should be avoided (or else guarded) as fields of shared objects. In case mutable fields are final and not modified after initialization (read-only) they are thread safe, however any modification to it is thread-unsafe. Since field modification is easily coded, avoid this situation.
             &#13;2. Instances of classes like ArrayList, HashMap and HashSet are also mutable and should be properly wrapped with e.g. Collections.unmodifiableList after initialization (see TUTC03), or accessed thread-safely with e.g. Collections.synchronizedList or thread-safe implementations like ConcurrentHashMap.
-            &#13;3. Autowiring/injection is thread safe, yet make sure no other thread-unsafe assignment is made to that field.
+            &#13;3. For autowiring/injection, the assignment of the reference is thread safe, so final is not required. The unmodifiable/thread-safe requirement for that field still holds. Also make sure no other thread-unsafe assignment is made to that field.
             &#13;4. In case you are sure the Component is used in single threaded context only (e.g. a Tasklet), annotate the class with @NotThreadSafe to make this explicit.
             &#13;5. Use package private and @VisibleForTesting for methods used for JUnit only.
             (jpinpoint-rules)</description>
@@ -3107,6 +3255,42 @@ or ancestor::ClassOrInterfaceBody[count(.//MethodDeclaration/ResultType/Type[pmd
         </example>
     </rule>
 
+    <rule name="AvoidObjectMapperAsField" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" message="Avoid ObjectMapper as field, use ObjectReader or ObjectWriter instead."
+          typeResolution="true"
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#iuojar02">
+        <description>Problem: Configuring an ObjectMapper is thread-unsafe.  &#13;
+            Solution: Create ObjectReaders and ObjectWriters from ObjectMapper and only share those as field, since they are immutable and therefore thread-safe.
+            Exception: A convertValue method is not provided by ObjectReader nor ObjectWriter, therefore in those cases this rule is not applied. (jpinpoint-rules)</description>
+        <priority>3</priority>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+(for $node in (//FieldDeclaration[pmd-java:typeIs('com.fasterxml.jackson.databind.ObjectMapper')
+(: if class not in classpath, can use following line :)
+(:or (Type//ClassOrInterfaceType[@Image='ObjectMapper'] and //ImportDeclaration/Name[starts-with(@Image, 'com.fasterxml.jackson.databind.')]):)
+]//VariableDeclaratorId)
+(: exception: do not match if that field name is used in its class with a convertValue method :)
+return ($node[not(ancestor::ClassOrInterfaceDeclaration//PrimaryPrefix/Name[@Image = concat($node/@Image, '.convertValue')])]))
+]]>
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+    public class BadStyle {
+        private static final ObjectMapper staticObjectMapper = new ObjectMapper(); // bad
+        private final ObjectMapper mapperField = new ObjectMapper(); //bad
+    }
+
+    class GoodStyle {
+        private static final ObjectWriter staticObjectWriter =
+            new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL).writer(); // good
+    }
+            ]]>
+        </example>
+    </rule>
+
     <rule name="AvoidReactorDebugOverhead" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java"
           message="Do not use Reactor debugging in production, it has much overhead."
           typeResolution="true"
@@ -3187,6 +3371,52 @@ MethodDeclaration//LocalVariableDeclaration/Type/ReferenceType/ClassOrInterfaceT
 	]]></value>
             </property>
         </properties>
+    </rule>
+
+    <rule name="AxualProducerCreatedForEachMethodCall"
+          message="An Axual (Kafka) producer is created for each method call, which is expensive and takes resources."
+          class="net.sourceforge.pmd.lang.rule.XPathRule"
+          dfa="false"
+          language="java"
+          typeResolution="true"
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#ia10">
+        <description>Problem: each Producer takes threads and memory. If you create it in each method call, and call this frequently, it will result in an explosion of threads and memory used and lead to Out Of Memory Error.  &#13;
+            Solution: Since the Axual Producer is thread-safe, it should be shared e.g. from a static field.
+            (jpinpoint-rules)</description>
+        <priority>1</priority>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+//MethodDeclaration//VariableDeclarator[pmd-java:typeIs('io.axual.client.producer.Producer')]
+[ancestor::TypeDeclaration[count(./Annotation//Name[@Image='Configuration'])=0]]
+			]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+import io.axual.client.producer.Producer;
+
+public class AxualProducerBad {
+    public void publishToEventStream() {
+        Producer<String, String> producer = axualClient.buildProducer(producerConfig); // bad
+        producer.produce(msg);
+    }
+}
+
+class AxualProducerGood1{
+    private static final Producer<String, String> producer = AxualClient.buildProducer(producerConfig);
+}
+
+@Configuration
+class AxualProducerGood2{
+    public Producer<String, String> axualProducer() {
+        Producer<String, String> producer = axualClient.buildProducer(producerConfig);
+        return producer;
+    }
+}
+            ]]>
+        </example>
     </rule>
 
     <rule name="BufferingClientHttpRequestFactoryIsMemoryGreedy" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java"
@@ -3557,9 +3787,9 @@ public class HttpClientStuff {
         </properties>
     </rule>
 
-    <rule name="ObjectMapperCreatedForEachMethodCall" message="An ObjectMapper is created for each method call, which is expensive." class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java"   typeResolution="true" externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#IUOJAR01">
-        <description>Problem: Jackson ObjectMapper creation is expensive because it does much class loading.  &#13;
-            Solution: Since ObjectMapper objects are thread-safe after configuration in one thread, they can be shared afterwards between requests and reused. So, reuse created instances, from a static field.
+    <rule name="ObjectMapperCreatedForEachMethodCall" message="An ObjectMapper or JsonMapper is created for each method call, which is expensive." class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java"   typeResolution="true" externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#IUOJAR01">
+        <description>Problem: Jackson ObjectMapper/JsonMapper creation is expensive because it does much class loading.  &#13;
+            Solution: Since ObjectMapper/JsonMapper objects are thread-safe after configuration in one thread, they can be shared afterwards between requests and reused. So, reuse created instances, from a static field.
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
@@ -3569,10 +3799,29 @@ public class HttpClientStuff {
 //MethodDeclaration//Expression/PrimaryExpression/PrimaryPrefix/AllocationExpression/ClassOrInterfaceType[
 	(pmd-java:typeIs('com.fasterxml.jackson.databind.ObjectMapper')) and
 	not(ancestor::TypeDeclaration/Annotation/MarkerAnnotation/Name/@Image='Configuration')
-]
+],
+//MethodDeclaration//PrimaryPrefix[
+	(pmd-java:typeIs('com.fasterxml.jackson.databind.json.JsonMapper') and
+         ancestor::PrimaryExpression//(PrimaryPrefix/Name|PrimarySuffix)[ends-with(@Image, 'build')]) and
+	not(ancestor::TypeDeclaration/Annotation/MarkerAnnotation/Name/@Image='Configuration')
+],
+//MethodDeclaration//VariableDeclarator[
+    pmd-java:typeIs('com.fasterxml.jackson.databind.ObjectMapper')
+]/VariableInitializer//PrimaryPrefix/Name[ends-with(@Image, 'build')]
 			]]></value>
             </property>
-        </properties>
+         </properties>
+        <example>
+            <![CDATA[
+public static ObjectMapper createMapper() {
+    return new ObjectMapper(); // violation
+}
+
+public static JsonMapper createMapper() {
+    return JsonMapper.builder().build(); // violation
+}
+            ]]>
+        </example>
     </rule>
 
     <rule name="RetryCanCauseOverload" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" message="Be careful with retrying: multiple retry locations in a call chain can cause overload."
@@ -3780,14 +4029,15 @@ public class Good implements KeyGenerator {
     <rule name="AvoidImproperAnnotationCombinations"
           language="java"
           message="Don't combine these annotations"
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#annotations"
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodeQuality.md#ssc02"
           class="net.sourceforge.pmd.lang.rule.XPathRule">
         <description>
-            Improper combination of annotations. Problem: these annotations are not meant to be combined and may cause unexpected and unwanted behavior.&#13;
+            Improper combination of annotations. Problem: these annotations are not meant to be combined and may cause unexpected and unwanted behavior, e.g. data mix-up.&#13;
             Solution: remove the inappropriate annotation. &#13;
             Don't combine 2+ of [@Component, @Service, @Configuration, @Controller, @RestController, @Repository, @Entity] (Spring/JPA)
             Don't combine @Aspect with one of [@Service, @Configuration, @Controller, @RestController, @Repository, @Entity] (Spring/AspectJ)
             Don't combine [@Data with @Value] and [@Data or @Value] with any of [@ToString, @EqualsHashCode, @Getter, @Setter, @RequiredArgsConstructor] (Lombok)
+            Don't combine @Data with any of [@Component, @Service, @Configuration, @Controller, @RestController, @Repository], it may cause user data mix-up.
             (jpinpoint-rules)</description>
         <priority>3</priority>
         <properties>
@@ -3802,6 +4052,9 @@ public class Good implements KeyGenerator {
 //(TypeDeclaration|ClassOrInterfaceBodyDeclaration/ClassOrInterfaceDeclaration/..)[count(./Annotation//Name[@Image='Data' or @Image='Value']) > 1]/Annotation[2]
 ,
 //(TypeDeclaration|ClassOrInterfaceBodyDeclaration/ClassOrInterfaceDeclaration/..)[./Annotation//Name[@Image='Data' or @Image='Value'] and ./Annotation/MarkerAnnotation/Name[@Image='ToString' or @Image='EqualsAndHashCode' or @Image='Getter' or @Image='Setter' or @Image='RequiredArgsConstructor']]/Annotation[2]
+,
+//(TypeDeclaration|ClassOrInterfaceBodyDeclaration/ClassOrInterfaceDeclaration/..)[./Annotation//Name[@Image='Data'] and
+exists(./Annotation//Name[@Image='Component' or @Image='Service' or @Image='Configuration' or @Image='Controller' or @Image='RestController' or @Image='Repository'])]/Annotation[not(.//Name/@Image='Data')][1]
                     ]]>
                 </value>
             </property>

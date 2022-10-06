@@ -1533,9 +1533,9 @@ class Foo {
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
-//VariableDeclaratorId[matches(@Image, 'ZERO|ONE|TWO|TREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|TEN', 'i')
-and replace(@Image, 'ZERO|ONE|TWO|TREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|TEN|_', '', 'i') = ''
-or starts-with(@Image, 'var') and number(substring-after(@Image, 'var'))]
+//VariableDeclaratorId[matches(@Name, 'ZERO|ONE|TWO|TREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|TEN', 'i')
+and replace(@Name, 'ZERO|ONE|TWO|TREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|TEN|_', '', 'i') = ''
+or starts-with(@Name, 'var') and number(substring-after(@Name, 'var'))]
                 ]]></value>
             </property>
         </properties>

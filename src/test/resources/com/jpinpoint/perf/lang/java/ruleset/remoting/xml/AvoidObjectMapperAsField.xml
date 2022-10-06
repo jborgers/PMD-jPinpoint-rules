@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>violation: ObjectMapper used as static and instance field </description>
+        <expected-problems>2</expected-problems>
+        <expected-linenumbers>4,5</expected-linenumbers>
+        <code><![CDATA[
+    import com.fasterxml.jackson.databind.*;
+
+    public class BadStyle {
+        private static final ObjectMapper staticObjectMapper = new ObjectMapper(); // bad
+        private final ObjectMapper mapperField = new ObjectMapper(); //bad
+    }
+
+    public class GoodStyle {
+        private static final ObjectWriter staticObjectWriter =
+            new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL).writer(); // good
+    }
+
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>violation: ObjectMapper used as static and instance field with exception for convertValue,
+            Fix Request: AvoidObjectMapperAsField exception for case with methods only available from ObjectMapper #218</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>4</expected-linenumbers>
+        <code><![CDATA[
+    import com.fasterxml.jackson.databind.*;
+    public class BadStyleException {
+        private static final ObjectMapper staticObjectMapper = new ObjectMapper(); // exception, not bad
+        private final ObjectMapper mapperField = new ObjectMapper(); //bad
+
+        public UserProfileDto getUserProfileDto(UserProfile userProfile) {
+            return staticObjectMapper.convertValue(userProfile, UserProfileDto.class);
+        }
+    }
+
+     ]]></code>
+    </test-code>
+
+</test-data>

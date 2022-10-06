@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>violation: unused String assignments</description>
+        <expected-problems>3</expected-problems>
+        <expected-linenumbers>3, 7, 11</expected-linenumbers>
+        <code><![CDATA[
+public class Foo {
+    void bar() {
+        String doodle = "init"; // bad, assigned value overwritten, not used
+        doodle = "k";
+        String str = "first"; // good
+        String other = str.toString();
+        str = "empty"; // bad
+        doSomething();
+        str = "other"; // good
+        doSomethingWith(str);
+        str = ""; // bad
+        str = "second";
+    }
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>violation: unused int assignments</description>
+        <expected-problems>3</expected-problems>
+        <expected-linenumbers>3, 4, 6</expected-linenumbers>
+        <code><![CDATA[
+public class Foo {
+    void bar() {
+        int i = 0; // bad
+        i = 1; // bad
+        i = 2;
+        i = i++; // bad
+        i = 5;
+        int j = calc(i);
+    }
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>violation: nested if/try/switch with unused assignments</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>20</expected-linenumbers>
+        <code><![CDATA[
+public class Foo {
+    void bar() {
+        String doodle = "init"; // good
+        if (doodle.length > 2) {
+            doodle = "k"; // ignored
+        }
+        String str = "first"; // good
+        String other;
+        if (doodle.equals("")) {
+            other = str.toString(); // considered used
+        }
+        str = "empty"; // good
+        doSomething();
+        try {
+            str = "other"; // ignored
+        }
+        doSomethingWith(str);
+        str = ""; // good
+        switch(doodle) {case "a": str = "4"; } // use of str ignored
+        str = str.toString(); // use and unused assignment // bad
+        str = "second";
+    }
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>no violation: false positive in AvoidUnusedAsignments #221</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+class CarStuff {
+    String[] licenses;
+    String license;
+
+    void doIt() {
+        licenses = new LicenseResponse[1];
+        license = new LicenseResponse();
+        licenses[0] = license;
+    }
+}
+     ]]></code>
+    </test-code>
+</test-data>

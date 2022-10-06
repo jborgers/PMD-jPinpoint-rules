@@ -563,6 +563,104 @@ class Foo {
 ```
 See: [completablefuture-and-timeout](https://stackoverflow.com/questions/60419311/completablefuture-does-not-complete-on-timeout) and  [completablefuture-allof-and-errors](https://kalpads.medium.com/fantastic-completablefuture-allof-and-how-to-handle-errors-27e8a97144a0)
 
+#### IA08
+**Observation: Future.supplyAsync is used for remote calls and it uses the common pool (the default).**  
+**Problem:** The common pool is meant for processing of in-memory data. The number of threads in the common pool is equal to the number of CPU's,
+which is suitable to keep all CPU's busy with in-memory processing.
+For I/O, however, this number is typically not suitable because relatively much time is spent waiting for the response and not in CPU.
+This likely exhausts the common pool for some time thereby blocking all other use of the common pool. 
+The common pool must *not* be used for blocking calls, see [Be Aware of ForkJoinPool#commonPool()](https://dzone.com/articles/be-aware-of-forkjoinpoolcommonpo)   
+**Solution:** A separate, properly sized, pool of threads (an Executor) should be used for the async calls.   
+**Rule name:** AvoidCommonPoolForFutureAsync   
+**Example:**
+```java
+public class Foo {
+  private final ExecutorService asyncPool = Executors.newFixedThreadPool(8);
+
+  void bad() {
+    CompletableFuture<Pair<String, Boolean>>[] futures = accounts.stream()
+            .map(account -> CompletableFuture.supplyAsync(() -> isAccountBlocked(account))) // bad
+            .toArray(CompletableFuture[]::new);
+  }
+
+  void good() {
+    CompletableFuture<Pair<String, Boolean>>[] futures = accounts.stream()
+            .map(account -> CompletableFuture.supplyAsync(() -> isAccountBlocked(account), asyncPool)) // good
+            .toArray(CompletableFuture[]::new);
+  }
+}
+```
+
+#### IA09
+**Observation: parallelStream which uses the ForkJoinPool::commonPool is used for blocking (I/O, remote) calls.**  
+**Problem:** The common pool is meant for processing of in-memory data. The number of threads in the common pool is equal to the number of CPU's, 
+which is suitable to keep all CPU's busy with in-memory processing.
+For I/O or other blocking calls, however, this number is typically not suitable because relatively much time is spent waiting for the response and not in CPU.
+This likely exhausts the common pool for some time thereby blocking all other use of the common pool.
+The common pool must *not* be used for blocking calls, see [Be Aware of ForkJoinPool#commonPool()](https://dzone.com/articles/be-aware-of-forkjoinpoolcommonpo)   
+**Solution:** A separate, properly sized, pool of threads (an Executor or ForkJoinPool) should be used for the async calls.
+**Rule name:** AvoidCommonPoolForBlockingCalls   
+**Example:**
+```java
+public class Foo {
+  final List<String> list = new ArrayList();
+  final ForkJoinPool myFjPool = new ForkJoinPool(10);
+  final ExecutorService myExePool = Executors.newFixedThreadPool(10);
+
+  void bad1() {
+    list.parallelStream().forEach(elem -> storeDataRemoteCall(elem));
+  }
+
+  void good1() {
+    CompletableFuture[] futures = list.stream().map(elem -> CompletableFuture.supplyAsync(() -> storeDataRemoteCall(elem), myExePool))
+            .toArray(CompletableFuture[]::new);
+    CompletableFuture.allOf(futures).get(10, TimeUnit.MILLISECONDS);
+  }
+
+  void good2() throws ExecutionException, InterruptedException {
+    myFjPool.submit(() ->
+            list.parallelStream().forEach(elem -> storeDataRemoteCall(elem))
+    ).get();
+  }
+
+  String storeDataRemoteCall(String elem) {
+    // do remote call, blocking. We don't use the returned value.
+    RestTemplate tmpl;
+    return "";
+  }
+}
+```
+See for the example good2: [custom-thread-pool-in-parallel-stream](https://stackoverflow.com/questions/21163108/custom-thread-pool-in-java-8-parallel-stream/34930831#34930831).   
+
+#### IA10
+**Observation: An Axual (Kafka) producer is created for each method call.**  
+**Problem:** each Producer takes threads and memory. If you create it in each method call, and call this frequently, it will result in an explosion of threads and memory used and lead to Out Of Memory Error.   
+**Solution:** Since the Axual Producer is thread-safe, it should be shared e.g. from a static field. Note that the AxualClient is not thread-safe.   
+**Rule name:** AxualProducerCreatedForEachMethodCall   
+**Example:**
+```java
+import io.axual.client.producer.Producer;
+
+public class AxualProducerBad {
+  public void publishToEventStream() {
+    Producer<String, String> producer = axualClient.buildProducer(producerConfig); // bad
+    producer.produce(msg);
+  }
+}
+
+class AxualProducerGood1{
+  private static final Producer<String, String> producer = AxualClient.buildProducer(producerConfig);
+}
+
+@Configuration
+class AxualProducerGood2{
+  public Producer<String, String> axualProducer() {
+    Producer<String, String> producer = axualClient.buildProducer(producerConfig);
+    return producer;
+  }
+}
+```
+
 Improper caching  
 -------------------
 
@@ -1111,32 +1209,42 @@ Better is using and sharing ObjectReaders and ObjectWriters created from ObjectM
 
 #### IUOJAR02
 
-**Observation: An existing ObjectMapper object is configured/modified.**  
-**Problem:** ObjectMapper is thread-safe only after configuration. Configuring an ObjectMapper is not thread-safe.  
-**Solution:** Avoid configuring objectMappers except when initializing: right after construction, in one thread. 
-The safe and recommended approach is to create configured ObjectReaders and ObjectWriters from ObjectMapper and share those, since they are immutable and therefore guaranteed to be thread-safe.  
-**Rule name:** AvoidModifyingObjectMapper   
+**Observation: An ObjectMapper is used as field; an existing ObjectMapper is modified.**  
+**Problem:** Configuring/modifying an ObjectMapper is thread-unsafe.  
+**Helpful:** Only configure objectMappers when initializing: right after construction, in one thread.   
+**Solution:** Create configured ObjectReaders and ObjectWriters from ObjectMapper and share those as field, since they are immutable and therefore guaranteed to be thread-safe.  
+**Exception:** A convertValue method is not provided by Reader/Writer, therefore use of an ObjectMapper as field cannot easily be avoided in this case. The AvoidObjectMapperAsField rule is not applied.   
+**Rule names:** AvoidObjectMapperAsField, AvoidModifyingObjectMapper   
 **Example:**   
 ```java
-public class OldStyle {
-    private static final ObjectMapper staticObjectMapper = new ObjectMapper();
-    private final ObjectMapper mapperField = new ObjectMapper();
+class ToAvoidStyle {
+    private static final ObjectMapper staticObjectMapper = new ObjectMapper(); // bad by AvoidObjectMapperAsField
+    private final ObjectMapper mapperField = new ObjectMapper(); // bad by AvoidObjectMapperAsField
 
     static {
-        staticObjectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL); // good
+        staticObjectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL); 
     }
 
-    public OldStyle() {
-        mapperField.setSerializationInclusion(JsonInclude.Include.NON_NULL); // good
+    public ToAvoidStyle() {
+        mapperField.setSerializationInclusion(JsonInclude.Include.NON_NULL); 
     }
 
     ObjectMapper bad(ObjectMapper mapper) {
-        mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL); // bad
+        mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL); // bad by AvoidModifyingObjectMapper
         return mapper;
     }
 }
 
-class NewStyle {
+class ExceptionCase {
+  private static final ObjectMapper staticObjectMapper = new ObjectMapper(); //accepted by AvoidObjectMapperAsField
+  private final ObjectMapper mapperField = new ObjectMapper(); //bad by AvoidObjectMapperAsField
+
+  public UserProfileDto getUserProfileDto(UserProfile userProfile) {
+        return staticObjectMapper.convertValue(userProfile, UserProfileDto.class);
+  }
+}
+
+class GoodStyle {
     private static final ObjectWriter staticObjectWriter =
         new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL).writer(); // good
 }
@@ -1601,8 +1709,8 @@ public class StringBuilder {
 **Notes**
 
 1.  Instances of Date, StringBuilder, URL and File are examples of mutable objects and should be avoided (or else guarded) as fields of shared objects. In case mutable fields are final and not modified after initialization (read-only) they are thread safe, however any modification to it is thread-unsafe. Since field modification is easily coded, avoid this situation.
-2.  Instances of classes like ArrayList, HashMap and HashSet are also mutable and should be properly wrapped with e.g. Collections.unmodifiableList after initialization (see [TUTC03](#TUTC03)), or accessed thread-safely with e.g. Collections.synchronizedList or thread-safe implementations like ConcurrentHashMap.
-3.  Autowiring/injection is thread safe, yet make sure no other thread-unsafe assignment is made to that field.
+2.  Instances of classes like ArrayList, HashMap and HashSet are also mutable and should be properly wrapped with e.g. Collections.unmodifiableList after initialization (see [TUTC03](#TUTC03)), made immmutable by e.g. List.copyOf() or accessed thread-safely with e.g. Collections.synchronizedList or thread-safe implementations like ConcurrentHashMap.
+3.  For autowiring/injection, the assignment of the reference is thread safe, so final is not required. The unmodifiable/thread-safe requirement for that field still holds. Also make sure no other thread-unsafe assignment is made to that field.
 4.  In case you are sure the Component is used in single threaded context only (e.g. a Tasklet), annotate the class with @NotThreadSafe to make this explicit.
 5.  Use package private and @VisibleForTesting for methods used for JUnit only.
 6.  [Documentation on a.i. using final for threads-safety](https://www.securecoding.cert.org/confluence/display/java/TSM03-J.+Do+not+publish+partially+initialized+objects) and from the [JLS](http://docs.oracle.com/javase/specs/jls/se8/html/jls-17.html#jls-17.5): An object is considered to be _completely initialized_ when its constructor finishes. A thread that can only see a reference to an object after that object has been completely initialized is guaranteed to see the correctly initialized values for that object's `final` fields.
@@ -1835,7 +1943,7 @@ Improper use of collections
 **Solution:** Only use ConcurrentHashMap with multiple threads and when modified. Otherwise, for read-write access by a single thread just use HashMap en with multiple threads and read-only use:
 
 ```java
-Collections.unmodifiableMap(initializeHashMap())
+Map readOnlyMap = Collections.unmodifiableMap(initializeHashMap());
 ```
 
 #### IUOC03

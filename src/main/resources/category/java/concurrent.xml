@@ -192,7 +192,7 @@ ancestor::StatementExpression/PrimaryExpression/PrimaryPrefix/Name/@Image = ance
             Problem: Multiple threads typically access fields of a singleton or may access fields in session scoped objects. Unguarded assignment to a non-final field is thread-unsafe and may cause corruption or visibility problems. It may also unintentionally mixup session data. &#13;
             Solution: Make the fields final and unmodifiable.  If they really need to be mutable, make access thread-safe: use synchronized and jcip @GuardedBy or use volatile.&#13;
             Notes&#13;
-            1. Autowiring/injection is thread safe, yet make sure no other thread-unsafe assignment is made to that field.&#13;
+            1. For autowiring/injection, the assignment of the reference is thread safe, so final is not required. The unmodifiable/thread-safe requirement for that field still holds. Also make sure no other thread-unsafe assignment is made to that field.&#13;
             2. In case you are sure the Component is used in single threaded context only (e.g. a Tasklet), annotate the class with @NotThreadSafe to make this explicit. &#13;
             3. Use package-private and @VisibleForTesting for methods (e.g. setters) used for JUnit only.
             4. Use synchronized for accessors to inherited fields, or better: make field private and use proper accessors on base class level using @GuardedBy.
@@ -287,7 +287,7 @@ or ancestor::MethodDeclaration[@Name='afterPropertiesSet']
             Notes&#13;
             1. Instances of Date, StringBuilder, URL and File are examples of mutable objects and should be avoided (or else guarded) as fields of shared objects. In case mutable fields are final and not modified after initialization (read-only) they are thread safe, however any modification to it is thread-unsafe. Since field modification is easily coded, avoid this situation.
             &#13;2. Instances of classes like ArrayList, HashMap and HashSet are also mutable and should be properly wrapped with e.g. Collections.unmodifiableList after initialization (see TUTC03), or accessed thread-safely with e.g. Collections.synchronizedList or thread-safe implementations like ConcurrentHashMap.
-            &#13;3. Autowiring/injection is thread safe, yet make sure no other thread-unsafe assignment is made to that field.
+            &#13;3. For autowiring/injection, the assignment of the reference is thread safe, so final is not required. The unmodifiable/thread-safe requirement for that field still holds. Also make sure no other thread-unsafe assignment is made to that field.
             &#13;4. In case you are sure the Component is used in single threaded context only (e.g. a Tasklet), annotate the class with @NotThreadSafe to make this explicit.
             &#13;5. Use package private and @VisibleForTesting for methods used for JUnit only.
             (jpinpoint-rules)</description>
@@ -344,7 +344,7 @@ and not (../Annotation//Name[@Image='GuardedBy'])
             Notes&#13;
             1. Instances of Date, StringBuilder, URL and File are examples of mutable objects and should be avoided (or else guarded) as fields of shared objects. In case mutable fields are final and not modified after initialization (read-only) they are thread safe, however any modification to it is thread-unsafe. Since field modification is easily coded, avoid this situation.
             &#13;2. Instances of classes like ArrayList, HashMap and HashSet are also mutable and should be properly wrapped with e.g. Collections.unmodifiableList after initialization (see TUTC03), or accessed thread-safely with e.g. Collections.synchronizedList or thread-safe implementations like ConcurrentHashMap.
-            &#13;3. Autowiring/injection is thread safe, yet make sure no other thread-unsafe assignment is made to that field.
+            &#13;3. For autowiring/injection, the assignment of the reference is thread safe, so final is not required. The unmodifiable/thread-safe requirement for that field still holds. Also make sure no other thread-unsafe assignment is made to that field.
             &#13;4. In case you are sure the Component is used in single threaded context only (e.g. a Tasklet), annotate the class with @NotThreadSafe to make this explicit.
             &#13;5. Use package private and @VisibleForTesting for methods used for JUnit only.
             (jpinpoint-rules)</description>
@@ -432,7 +432,7 @@ or (ancestor::ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='VisibleFo
             Notes&#13;
             1. Instances of Date, StringBuilder, URL and File are examples of mutable objects and should be avoided (or else guarded) as fields of shared objects. In case mutable fields are final and not modified after initialization (read-only) they are thread safe, however any modification to it is thread-unsafe. Since field modification is easily coded, avoid this situation.
             &#13;2. Instances of classes like ArrayList, HashMap and HashSet are also mutable and should be properly wrapped with e.g. Collections.unmodifiableList after initialization (see TUTC03), or accessed thread-safely with e.g. Collections.synchronizedList or thread-safe implementations like ConcurrentHashMap.
-            &#13;3. Autowiring/injection is thread safe, yet make sure no other thread-unsafe assignment is made to that field.
+            &#13;3. For autowiring/injection, the assignment of the reference is thread safe, so final is not required. The unmodifiable/thread-safe requirement for that field still holds. Also make sure no other thread-unsafe assignment is made to that field.
             &#13;4. In case you are sure the class is used in single threaded context only, annotate the class with @NotThreadSafe to make this explicit.
             &#13;5. Use package private and @VisibleForTesting for methods used for JUnit only.
             (jpinpoint-rules)</description>
@@ -787,12 +787,17 @@ and not(ancestor::MethodDeclaration//PrimaryPrefix/Name[ends-with(@Image, '.get'
 ,
 (: future.join in lambda without timeout in method :)
 //PrimaryExpression/PrimaryPrefix/LambdaExpression//Name[ends-with(@Image, '.join')
-and not(ancestor::MethodDeclaration//PrimaryPrefix/Name[ends-with(@Image, '.get') or ends-with(@Image, 'Timeout')][../../PrimarySuffix//ArgumentList])
+and not(ancestor::MethodDeclaration//PrimaryPrefix[pmd-java:typeIs('java.util.concurrent.Future')]/Name[ends-with(@Image, '.get') or ends-with(@Image, 'Timeout')]
+[../../PrimarySuffix//ArgumentList])
 ]
 (: join has no arguments, #198 :)
 [../../PrimarySuffix/Arguments[@Size=0]]
-(: dealing with Futures, #198 :)
-[ancestor::ClassOrInterfaceBodyDeclaration//ClassOrInterfaceType[pmd-java:typeIs('java.util.concurrent.Future')]]
+,
+(: CompletableFuture.allOf(futures).join() without timeout :)
+//PrimaryExpression/PrimaryPrefix[pmd-java:typeIs('java.util.concurrent.Future')]/../PrimarySuffix[@Image='join'
+and not(ancestor::MethodDeclaration//PrimaryPrefix[pmd-java:typeIs('java.util.concurrent.Future')]/Name[ends-with(@Image, '.get') or ends-with(@Image, 'Timeout')])]
+(: join has no arguments, #198 :)
+[../PrimarySuffix/Arguments[@Size=0]]
 ]]>
                 </value>
             </property>
@@ -824,6 +829,108 @@ and not(ancestor::MethodDeclaration//PrimaryPrefix/Name[ends-with(@Image, '.get'
             ]]>
         </example>
     </rule>
+
+    <rule name="AvoidCommonPoolForFutureAsync"
+          message="Avoid using the common thread pool for future.supplyAsync, use a separate pool."
+          class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java"
+          typeResolution="true" externalInfoUrl="${doc_root}/JavaCodePerformance.md#ia08">
+        <description>
+            Problem: Future.supplyAsync is typically used for remote calls. By default, it uses the common pool.
+            The number of threads in the common pool is equal to the number of CPU's, which is suitable for in-memory processing.
+            For I/O, however, this number is typically not suitable because most time is spent waiting for the response and not in CPU.
+            The common pool must not be used for blocking calls. &#13;
+            Solution: A separate, properly sized, pool of threads (an Executor) should be used for the async calls.
+            (jpinpoint-rules)</description>
+        <priority>1</priority>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value>
+                    <![CDATA[
+//PrimaryPrefix/Name[@Image='CompletableFuture.supplyAsync']/../../PrimarySuffix/Arguments/ArgumentList[count(Expression) = 1]
+]]>
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+public class Foo {
+    private final ExecutorService asyncPool = Executors.newFixedThreadPool(8);
+
+    void bad() {
+        CompletableFuture<Pair<String, Boolean>>[] futures = accounts.stream()
+         .map(account -> CompletableFuture.supplyAsync(() -> isAccountBlocked(account))) // bad
+         .toArray(CompletableFuture[]::new);
+    }
+
+    void good() {
+        CompletableFuture<Pair<String, Boolean>>[] futures = accounts.stream()
+         .map(account -> CompletableFuture.supplyAsync(() -> isAccountBlocked(account), asyncPool)) // good
+         .toArray(CompletableFuture[]::new);
+    }
+}
+]]>
+        </example>
+    </rule>
+
+    <rule name="AvoidCommonPoolForBlockingCalls" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" message="Avoid the ForkJoinPool::commonPool used in parallelStream for blocking calls."
+          typeResolution="true"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ia09">
+        <description>Problem: Blocking calls for instance remote calls, may exhaust the common pool for some time thereby blocking all other use of the common pool. In addition, nested use of the common pool can lead to deadlock. Do not use the common pool for blocking calls. The parallelStream() call uses the common pool.&#13;
+            Solution: Use a dedicated thread pool with enough threads to get proper parallelism. The numner of threads in the common pool is equal to the number of CPUs-1 and meant to utilize all of them. It assumes non-blocking processing of in-memory data.  (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+(: assumption: if import of web client / http client is present, parallelStreaming is for remote calls :)
+//ImportDeclaration/Name[starts-with(@Image, 'org.springframework.web.client') or starts-with(@Image, 'org.apache.commons.httpclient')]/
+ancestor::CompilationUnit//PrimaryExpression
+[(PrimarySuffix/@Image='parallelStream' or ends-with(PrimaryPrefix/Name/@Image, 'parallelStream')
+and exists(PrimarySuffix/pmd-java:typeIs('java.util.stream.Stream'))
+and not(ancestor::Block//StatementExpression/PrimaryExpression/PrimaryPrefix/Name[ends-with(@Image, '.submit') and pmd-java:typeIs('java.util.concurrent.ExecutorService')]))
+]
+]]>
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+import java.util.concurrent.*;
+import java.util.stream.*;
+import java.util.*;
+import org.springframework.web.client.RestTemplate;
+
+public class Foo {
+    final List<String> list = new ArrayList();
+    final ForkJoinPool myFjPool = new ForkJoinPool(10);
+    final ExecutorService myExePool = Executors.newFixedThreadPool(10);
+
+    void bad1() {
+        list.parallelStream().forEach(elem -> storeDataRemoteCall(elem));
+    }
+
+    void good1() {
+        CompletableFuture[] futures = list.stream().map(elem -> CompletableFuture.supplyAsync(() -> storeDataRemoteCall(elem), myExePool))
+                .toArray(CompletableFuture[]::new);
+        CompletableFuture.allOf(futures).get(10, TimeUnit.MILLISECONDS));
+    }
+
+    void good2() throws ExecutionException, InterruptedException {
+        myFjPool.submit(() ->
+                list.parallelStream().forEach(elem -> storeDataRemoteCall(elem))
+        ).get();
+    }
+
+    String storeDataRemoteCall(String elem) {
+        // do remote call, blocking. We don't use the returned value.
+        RestTemplate tmpl;
+        return "";
+    }
+]]>
+        </example>
+    </rule>
+
 </ruleset>
 
 

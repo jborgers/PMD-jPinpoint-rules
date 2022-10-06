@@ -114,4 +114,18 @@ public class AvoidImproperAnnotationCombinations {
 
 }     ]]></code>
     </test-code>
+
+    <test-code>
+        <description>Avoid improper annotation combinations</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>3</expected-linenumbers>
+        <code><![CDATA[
+import lombok.*;
+import org.springframework.stereotype.*;
+@Component // bad 13
+@Data
+public class Issue223 {
+}
+        ]]></code>
+    </test-code>
 </test-data>

@@ -1,15 +1,14 @@
 # PMD-jPinpoint-rules
 PMD rule set for performance aware Java and Kotlin coding, sponsored by [Rabobank](https://www.rabobank.com/). 
 
-The purpose of this project is to create and manage automatic java code checks.
+The purpose of this project is to create and manage automatic java code checks. 
+
+To get apps which are faster, use less CPU, emit less CO2, are more stable, more confidential, with less effort and lower cost.
  
-We have distilled these code checks from what we learned in several years of analyzing performance problems and other defects and failures 
-found in code, tests and production situations.
+We have distilled these code checks from what we learned in several years of analyzing performance problems and failures found in code, tests and production situations. And the ruleset is growing every month.
 
 We didn't find these checks in other places, like the standard PMD, FindBugs/Spotbugs, Checkstyle or Sonar rules.
-If you find duplicates of existing ones, please let us know. 
-We offered these rules to the PMD-team for inclusion in the standard rules and we were warmly welcomed. We have been working with them to upgrade and merge (some of) the jpinpoint rules in the standard and looking for sponsorship to continue with that.
-You don't have to wait for that, you can already use these as custom rules right now.
+We are are working with the PMD-team to move some of the jpinpoint rules in the standard rule set, as well as make PMD suitable for Kotlin.
 
 Run the jPinpoint rules from the command-line using the PMD tool, from your favorite development
 environment with a PMD-plugin, or in SonarQube after packaging them as Sonar plugin.

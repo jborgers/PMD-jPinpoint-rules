@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>Avoid Common Pool for Future Async</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>9</expected-linenumbers>
+        <code><![CDATA[
+import java.util.*;
+import java.util.concurrent.*;
+
+public class Foo {
+    private final ExecutorService asyncPool = Executors.newFixedThreadPool(10);
+
+    void bad() {
+        CompletableFuture<Pair<String, Boolean>>[] futures = accounts.stream()
+         .map(account -> CompletableFuture.supplyAsync(() -> isAccountBlocked(account))) // bad
+         .toArray(CompletableFuture[]::new);
+    }
+
+    void good() {
+        CompletableFuture<Pair<String, Boolean>>[] futures = accounts.stream()
+         .map(account -> CompletableFuture.supplyAsync(() -> isAccountBlocked(account), asyncPool))
+         .toArray(CompletableFuture[]::new);
+    }
+}
+]]></code>
+    </test-code>
+
+
+</test-data>
