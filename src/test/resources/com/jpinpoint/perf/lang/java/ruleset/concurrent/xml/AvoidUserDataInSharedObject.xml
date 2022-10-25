@@ -41,6 +41,8 @@ public class VMRData {
     private String modifyType;
     private String order; // bad 10
     private String transactionRef; // bad 11
+
+    final Predicate<Order> cancelAction = order -> "CANCEL".equals(order.getAction()); // ok
 }
      ]]></code>
     </test-code>
