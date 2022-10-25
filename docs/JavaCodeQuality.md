@@ -334,11 +334,11 @@ Don't combine:
 
 ### SSC03
 
-**Observation: User related data is used in a shared Component.**  
+**Observation: User related data is used in a shared object, such as a @Component.**  
 **Problem:** A shared/singleton object like Spring @Component is shared among users. User related data in such a component will be shared among users accessing it at about the same time. 
-Therefore, this data can mix-up: a user can access data of another user, which is really bad.  
-**Solution:** Do *not* put the user related data in a shared component. Use a POJO.  
-**Rule name:** AvoidUserDataInSharedComponent
+Therefore, this data can mix up: a user can access data of another user, which is really bad.  
+**Solution:** Do *not* put the user related data in a shared component. Use a POJO, think about scope.  
+**Rule name:** AvoidUserDataInSharedObjects   
 **Example:**
 ````java
 @Component // one instance shared among requests and users
