@@ -299,7 +299,7 @@ Potential Session Data Mix-up
 Session data mixup is one of the worst problems that can occur. Customers seeing data of other customers is bad, for the users and for the reputation of the company. Therefore, we want to have defence mechanisms to protect against these problems. There can be several causes of session data mixup, like:
 
 *   a response over a connection being bound to the wrong request, so request-response mixup.
-*   shared variables like singleton fields, e.g. a Spring controller
+*   shared variables like singleton fields, e.g. in a Spring @Controller, @Component, etc.
 *   cache key mixup.
 
 #### PSDM01
@@ -315,7 +315,8 @@ Suspicious code constructs
 
 **Observation: Multiple switch cases contain the same assignment**  
 **Problem:** Identical assignments to the same variable are very likely a bug. It lead to a production incident in a project.  
-**Solution:** Each case block of a switch should contain unique assignments. Common assignments should be taken out of the switch construct. Exceptional case: a duplicate assignment to a boolean is considered safe since it can only hold 2 values.    
+**Solution:** Each case block of a switch should contain unique assignments. Common assignments should be taken out of the switch construct. 
+Exceptional case: a duplicate assignment to a boolean is considered safe since it can only hold 2 values.    
 **Rule name:** AvoidDuplicateAssignmentsInCases
 
 ### SSC02
@@ -331,10 +332,38 @@ Don't combine:
 **Solution:** Don't combine the annotations. Understand what they do and choose and keep only the right one.     
 **Rule name:** AvoidImproperAnnotationCombinations
 
+### SSC03
+
+**Observation: User related data is used in a shared Component.**  
+**Problem:** A shared/singleton object like Spring @Component is shared among users. User related data in such a component will be shared among users accessing it at about the same time. 
+Therefore, this data can mix-up: a user can access data of another user, which is really bad.  
+**Solution:** Do *not* put the user related data in a shared component. Use a POJO.  
+**Rule name:** AvoidUserDataInSharedComponent
+**Example:**
+````java
+@Component // one instance shared among requests and users
+@Data
+class VMRDataBad {
+    private List<OrderDetails> orderList; // bad 1
+    private final String authUser; // bad 2
+    private String sessionId; // bad 3
+}
+
+// POJO, not shared
+@Data
+class VMRDataGood {
+    private List<OrderDetails> orderList; 
+    private final String authUser; 
+    private String sessionId; 
+}
+
+````
+
 Maintainability
 ---------------
 
 ### M01
+
 **Observation: Variable does not have a meaningful name, like 'var3' and fields like 'FOUR = 4'**  
 **Problem:** Variable does not express what it is used for. This is bad for maintainability.  
 **Solution:** Let variable names express what they are used for, like 'key' and 'MAX_KEYS = 4'.    

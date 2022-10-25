@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>violation: user related data used in shared Component</description>
+        <expected-problems>11</expected-problems>
+        <expected-linenumbers>8, 11, 14, 16, 17, 18, 19, 26, 27, 32, 33</expected-linenumbers>
+        <code><![CDATA[
+import java.util.List;
+
+@Component
+@Data
+public class VMRData {
+    private String channel;
+    private String vmrId;
+    private List<OrderDetails> orderList; // bad 1
+    private Headers headers;
+    private List<OrderReference> ordersRequiringAdditionalSignature;
+    private final String authUser; // bad 2
+    private String executionDate;
+    private String minimumLevel;
+    private String sessionId; // bad 3
+    private String payloadData;
+    private String vmrUserId; // bad 4
+    private String userref; // bad 5
+    private String customerReference; // bad 6
+    private String contract; // bad 7
+}
+
+@Component
+@Setter
+@Getter
+ class VMROrderDetails {
+    private final OrderReference orderReference; // bad 8
+    private Account originatorAccount; // bad 9
+    private Amount amount;
+    private String action;
+    private List<CancellationHistory> cancellationHistories;
+    private String modifyType;
+    private String order; // bad 10
+    private String transactionRef; // bad 11
+}
+     ]]></code>
+    </test-code>
+
+
+</test-data>
