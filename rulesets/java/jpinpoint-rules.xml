@@ -2688,6 +2688,70 @@ or (ancestor::ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='VisibleFo
         </properties>
     </rule>
 
+    <rule name="AvoidUserDataInSharedObjects" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java"
+          message="Do *not* use user data in shared objects, it causes user data mix-up."
+          typeResolution="true"
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodeQuality.md#ssc03">
+        <description>Problem: user related data will be shared among users and can mix-up: a user may access data of another user, this is really bad.&#13;
+            Solution: Do *not* put the user related data in a shared object e.g. by Spring @Component annotation. Use a POJO. (jpinpoint-rules)</description>
+        <priority>1</priority>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+//TypeDeclaration/Annotation//Name[(@Image='Component' or @Image='Service' or @Image='Controller' or @Image='RestController' or @Image='Repository' or
+(@Image='Singleton' and ancestor::TypeDeclaration/Annotation/NormalAnnotation/MemberValuePairs//Name[@Image='ConcurrencyManagementType.BEAN']))
+and not (ancestor::TypeDeclaration/Annotation//Name[@Image='Scope']/..//PrimaryPrefix[Literal[@Image='"request"' or @Image='"prototype"']
+or Name[@Image='ConfigurableBeanFactory.SCOPE_REQUEST' or @Image='ConfigurableBeanFactory.SCOPE_PROTOTYPE']])
+and not (ancestor::TypeDeclaration/Annotation//Name[@Image='RequestScope'])
+(: no checking if @ConfigurationProperties and no @Setter :)
+and not ((ancestor::TypeDeclaration/Annotation//Name[@Image='ConfigurationProperties'])
+         and not (ancestor::TypeDeclaration/Annotation/MarkerAnnotation/Name[@Image='Setter']))]
+/ancestor::TypeDeclaration//ClassOrInterfaceBodyDeclaration/FieldDeclaration/VariableDeclarator/VariableDeclaratorId[matches(@Name,
+'User[Id|Ref|Reference]*$|Customer[Id|Ref|Reference]*$|Session[Id|Ref|Reference]*$|Order[Id|Ref|Reference|List]*$|Account[Id|Ref|Reference|List]*$|Transaction[Id|Ref|Reference|List]*$|Contract[Id|Ref|Reference|List]*$', 'i')]
+]]>
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+@Component
+@Data
+public class VMRData {
+    private String channel;
+    private String vmrId;
+    private List<OrderDetails> orderList; // bad
+    private Headers headers;
+    private List<OrderReference> ordersRequiringAdditionalSignature;
+    private final String authUser; // bad
+    private String executionDate;
+    private String minimumLevel;
+    private String sessionId; // bad
+    private String payloadData;
+    private String vmrUserId; // bad
+    private String userref; // bad
+    private String customerReference; // bad
+    private String contract; // bad
+}
+
+@Component
+@Setter
+@Getter
+ class VMROrderDetails {
+    private final OrderReference orderReference; // bad
+    private Account originatorAccount; // bad
+    private Amount amount;
+    private String action;
+    private List<CancellationHistory> cancellationHistories;
+    private String modifyType;
+    private String order; // bad
+    private String transactionRef; // bad
+}
+
+]]>
+        </example>
+    </rule>
+
     <rule name="AvoidVolatileInPrototypeScope" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" message="No need for volatile in prototype scope" typeResolution="true"
           externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#tutc10">
         <description>A field is defined as volatile while the class has prototype scope. Problem: volatile has some overhead, especially for writes. When getting the bean from the Spring applicationContext, prototype scope means that each invocation creates a new object so the field is not shared. &#13;
