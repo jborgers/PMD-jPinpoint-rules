@@ -4194,6 +4194,59 @@ class Good {
         </example>
     </rule>
 
+    <rule name="AvoidSimpleKeyCollisions" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java"
+          message="Generate a unique SimpleKey by using both method and parameters as composites." typeResolution="true"
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#ic15">
+        <description>
+            Problem: Spring's SimpleKey creation lacks either the method or the method parameters, which may cause cache data mix-up.&#13;
+            Solution: Create a SimpleKey composed of both the method object and the params Object[].
+            (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+//ClassOrInterfaceDeclaration[ImplementsList/ClassOrInterfaceType[pmd-java:typeIs('org.springframework.cache.interceptor.KeyGenerator')]]
+//MethodDeclaration[@Name='generate']//ClassOrInterfaceType[pmd-java:typeIs('org.springframework.cache.interceptor.SimpleKey')]
+[not
+  ( (: a method object as 1 arg  :)
+    exists(..//Expression[pmd-java:typeIs('java.lang.reflect.Method')])
+    (: or (method.getName and target.getClass) :)
+    or(
+      exists(..//PrimaryExpression[PrimaryPrefix[pmd-java:typeIs('java.lang.Object')]][PrimarySuffix[pmd-java:typeIs('java.lang.Class')]])
+      and
+      exists(..//PrimaryExpression[PrimaryPrefix[pmd-java:typeIs('java.lang.reflect.Method')]])
+    )
+  )
+  (: params included :)
+  or not(exists(..//Expression[pmd-java:typeIs('java.lang.Object[]')]))
+]/../Arguments
+	]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+import org.springframework.cache.interceptor.KeyGenerator;
+import org.springframework.cache.interceptor.SimpleKey;
+import java.lang.reflect.Method;
+
+class BadCacheKeyGenerator implements KeyGenerator {
+    @Override
+    public Object generate(Object target, Method method, Object... params) {
+        return new SimpleKey(params); // bad
+    }
+}
+
+class GoodCacheKeyGenerator implements KeyGenerator {
+    @Override
+    public Object generate(Object target, Method method, Object... params) {
+        return new SimpleKey(method, params); // good
+    }
+}
+            ]]>
+        </example>
+    </rule>
+
     <rule name="AvoidSpringApplicationContextRecreation"
           message="Avoid re-creation of Spring application context"
           class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java"
@@ -4356,8 +4409,8 @@ class Good1 {
           message="Use a KeyGenerator to generate a correct and unique key per cached value, do not rely on the implicit default key generation." typeResolution="true"
           externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#ic14">
         <description>
-            Problem: With default key generation, an object of Spring's SimpleKey class is used and its value is composed of just the method parameter(s). It does not include the method and class name, which is unclear and risky.&#13;
-            Solution: Create a KeyGenerator and make it generate a unique key for the cache per cached value, typically by use of SimpleKey composed of class and/or method name and the parameters.
+            Problem: With default key generation, an object of Spring's SimpleKey class is used and its value is composed of just the method parameter(s). It does not include the method, which is unclear and risky.&#13;
+            Solution: Create a KeyGenerator and make it generate a unique key for the cache per cached value, by use of SimpleKey composed of method object and the parameters.
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>

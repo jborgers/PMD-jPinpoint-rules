@@ -834,8 +834,7 @@ In Spring config:
 
 **Observation: A non-overridden Object.toString may be called on a spring KeyGenerator.generate method parameter.**  
 **Problem:** The non-overridden Object.toString returns a String representing the identity of the object. Because this is different for two objects with the same value, cache keys will be different and the cache will only have misses and no hits.  
-**Solution:** Cast the parameters each to the actual type  at call site and also check the expected number of params. 
-Or better and simpler: return a SimpleKey composed typically of class and method name and the params. Note: equals and hashCode must be properly implemented for each param.  
+**Solution:** return a SimpleKey composed of method and the params. Note: equals and hashCode must be properly implemented for each param.  
 **Rule name:** AvoidIdentityCacheKeys   
 **Example:**   
 ```java
@@ -851,7 +850,7 @@ class Bad implements KeyGenerator {
     }
 }
 
-class Good implements KeyGenerator {
+class NotBad implements KeyGenerator {
     public Object generate(Object target, Method method, Object... params) {
         if (params.length != 1) {
             throw new IllegalArgumentException("KeyGenerator for GetProfileCache assumes 1 parameter 'profileId', found: " + params);
@@ -863,20 +862,21 @@ class Good implements KeyGenerator {
     }
 }
 
-class Better implements KeyGenerator {
+class Good implements KeyGenerator {
     @NotNull @Override
     public Object generate(Object target, Method method, Object... params) {
-        return new SimpleKey(target.getClass().getSimpleName(), method.getName(), params);
+        return new SimpleKey(method, params);
     }
 }
 ```
-In the above, class name and method name are included to ensure to get different keys if this KeyGenerator is used on different classes/methods.
+In the above, method is included to ensure to get different keys if this KeyGenerator is used on different classes/methods. 
+The Method object implements equals and hashCode properly.
 
 ### IC14
 
 **Observation: Default key generation is used with @Cacheable, no KeyGenerator is used.**  
-**Problem:** With default key generation, an object of Spring's SimpleKey class is used and its value is composed of just the method parameter(s). It does not include the method and class name, which is unclear and risky.   
-**Solution:** Create a KeyGenerator and make it generate a unique key for the cache per cached value, typically by use of SimpleKey composed of class and method name and the appropriate method parameters.   
+**Problem:** With default key generation, an object of Spring's SimpleKey class is used and its value is composed of just the method parameter(s). It does not include the method (nor class), which is unclear and risky, it may cause cache data mix-up.   
+**Solution:** Create a KeyGenerator and make it generate a unique key for the cache per cached value, by use of SimpleKey composed of method and the appropriate method parameters.   
 **Rule name:** UseExplicitKeyGeneratorForCacheable    
 **See:** [Spring 4.0 Caching](https://docs.spring.io/spring-framework/docs/4.0.x/spring-framework-reference/html/cache.html)   
 **Example:**   
@@ -895,7 +895,41 @@ class Foo {
     }
 }
 ```
- 
+
+### IC15
+
+**Observation: Spring's SimpleKey creation for a cache lacks either the method or the method parameters.**  
+**Problem:** Both method and the method parameters are needed to make a unique key for a cache entry. 
+If one is missing, a key may be the same for different methods or different parameter values, which may cause cache data mix-up.   
+**Solution:** Create a SimpleKey composed of both the method object and the params Object[].   
+**Rule name:** AvoidSimpleKeyCollisions    
+**See:** [Spring 4.0 Caching](https://docs.spring.io/spring-framework/docs/4.0.x/spring-framework-reference/html/cache.html)   
+**Example:**
+```java
+import org.springframework.cache.interceptor.*;
+import java.lang.reflect.Method;
+
+class BadCacheKeyGenerator implements KeyGenerator {
+  @Override
+  public Object generate(Object target, Method method, Object... params) {
+    return new SimpleKey(params); // bad
+  }
+}
+
+class GoodCacheKeyGenerator implements KeyGenerator {
+  @Override
+  public Object generate(Object target, Method method, Object... params) {
+    return new SimpleKey(method, params); // good
+  }
+}
+class AlsoGoodCacheKeyGenerator implements KeyGenerator {
+  @Override
+  public Object generate(Object target, Method method, Object... params) {
+    return SimpleKeyGenerator.generateKey(method, params); // good
+  }
+}
+```
+
 Too much session usage
 ----------------------
 
