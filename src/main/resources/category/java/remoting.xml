@@ -927,7 +927,7 @@ public class HttpClientStuff {
 (:or (Type//ClassOrInterfaceType[@Image='ObjectMapper'] and //ImportDeclaration/Name[starts-with(@Image, 'com.fasterxml.jackson.databind.')]):)
 ]//VariableDeclaratorId)
 (: exception: do not match if that field name is used in its class with a convertValue method :)
-return ($node[not(ancestor::ClassOrInterfaceDeclaration//PrimaryPrefix/Name[@Image = concat($node/@Image, '.convertValue')])]))
+return ($node[not(ancestor::ClassOrInterfaceDeclaration//PrimaryPrefix/Name[@Image = concat($node/@Name, '.convertValue')])]))
 ]]>
                 </value>
             </property>

@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>EnsureProperCacheableParams</description>
+        <expected-problems>2</expected-problems>
+        <expected-linenumbers>13, 17</expected-linenumbers>
+        <code><![CDATA[
+import org.springframework.cache.annotation.Cacheable;
+//import org.joda.time.*;
+import java.time.*;
+import java.lang.*;
+import java.util.*;
+
+class Foo {
+    @Cacheable(value = "myCache", keyGenerator = "myGenerator")
+    public String getDataGood(String str, LocalDate date) {
+        return service.getData(input);
+    }
+    @Cacheable(value = "myCache", keyGenerator = "myGenerator") // inform
+    public String getDataInform(MyObject input, String str, LocalDate date) {
+        return service.getData(input);
+    }
+    @Cacheable(value = "myCache", keyGenerator = "myGenerator") // inform
+    public String getDataInform2(MyObject input) {
+        return service.getData(input);
+    }
+    @Cacheable(value = "myCache", keyGenerator = "myGenerator")
+    public String getDataGood2() {
+        return service.getData();
+    }
+    @Cacheable(value = "myCache", keyGenerator = "myGenerator")
+    public String getDataGood3(int i) {
+        return service.getData();
+    }
+    @Cacheable(value = "myCache", keyGenerator = "myGenerator")
+    public String getDataGood4(Integer i) {
+        return service.getData();
+    }
+    @Cacheable(value = "myCache", keyGenerator = "myGenerator")
+    public String getDataGood5(org.joda.time.LocalDate date) {
+        return service.getData();
+    }
+}
+class MyObject {
+    String field;
+    // equals, hashCode, toString missing
+}
+]]></code>
+    </test-code>
+</test-data>

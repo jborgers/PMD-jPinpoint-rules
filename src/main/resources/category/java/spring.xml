@@ -384,7 +384,7 @@ class Foo {
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#ic15">
         <description>
             Problem: Spring's SimpleKey creation lacks either the method or the method parameters, which may cause cache data mix-up.&#13;
-            Solution: Create a SimpleKey composed of both the method object and the params Object[].
+            Solution: Create a SimpleKey composed of both the method object and the params Object[]. Make sure the params properly implement equals and hashCode.
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
@@ -394,7 +394,7 @@ class Foo {
 //ClassOrInterfaceDeclaration[ImplementsList/ClassOrInterfaceType[pmd-java:typeIs('org.springframework.cache.interceptor.KeyGenerator')]]
 //MethodDeclaration[@Name='generate']//ClassOrInterfaceType[pmd-java:typeIs('org.springframework.cache.interceptor.SimpleKey')]
 [not
-  ( (: a method object as 1 arg  :)
+  ( (: a method object as 1 arg (preferred) :)
     exists(..//Expression[pmd-java:typeIs('java.lang.reflect.Method')])
     (: or (method.getName and target.getClass) :)
     or(
@@ -427,6 +427,56 @@ class GoodCacheKeyGenerator implements KeyGenerator {
     public Object generate(Object target, Method method, Object... params) {
         return new SimpleKey(method, params); // good
     }
+}
+            ]]>
+        </example>
+    </rule>
+
+    <rule name="EnsureProperCacheableParams" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java"
+          message="Info: Make sure that the parameters that make up the cache key implement the required methods properly." typeResolution="true"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ic16">
+        <description>
+            Problem: When (1) concatenating or joining parameters in a KeyGenerator: they need to properly implement toString().
+            (2) using SimpleKey (preferred): the parameters need to properly implement equals() and hashCode(). Failing to do so may lead to caching data mix-up.&#13;
+            Solution: Create a SimpleKey composed of both the method object and the params Object[] and make sure the params properly implement equals and hashCode.
+            Note: This rule is just informational, because it cannot actually check if it is implemented correctly or not.
+            (jpinpoint-rules)</description>
+        <priority>5</priority>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+//ClassOrInterfaceBodyDeclaration[.//NormalAnnotation/Name[@Image='Cacheable']]
+/MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter/Type/ReferenceType
+  [(: common safe reference types:)
+    not (pmd-java:typeIs('java.lang.String')
+        or pmd-java:typeIs('java.lang.Integer')
+        or pmd-java:typeIs('java.time.LocalDate')
+        or pmd-java:typeIs('org.joda.time.LocalDate')
+    )
+  ]
+	]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+import org.springframework.cache.annotation.Cacheable;
+import java.time.*;
+import java.lang.*;
+
+class Foo {
+    @Cacheable(value = "myCache", keyGenerator = "myGenerator")
+    public String getDataGood(String str, LocalDate date) {
+        return service.getData(input);
+    }
+    @Cacheable(value = "myCache", keyGenerator = "myGenerator")
+    public String getDataInform(MyObject input, String str, LocalDate date) { // inform
+        return service.getData(input);
+    }
+}
+class MyObject {
+    String field;
+    // equals, hashCode, toString missing
 }
             ]]>
         </example>

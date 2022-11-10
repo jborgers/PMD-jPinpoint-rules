@@ -929,6 +929,37 @@ class AlsoGoodCacheKeyGenerator implements KeyGenerator {
   }
 }
 ```
+### IC16
+
+**Observation: For a @Cachable (with keyGenerator) annotated method, the parameters that make up the cache key do not properly implement the required methods.**  
+**Problem:** When 
+1. concatenating or joining parameters in a KeyGenerator: they need to properly implement toString().
+2. using SimpleKey (preferred): the parameters need to properly implement equals() and hashCode(). Failing to do so may lead to caching data mix-up.   
+
+**Solution:** Create a SimpleKey composed of both the method object and the params Object[] and make sure the params properly implement equals and hashCode.   
+**Rule name:** EnsureProperCacheableParams
+**Note:** This rule is just informational, because it cannot actually check if it is implemented correctly or not.
+**See:** [Spring 4.0 Caching](https://docs.spring.io/spring-framework/docs/4.0.x/spring-framework-reference/html/cache.html)   
+**Example:**
+```java
+import org.springframework.cache.annotation.Cacheable;
+import java.time.*;
+
+class Foo {
+  @Cacheable(value = "myCache", keyGenerator = "myGenerator")
+  public String getDataGood(String str, LocalDate date) {
+    return service.getData(input);
+  }
+  @Cacheable(value = "myCache", keyGenerator = "myGenerator") 
+  public String getDataInform(MyObject input, String str, LocalDate date) { // inform
+    return service.getData(input);
+  }
+}
+class MyObject {
+  String field;
+  // equals, hashCode, toString missing
+}
+```
 
 Too much session usage
 ----------------------
