@@ -6,7 +6,7 @@
     <test-code>
         <description>violation: user related data used in shared Component</description>
         <expected-problems>11</expected-problems>
-        <expected-linenumbers>8, 11, 14, 16, 17, 18, 19, 26, 27, 32, 33</expected-linenumbers>
+        <expected-linenumbers>8, 11, 14, 16, 17, 18, 19, 28, 29, 34, 35</expected-linenumbers>
         <code><![CDATA[
 import java.util.List;
 
@@ -18,7 +18,7 @@ public class VMRData {
     private List<OrderDetails> orderList; // bad 1
     private Headers headers;
     private List<OrderReference> ordersRequiringAdditionalSignature;
-    private final String authUser; // bad 2
+    private String authUser; // bad 2
     private String executionDate;
     private String minimumLevel;
     private String sessionId; // bad 3
@@ -33,7 +33,9 @@ public class VMRData {
 @Setter
 @Getter
  class VMROrderDetails {
-    private final OrderReference orderReference; // bad 8
+    private static final String DESC_OF_ORDER = "order details"; // ok
+    private final VMROrderDetails finalOrder = new VMROrderDetails(); // ok
+    private OrderReference orderReference; // bad 8
     private Account originatorAccount; // bad 9
     private Amount amount;
     private String action;
