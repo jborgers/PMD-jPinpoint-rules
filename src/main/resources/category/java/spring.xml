@@ -437,7 +437,7 @@ class GoodCacheKeyGenerator implements KeyGenerator {
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#ic16">
         <description>
             Problem: When (1) concatenating or joining parameters in a KeyGenerator: they need to properly implement toString().
-            (2) using SimpleKey (preferred): the parameters need to properly implement equals() and hashCode(). Failing to do so may lead to caching data mix-up.&#13;
+            (2) using SimpleKey (recommended): the parameters need to properly implement equals() and hashCode(). Failing to do so may lead to caching data mix-up.&#13;
             Solution: Create a SimpleKey composed of both the method object and the params Object[] and make sure the params properly implement equals and hashCode.
             Note: This rule is just informational, because it cannot actually check if it is implemented correctly or not.
             (jpinpoint-rules)</description>

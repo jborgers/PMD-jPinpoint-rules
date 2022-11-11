@@ -934,7 +934,7 @@ class AlsoGoodCacheKeyGenerator implements KeyGenerator {
 **Observation: For a @Cachable (with keyGenerator) annotated method, the parameters that make up the cache key do not properly implement the required methods.**  
 **Problem:** When 
 1. concatenating or joining parameters in a KeyGenerator: they need to properly implement toString().
-2. using SimpleKey (preferred): the parameters need to properly implement equals() and hashCode(). Failing to do so may lead to caching data mix-up.   
+2. using SimpleKey (recommended): the parameters need to properly implement equals() and hashCode(). Failing to do so may lead to caching data mix-up.   
 
 **Solution:** Create a SimpleKey composed of both the method object and the params Object[] and make sure the params properly implement equals and hashCode.   
 **Rule name:** EnsureProperCacheableParams
@@ -1278,7 +1278,8 @@ Better is using and sharing ObjectReaders and ObjectWriters created from ObjectM
 **Problem:** Configuring/modifying an ObjectMapper is thread-unsafe.  
 **Helpful:** Only configure objectMappers when initializing: right after construction, in one thread.   
 **Solution:** Create configured ObjectReaders and ObjectWriters from ObjectMapper and share those as field, since they are immutable and therefore guaranteed to be thread-safe.  
-**Exception:** A convertValue method is not provided by Reader/Writer, therefore use of an ObjectMapper as field cannot easily be avoided in this case. The AvoidObjectMapperAsField rule is not applied.   
+**Exceptions:** A convertValue method is not provided by Reader/Writer, therefore use of an ObjectMapper as field cannot easily be avoided in this case. The AvoidObjectMapperAsField rule is not applied.
+Also when used like jaxMsgConverter.setObjectMapper(objectMapper) it is not considered a violation.    
 **Rule names:** AvoidObjectMapperAsField, AvoidModifyingObjectMapper   
 **Example:**   
 ```java

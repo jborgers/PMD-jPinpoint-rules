@@ -42,4 +42,31 @@
      ]]></code>
     </test-code>
 
+    <test-code>
+        <description>violation: ObjectMapper used with MappingJackson2HttpMessageConverter setObjectMapper exception,
+            Fix Request: False positive in AvoidObjectMapperAsField #230</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>13</expected-linenumbers>
+        <code><![CDATA[
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+class Foo {
+    private static final ObjectMapper objectMapper = new ObjectMapper();
+    void bar() {
+        final MappingJackson2HttpMessageConverter jaxMsgConverter = new MappingJackson2HttpMessageConverter();
+        jaxMsgConverter.setObjectMapper(objectMapper);
+    }
+}
+
+class Fox {
+    private static final ObjectMapper objectMapper = new ObjectMapper();
+    void bar() {
+        final MappingJackson2HttpMessageConverter jaxMsgConverter = new MappingJackson2HttpMessageConverter();
+        //jaxMsgConverter.setObjectMapper(objectMapper);
+    }
+}
+     ]]></code>
+    </test-code>
+
 </test-data>
