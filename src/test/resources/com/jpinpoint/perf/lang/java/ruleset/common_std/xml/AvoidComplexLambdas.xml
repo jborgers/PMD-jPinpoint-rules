@@ -4,7 +4,7 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
     <test-code>
-        <description>violations in LetFieldsMeetSerializable</description>
+        <description>violations in AvoidComplexLambdas</description>
         <expected-problems>3</expected-problems>
         <expected-linenumbers>35, 83, 102</expected-linenumbers>
         <code><![CDATA[

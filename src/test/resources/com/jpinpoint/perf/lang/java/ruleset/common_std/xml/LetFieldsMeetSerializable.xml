@@ -67,4 +67,19 @@ class SerializableOther implements Serializable {
      ]]></code>
     </test-code>
 
+    <test-code>
+        <description>Fix Request: LetFieldsMeetSerializable has false positives #231</description>
+        <expected-problems>1</expected-problems>
+        <code><![CDATA[
+import java.lang.*;
+import java.util.*;
+import java.io.*;
+import lombok.*;
+
+class SomeDTO implements Serializable {
+    private List<@NonNull Serializable> listGood; // false positive, actually good
+    private List<@NonNull Object> listBad; // bad
+}
+     ]]></code>
+    </test-code>
 </test-data>

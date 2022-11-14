@@ -1880,7 +1880,7 @@ return ($node[
           class="net.sourceforge.pmd.lang.rule.XPathRule"
           externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodeQuality.md#isr02">
         <description>Problem: Field in a Serializable class is not serializable nor transient. When (de)serialization happens, a RuntimeException will be thrown and (de)serialization fails.
-            Solution: make the field either transient or make its class implement Serializable.
+            Solution: make the field either transient, make its class implement Serializable or interface extend Serializable.
             Note: Classes extending Throwable do, by inheritance, implement Serializable, yet are excluded in this rule, since they are typically never actually serialized.
             An exception to this exception is when extending RemoteException, then fields should be transient or serializable.
         (jpinpoint-rules)</description>
@@ -1899,8 +1899,8 @@ and not(pmd-java:typeIs('java.lang.Throwable') and not(pmd-java:typeIs('java.rmi
 (: and can be resolved :)
 and (pmd-java:typeIs('java.lang.Object'))
 (: if has type args, type args which are not serializable like List<String, Thread>):)
-and (not(exists(.//TypeArgument))
-or exists(.//TypeArgument[not(pmd-java:typeIs('java.io.Serializable'))
+and (not(exists(.//TypeArgument/ReferenceType))
+or exists(.//TypeArgument/ReferenceType[not(pmd-java:typeIs('java.io.Serializable'))
 (: and can be resolved :)
 and (pmd-java:typeIs('java.lang.Object'))]))
 ]
