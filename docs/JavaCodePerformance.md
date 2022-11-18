@@ -593,7 +593,7 @@ public class Foo {
 
 #### IA09
 **Observation: parallelStream which uses the ForkJoinPool::commonPool is used for blocking (I/O, remote) calls.**  
-**Problem:** The common pool is meant for processing of in-memory data. The number of threads in the common pool is equal to the number of CPU's, 
+**Problem:** The common pool is meant for processing of in-memory data. The number of threads in the common pool is equal to the number of CPU's - 1, 
 which is suitable to keep all CPU's busy with in-memory processing.
 For I/O or other blocking calls, however, this number is typically not suitable because relatively much time is spent waiting for the response and not in CPU.
 This likely exhausts the common pool for some time thereby blocking all other use of the common pool.
@@ -660,6 +660,63 @@ class AxualProducerGood2{
   }
 }
 ```
+
+#### IA11
+**Observation: parallelStream which uses the ForkJoinPool::commonPool is used.**  
+**Problem:** Collection.parallelStream uses the common pool, with #threads = #CPUs - 1. It is designed to distribute much CPU work over the cores. 
+It is not for remote calls or other blocking calls.
+In addition, parallelizing has overhead and risks, should only be used for much pure CPU processing.
+The common pool must *not* be used for blocking calls, see [Be Aware of ForkJoinPool#commonPool()](https://dzone.com/articles/be-aware-of-forkjoinpoolcommonpo)   
+**Solution:** For remote/blocking calls: Use a dedicated thread pool with enough threads to get proper parallelism independent of the number of cores.
+For pure CPU processing: use ordinary sequential streaming unless the work takes more than about 0,1 ms in sequential form and proves to be faster with parallelization. 
+So only for large collections and much processing without having to wait.   (jpinpoint-rules)</description>
+**Rule name:** AvoidParallelStreamWithCommonPool   
+**Example:**
+```java
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.stream.*;
+
+public class Foo {
+  final Map<String, String> map = new HashMap();
+  final List<String> list = new ArrayList();
+  final List<String> hugeList = new ArrayList(); //1000+ elements
+  final ForkJoinPool myFjPool = new ForkJoinPool(10);
+  final ExecutorService myExePool = Executors.newFixedThreadPool(10);
+
+  void bad1() {
+    list.parallelStream().forEach(elem -> someCall(elem)); //bad
+  }
+  void bad2() {
+    map.entrySet().parallelStream().forEach(entry -> someCall(entry.getValue())); //bad
+  }
+  void exceptionalProperUse() {
+    hugeList.parallelStream().forEach(elem -> heavyCalculations(elem)); //flagged but may be good, should suppress when proven to be faster than sequential form
+  }
+
+  void good1() {
+    CompletableFuture[] futures = list.stream().map(elem -> CompletableFuture.supplyAsync(() -> someCall(elem), myExePool))
+            .toArray(CompletableFuture[]::new);
+    CompletableFuture.allOf(futures).get(3, TimeUnit.SECONDS);
+  }
+  void good2() throws ExecutionException, InterruptedException {
+    myFjPool.submit(() ->
+            list.parallelStream().forEach(elem -> someCall(elem))
+    ).get();
+  }
+
+  String someCall(String elem) {
+    // do some call, don't know if remote or blocking. We don't use the returned value.
+    return "";
+  }
+
+  String heavyCalculations(String elem) {
+    // calculate a lot
+    return "";
+  }
+}
+```
+See for the example good2: [custom-thread-pool-in-parallel-stream](https://stackoverflow.com/questions/21163108/custom-thread-pool-in-java-8-parallel-stream/34930831#34930831).
 
 Improper caching  
 -------------------

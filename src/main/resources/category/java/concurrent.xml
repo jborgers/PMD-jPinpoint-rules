@@ -877,8 +877,10 @@ public class Foo {
           message="Avoid the ForkJoinPool::commonPool used in parallelStream for blocking calls."
           typeResolution="true"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#ia09">
-        <description>Problem: Blocking calls for instance remote calls, may exhaust the common pool for some time thereby blocking all other use of the common pool. In addition, nested use of the common pool can lead to deadlock. Do not use the common pool for blocking calls. The parallelStream() call uses the common pool.&#13;
-            Solution: Use a dedicated thread pool with enough threads to get proper parallelism. The numner of threads in the common pool is equal to the number of CPUs-1 and meant to utilize all of them. It assumes non-blocking processing of in-memory data.  (jpinpoint-rules)</description>
+        <description>Problem: Blocking calls for instance remote calls, may exhaust the common pool for some time thereby blocking all other use of the common pool.
+            In addition, nested use of the common pool can lead to deadlock. Do not use the common pool for blocking calls. The parallelStream() call uses the common pool.&#13;
+            Solution: Use a dedicated thread pool with enough threads to get proper parallelism. The number of threads in the common pool is equal to the number of CPUs - 1 and meant to utilize all of them.
+            It assumes CPU intensive non-blocking processing of in-memory data.  (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
             <property name="version" value="2.0"/>
@@ -928,6 +930,7 @@ public class Foo {
         RestTemplate tmpl;
         return "";
     }
+}
 ]]>
         </example>
     </rule>
@@ -994,6 +997,76 @@ public class VMRData {
     private String transactionRef; // bad
 }
 
+]]>
+        </example>
+    </rule>
+
+    <rule name="AvoidParallelStreamWithCommonPool" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java"
+          message="Beware: parallelStream with the common pool is rarely a good choice."
+          typeResolution="true"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ia11">
+        <description>Problem: Collection.parallelStream uses the common pool, with #threads = #CPUs - 1. It is designed to distribute much CPU work over the cores. It is not for remote calls or other blocking calls.
+            In addition, parallelizing has overhead and risks, should only be used for much pure CPU processing.&#13;
+            Solution: For remote/blocking calls: Use a dedicated thread pool with enough threads to get proper parallelism independent of the number of cores.
+            For pure CPU processing: use ordinary sequential streaming unless the work takes more than about 0,1 ms in sequential form and proves to be faster with parallelization. So only for large collections and much processing without having to wait.   (jpinpoint-rules)</description>
+        <priority>5</priority>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+//PrimaryExpression
+[(PrimarySuffix/@Image='parallelStream' or ends-with(PrimaryPrefix/Name/@Image, 'parallelStream')
+and exists(PrimarySuffix/pmd-java:typeIs('java.util.stream.Stream'))
+and not(ancestor::Block//StatementExpression/PrimaryExpression/PrimaryPrefix/Name[ends-with(@Image, '.submit') and pmd-java:typeIs('java.util.concurrent.ExecutorService')]))
+]
+]]>
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.stream.*;
+
+public class Foo {
+    final Map<String, String> map = new HashMap();
+    final List<String> list = new ArrayList();
+    final List<String> hugeList = new ArrayList(); //1000+ elements
+    final ForkJoinPool myFjPool = new ForkJoinPool(10);
+    final ExecutorService myExePool = Executors.newFixedThreadPool(10);
+
+    void bad1() {
+        list.parallelStream().forEach(elem -> someCall(elem)); //bad
+    }
+    void bad2() {
+        map.entrySet().parallelStream().forEach(entry -> someCall(entry.getValue())); //bad
+    }
+    void exceptionalProperUse() {
+       hugeList.parallelStream().forEach(elem -> heavyCalculations(elem)); //flagged but may be good, should suppress when proven to be faster than sequential form
+    }
+
+    void good1() {
+        CompletableFuture[] futures = list.stream().map(elem -> CompletableFuture.supplyAsync(() -> someCall(elem), myExePool))
+                .toArray(CompletableFuture[]::new);
+        CompletableFuture.allOf(futures).get(3, TimeUnit.SECONDS);
+    }
+    void good2() throws ExecutionException, InterruptedException {
+        myFjPool.submit(() ->
+                list.parallelStream().forEach(elem -> someCall(elem))
+        ).get();
+    }
+
+    String someCall(String elem) {
+        // do some call, don't know if remote or blocking. We don't use the returned value.
+        return "";
+    }
+
+    String heavyCalculations(String elem) {
+        // calculate a lot
+        return "";
+    }
+}
 ]]>
         </example>
     </rule>
