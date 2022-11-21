@@ -5,14 +5,14 @@
         xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
     <test-code>
         <description>violation: Avoid the use of deprecated HttpConnectors</description>
-        <expected-problems>11</expected-problems>
-        <expected-linenumbers>1,2,3,4,26,26,27,27,28,31,32</expected-linenumbers>
+        <expected-problems>10</expected-problems>
+        <expected-linenumbers>1,2,3,4,26,26,27,27,28,31</expected-linenumbers>
         <code><![CDATA[
 import org.apache.commons.httpclient.SimpleHttpConnectionManager; //bad
 import org.apache.http.conn.ClientConnectionManager; //bad
 import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager; //bad
 import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager; // bad
-import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.HttpClient; // bad too? I think so
 /*
 Deprecated:
 
@@ -39,7 +39,7 @@ public class Foo {
 
     private AvoidDeprecatedHttpConnectors() {
         new SimpleHttpConnectionManager(); // bad
-        final HttpClient client = new HttpClient(params, cm); // bad - difficult to test because of incompatible api change from 3.1 to 4.X
+        //final HttpClient client = new HttpClient(params, cm); // bad - difficult to test because of incompatible api change from 3.1 to 4.X - not found in new jar -> non-existent
     }
 }
      ]]></code>
