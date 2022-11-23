@@ -1,7 +1,7 @@
 package com.jpinpoint.perf.tools;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.*;
 import java.nio.charset.Charset;
@@ -15,7 +15,7 @@ import java.util.regex.Pattern;
 public class RulesetMerger {
     private static final String LSEP = IOUtils.LINE_SEPARATOR;
 
-    private enum Language { java, kotlin }
+    private enum Language {JAVA, KOTLIN}
 
     // parameters likely to have to change for a different company
     private static final String COMPANY_SPECIFIC = "jPinpoint";
@@ -24,8 +24,8 @@ public class RulesetMerger {
 
     static {
         Map<Language, String> map = new EnumMap<>(Language.class);
-        map.put(Language.java, "jpinpoint-rules");
-        map.put(Language.kotlin, "jpinpoint-kotlin-rules");
+        map.put(Language.JAVA, "jpinpoint-rules");
+        map.put(Language.KOTLIN, "jpinpoint-kotlin-rules");
         RESULT_COMPANY_RULES_NAMES = Collections.unmodifiableMap(map);
         // same for now, can also be different?
         RESULT_ALL_RULES_NAMES = RESULT_COMPANY_RULES_NAMES;
@@ -59,7 +59,7 @@ public class RulesetMerger {
         }
 
         String LanguageArg = args[0];
-        Language language = Language.java;
+        Language language = Language.JAVA;
         try {
             language = Language.valueOf(LanguageArg);
         } catch (IllegalArgumentException e) {
@@ -72,8 +72,8 @@ public class RulesetMerger {
 
         // validity check: also another RulesetMerger code base with different constant values exists
         if (COMPANY_SPECIFIC.equals("jPinpoint") &&
-                (RESULT_COMPANY_RULES_NAMES.get(Language.java).equals("jpinpoint-rules") && RESULT_ALL_RULES_NAMES.get(Language.java).equals("jpinpoint-rules")) ||
-                (RESULT_COMPANY_RULES_NAMES.get(Language.kotlin).equals("jpinpoint-kotlin-rules") && RESULT_ALL_RULES_NAMES.get(Language.kotlin).equals("jpinpoint-kotlin-rules"))
+                (RESULT_COMPANY_RULES_NAMES.get(Language.JAVA).equals("jpinpoint-rules") && RESULT_ALL_RULES_NAMES.get(Language.JAVA).equals("jpinpoint-rules")) ||
+                (RESULT_COMPANY_RULES_NAMES.get(Language.KOTLIN).equals("jpinpoint-kotlin-rules") && RESULT_ALL_RULES_NAMES.get(Language.KOTLIN).equals("jpinpoint-kotlin-rules"))
         ) {
             // valid, merge only in jpinpoint-rules.xml or jpinpoint-kotlin-rules.xml
         }
