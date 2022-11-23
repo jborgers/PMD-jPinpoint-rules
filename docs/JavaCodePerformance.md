@@ -669,7 +669,7 @@ In addition, parallelizing has overhead and risks, should only be used for much 
 The common pool must *not* be used for blocking calls, see [Be Aware of ForkJoinPool#commonPool()](https://dzone.com/articles/be-aware-of-forkjoinpoolcommonpo)   
 **Solution:** For remote/blocking calls: Use a dedicated thread pool with enough threads to get proper parallelism independent of the number of cores.
 For pure CPU processing: use ordinary sequential streaming unless the work takes more than about 0,1 ms in sequential form and proves to be faster with parallelization. 
-So only for large collections and much processing without having to wait.   (jpinpoint-rules)</description>
+So only for large collections and much processing without having to wait.   (jpinpoint-rules)</description>   
 **Rule name:** AvoidParallelStreamWithCommonPool   
 **Example:**
 ```java

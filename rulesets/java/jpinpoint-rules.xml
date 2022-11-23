@@ -1983,7 +1983,7 @@ import static com.co.corporate.Constants.GREAT; // good
             In addition, nested use of the common pool can lead to deadlock. Do not use the common pool for blocking calls. The parallelStream() call uses the common pool.&#13;
             Solution: Use a dedicated thread pool with enough threads to get proper parallelism. The number of threads in the common pool is equal to the number of CPUs - 1 and meant to utilize all of them.
             It assumes CPU intensive non-blocking processing of in-memory data.  (jpinpoint-rules)</description>
-        <priority>2</priority>
+        <priority>1</priority>
         <properties>
             <property name="version" value="2.0"/>
             <property name="xpath">
@@ -2393,8 +2393,9 @@ ancestor::StatementExpression/PrimaryExpression/PrimaryPrefix/Name/@Image = ance
         <description>Problem: Collection.parallelStream uses the common pool, with #threads = #CPUs - 1. It is designed to distribute much CPU work over the cores. It is not for remote calls or other blocking calls.
             In addition, parallelizing has overhead and risks, should only be used for much pure CPU processing.&#13;
             Solution: For remote/blocking calls: Use a dedicated thread pool with enough threads to get proper parallelism independent of the number of cores.
-            For pure CPU processing: use ordinary sequential streaming unless the work takes more than about 0,1 ms in sequential form and proves to be faster with parallelization. So only for large collections and much processing without having to wait.   (jpinpoint-rules)</description>
-        <priority>5</priority>
+            For pure CPU processing: use ordinary sequential streaming unless the work takes more than about 0,1 ms in sequential form and proves to be faster with parallelization.
+            So only for large collections and much processing without having to wait.   (jpinpoint-rules)</description>
+        <priority>2</priority>
         <properties>
             <property name="version" value="2.0"/>
             <property name="xpath">
