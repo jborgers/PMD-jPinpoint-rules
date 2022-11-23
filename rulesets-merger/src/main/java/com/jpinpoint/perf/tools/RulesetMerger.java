@@ -12,20 +12,27 @@ import java.util.regex.Pattern;
 /**
  * Merger tool for merging categories and company specific custom rules with the generic jpinpoint rules.
  */
+@SuppressWarnings("java:S106") // Standard outputs should not be used directly to log anything -
+// - considered not applicable for this command-line tool
 public class RulesetMerger {
     private static final String LSEP = IOUtils.LINE_SEPARATOR;
+    public static final String J_PINPOINT = "jPinpoint";
 
     private enum Language {JAVA, KOTLIN}
 
     // parameters likely to have to change for a different company
-    private static final String COMPANY_SPECIFIC = "jPinpoint";
+    private static final String COMPANY_SPECIFIC = J_PINPOINT;
     private static final Map<Language, String> RESULT_COMPANY_RULES_NAMES;
     private static final Map<Language, String> RESULT_ALL_RULES_NAMES;
 
+    public static final String JPINPOINT_RULES = "jpinpoint-rules";
+
+    public static final String JPINPOINT_KOTLIN_RULES = "jpinpoint-kotlin-rules";
+
     static {
         Map<Language, String> map = new EnumMap<>(Language.class);
-        map.put(Language.JAVA, "jpinpoint-rules");
-        map.put(Language.KOTLIN, "jpinpoint-kotlin-rules");
+        map.put(Language.JAVA, JPINPOINT_RULES);
+        map.put(Language.KOTLIN, JPINPOINT_KOTLIN_RULES);
         RESULT_COMPANY_RULES_NAMES = Collections.unmodifiableMap(map);
         // same for now, can also be different?
         RESULT_ALL_RULES_NAMES = RESULT_COMPANY_RULES_NAMES;
@@ -53,31 +60,19 @@ public class RulesetMerger {
 
     public static void main(String[] args) {
 
-        if (args.length < 1) {
-            System.out.println(String.format("ERROR: specify 'java' or 'kotlin' as first argument"));
-            System.exit(1);
-        }
-
-        String LanguageArg = args[0];
-        Language language = Language.JAVA;
-        try {
-            language = Language.valueOf(LanguageArg);
-        } catch (IllegalArgumentException e) {
-            System.out.printf("ERROR: specify 'java' or 'kotlin' as first argument, now: '%s'%n", LanguageArg);
-            System.exit(1);
-        }
+        Language language = getLanguageFromInput(args);
 
         // Find our project base working directory (differs when running from jar or using your IDE to run this main)
         File repositoryBaseDir = getRepositoryBaseDir();
 
         // validity check: also another RulesetMerger code base with different constant values exists
-        if (COMPANY_SPECIFIC.equals("jPinpoint") &&
-                (RESULT_COMPANY_RULES_NAMES.get(Language.JAVA).equals("jpinpoint-rules") && RESULT_ALL_RULES_NAMES.get(Language.JAVA).equals("jpinpoint-rules")) ||
-                (RESULT_COMPANY_RULES_NAMES.get(Language.KOTLIN).equals("jpinpoint-kotlin-rules") && RESULT_ALL_RULES_NAMES.get(Language.KOTLIN).equals("jpinpoint-kotlin-rules"))
+        if (COMPANY_SPECIFIC.equals(J_PINPOINT) &&
+                (RESULT_COMPANY_RULES_NAMES.get(Language.JAVA).equals(JPINPOINT_RULES) && RESULT_ALL_RULES_NAMES.get(Language.JAVA).equals(JPINPOINT_RULES)) ||
+                (RESULT_COMPANY_RULES_NAMES.get(Language.KOTLIN).equals(JPINPOINT_KOTLIN_RULES) && RESULT_ALL_RULES_NAMES.get(Language.KOTLIN).equals(JPINPOINT_KOTLIN_RULES))
         ) {
             // valid, merge only in jpinpoint-rules.xml or jpinpoint-kotlin-rules.xml
         }
-        else if (!COMPANY_SPECIFIC.equals("jPinpoint") && !RESULT_COMPANY_RULES_NAMES.get(language).equals(RESULT_ALL_RULES_NAMES.get(language))) {
+        else if (!COMPANY_SPECIFIC.equals(J_PINPOINT) && !RESULT_COMPANY_RULES_NAMES.get(language).equals(RESULT_ALL_RULES_NAMES.get(language))) {
             //valid, merge into company-rules.xml and company-jpinpoint-rules.xml
         }
         else {
@@ -85,7 +80,7 @@ public class RulesetMerger {
             System.exit(1);
         }
 
-        if (COMPANY_SPECIFIC.equals("jPinpoint")) {
+        if (COMPANY_SPECIFIC.equals(J_PINPOINT)) {
             //merge once for one file: jpinpoint-rules.xml or jpinpoint-kotlin-rules.xml
             mergeRuleFiles(repositoryBaseDir, null, null, RESULT_ALL_RULES_NAMES.get(language), language);
         }
@@ -110,6 +105,22 @@ public class RulesetMerger {
                 mergeRuleFiles(repositoryBaseDir, optionalExtRulesFile, mergeWithRepoName, RESULT_ALL_RULES_NAMES.get(language), language);
             }
         }
+    }
+
+    private static Language getLanguageFromInput(String[] args) {
+        if (args.length < 1) {
+            System.out.println("ERROR: specify 'java' or 'kotlin' as first argument");
+            System.exit(1);
+        }
+        String languageArg = args[0];
+        Language language = Language.JAVA;
+        try {
+            language = Language.valueOf(languageArg.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            System.out.printf("ERROR: specify 'java' or 'kotlin' as first argument, now: '%s'%n", languageArg);
+            System.exit(1);
+        }
+        return language;
     }
 
     private static void mergeRuleFiles(File repositoryBaseDir, File optionalExtRulesFile, String mergeWithRepoName, String resultRulesName, Language language) {
@@ -210,6 +221,7 @@ public class RulesetMerger {
 
     private static File getRepositoryBaseDir() {
         File currentWorkingDir = new File(".").getAbsoluteFile().getParentFile();
+        assert(currentWorkingDir != null);
         File repositoryBaseDirCandidate = currentWorkingDir;
         while ((repositoryBaseDirCandidate != null) && !(new File(repositoryBaseDirCandidate, "README.md").exists())) {
             repositoryBaseDirCandidate = repositoryBaseDirCandidate.getParentFile();
@@ -237,14 +249,14 @@ public class RulesetMerger {
      */
     private static List<String> addTagToDescriptionAndDoc(List<String> mergedFileLines, String taggedDescriptionEndTag) {
 
-        List<String> fileLinesWithReplaced = new ArrayList<String>(mergedFileLines.size());
+        List<String> fileLinesWithReplaced = new ArrayList<>(mergedFileLines.size());
         for(String line : mergedFileLines) {
             Matcher matcher = TAGGED_DESCRIPTION_END_TAG_PATTERN.matcher(line);
             if (!matcher.find()) {
                 // not yet tag so add our tag
                 line = line.replace(DESCRIPTION_END_TAG, taggedDescriptionEndTag);
             }
-            // @TODO replace externalInfoUrl="..."
+            // TODO replace externalInfoUrl="..."
             line = line.replace("${doc_root}", COMPANY_DOC_ROOT);
             fileLinesWithReplaced.add(line);
         }
@@ -252,13 +264,13 @@ public class RulesetMerger {
     }
 
     private static List<List<String>> parseSortIntoRuleLinesList(List<String> fileLines) {
-        Map<String, List> nameToLines = new TreeMap<>();
+        Map<String, List<String>> nameToLines = new TreeMap<>();
         boolean ruleStarted = false;
-        List currentRuleLines = Collections.emptyList();
+        List<String> currentRuleLines = Collections.emptyList();
         String currentRuleName = "<none>";
         for(String line : fileLines) {
             if (line.contains("<rule name")) {
-                currentRuleLines = new ArrayList();
+                currentRuleLines = new ArrayList<>();
                 currentRuleLines.add(line);
                 currentRuleName = StringUtils.substringBetween(line, "\"");
                 ruleStarted = true;
@@ -272,7 +284,7 @@ public class RulesetMerger {
                 currentRuleLines.add(line);
             }
         }
-        return new ArrayList(nameToLines.values());
+        return new ArrayList<>(nameToLines.values());
     }
 
     private static class MergeWithExternalHelper {
