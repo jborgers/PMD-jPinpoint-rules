@@ -5,6 +5,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.io.*;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -18,16 +19,32 @@ public class RulesetMerger {
     private static final String LSEP = System.lineSeparator();
     public static final String J_PINPOINT = "jPinpoint";
 
-    private enum Language {JAVA, KOTLIN}
+    public static final String JPINPOINT_RULES = "jpinpoint-rules";
+
+    public static final String JPINPOINT_KOTLIN_RULES = "jpinpoint-kotlin-rules";
+
+    private enum Language {
+        JAVA("Java", "java"), KOTLIN("Kotlin", "kotlin");
+        private final String name;
+        private final String dir;
+
+        Language(String name, String dir) {
+            this.name = name;
+            this.dir = dir;
+        }
+
+        public String getName() {
+            return name;
+        }
+        public String getDir() {
+            return dir;
+        }
+    }
 
     // parameters likely to have to change for a different company
     private static final String COMPANY_SPECIFIC = J_PINPOINT;
     private static final Map<Language, String> RESULT_COMPANY_RULES_NAMES;
     private static final Map<Language, String> RESULT_ALL_RULES_NAMES;
-
-    public static final String JPINPOINT_RULES = "jpinpoint-rules";
-
-    public static final String JPINPOINT_KOTLIN_RULES = "jpinpoint-kotlin-rules";
 
     static {
         Map<Language, String> map = new EnumMap<>(Language.class);
@@ -94,7 +111,7 @@ public class RulesetMerger {
                 optionalExtRulesFile = new MergeWithExternalHelper(mergeWithRepoName, repoRelativeRulesDir, repoRulesFilename, repositoryBaseDir).lookupRulesFileMustBeThere();
             } else { // default
                 mergeWithRepoName = "PMD-jPinpoint-rules";
-                MergeWithExternalHelper helper = new MergeWithExternalHelper(mergeWithRepoName, "rulesets/" + language.toString(), RESULT_ALL_RULES_NAMES.get(language), repositoryBaseDir);
+                MergeWithExternalHelper helper = new MergeWithExternalHelper(mergeWithRepoName, "rulesets/" + language.getDir(), RESULT_ALL_RULES_NAMES.get(language), repositoryBaseDir);
                 optionalExtRulesFile = helper.lookupRulesFileMayBeThere(); // may be null
             }
             //merge company specific into company-rules.xml
@@ -125,9 +142,9 @@ public class RulesetMerger {
 
     private static void mergeRuleFiles(File repositoryBaseDir, File optionalExtRulesFile, String mergeWithRepoName, String resultRulesName, Language language) {
         // Get rule files
-        File ourProjectRulesDir = new File(repositoryBaseDir, String.format(PATH_TO_CAT_RULES, language));
+        File ourProjectRulesDir = new File(repositoryBaseDir, String.format(PATH_TO_CAT_RULES, language.getDir()));
         String[] ourRulesFiles = ourProjectRulesDir.list((dir, name) -> name.endsWith(".xml"));
-        File outputDir = new File(repositoryBaseDir, String.format(MERGED_RULESETS_DIR, language));
+        File outputDir = new File(repositoryBaseDir, String.format(MERGED_RULESETS_DIR, language.getDir()));
         File resultFile = new File(outputDir, resultRulesName + ".xml");
         System.out.println("INFO: start on '" + resultFile.getName() + "'");
         checkIfValid(ourProjectRulesDir, ourRulesFiles, outputDir, resultFile);
@@ -144,7 +161,7 @@ public class RulesetMerger {
             headerLines.add(RESULT_START_LINE);
             headerLines.add(String.format(RESULT_RULE_SET_LINE_TEMPLATE, resultRulesName));
             String mergeWithText = mergeWithRepoName == null ? "" : String.format(MERGED_WITH_TEMPLATE, mergeWithRepoName);
-            String resultDescription = String.format(RESULT_DESC_LINE_TEMPLATE, COMPANY_SPECIFIC, mergeWithText, capitalize(language.toString()));
+            String resultDescription = String.format(RESULT_DESC_LINE_TEMPLATE, COMPANY_SPECIFIC, mergeWithText, language.getName());
             headerLines.add("");
             headerLines.add(resultDescription);
             headerLines.add("");
@@ -165,7 +182,7 @@ public class RulesetMerger {
 
             List<String> allLines = new ArrayList<>(headerLines);
             allLines.addAll(mergedFileLines);
-            IOUtils.writeLines(allLines, LSEP, new FileOutputStream(resultFile), Charset.defaultCharset());
+            IOUtils.writeLines(allLines, LSEP, Files.newOutputStream(resultFile.toPath()), Charset.defaultCharset());
             System.out.println(String.format("INFO: merged files into '%s'.", resultFile.getPath()));
         }
         catch(IOException e) {
@@ -174,15 +191,8 @@ public class RulesetMerger {
         }
     }
 
-    private static String capitalize(String text) {
-        if (text == null) return null;
-        if (text.length() == 0) return text;
-        if (text.length() == 1) return text.toUpperCase();
-        return text.substring(0, 1).toUpperCase() + text.substring(1);
-    }
-
     private static void mergeFileIntoLines(File file, List<String> mergedFileLines) throws IOException {
-        try (InputStream is1 = new FileInputStream(file)) {
+        try (InputStream is1 = Files.newInputStream(file.toPath())) {
             System.out.println(String.format("INFO: processing '%s'", file.getName()));
             List<String> file1Lines = IOUtils.readLines(is1, Charset.defaultCharset());
 
