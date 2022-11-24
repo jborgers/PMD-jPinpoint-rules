@@ -310,7 +310,7 @@ class Baz extends RemoteException {
         <description>Problem: lambda expressions with many statements or nested lambdas are hard to understand and maintain.
             Solution: extract the lambda expression code block into one or more well-named separate method(s).
         </description>
-        <priority>2</priority>
+        <priority>4</priority>
         <properties>
             <property name="max" value="4" type="String" description="Maximum number of allowed non-setter statements"/>
             <property name="version" value="2.0"/>

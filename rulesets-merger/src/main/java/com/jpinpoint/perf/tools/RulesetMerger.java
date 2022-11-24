@@ -15,7 +15,7 @@ import java.util.regex.Pattern;
 @SuppressWarnings("java:S106") // Standard outputs should not be used directly to log anything -
 // - considered not applicable for this command-line tool
 public class RulesetMerger {
-    private static final String LSEP = IOUtils.LINE_SEPARATOR;
+    private static final String LSEP = System.lineSeparator();
     public static final String J_PINPOINT = "jPinpoint";
 
     private enum Language {JAVA, KOTLIN}
