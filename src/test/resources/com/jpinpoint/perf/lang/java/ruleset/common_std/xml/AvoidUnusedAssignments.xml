@@ -90,4 +90,26 @@ class CarStuff {
 }
      ]]></code>
     </test-code>
+
+    <test-code>
+        <description>violation: only consider assignments within the same method #229</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>9</expected-linenumbers>
+        <code><![CDATA[
+public class Foo {
+    private String str1;
+    public Foo() {
+        str1 = "now"; // false positive
+        String str2 = "now"; // false positive
+    }
+    public void when(){
+        str1 = "now";
+        String str2 = "now"; // bad
+        str2 = "now";
+    }
+}
+
+
+     ]]></code>
+    </test-code>
 </test-data>
