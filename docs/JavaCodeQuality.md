@@ -416,7 +416,7 @@ An exception to this exception is when extending RemoteException, then fields sh
 ### ISR04
 **Issue:** [220](https://github.com/jborgers/PMD-jPinpoint-rules/issues/220)   
 **Observation: A value assigned to a local variable is never used.**   
-**Problem:** Assignments to variables for which the assigned value is not used because a new value is assigned before actual use, is unnecessary work and my indicate a bug.  
+**Problem:** Assignments to variables for which the assigned value is not used because a new value is assigned before actual use, is unnecessary work and may indicate a bug.  
 **Solution:** Remove the first assignment and make sure that is as intended.     
 **Rule name:** AvoidUnusedAssignments   
 **Sonar rule(s):** java:S1854 - Unused assignments should be removed (inadequate rule).   

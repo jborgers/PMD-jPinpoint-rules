@@ -1839,7 +1839,7 @@ public class StringStuff {
           message="Avoid assignments for which the assigned value is never used."
           class="net.sourceforge.pmd.lang.rule.XPathRule"
           externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodeQuality.md#isr04">
-        <description>Problem: Assignments to variables for which the assigned value is not used because a new value is assigned before actual use, is unnecessary work and my indicate a bug.
+        <description>Problem: Assignments to variables for which the assigned value is not used because a new value is assigned before actual use, is unnecessary work and may indicate a bug.
             Solution: remove the first assignment and make sure that is as intended.
         (jpinpoint-rules)</description>
         <priority>3</priority>

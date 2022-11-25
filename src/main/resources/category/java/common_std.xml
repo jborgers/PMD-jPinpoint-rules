@@ -378,7 +378,7 @@ class Foo {
           message="Avoid assignments for which the assigned value is never used."
           class="net.sourceforge.pmd.lang.rule.XPathRule"
           externalInfoUrl="${doc_root}/JavaCodeQuality.md#isr04">
-        <description>Problem: Assignments to variables for which the assigned value is not used because a new value is assigned before actual use, is unnecessary work and my indicate a bug.
+        <description>Problem: Assignments to variables for which the assigned value is not used because a new value is assigned before actual use, is unnecessary work and may indicate a bug.
             Solution: remove the first assignment and make sure that is as intended.
         </description>
         <priority>3</priority>
