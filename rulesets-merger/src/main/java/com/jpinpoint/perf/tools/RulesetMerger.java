@@ -193,7 +193,7 @@ public class RulesetMerger {
 
     private static void mergeFileIntoLines(File file, List<String> mergedFileLines) throws IOException {
         try (InputStream is1 = Files.newInputStream(file.toPath())) {
-            System.out.println(String.format("INFO: processing '%s'", file.getName()));
+            System.out.print(String.format("INFO: processing '%s'", file.getName()));
             List<String> file1Lines = IOUtils.readLines(is1, Charset.defaultCharset());
 
             List<List<String>> ruleLinesList1 = parseSortIntoRuleLinesList(file1Lines);
@@ -203,6 +203,7 @@ public class RulesetMerger {
                 mergedFileLines.add("");
             }
             mergedFileLines.add(String.format(END_INCLUDED_FILE_COMMENT_TEMPLATE, file.getName()));
+            System.out.println(" - merged " + ruleLinesList1.size() + " rules");
         }
     }
 
