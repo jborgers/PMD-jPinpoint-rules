@@ -277,7 +277,7 @@ public class RulesetMerger {
     private static List<List<String>> parseSortIntoRuleLinesList(List<String> fileLines) {
         Map<String, List<String>> nameToLines = new TreeMap<>();
         boolean ruleStarted = false;
-        List<String> currentRuleLines = Collections.emptyList();
+        List<String> currentRuleLines = new ArrayList<>();
         String currentRuleName = "<none>";
         for(String line : fileLines) {
             if (line.contains("<rule name")) {
