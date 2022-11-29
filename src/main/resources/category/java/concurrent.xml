@@ -954,7 +954,7 @@ and not (ancestor::TypeDeclaration/Annotation//Name[@Image='RequestScope'])
 (: no checking if @ConfigurationProperties and no @Setter :)
 and not ((ancestor::TypeDeclaration/Annotation//Name[@Image='ConfigurationProperties'])
          and not (ancestor::TypeDeclaration/Annotation/MarkerAnnotation/Name[@Image='Setter']))]
-/ancestor::TypeDeclaration//ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Final=false() and @Static=false()]/VariableDeclarator/VariableDeclaratorId[matches(@Name,
+/ancestor::TypeDeclaration//ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Final=false() and @Static=false()][ancestor::ClassOrInterfaceDeclaration[1][@Static=false()]]/VariableDeclarator/VariableDeclaratorId[matches(@Name,
 'User[Id|Ref|Reference]*$|Customer[Id|Ref|Reference]*$|Session[Id|Ref|Reference]*$|Order[Id|Ref|Reference|List]*$|Account[Id|Ref|Reference|List]*$|Transaction[Id|Ref|Reference|List]*$|Contract[Id|Ref|Reference|List]*$', 'i')]
 ]]>
                 </value>

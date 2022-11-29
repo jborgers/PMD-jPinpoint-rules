@@ -49,5 +49,23 @@ public class VMRData {
      ]]></code>
     </test-code>
 
+    <test-code>
+        <description>violation: not in static inner classes, issue #234</description>
+        <expected-problems>2</expected-problems>
+        <expected-linenumbers>3, 6</expected-linenumbers>
+        <code><![CDATA[
+@Component
+public class Foo {
+    private String userId; //bad
+
+    class Bar {
+        String innerUserId; //bad
+    }
+    static class Baz {
+        String staticUserId; // false positive
+    }
+}
+     ]]></code>
+    </test-code>
 
 </test-data>
