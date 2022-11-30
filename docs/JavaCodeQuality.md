@@ -407,10 +407,10 @@ An exception to this exception is when extending RemoteException, then fields sh
 
 ### ISR03
 **Issue:** [200](https://github.com/jborgers/PMD-jPinpoint-rules/issues/200)   
-**Observation: A lambda expression has many statements: it exceeds the limit (default = 4), or has a nested lambda.**  
-**Problem:** lambda expressions with many statements or nested lambdas are hard to understand and maintain.  
+**Observation: A lambda expression has many statements: it exceeds the limit (default = 5).**  
+**Problem:** lambda expressions with many statements are hard to understand and maintain.  
 **Solution:** extract the lambda expression code block into one or more separate method(s).     
-**Rule name:** AvoidComplexLambdas   
+**Rule name:** LimitStatementsInLambdas   
 **Sonar rule(s):** java:S5612 - Lambdas should not have too many lines (inadequate rule).   
 
 ### ISR04
@@ -420,3 +420,11 @@ An exception to this exception is when extending RemoteException, then fields sh
 **Solution:** Remove the first assignment and make sure that is as intended.     
 **Rule name:** AvoidUnusedAssignments   
 **Sonar rule(s):** java:S1854 - Unused assignments should be removed (inadequate rule).   
+
+### ISR05
+**Issue:** [200](https://github.com/jborgers/PMD-jPinpoint-rules/issues/200)   
+**Observation: A lambda expression has deep nesting of lambdas: it exceeds the limit (default = 1).**  
+**Problem:** lambda expressions with deep nested lambdas are hard to understand and maintain.  
+**Solution:** extract the lambda expression code block into one or more separate method(s).     
+**Rule name:** LimitNestingInLambdas   
+**Sonar rule(s):** java:S5612 - Lambdas should not have too many lines (inadequate rule).   

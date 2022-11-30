@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>violations in LimitNestingInLambdas</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>20</expected-linenumbers>
+        <code><![CDATA[
+import java.lang.*;
+import java.util.*;
+class Foo {
+     public List<ProductEntity> foo(final Consent consent){
+        List<ProductEntity> products = new ArrayList<>();
+         consent.getScopes().forEach(
+            scope -> {                                      // good after rule and name change, nesting not checked
+                List<ProductEntity> productEntities = scope.getProducts().stream().map(
+                    product -> ProductEntity.builder()
+                        .newEntity(true)
+                        .state(State.VALID)
+                        .build()
+                    ).collect(toList());
+                products.addAll(productEntities);
+            }
+        );
+         return products;
+    }
+    private void bar(List<Map<String, BigDecimal>> lines) {
+        lines.forEach(line -> line.forEach((key, value) -> values.computeIfPresent(key, (k, v) -> v.add(value)))); // bad, nesting depth 2, > 1
+    }
+}
+     ]]></code>
+    </test-code>
+
+
+</test-data>

@@ -302,25 +302,23 @@ class Baz extends RemoteException {
         </example>
     </rule>
 
-    <rule name="AvoidComplexLambdas"
+    <rule name="LimitStatementsInLambdas"
           language="java"
-          message="Avoid lambda expressions with many statements or nested lambdas."
+          message="Avoid many statements in lambda expressions."
           class="net.sourceforge.pmd.lang.rule.XPathRule"
           externalInfoUrl="${doc_root}/JavaCodeQuality.md#isr03">
-        <description>Problem: lambda expressions with many statements or nested lambdas are hard to understand and maintain.
+        <description>Problem: lambda expressions with many statements are hard to understand and maintain.
             Solution: extract the lambda expression code block into one or more well-named separate method(s).
         </description>
-        <priority>4</priority>
+        <priority>3</priority>
         <properties>
-            <property name="max" value="4" type="String" description="Maximum number of allowed non-setter statements"/>
+            <property name="max" value="5" type="String" description="Maximum number of allowed non-setter statements"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
 //LambdaExpression
 (: number of statements should be limited, setters are ignored. Chained methods are one statement  :)
 [(count(.//Statement) - count(.//StatementExpression/PrimaryExpression/PrimaryPrefix/Name[contains(@Image, '.set')]) > number($max))
-(: nested Lambda :)
-or .//LambdaExpression
 ]
                 ]]></value>
             </property>
@@ -352,22 +350,35 @@ class Foo {
                 else { action.withActions(new Action().withFoId(0)); }
             });
         }
+}
+            ]]>
+        </example>
+    </rule>
 
-        public List<ProductEntity> booz(final Consent consent){
-            List<ProductEntity> products = new ArrayList<>();
-            consent.getScopes().forEach(
-                scope -> {                                      // bad, too complex, nested lambda in lambda
-                    List<ProductEntity> productEntities = scope.getProducts().stream().map(
-                        product -> ProductEntity.builder()
-                            .newEntity(true)
-                            .state(State.VALID)
-                            .build()
-                        ).collect(toList());
-                    products.addAll(productEntities);
-                }
-            );
-            return products;
-        }
+    <rule name="LimitNestingInLambdas"
+          language="java"
+          message="Avoid deep nesting of lambdas in lambda expressions."
+          class="net.sourceforge.pmd.lang.rule.XPathRule"
+          externalInfoUrl="${doc_root}/JavaCodeQuality.md#isr05">
+        <description>Problem: lambda expressions with deep nesting (lambda's in lambda's) are hard to understand and maintain.
+            Solution: extract the lambda expression code block(s) into one or more well-named separate method(s).
+        </description>
+        <priority>3</priority>
+        <properties>
+            <property name="max" value="1" type="String" description="Maximum allowed depth of lambda nesting"/>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+//LambdaExpression[count(ancestor::LambdaExpression) > number($max)]
+                ]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+class Foo {
+    private void bar(List<Map<String, BigDecimal>> lines) {
+        lines.forEach(line -> line.forEach((key, value) -> values.computeIfPresent(key, (k, v) -> v.add(value)))); // bad, nesting levels 2, > 1
+    }
 }
             ]]>
         </example>

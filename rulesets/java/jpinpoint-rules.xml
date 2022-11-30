@@ -1663,77 +1663,6 @@ public class DateStuff {
         </example>
     </rule>
 
-    <rule name="AvoidComplexLambdas"
-          language="java"
-          message="Avoid lambda expressions with many statements or nested lambdas."
-          class="net.sourceforge.pmd.lang.rule.XPathRule"
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodeQuality.md#isr03">
-        <description>Problem: lambda expressions with many statements or nested lambdas are hard to understand and maintain.
-            Solution: extract the lambda expression code block into one or more well-named separate method(s).
-        (jpinpoint-rules)</description>
-        <priority>4</priority>
-        <properties>
-            <property name="max" value="4" type="String" description="Maximum number of allowed non-setter statements"/>
-            <property name="version" value="2.0"/>
-            <property name="xpath">
-                <value><![CDATA[
-//LambdaExpression
-(: number of statements should be limited, setters are ignored. Chained methods are one statement  :)
-[(count(.//Statement) - count(.//StatementExpression/PrimaryExpression/PrimaryPrefix/Name[contains(@Image, '.set')]) > number($max))
-(: nested Lambda :)
-or .//LambdaExpression
-]
-                ]]></value>
-            </property>
-        </properties>
-        <example>
-            <![CDATA[
-class Foo {
-       void bar(List additionals) {
-            additionals.forEach(entity -> {
-                if (entity.getKNr() != null) {
-                    action.withActions(
-                            new Action().withFoId(actionFoId.incrementAndGet())
-                                    .withEntityPlanFoId(1)
-                                    .withEntity(mapLogicType(true))
-                    );
-                }
-            });
-       }
-
-       void baz(List additionals) {
-            additionals.forEach(entity -> {         // bad, too many statements (5)
-                if (entity.getKNr() != null) {
-                    action.withActions(
-                            new Action().withFoId(actionFoId.incrementAndGet())
-                                    .withEntityPlanFoId(1)
-                                    .withEntity(mapLogicType(true))
-                    );
-                }
-                else { action.withActions(new Action().withFoId(0)); }
-            });
-        }
-
-        public List<ProductEntity> booz(final Consent consent){
-            List<ProductEntity> products = new ArrayList<>();
-            consent.getScopes().forEach(
-                scope -> {                                      // bad, too complex, nested lambda in lambda
-                    List<ProductEntity> productEntities = scope.getProducts().stream().map(
-                        product -> ProductEntity.builder()
-                            .newEntity(true)
-                            .state(State.VALID)
-                            .build()
-                        ).collect(toList());
-                    products.addAll(productEntities);
-                }
-            );
-            return products;
-        }
-}
-            ]]>
-        </example>
-    </rule>
-
     <rule name="AvoidConcatInAppend"
           language="java"
           message="Concatenation inside append. Use extra append."
@@ -1929,6 +1858,88 @@ class Bar extends Exception {
 class Baz extends RemoteException {
     Thread t1NotMeets; // bad
     transient Thread t2meets;
+}
+            ]]>
+        </example>
+    </rule>
+
+    <rule name="LimitNestingInLambdas"
+          language="java"
+          message="Avoid deep nesting of lambdas in lambda expressions."
+          class="net.sourceforge.pmd.lang.rule.XPathRule"
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodeQuality.md#isr05">
+        <description>Problem: lambda expressions with deep nesting (lambda's in lambda's) are hard to understand and maintain.
+            Solution: extract the lambda expression code block(s) into one or more well-named separate method(s).
+        (jpinpoint-rules)</description>
+        <priority>3</priority>
+        <properties>
+            <property name="max" value="1" type="String" description="Maximum allowed depth of lambda nesting"/>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+//LambdaExpression[count(ancestor::LambdaExpression) > number($max)]
+                ]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+class Foo {
+    private void bar(List<Map<String, BigDecimal>> lines) {
+        lines.forEach(line -> line.forEach((key, value) -> values.computeIfPresent(key, (k, v) -> v.add(value)))); // bad, nesting levels 2, > 1
+    }
+}
+            ]]>
+        </example>
+    </rule>
+
+    <rule name="LimitStatementsInLambdas"
+          language="java"
+          message="Avoid many statements in lambda expressions."
+          class="net.sourceforge.pmd.lang.rule.XPathRule"
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodeQuality.md#isr03">
+        <description>Problem: lambda expressions with many statements are hard to understand and maintain.
+            Solution: extract the lambda expression code block into one or more well-named separate method(s).
+        (jpinpoint-rules)</description>
+        <priority>3</priority>
+        <properties>
+            <property name="max" value="5" type="String" description="Maximum number of allowed non-setter statements"/>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+//LambdaExpression
+(: number of statements should be limited, setters are ignored. Chained methods are one statement  :)
+[(count(.//Statement) - count(.//StatementExpression/PrimaryExpression/PrimaryPrefix/Name[contains(@Image, '.set')]) > number($max))
+]
+                ]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+class Foo {
+       void bar(List additionals) {
+            additionals.forEach(entity -> {
+                if (entity.getKNr() != null) {
+                    action.withActions(
+                            new Action().withFoId(actionFoId.incrementAndGet())
+                                    .withEntityPlanFoId(1)
+                                    .withEntity(mapLogicType(true))
+                    );
+                }
+            });
+       }
+
+       void baz(List additionals) {
+            additionals.forEach(entity -> {         // bad, too many statements (5)
+                if (entity.getKNr() != null) {
+                    action.withActions(
+                            new Action().withFoId(actionFoId.incrementAndGet())
+                                    .withEntityPlanFoId(1)
+                                    .withEntity(mapLogicType(true))
+                    );
+                }
+                else { action.withActions(new Action().withFoId(0)); }
+            });
+        }
 }
             ]]>
         </example>
