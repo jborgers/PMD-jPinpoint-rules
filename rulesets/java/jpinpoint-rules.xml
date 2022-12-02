@@ -192,7 +192,9 @@ or preceding-sibling::SwitchLabel[@Default=true()])
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
-(//MethodDeclaration//PrimaryPrefix/Name[ends-with(@Image, '.replaceAll') or ends-with(@Image, '.replaceFirst') or ends-with(@Image, 'Pattern.matches')]/../../PrimarySuffix/Arguments[ArgumentList/@Size=2]//Expression[1]//PrimaryPrefix[
+(//MethodDeclaration//(PrimaryPrefix/Name[ends-with(@Image, '.replaceAll') or ends-with(@Image, '.replaceFirst') or @Image='Pattern.matches']
+|PrimarySuffix[@Image = 'replaceAll' or ends-with(@Image, '.replaceFirst')])
+/following::PrimarySuffix[1]/Arguments[ArgumentList/@Size=2]//Expression[1]//PrimaryPrefix[
 Literal[string-length(@Image) > 5 and
 (matches(@Image, '[\.\$\|\(\)\[\]\{\}\^\?\*\+\\]+'))] or Name
 and not(../PrimarySuffix)

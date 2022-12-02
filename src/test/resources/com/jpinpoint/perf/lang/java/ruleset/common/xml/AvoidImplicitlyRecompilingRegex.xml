@@ -290,4 +290,22 @@ public class Try {
             ]]></code>
     </test-code>
 
+    <test-code>
+        <description>violation: missing case in AvoidImplicitlyRecompilingRegex #237</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>9</expected-linenumbers>
+        <code><![CDATA[
+import java.util.*;
+class Foo {
+      public static String bar(){
+        List list = new ArrayList();
+        return list
+                .stream()
+                .findFirst()
+                .toString()
+                .replaceAll("\\s+", "-"); // missing violation
+    }
+}
+            ]]></code>
+    </test-code>
 </test-data>
