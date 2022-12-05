@@ -334,27 +334,35 @@ Don't combine:
 
 ### SSC03
 
-**Observation: User related data is used in a shared object, such as a @Component.**  
+**Observation: A shared object has a field with a name which indicates user related data.**  
 **Problem:** A shared/singleton object like Spring @Component is shared among users. User related data in such a component will be shared among users accessing it at about the same time. 
-Therefore, this data can mix up: a user can access data of another user, which is really bad.  
-**Solution:** Do *not* put the user related data in a shared component. Use a POJO, think about scope.  
+Therefore, this data can mix-up: a user can access data of another user, which is really bad.  
+**Solution:** 
+* Do *not* put the user related data in a shared component. Use a POJO, think about scope.   
+* If the field does not actually reference user data, change to a proper name e.g. 
+``private OrderHandler handleOrders;`` to ``private OrderHandler orderHandler;``   
+
 **Rule name:** AvoidUserDataInSharedObjects   
+**Details:** The regular expression for matching the name of the field: 
+``User[Id|Ref|Reference]*$|Customer[Id|Ref|Reference]*$|Session[Id|Ref|Reference]*$|Order[Id|Ref|Reference|List]*$|Account[Id|Ref|Reference|List]*$|Transaction[Id|Ref|Reference|List]*$|Contract[Id|Ref|Reference|List]*$``   
 **Example:**
 ````java
 @Component // one instance shared among requests and users
 @Data
 class VMRDataBad {
     private List<OrderDetails> orderList; // bad 1
-    private final String authUser; // bad 2
+    private String authUser; // bad 2
     private String sessionId; // bad 3
+    private OrderHandler handleOrders; // bad 4, improper name
 }
 
 // POJO, not shared
 @Data
 class VMRDataGood {
     private List<OrderDetails> orderList; 
-    private final String authUser; 
+    private String authUser; 
     private String sessionId; 
+    private OrderHandler orderHandler; // proper field name
 }
 
 ````
