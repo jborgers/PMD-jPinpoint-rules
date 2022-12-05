@@ -8,7 +8,7 @@
         <expected-problems>11</expected-problems>
         <expected-linenumbers>55, 87, 96, 137, 138, 157, 198, 223, 328, 338, 395</expected-linenumbers>
         <code><![CDATA[
-import com.google.common.annotations.VisibleForTesting;
+
 import lombok.Data;
 import net.jcip.annotations.GuardedBy;
 import net.jcip.annotations.NotThreadSafe;
