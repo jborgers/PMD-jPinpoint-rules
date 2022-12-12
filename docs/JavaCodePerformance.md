@@ -422,7 +422,7 @@ class RetrieveCache {
 2. connectionRequestTimeout is for requesting a connection from the connection manager, which should be almost as quick, say below 250 ms.   
 
 If timeouts are long, requests will wait long for an unavailable service and cause high thread usage and possibly overload.   
-**Solution:** Set connectTimeout and connectionRequestTimeout to values based on network tests, for instance 200 ms and 250 ms. respectively.   
+**Solution:** Set connectTimeout and connectionRequestTimeout to values based on network tests, for instance 200 ms and 250 ms. respectively.
 **Rule name:** HttpClientImproperConnectionTimeouts    
 **Example:**
 ```java
@@ -443,6 +443,31 @@ public class HttpClientStuff {
   }
 }
 ```
+
+#### IBI21
+**Observation: the default http client of Feign is java.net.HttpURLConnection that does not pool connections when using (mutual) TLS.**   
+**Problem:** Problem: java.net.HttpURLConnection does reuse connections when using (mutual) TLS, this causes connection handshake overhead: extra CPU and latency.
+**Solution:** Use an http client with Feign that has connection reuse for (mutual) TLS connection. For example, use Apache HttpClient 4 with proper connection pool settings (see IBI03, IBI07 and IBI10).
+**Rule name:** DefaultFeignClientWithoutTLSConnectionReuse
+**Example:**
+```java
+class FeignConfig {
+
+    @Bean
+    public Feign.Builder feignBuilderBad() {
+      Client feignClient = new Client.Default(setupSSLContextForMutualTLS().getSocketFactory(), new DefaultHostnameVerifier()); // bad
+      return Feign.builder().retryer(Retryer.NEVER_RETRY).client(feignClient);
+    }
+    
+    @Bean
+    public Feign.Builder feignBuilderGood(CloseableHttpClient client) {
+      Client feignClient = new ApacheHttpClient(client); // good: wrap Apache HttpClient with connection pool enabled
+      return Feign.builder().retryer(Retryer.NEVER_RETRY).client(feignClient);
+    }
+}
+```
+
+
 
 Improper asynchrony 
 -------------------

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>violation: DefaultFeignClientWithoutTLSConnectionReuse</description>
+        <expected-problems>2</expected-problems>
+        <expected-linenumbers>6,11</expected-linenumbers>
+        <code><![CDATA[
+import feign.Client;
+
+public class Foo {
+
+    public Client bad1(SSLSocketFactory sslSocketFactory){
+        return new Client.Default(sslSocketFactory, null); // violation
+    }
+
+    public Feign.Builder bad2() {
+        Client feignClient =
+            new Client.Default(setupSSLContextForMutualTLS().getSocketFactory(), new DefaultHostnameVerifier()); // violation
+        return Feign.builder().client(feignClient);
+    }
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>no-violation: DefaultFeignClientWithoutTLSConnectionReuse</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import feign.Client;
+
+public class Foo {
+
+    public Client good(){
+        return new Client.Default(null, null); // no-violation
+    }
+}
+     ]]></code>
+    </test-code>
+
+</test-data>

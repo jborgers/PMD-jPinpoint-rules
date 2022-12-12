@@ -380,6 +380,47 @@ ancestor::MethodDeclaration//PrimarySuffix/@Image="disableConnectionState")]
         </example>
     </rule>
 
+    <rule name="DefaultFeignClientWithoutTLSConnectionReuse" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java"
+          message="Default Feign client is used with (mutual) TLS. This is HttpURLConnection that creates new connection for each call with TLS overhead." typeResolution="true"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi21">
+        <description>Problem: the default http client of Feign is java.net.HttpURLConnection that does not pool connections when using mutual TLS. This causes connection handshake overhead: extra CPU and latency.&#13;
+            Solution: switch to a Feign client that supports HTTP connection pooling with mTLS, for instance Apache HttpClient 4 with disableConnectionState and proper connection pool size and timeouts. (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+(: default client constructor with sslSocketFactory :)
+//MethodDeclaration//PrimaryExpression/PrimaryPrefix/AllocationExpression/ClassOrInterfaceType[pmd-java:typeIs('feign.Client.Default')
+and not(ancestor::Expression//Arguments[ArgumentList/@Size=2]//Expression[1]//NullLiteral)]
+]]>
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+import feign.Client;
+
+public class MyFeignClient {
+
+    public Client createClient(SSLSocketFactory sslSocketFactory){
+        return new Client.Default(sslSocketFactory, null); // bad
+    }
+
+    public Client createClient(){
+        return new Client.Default(null, null); // good
+    }
+
+    public Feign.Builder feignBuilder() {
+        Client feignClient =
+            new Client.Default(setupSSLContextForMutualTLS().getSocketFactory(), new DefaultHostnameVerifier()); // bad
+        return Feign.builder().client(feignClient);
+    }
+}
+            ]]>
+        </example>
+    </rule>
+
     <rule name="AvoidJAXBUtil"
           language="java"
           message="The JAXB utility class is not optimized for performance."
