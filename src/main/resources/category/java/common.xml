@@ -134,9 +134,9 @@ or preceding-sibling::SwitchLabel[@Default=true()])
     </rule>
 
     <rule name="AvoidImplicitlyRecompilingRegex" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" message="String regex method, Pattern.matches or FileSystem.getPathMatcher is used.
-	   Implicitely compiles a regex pattern, can be expensive." typeResolution="true"
+	   Implicitly compiles a regex pattern, can be expensive." typeResolution="true"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#ireu01">
-        <description>A regular expression is compiled implicitely on every invocation. Problem: this can be expensive, depending on the length of the regular expression.&#13;
+        <description>A regular expression is compiled implicitly on every invocation. Problem: this can be expensive, depending on the length of the regular expression.&#13;
             Solution: Compile the regex pattern only once and assign it to a private static final Pattern field. java.util.Pattern objects are thread-safe so they can be shared among threads.
             (jpinpoint-rules)</description>
         <priority>2</priority>
