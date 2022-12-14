@@ -49,7 +49,7 @@ class Good {
         </example>
     </rule>
 
-    <rule name="AvoidModelMapAsRenderParameter" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" message="A ModelMap or @ModelAttribute is used as parameter of a portlet render method and implicitely put in the session." typeResolution="true"
+    <rule name="AvoidModelMapAsRenderParameter" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" message="A ModelMap or @ModelAttribute is used as parameter of a portlet render method and implicitly put in the session." typeResolution="true"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#tmsu11">
         <description>Problem: ModelMaps are rather large objects containing explicitly added data and administrative data from Spring. They are added to the Portlet session implicitly. They stay in the session for some time: during session activity and 30 minutes (HTTP timeout) after it, in case the user does not exit explicitly. They occupy heap space during that time, for every user.&#13;
             Solution: Remove the ModelMap from the render method parameter list and create a new local ModelMap to use in the render request scope.
