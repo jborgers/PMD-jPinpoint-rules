@@ -445,10 +445,10 @@ public class HttpClientStuff {
 ```
 
 #### IBI21
-**Observation: the default http client of Feign is java.net.HttpURLConnection that does not pool connections when using (mutual) TLS.**   
-**Problem:** Problem: java.net.HttpURLConnection does reuse connections when using (mutual) TLS, this causes connection handshake overhead: extra CPU and latency.
-**Solution:** Use an http client with Feign that has connection reuse for (mutual) TLS connection. For example, use Apache HttpClient 4 with proper connection pool settings (see IBI03, IBI07 and IBI10).
-**Rule name:** DefaultFeignClientWithoutTLSConnectionReuse
+**Observation: The default http client of Feign is used, which is java.net.HttpURLConnection.**   
+**Problem:** java.net.HttpURLConnection does *not* reuse connections when using (mutual) TLS, this causes connection handshake overhead: extra CPU and latency.   
+**Solution:** Use an http client with Feign that has connection reuse for (mutual) TLS connection. For example, use Apache HttpClient 4 with proper connection pool settings (see IBI03, IBI07 and IBI10).   
+**Rule name:** DefaultFeignClientWithoutTLSConnectionReuse   
 **Example:**
 ```java
 class FeignConfig {

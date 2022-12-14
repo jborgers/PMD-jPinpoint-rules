@@ -182,9 +182,9 @@ or preceding-sibling::SwitchLabel[@Default=true()])
     </rule>
 
     <rule name="AvoidImplicitlyRecompilingRegex" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" message="String regex method, Pattern.matches or FileSystem.getPathMatcher is used.
-	   Implicitely compiles a regex pattern, can be expensive." typeResolution="true"
+	   Implicitly compiles a regex pattern, can be expensive." typeResolution="true"
           externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#ireu01">
-        <description>A regular expression is compiled implicitely on every invocation. Problem: this can be expensive, depending on the length of the regular expression.&#13;
+        <description>A regular expression is compiled implicitly on every invocation. Problem: this can be expensive, depending on the length of the regular expression.&#13;
             Solution: Compile the regex pattern only once and assign it to a private static final Pattern field. java.util.Pattern objects are thread-safe so they can be shared among threads.
             (jpinpoint-rules)</description>
         <priority>2</priority>
@@ -3617,9 +3617,9 @@ public class Foo {
     </rule>
 
     <rule name="DefaultFeignClientWithoutTLSConnectionReuse" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java"
-          message="Default Feign client is used with (mutual) TLS. This is HttpURLConnection that creates new connection for each call with TLS overhead." typeResolution="true"
+          message="Default Feign client is used with (mutual) TLS. This is HttpURLConnection that creates a new connection for each call with TLS overhead." typeResolution="true"
           externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#ibi21">
-        <description>Problem: the default http client of Feign is java.net.HttpURLConnection that does not pool connections when using mutual TLS. This causes connection handshake overhead: extra CPU and latency.&#13;
+        <description>Problem: the default http client of Feign is java.net.HttpURLConnection that does not pool connections when using mutual TLS. This causes connection handshake overhead: extra CPU usage and higher latency.&#13;
             Solution: switch to a Feign client that supports HTTP connection pooling with mTLS, for instance Apache HttpClient 4 with disableConnectionState and proper connection pool size and timeouts. (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
@@ -4274,7 +4274,7 @@ class Good {
         </example>
     </rule>
 
-    <rule name="AvoidModelMapAsRenderParameter" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" message="A ModelMap or @ModelAttribute is used as parameter of a portlet render method and implicitely put in the session." typeResolution="true"
+    <rule name="AvoidModelMapAsRenderParameter" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" message="A ModelMap or @ModelAttribute is used as parameter of a portlet render method and implicitly put in the session." typeResolution="true"
           externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#tmsu11">
         <description>Problem: ModelMaps are rather large objects containing explicitly added data and administrative data from Spring. They are added to the Portlet session implicitly. They stay in the session for some time: during session activity and 30 minutes (HTTP timeout) after it, in case the user does not exit explicitly. They occupy heap space during that time, for every user.&#13;
             Solution: Remove the ModelMap from the render method parameter list and create a new local ModelMap to use in the render request scope.
