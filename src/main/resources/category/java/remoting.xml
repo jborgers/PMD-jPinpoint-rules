@@ -767,8 +767,8 @@ class Foo {
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
-//AllocationExpression[pmd-java:typeIsExactly('org.springframework.boot.web.client.ClientHttpRequestFactorySupplier')]
-]]>
+//AllocationExpression/ClassOrInterfaceType[@Image='ClientHttpRequestFactorySupplier']
+[/CompilationUnit/ImportDeclaration/Name[starts-with(@Image, 'org.springframework.boot.web.client')]]]]>
                 </value>
             </property>
         </properties>
