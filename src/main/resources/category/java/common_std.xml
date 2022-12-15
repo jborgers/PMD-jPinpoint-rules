@@ -398,18 +398,18 @@ class Foo {
             <property name="xpath">
                 <value><![CDATA[
 (: for each local variable declaration or assignment node :)
-(for $node in (//StatementExpression[AssignmentOperator][not(ancestor::IfStatement or ancestor::TryStatement or ancestor::SwitchStatement)]/PrimaryExpression/PrimaryPrefix/Name
+(for $node in (//StatementExpression[AssignmentOperator[@Image='=']][not(ancestor::IfStatement or ancestor::TryStatement or ancestor::SwitchStatement)]/PrimaryExpression/PrimaryPrefix/Name
 | //LocalVariableDeclaration/VariableDeclarator[VariableInitializer]//VariableDeclaratorId)
 (: match if for that node the next occurrence of ((assignment without use in same statement) union with (use) is an assignment to the var) :)
 return ($node[
 (: assignment without use, Name is result :)
-((ancestor::BlockStatement/following-sibling::BlockStatement//StatementExpression[AssignmentOperator][not(ancestor::IfStatement or ancestor::TryStatement or ancestor::SwitchStatement)]/PrimaryExpression/PrimaryPrefix/Name[@Image=$node/@Image]
-[not(ancestor::BlockStatement//PrimaryExpression[not(../AssignmentOperator) and (not(PrimarySuffix/Arguments) or PrimaryPrefix[contains(Name/@Image, '.')])]
+((ancestor::BlockStatement/following-sibling::BlockStatement//StatementExpression[AssignmentOperator[@Image='=']][not(ancestor::IfStatement or ancestor::TryStatement or ancestor::SwitchStatement)]/PrimaryExpression/PrimaryPrefix/Name[@Image=$node/@Image]
+[not(ancestor::BlockStatement//PrimaryExpression[not(../AssignmentOperator[@Image='=']) and (not(PrimarySuffix/Arguments) or PrimaryPrefix[contains(Name/@Image, '.')])]
 /PrimaryPrefix[substring-before(concat(Name/@Image, '.'), '.')=$node/@Image])]
 )[1]
 |
 (: use, PrimaryPrefix is result, so @Image is empty string :)
-(ancestor::BlockStatement/following-sibling::BlockStatement//PrimaryExpression[not(../AssignmentOperator and not(PrimarySuffix/Expression)) and (not(PrimarySuffix/Arguments) or PrimaryPrefix[contains(Name/@Image, '.')])]
+(ancestor::BlockStatement/following-sibling::BlockStatement//PrimaryExpression[not(../AssignmentOperator[@Image='='] and not(PrimarySuffix/Expression)) and (not(PrimarySuffix/Arguments) or PrimaryPrefix[contains(Name/@Image, '.')])]
 /PrimaryPrefix[substring-before(concat(Name/@Image, '.'), '.')=$node/@Image])[1])
 (: first is the var name :)
 [1]/@Image = $node/@Image])

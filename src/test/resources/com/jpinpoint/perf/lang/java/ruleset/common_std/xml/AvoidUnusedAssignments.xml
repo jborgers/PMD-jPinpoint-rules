@@ -108,8 +108,24 @@ public class Foo {
         str2 = "now";
     }
 }
-
-
-     ]]></code>
+]]></code>
     </test-code>
+
+    <test-code>
+        <description>no violation: += operator #241</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+class Foo {
+  public static boolean elfProef(final String accountNumber) {
+    int sum = 0;
+    final int length = accountNumber.length();
+    for (int i = 0; i < length; ++i) {
+        sum += Character.digit(accountNumber.charAt(i), RADIX) * (length - i);
+    }
+    return sum % DIVIDER == 0;
+  }
+}
+]]></code>
+    </test-code>
+
 </test-data>
