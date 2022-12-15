@@ -848,6 +848,9 @@ and not(ancestor::MethodDeclaration//PrimaryPrefix[pmd-java:typeIs('java.util.co
                 <value>
                     <![CDATA[
 //PrimaryPrefix/Name[@Image='CompletableFuture.supplyAsync']/../../PrimarySuffix/Arguments/ArgumentList[count(Expression) = 1]
+,
+//PrimaryPrefix/Name[@Image='supplyAsync']/../../PrimarySuffix/Arguments/ArgumentList[count(Expression) = 1]
+[/CompilationUnit/ImportDeclaration/Name[@Image = 'java.util.concurrent.CompletableFuture.supplyAsync']]
 ]]>
                 </value>
             </property>

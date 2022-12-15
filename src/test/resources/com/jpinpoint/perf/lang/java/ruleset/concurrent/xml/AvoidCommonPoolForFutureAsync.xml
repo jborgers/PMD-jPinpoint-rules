@@ -29,5 +29,23 @@ public class Foo {
 ]]></code>
     </test-code>
 
+    <test-code>
+        <description>Fix Request: AvoidCommonPoolForFutureAsync - supplyAsync false negative when using static import #242</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>6</expected-linenumbers>
+        <code><![CDATA[
+import static java.util.concurrent.CompletableFuture.completedFuture;
+import static java.util.concurrent.CompletableFuture.supplyAsync;
+
+class SomeClass {
+    public CompletableFuture<?> someMethod() {
+        return supplyAsync(() -> { // bad
+            var result = someLogic();
+            return completedFuture(result);
+        });
+    }
+}
+]]></code>
+    </test-code>
 
 </test-data>
