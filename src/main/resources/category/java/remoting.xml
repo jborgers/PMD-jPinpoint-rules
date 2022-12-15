@@ -865,7 +865,9 @@ and use it to replace the bad line in Bad example:
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
-//AllocationExpression[pmd-java:typeIs('org.springframework.http.client.BufferingClientHttpRequestFactory')]
+(: somehow typeIs does not work with spring-web-6.0, do it old school way :)
+//AllocationExpression/ClassOrInterfaceType[@Image='BufferingClientHttpRequestFactory']
+[/CompilationUnit/ImportDeclaration/Name[starts-with(@Image, 'org.springframework.http.client')]]
 ]]>
                 </value>
             </property>
