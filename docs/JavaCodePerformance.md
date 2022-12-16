@@ -688,8 +688,9 @@ class AxualProducerGood2{
 
 #### IA11
 **Observation: parallelStream which uses the ForkJoinPool::commonPool is used.**  
-**Problem:** Collection.parallelStream uses the common pool, with #threads = #CPUs - 1. It is designed to distribute much CPU work over the cores. 
-It is not for remote calls or other blocking calls.
+**Problem:** Collection.parallelStream() and .stream().parallel() use the common pool, with #threads = #CPUs - 1. 
+It is designed to distribute much CPU work over the cores. 
+It is *not* meant for remote calls nor other blocking calls.
 In addition, parallelizing has overhead and risks, should only be used for much pure CPU processing.
 The common pool must *not* be used for blocking calls, see [Be Aware of ForkJoinPool#commonPool()](https://dzone.com/articles/be-aware-of-forkjoinpoolcommonpo)   
 **Solution:** For remote/blocking calls: Use a dedicated thread pool with enough threads to get proper parallelism independent of the number of cores.
@@ -713,7 +714,7 @@ public class Foo {
     list.parallelStream().forEach(elem -> someCall(elem)); //bad
   }
   void bad2() {
-    map.entrySet().parallelStream().forEach(entry -> someCall(entry.getValue())); //bad
+    map.entrySet().parallel().stream().forEach(entry -> someCall(entry.getValue())); //bad
   }
   void exceptionalProperUse() {
     hugeList.parallelStream().forEach(elem -> heavyCalculations(elem)); //flagged but may be good, should suppress when proven to be faster than sequential form

@@ -53,5 +53,30 @@ public class Foo {
      ]]></code>
     </test-code>
 
+    <test-code>
+        <description>violation: Fix Request: IA11 AvoidParallelStreamWithCommonPool false negative on stream().parallel() #243</description>
+        <expected-problems>8</expected-problems>
+        <expected-linenumbers>2,3,5, 9,11,13,15,16</expected-linenumbers>
+        <code><![CDATA[
+class Issue243 {
+    private final Stream str1step = List.of(1,2).parallelStream(); // bad
+    private final Stream str2steps = List.of(1,2).stream().parallel(); // bad, missing case
+    private final Stream str = List.of(1,2).stream();
+    private final Stream strPar = str.parallel(); // bad, missing case
+
+    public void bar() {
+    	var varList = List.of(1,2);
+        Stream str1 = varList.parallelStream(); //bad
+        List list = List.of(1,2);
+        Stream str2 = list.parallelStream(); //bad
+        // triggers, as expected
+        list.parallelStream().forEach(System.out::println); //bad
+        // no trigger, false negative
+        list.stream().parallel().forEach(System.out::println); // bad, missing case
+        Stream str3 = map.entrySet().stream().parallel(); // bad, missing case
+    }
+}
+             ]]></code>
+    </test-code>
 
 </test-data>
