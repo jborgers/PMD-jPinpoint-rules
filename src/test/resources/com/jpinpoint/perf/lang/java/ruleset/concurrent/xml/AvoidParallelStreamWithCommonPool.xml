@@ -79,4 +79,22 @@ class Issue243 {
              ]]></code>
     </test-code>
 
+    <test-code>
+        <description>violation: Fix Request: AvoidParallelStreamWithCommonPool false positive for use in Flux or Mono #244</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Scheduler;
+class Foo {
+    private Mono<SomeResponse> handle() {
+        return
+                //call uais and risk alerts in parallel
+                Mono
+                        //execute on different rails in parallel
+                        .parallel(props.getParallelism())
+                        .runOn(someScheduler);
+    }
+}
+             ]]></code>
+    </test-code>
 </test-data>

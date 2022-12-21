@@ -1018,11 +1018,11 @@ public class VMRData {
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
-/PrimaryExpression
-[((PrimarySuffix[@Image='parallelStream' or @Image='parallel'] or PrimaryPrefix/Name[ends-with(@Image, '.parallelStream') or ends-with(@Image, '.parallel')])
+//PrimaryExpression/(PrimarySuffix[@Image='parallelStream' or @Image='parallel']|PrimaryPrefix/Name[ends-with(@Image, '.parallelStream') or ends-with(@Image, '.parallel')])
 (:and exists(PrimarySuffix[pmd-java:typeIs('java.util.stream.Stream')]) - with 'var' type is lost in typeIs :)
-and not(ancestor::Block//StatementExpression/PrimaryExpression/PrimaryPrefix/Name[ends-with(@Image, '.submit') and pmd-java:typeIs('java.util.concurrent.ExecutorService')]))
-]
+(: no arguments :)
+[following::PrimarySuffix[1][@ArgumentCount = 0]]
+[not(ancestor::Block//StatementExpression/PrimaryExpression/PrimaryPrefix/Name[ends-with(@Image, '.submit') and pmd-java:typeIs('java.util.concurrent.ExecutorService')])]
 ]]>
                 </value>
             </property>
