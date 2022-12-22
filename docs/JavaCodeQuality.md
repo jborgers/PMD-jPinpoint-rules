@@ -335,15 +335,16 @@ Don't combine:
 ### SSC03
 
 **Observation: A shared object has a field with a name which indicates user related data.**  
-**Problem:** A shared/singleton object like Spring @Component is shared among users. User related data in such a component will be shared among users accessing it at about the same time. 
+**Problem:** A shared/singleton object like Spring @Component is shared among users and so are its fields. 
+User related data fields in such a component will be shared among users accessing it at about the same time. 
 Therefore, this data can mix-up: a user can access data of another user, which is really bad.  
 **Solution:** 
 * Do *not* put the user related data in a shared component. Use a POJO, think about scope.   
-* If the field does not actually reference user data, change to a proper name e.g. 
-``private OrderHandler handleOrders;`` to ``private OrderHandler orderHandler;``   
-
+* If the field does not actually reference user data, change to a name which does not indicate user data e.g.   
+``private OrderHandler handleOrders;`` rename to: ``private OrderHandler orderHandler;``   
+The last word as noun is assumed to be the entity, so handleOrders is assumes to be order objects which typically is user related data. A handler is not.   
 **Rule name:** AvoidUserDataInSharedObjects   
-**Details:** The regular expression for matching the name of the field: 
+**Details:** The regular expression for matching the name of the field assumed to be user data: 
 ``User[Id|Ref|Reference]*$|Customer[Id|Ref|Reference]*$|Session[Id|Ref|Reference]*$|Order[Id|Ref|Reference|List]*$|Account[Id|Ref|Reference|List]*$|Transaction[Id|Ref|Reference|List]*$|Contract[Id|Ref|Reference|List]*$``   
 **Example:**
 ````java
@@ -364,9 +365,7 @@ class VMRDataGood {
     private String sessionId; 
     private OrderHandler orderHandler; // proper field name
 }
-
 ````
-
 Maintainability
 ---------------
 

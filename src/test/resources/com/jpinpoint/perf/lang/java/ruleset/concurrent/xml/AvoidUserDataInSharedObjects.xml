@@ -68,4 +68,15 @@ public class Foo {
      ]]></code>
     </test-code>
 
+    <test-code>
+        <description>no violation: false positive in AvoidUserDataInSharedObjects #245, no primitives</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+@Component
+public class Foo {
+    private boolean removeSignedOrders = false; // false positive, a primitive
+    int numberOfOrders; // false positive, a primitive
+}
+     ]]></code>
+    </test-code>
 </test-data>

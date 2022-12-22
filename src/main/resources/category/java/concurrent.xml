@@ -942,8 +942,8 @@ public class Foo {
           message="Do *not* use user data in shared objects, it causes user data mix-up."
           typeResolution="true"
           externalInfoUrl="${doc_root}/JavaCodeQuality.md#ssc03">
-        <description>The name of the field indicates user data. Problem: user related data will be shared among users and can mix-up: a user may access data of another user, this is really bad.&#13;
-            Solution: Do *not* put the user related data in a shared object e.g. by Spring @Component annotation. Use a POJO. (jpinpoint-rules)</description>
+        <description>The name of the field indicates user data. Problem: the field will be shared among users. If it is different data for each user, it can mix-up: a user may access data of another user, this is really bad.&#13;
+            Solution: Do *not* put the user related data in a shared object e.g. by Spring @Component annotation. Use a POJO. Or, if it is not user data, rename the field. (jpinpoint-rules)</description>
         <priority>1</priority>
         <properties>
             <property name="version" value="2.0"/>
@@ -957,7 +957,7 @@ and not (ancestor::TypeDeclaration/Annotation//Name[@Image='RequestScope'])
 (: no checking if @ConfigurationProperties and no @Setter :)
 and not ((ancestor::TypeDeclaration/Annotation//Name[@Image='ConfigurationProperties'])
          and not (ancestor::TypeDeclaration/Annotation/MarkerAnnotation/Name[@Image='Setter']))]
-/ancestor::TypeDeclaration//ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Final=false() and @Static=false()][ancestor::ClassOrInterfaceDeclaration[1][@Static=false()]]/VariableDeclarator/VariableDeclaratorId[matches(@Name,
+/ancestor::TypeDeclaration//ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Final=false() and @Static=false()][Type/ReferenceType][ancestor::ClassOrInterfaceDeclaration[1][@Static=false()]]/VariableDeclarator/VariableDeclaratorId[matches(@Name,
 'User[Id|Ref|Reference]*$|Customer[Id|Ref|Reference]*$|Session[Id|Ref|Reference]*$|Order[Id|Ref|Reference|List]*$|Account[Id|Ref|Reference|List]*$|Transaction[Id|Ref|Reference|List]*$|Contract[Id|Ref|Reference|List]*$', 'i')]
 ]]>
                 </value>
