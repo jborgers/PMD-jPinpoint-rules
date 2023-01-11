@@ -12,6 +12,7 @@
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value>
@@ -47,6 +48,7 @@
             (jpinpoint-rules)</description>
         <priority>1</priority>
         <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value>
@@ -112,6 +114,7 @@
             (jpinpoint-rules)</description>
         <priority>3</priority>
         <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value>
@@ -172,6 +175,7 @@ ancestor::StatementExpression/PrimaryExpression/PrimaryPrefix/Name/@Image = ance
             (jpinpoint-rules)</description>
         <priority>1</priority>
         <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
@@ -199,6 +203,7 @@ ancestor::StatementExpression/PrimaryExpression/PrimaryPrefix/Name/@Image = ance
             (jpinpoint-rules)</description>
         <priority>1</priority>
         <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value>
@@ -249,6 +254,7 @@ or ancestor::MethodDeclaration[@Name='afterPropertiesSet']
             (jpinpoint-rules)</description>
         <priority>1</priority>
         <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value>
@@ -293,6 +299,7 @@ or ancestor::MethodDeclaration[@Name='afterPropertiesSet']
             (jpinpoint-rules)</description>
         <priority>1</priority>
         <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value>
@@ -350,6 +357,7 @@ and not (../Annotation//Name[@Image='GuardedBy'])
             (jpinpoint-rules)</description>
         <priority>1</priority>
         <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value>
@@ -400,6 +408,7 @@ or (ancestor::ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='VisibleFo
             (jpinpoint-rules)</description>
         <priority>1</priority>
         <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value>
@@ -438,6 +447,7 @@ or (ancestor::ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='VisibleFo
             (jpinpoint-rules)</description>
         <priority>3</priority>
         <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value>
@@ -481,6 +491,7 @@ or (VariableDeclarator/VariableDeclaratorId/@Name = ancestor::ClassOrInterfaceBo
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value>
@@ -529,6 +540,7 @@ or ancestor::SynchronizedStatement/Expression//Name)]
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value>
@@ -600,6 +612,7 @@ or ancestor::SynchronizedStatement/Expression//Name)]
             Solution: Create the Factories as local variables and use command line arguments to specify the implementation class. (jpinpoint-rules)</description>
         <priority>1</priority>
         <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
@@ -640,6 +653,7 @@ or ancestor::SynchronizedStatement/Expression//Name)]
             Solution: Guard the field properly with synchronized or use atomics like AtomicInteger. (jpinpoint-rules)</description>
         <priority>1</priority>
         <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
@@ -678,6 +692,7 @@ or ancestor::SynchronizedStatement/Expression//Name)]
             Solution: Since only one thread can access the field, there is no need for violatile and it can be removed. (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
@@ -718,6 +733,7 @@ class Good {
             Solution: Remove synchronized because local variables are only accessible by the owning thread and are not shared. (jpinpoint-rules)</description>
         <priority>3</priority>
         <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
@@ -775,6 +791,7 @@ public class Foo {
             (jpinpoint-rules)</description>
         <priority>1</priority>
         <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value>
@@ -843,6 +860,7 @@ and not(ancestor::MethodDeclaration//PrimaryPrefix[pmd-java:typeIs('java.util.co
             (jpinpoint-rules)</description>
         <priority>1</priority>
         <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value>
@@ -886,6 +904,7 @@ public class Foo {
             It assumes CPU intensive non-blocking processing of in-memory data.  (jpinpoint-rules)</description>
         <priority>1</priority>
         <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
@@ -946,6 +965,7 @@ public class Foo {
             Solution: Do *not* put the user related data in a shared object e.g. by Spring @Component annotation. Use a POJO. Or, if it is not user data, rename the field. (jpinpoint-rules)</description>
         <priority>1</priority>
         <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
@@ -1015,6 +1035,7 @@ public class VMRData {
             So only for large collections and much processing without having to wait.   (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[

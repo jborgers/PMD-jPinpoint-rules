@@ -18,6 +18,9 @@ Documentation of the rules are here:
 * [JavaDataAccessPerformance](docs/JavaDataAccessPerformance.md)
 * [JavaCodeQuality](docs/JavaCodeQuality.md)
 
+## License
+PMD-jPinpoint-rules is licensed under the [Apache License, Version 2.0](https://github.com/jborgers/pmd-jpinpoint-rules/blob/master/LICENSE.md).
+
 ## See also
 - Jeroen Borgers presented at J-Fall Virtual 2020: [Fixing your performance and concurrency bugs before they bite you](https://youtu.be/Z_sT38KTRNk)
 - Jeroen Borgers presented at Amsterdam JUG about the why, what and how of these code checking rules: [Performance problem prevention](https://www.meetup.com/nl-NL/Amsterdam-Java-User-Group/events/256497068/)

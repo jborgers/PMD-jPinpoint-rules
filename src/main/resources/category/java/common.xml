@@ -13,6 +13,7 @@
         </description>
         <priority>1</priority>
         <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
@@ -65,6 +66,7 @@ public class CDIStuff {
             (jpinpoint-rules)</description>
         <priority>3</priority>
         <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
@@ -91,6 +93,7 @@ public interface Foo {
         </description>
         <priority>1</priority>
         <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
@@ -110,6 +113,7 @@ public interface Foo {
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value>
@@ -141,6 +145,7 @@ or preceding-sibling::SwitchLabel[@Default=true()])
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
@@ -218,6 +223,7 @@ VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/Literal[string-le
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
@@ -258,6 +264,7 @@ class Good {
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
@@ -292,6 +299,7 @@ and
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
@@ -335,6 +343,7 @@ class Good {
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
@@ -384,6 +393,7 @@ class Good {
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value>
@@ -415,6 +425,7 @@ ancestor::MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter/Va
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
@@ -446,6 +457,7 @@ ancestor::MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter/Va
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
@@ -468,6 +480,7 @@ ancestor::MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter/Va
             Solution: Replace StringBuffer by StringBuilder.  (jpinpoint-rules)</description>
         <priority>3</priority>
         <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
@@ -484,6 +497,7 @@ ancestor::MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter/Va
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
@@ -516,6 +530,7 @@ substring-after(@Image, '.') != 'append')]) = 0
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
@@ -538,6 +553,7 @@ and
             (jpinpoint-rules)</description>
         <priority>3</priority>
         <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
@@ -555,6 +571,7 @@ and
             (jpinpoint-rules)</description>
         <priority>3</priority>
         <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
@@ -578,6 +595,7 @@ ClassOrInterfaceBodyDeclaration
             (jpinpoint-rules)</description>
         <priority>3</priority>
         <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value>
@@ -694,6 +712,7 @@ class LombokGetterGood {
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value>
@@ -742,6 +761,7 @@ class Good {
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
@@ -795,6 +815,7 @@ class Good {
             Solution: Use SLF4J formatting with {}-placeholders or log and format conditionally.  (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
@@ -831,6 +852,7 @@ class Foo {
             Solution: Execute the operation only conditionally and utilize SLF4J formatting with {}-placeholders.  (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
@@ -893,6 +915,7 @@ class Foo {
             Solution: Suppress warnings judiciously based on full knowledge and report reasons to suppress (false positives) to the rule maintainers so these can be fixed. (jpinpoint-rules)</description>
         <priority>4</priority>
         <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="ruleIdMatches" type="String" value="AvoidUnguardedMutableFieldsInSharedObjects|AvoidUnguardedAssignmentToNonFinalFieldsInSharedObjects|AvoidMutableStaticFields|[^\w]ALL[^\w]|[^\w]all[^\w]|PMD[^\.]|pmd[^:]"
                       description="Regex for inclusion of high risk rules"/>
             <property name="ruleIdNotMatches" type="String" value="^$"
@@ -913,6 +936,7 @@ class Foo {
             Solution: Suppress warnings judiciously based on full knowledge and report reasons to suppress (false positives) to the rule maintainers so these can be fixed. (jpinpoint-rules)</description>
         <priority>5</priority>
         <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="ruleIdMatches" type="String" value=".*"
                       description="Regex for inclusion of rules"/>
             <property name="ruleIdNotMatches" type="String" value="^$"
@@ -934,6 +958,7 @@ class Foo {
             Solution: Specify the time unit in the identifier, like connectTimeoutMillis. (jpinpoint-rules)</description>
         <priority>3</priority>
         <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
@@ -970,6 +995,7 @@ public RetrieveCache(final @Value("${cache.expiryTimeMillis}") long timeToLiveMi
             Solution: Specify the time unit in the identifier, like connectTimeoutMillis. (jpinpoint-rules)</description>
         <priority>3</priority>
         <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
@@ -1005,6 +1031,7 @@ public RetrieveCache(final @Value("${cache.expiryTimeMillis}") long timeToLiveMi
             Solution: Use the same fields in equals and hashCode and if conversions are needed, use identical conversions in both. So don't use equalsIgnoreCase. (jpinpoint-rules)</description>
         <priority>1</priority>
         <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
@@ -1080,6 +1107,7 @@ class Bad2 {
             Solution: include the missing field in the equals and hashCode method. (jpinpoint-rules)</description>
         <priority>3</priority>
         <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
@@ -1135,6 +1163,7 @@ class Bad1 {
             Solution: Use the same fields in hashCode as are used in equals. (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
@@ -1196,6 +1225,7 @@ class Bad {
         </description>
         <priority>3</priority>
         <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
@@ -1235,6 +1265,7 @@ public class CalendarStuff {
         </description>
         <priority>3</priority>
         <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
@@ -1306,6 +1337,7 @@ public class Good {
         </description>
         <priority>3</priority>
         <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
@@ -1367,6 +1399,7 @@ class Foo {
         </description>
         <priority>3</priority>
         <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
@@ -1434,6 +1467,7 @@ Set<YourEnumType> set = EnumSet.allOf(YourEnumType.class);
         </description>
         <priority>4</priority>
         <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
@@ -1464,6 +1498,7 @@ Set<YourEnumType> set = EnumSet.allOf(YourEnumType.class);
         </description>
         <priority>2</priority>
         <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
@@ -1532,6 +1567,7 @@ class Foo {
         </description>
         <priority>3</priority>
         <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[

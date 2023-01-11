@@ -12,6 +12,7 @@
         (jpinpoint-rules)</description>
     <priority>3</priority>
     <properties>
+        <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
         <property name="version" value="2.0"/>
         <property name="xpath">
             <value>

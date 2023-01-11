@@ -17,6 +17,7 @@
             (jpinpoint-rules)</description>
         <priority>3</priority>
         <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value>
@@ -56,6 +57,7 @@ class Good {
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
@@ -80,6 +82,7 @@ Annotation//Name[@Image='RenderMapping'])]
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value>
@@ -106,6 +109,7 @@ and (
             redirect:/redirectUrl?someAttribute={someAttribute}.</description>
         <priority>1</priority>
         <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
@@ -153,6 +157,7 @@ and (
             (jpinpoint-rules)</description>
         <priority>3</priority>
         <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value>
@@ -182,6 +187,7 @@ and  (../../ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='Autowired']
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
@@ -203,6 +209,7 @@ count(.//PrimaryExpression/PrimaryPrefix/Name[ends-with(@Image,'.clear')])=0]
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
@@ -229,6 +236,7 @@ class Bad1 {
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
@@ -261,6 +269,7 @@ class Good1 {
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
@@ -298,6 +307,7 @@ class Good {
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
@@ -352,6 +362,7 @@ public class Good implements KeyGenerator {
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
@@ -388,6 +399,7 @@ class Foo {
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
@@ -443,6 +455,7 @@ class GoodCacheKeyGenerator implements KeyGenerator {
             (jpinpoint-rules)</description>
         <priority>5</priority>
         <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[

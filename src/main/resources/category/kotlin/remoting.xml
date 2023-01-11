@@ -16,6 +16,7 @@
         </description>
         <priority>2</priority>
         <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="version" value="3.1"/>
             <property name="xpath">
                 <value><![CDATA[
@@ -56,6 +57,7 @@
             Solution: Netflix recommends to use open source alternatives like resilience4j. (jpinpoint-rules)</description>
         <priority>3</priority>
         <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="version" value="3.1"/>
             <property name="xpath">
                 <value><![CDATA[

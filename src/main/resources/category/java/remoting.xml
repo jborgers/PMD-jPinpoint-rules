@@ -8,6 +8,7 @@
         Solutions: Upgrade to httpclient-4.5+ and use org.apache.http.impl.conn.PoolingHttpClientConnectionManager and e.g. org.apache.http.impl.client.HttpClientBuilder. (jpinpoint-rules)</description>
     <priority>2</priority>
     <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
         <property name="version" value="2.0"/>
         <property name="xpath">
             <value><![CDATA[
@@ -60,6 +61,7 @@ class Good {
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
@@ -77,6 +79,7 @@ class Good {
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
@@ -115,6 +118,7 @@ public static JsonMapper createMapper() {
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
@@ -139,6 +143,7 @@ public static JsonMapper createMapper() {
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
 
             <property name="version" value="2.0"/>
             <property name="xpath">
@@ -160,6 +165,7 @@ MethodDeclaration//LocalVariableDeclaration/Type/ReferenceType/ClassOrInterfaceT
             Solution: HttpClients should disable connection state tracking in order to reuse TLS connections, since service calls for one pool have the same user identity/security context for all sessions. (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
@@ -186,6 +192,7 @@ ancestor::MethodDeclaration//PrimarySuffix/@Image="disableConnectionState")]
             Either use 1. setConnectionManager and call setMaxTotal and setDefaultMaxPerRoute on that connection manager, or 2. no ConnectionManager: call setMaxConnTotal and setMaxConnPerRoute on the client directly. (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
@@ -254,6 +261,7 @@ ancestor::MethodDeclaration//PrimarySuffix/@Image="disableConnectionState")]
             2. not use a ConnectionManager and call setMaxConnTotal and setMaxConnPerRoute on the client directly (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
@@ -306,6 +314,7 @@ ancestor::MethodDeclaration//PrimarySuffix/@Image="disableConnectionState")]
             Solution: Set the timeouts explicitly to proper reasoned values. See best practice values via the link. Use the setDefaultRequestConfig with a method with a RequestConfig object on HttpClient builders to set the timeouts.(jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
@@ -387,6 +396,7 @@ ancestor::MethodDeclaration//PrimarySuffix/@Image="disableConnectionState")]
             Solution: switch to a Feign client that supports HTTP connection pooling with mTLS, for instance Apache HttpClient 4 with disableConnectionState and proper connection pool size and timeouts. (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
@@ -432,6 +442,7 @@ public class MyFeignClient {
         </description>
         <priority>2</priority>
         <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
@@ -460,6 +471,7 @@ public class XMLConversion {
             Solution: Use ClosableHttpClient to allow for invoking close on it to properly close the connection. Or use HttpComponentsClientHttpRequestFactory(httpClient) to let it manage closing. (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
@@ -504,6 +516,7 @@ public class XMLConversion {
             Solution: Avoid configuring objectMappers except when initializing: right after construction. It is recommended to create ObjectReaders and ObjectWriters from ObjectMapper and pass those around since they are immutable and therefore thread-safe. (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
@@ -566,6 +579,7 @@ or ancestor::ClassOrInterfaceBody[count(.//MethodDeclaration/ResultType/Type[pmd
             Solution: Netflix recommends to use open source alternatives like resilience4j. (jpinpoint-rules)</description>
         <priority>3</priority>
         <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
@@ -585,6 +599,7 @@ or ancestor::ClassOrInterfaceBody[count(.//MethodDeclaration/ResultType/Type[pmd
             Solution: Create/build HttpClient with proper connection pooling and timeouts once, and then use it for requests. (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
@@ -618,6 +633,7 @@ class Foo {
             Solution: Have the retry mechanism in one location in the chain only, recommended only the one closest to the user. (jpinpoint-rules)</description>
         <priority>5</priority>
         <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
@@ -652,6 +668,7 @@ public class Foo {
             Solution: Remove Hooks.onOperatorDebug() when not debugging. (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
@@ -682,6 +699,7 @@ public class Foo {
             Solution: Don't use both on the same factory, provide the HttpClient only once to the factory. (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
@@ -728,6 +746,7 @@ class Good {
             Solution: Use the HttpHost constructor with 2 (including port) or preferably 3 arguments (including port and protocol). (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
@@ -764,6 +783,7 @@ class Foo {
             Solution: Provide your own supplier with explicit pool sizing and timeouts by a class implementing Supplier. (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
@@ -821,6 +841,7 @@ and use it to replace the bad line in Bad example:
             Note that the pool will only grow beyond CorePoolSize up to MaxPoolSize when the queue is full. (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
@@ -862,6 +883,7 @@ and use it to replace the bad line in Bad example:
             Solution: Avoid multiple reads of the response body so it is not needed. (jpinpoint-rules)</description>
         <priority>3</priority>
         <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
@@ -903,6 +925,7 @@ public class Foo {
             Solution: Set connectTimeout and connectionRequestTimeout to values based om tests, for instance 200 ms and 250 ms. respectively (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
@@ -963,6 +986,7 @@ public class HttpClientStuff {
             Also when used like jaxMsgConverter.setObjectMapper(objectMapper) it is not considered a violation. (jpinpoint-rules)</description>
         <priority>3</priority>
         <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
@@ -1008,6 +1032,7 @@ and not($node/@Name = ancestor::ClassOrInterfaceDeclaration//PrimaryExpression[P
             (jpinpoint-rules)</description>
         <priority>1</priority>
         <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[

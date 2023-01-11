@@ -341,8 +341,9 @@ Therefore, this data can mix-up: a user can access data of another user, which i
 **Solution:** 
 * Do *not* put the user related data in a shared component. Use a POJO, think about scope.   
 * If the field does not actually reference user data, change to a name which does not indicate user data e.g.   
+``private Scheduler schedulerOrderReference;`` rename to: ``private Scheduler orderReferenceScheduler;``   
 ``private OrderHandler handleOrders;`` rename to: ``private OrderHandler orderHandler;``   
-The last word as noun is assumed to be the entity, so handleOrders is assumes to be order objects which typically is user related data. A handler is not.   
+The last or second last word as noun is assumed to be the entity, so handleOrders is assumes to be order objects which typically is user related data. A handler is not.   
 **Rule name:** AvoidUserDataInSharedObjects   
 **Details:** The regular expression for matching the name of the field assumed to be user data: 
 ``User[Id|Ref|Reference]*$|Customer[Id|Ref|Reference]*$|Session[Id|Ref|Reference]*$|Order[Id|Ref|Reference|List]*$|Account[Id|Ref|Reference|List]*$|Transaction[Id|Ref|Reference|List]*$|Contract[Id|Ref|Reference|List]*$``   
