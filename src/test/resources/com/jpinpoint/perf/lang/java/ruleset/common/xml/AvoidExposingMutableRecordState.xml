@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>violation: Avoid exposing mutable record state, use copyOf in the compact constructor.</description>
+        <expected-problems>3</expected-problems>
+        <expected-linenumbers>8, 11, 20</expected-linenumbers>
+        <code><![CDATA[
+import java.lang.*;
+import java.util.*;
+
+@Builder
+public record Document(
+    long applicantDocumentId,
+    String applicantName,
+    List<File> files // bad 1
+) {}
+
+record BadRecord(String name, List<String> list) { // bad 2, possibly mutable List exposed
+}
+
+record GoodRecord(String name, List<String> list) {
+  public GoodRecord {
+    list = List.copyOf(list); // good, immutable list
+  }
+}
+
+record SetRecord(String name, Set<String> set) { // bad 3
+}
+
+record MapRecord(String name, Map<String> map) {
+    public MapRecord {
+        map = Map.copyOf(map); // good
+    }
+}
+
+     ]]></code>
+    </test-code>
+</test-data>

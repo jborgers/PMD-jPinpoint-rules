@@ -2349,8 +2349,8 @@ Unexpected leaks could occur when initialized from a static context, which are u
 
 **Observation: Context and Dependency Injection is used with explicit calls of CDI.current().select(MyClass.class).get()**  
 **Problem**: We found a memory leak with this use of CDI. Two objects of type [com.ibm.ws](http://com.ibm.ws).cdi.impl.CDIImpl appear in the heap. One is small and the other is very large. See <TODO> and see more info: [dont-get-trapped-into-a-memory-leak-using-cdi-instance-injection](https://blog.akquinet.de/2017/01/04/dont-get-trapped-into-a-memory-leak-using-cdi-instance-injection/)  
-**Solution**: use destroy to cleanup:
-
+**Solution**: use destroy to cleanup.      
+**Example**:   
 ```java
 MyClass myObject= CDI.current().select(MyClass.class).get();
 try {
@@ -2376,7 +2376,7 @@ Violation of Encapsulation, DRY or SRP
 #### VOEDOS02
 
 **Observation: Object exposes internal unmodifyable data structure** like an unmodifyable list.  
-**Problem:** The list is iterated over, some condition is tested and some operation is performed conditionally. This is actually a query, a selection of elements followed by an operation. Quite similar of these queries+operations typically exist in various places.  
+**Problem:** The list is iterated over, some condition is tested and some operation is performed conditionally. This is actually a query, a selection of elements followed by an operation. Quite similar of these queries+operations typically exist in various places.   
 **Solution:** See previous item, apply: Tell, don't ask. See also [Violation of encapsulation](http://www.artima.com/weblogs/viewpost.jsp?thread=132358). These queries+operations are much easier to optimize if they are located in one place.
 
 #### VOEDOS03
@@ -2395,8 +2395,30 @@ Violation of Encapsulation, DRY or SRP
 #### VOEDOS05
 
 **Observation: A constructor or setter shares internal state.** A reference to a mutable object is passed in a constructor or setter and assigned to a field, it is used directly as state of the object.  
-**Problem:** Internal state can be modified from outside of the object, by using the reference to the mutable object by the caller of the constructor or setter.  
+**Problem:** Internal state can be modified from outside of the object, by using the reference to the mutable object by the caller of the constructor or setter. Risk of thread-unsafety.  
 **Solution:**
 
 1.  Defensively copy the referenced object such that no mutable state is shared.
 2.  Use a [builder pattern](http://www.informit.com/articles/article.aspx?p=1216151&seqNum=2) in case of more than a few parameters.
+
+#### VOEDOS06
+
+**Observation: A Java record shares internal mutable state.** Records are a concise way to code your plain "data carriers". They are transparent holders for _shallowly_ immutable data, that is, the fields (references) are final. 
+Still, fields may reference mutable objects.   
+**Problem:** Internal state can be modified from outside of the record, through the implicit accessor method or by the caller of the constructor. Risk of thread-unsafety.  
+**Solution:** Use [record compact constructor](https://docs.oracle.com/en/java/javase/16/language/records.html) to defensively copy the (possibly) mutable object such as a List, Set or Map to make the record _deeply_ immutable. 
+Note that for this the collection elements also need to be deeply immutable.   
+**Rule name:** AvoidExposingMutableRecordState   
+**Example:**
+```java
+record BadRecord(String name, List<String> list) { // bad, possibly mutable List exposed
+}
+
+record GoodRecord(String name, List<String> list) {
+  public GoodRecord {
+    list = List.copyOf(list); // good, immutable list
+  }
+}
+```
+**Note:** copyOf() doesn't actually do any copying if the input is already an immutable list created via List.of() (or related methods).    
+**See:** [enforce-immutable-collections-in-a-java-record](https://stackoverflow.com/questions/67604105/enforce-immutable-collections-in-a-java-record) and [jep-395](https://openjdk.org/jeps/395).   
