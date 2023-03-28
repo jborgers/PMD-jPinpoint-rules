@@ -186,6 +186,42 @@ or preceding-sibling::SwitchLabel[@Default=true()])
         </properties>
     </rule>
 
+    <rule name="AvoidExposingMutableRecordState"
+          language="java"
+          message="Avoid exposing mutable state of the record. Use copyOf in the compact constructor."
+          class="net.sourceforge.pmd.lang.rule.XPathRule"
+          typeResolution="true"
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#voedos06">
+        <description>Problem: Internal state can be modified from outside of the record, through the implicit accessor method or by the caller of the constructor. Risk of thread-unsafety.
+            Solution: Use the record compact constructor to defensively copy the (possibly) mutable object such as a List, Set or Map, e.g. with List.copyOf().
+        (jpinpoint-rules)</description>
+        <priority>3</priority>
+        <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+//RecordDeclaration//RecordComponent/Type[(pmd-java:typeIs('java.util.Collection') or pmd-java:typeIs('java.util.Map'))
+and
+not(../VariableDeclaratorId/@Name = ancestor::RecordDeclaration/RecordBody/CompactConstructorDeclaration//StatementExpression
+[Expression/PrimaryExpression/PrimaryPrefix/Name[ends-with(@Image, '.copyOf')]]/PrimaryExpression/PrimaryPrefix/Name/@Image)]
+                ]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+record BadRecord(String name, List<String> list) {
+}
+
+record GoodRecord(String name, List<String> list) {
+    public GoodRecord {
+        list = List.copyOf(list);
+    }
+}
+            ]]>
+        </example>
+    </rule>
+
     <rule name="AvoidImplicitlyRecompilingRegex" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" message="String regex method, Pattern.matches or FileSystem.getPathMatcher is used.
 	   Implicitly compiles a regex pattern, can be expensive." typeResolution="true"
           externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#ireu01">
@@ -379,7 +415,7 @@ and
           typeResolution="true"
           externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#pml01">
         <description>Problem: A list which is unnecessarily mutable may accidentally be added to and cause a memory leak. &#13;
-            Solution: Make it impossible to modify the list after initialization: use Java 9 List.of, Collections.unmodifiableList or Guava ImmutableList.
+            Solution: Make it impossible to modify the list after initialization: use Java 9 List.of, Java 10 List.copyOf, Collections.unmodifiableList or Guava ImmutableList.
         (jpinpoint-rules)</description>
         <priority>3</priority>
         <properties>
