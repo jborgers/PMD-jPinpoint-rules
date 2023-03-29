@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>UseClearKeyGeneratorName bad</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>3</expected-linenumbers>
+        <code><![CDATA[
+import org.springframework.cache.interceptor.KeyGenerator;
+
+public class CacheKeyGenerator implements KeyGenerator { // bad, unclear name
+   public Object generate(Object target, Method method, Object... params) {
+        return null; // build key and return it
+   }
+}
+]]></code>
+    </test-code>
+
+    <test-code>
+        <description>UseClearKeyGeneratorName abstract good</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import org.springframework.cache.interceptor.KeyGenerator;
+
+public abstract class CacheKeyGenerator implements KeyGenerator { // good, abstract
+   public Object buildKey(Object target, Method method, Object... params) {
+        return null; // build key and return it
+   }
+}
+]]></code>
+    </test-code>
+
+    <test-code>
+        <description>UseClearKeyGeneratorName does not implement KeyGenerator good</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+public abstract class CacheKeyGenerator implements OtherThing { // good, does not implement KeyGenerator
+   public Object buildKey(Object target, Method method, Object... params) {
+        return null; // build key and return it
+   }
+}
+]]></code>
+    </test-code>
+
+</test-data>

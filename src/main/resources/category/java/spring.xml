@@ -509,7 +509,8 @@ class MyObject {
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
-//ClassOrInterfaceDeclaration[@SimpleName = 'CacheKeyGenerator']
+//ClassOrInterfaceDeclaration[@SimpleName = 'CacheKeyGenerator' and @Interface = false() and @Abstract = false()]
+/ImplementsList/ClassOrInterfaceType[@Image='KeyGenerator']
 	]]></value>
             </property>
         </properties>

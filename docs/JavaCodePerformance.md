@@ -1044,6 +1044,25 @@ class MyObject {
 }
 ```
 
+### IC17
+
+**Observation: The class implementing Spring's KeyGenerator uses a generic name: CacheKeyGenerator.**   
+**Problem:** It is unclear where this KeyGenerator should be used, for which cache and/or for which methods.
+If used on the wrong caches or methods, it may lead to cache key mix-up and user data mix-up.   
+**Solution:** Make the name specific so that it is clear where to apply this KeyGenerator in @Cacheable.   
+**Rule name:** UseClearKeyGeneratorName   
+**Example:**
+```java
+import org.springframework.cache.interceptor.KeyGenerator;
+
+public class CacheKeyGenerator // bad, unclear name
+        implements KeyGenerator { 
+  public Object generate(Object target, Method method, Object... params) {
+    // build key and return it
+  }
+}
+```
+
 Too much session usage
 ----------------------
 
