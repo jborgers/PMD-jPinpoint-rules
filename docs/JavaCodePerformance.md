@@ -2127,8 +2127,8 @@ Set<YourEnumType> set = EnumSet.allOf(YourEnumType.class);
 
 #### IUOC04
 
-**Observation: Elements are searched in a List .** The list is iterated until the right (key, value) element is found.  
-**Problem:** the time to find element is O(n); n=length of list.  
+**Observation: Elements are searched in a List .** The list is iterated or streamed until the right (key, value) element is found.  
+**Problem:** the time to find element is O(n); n = the length of list.  
 **Solution:** a Map is more time efficient, value is found by key. Access time is O(1), provided the [hashCode is well defined](http://www.ibm.com/developerworks/library/j-jtp05273/).
 
 #### IUOC05
@@ -2146,6 +2146,78 @@ Set<YourEnumType> set = EnumSet.allOf(YourEnumType.class);
 *   CopyOnWriteXxx collections of [java.util.concurrent](https://docs.oracle.com/javase/7/docs/api/java/util/concurrent/package-summary.html) for mostly read access
 *   ConcurrentXxx collections of [java.util.concurrent](https://docs.oracle.com/javase/7/docs/api/java/util/concurrent/package-summary.html) for non-mostly read. These utilizes non-blocking/wait-free algorithms or lock striping (see [thinking in parallel](http://www.thinkingparallel.com/2007/07/31/10-ways-to-reduce-lock-contention-in-threaded-programs/)), for instance ConcurrentHashMap. Or use NonBlockingHashMap of [high-scale-lib](https://sourceforge.net/projects/high-scale-lib/).
 *   Add lock striping to your collection with [guava's Striped](https://google.github.io/guava/releases/19.0/api/docs/com/google/common/util/concurrent/Striped.html)<ReadWriteLock>.
+
+#### IUOC07
+
+**Observation: To get an Enum value by its defined field, the values are streamed on every call.**   
+**Problem:** the time to find element is O(n); n = the number of enum values. This unnecessary processing is executed for every call.  
+**Solution:** use a static Map, value is found by key, the field. Access time is O(1), provided the [hashCode is well defined](http://www.ibm.com/developerworks/library/j-jtp05273/).
+If there is one field, of type String, this usually is implemented by overriding toString. Consider to implement a fromString method to provide the reverse conversion, see the following examples:
+**Examples:**
+```java
+// BAD
+public enum Fruit {
+    APPLE("apple"),
+    ORANGE("orange"),
+    BANANA("banana");
+
+    private final String name;
+
+    Fruit(String name) {
+        this.name = name;
+    }
+
+    @Override
+    public String toString() {
+        return name;
+    }
+
+    public static Optional<Fruit> fromString(String name) {
+        return Arrays.stream(Fruit.values())
+                .filter(v -> v.toString().equals(name)).findAny(); // bad: iterates for every call, O(n) access time
+    }
+}
+```
+Usage: `Fruit f = Fruit.fromString("apple");`
+```java
+// GOOD
+public enum Fruit {
+    APPLE("apple"),
+    ORANGE("orange"),
+    BANANA("banana");
+
+    private static final Map<String, Fruit> nameToValue =
+            Stream.of(values()).collect(toMap(Object::toString, v -> v));
+    private final String name;
+
+    Fruit(String name) {
+        this.name = name;
+    }
+
+    @Override
+    public String toString() {
+        return name;
+    }
+
+    public static Optional<Fruit> fromString(String name) {
+        return Optional.ofNullable(nameToValue.get(name)); // good, get from Map, O(1) access time 
+    }
+}
+```
+As a side note, if you are happy with the Fruit name as capitals, you don't need any of the fields and methods and the default implementation of toString and valueOf will do,
+so Fruit simply becomes:
+```java
+public enum Fruit { // great, very simple
+    APPLE,
+    ORANGE,
+    BANANA;
+}
+```
+With usage: `Fruit f = Fruit.valueOf("APPLE");`
+
+**See:**
+* This is a special case of [#IUOC04](#IUOC04).
+* Effective Java 3rd Ed, p164 (Use enums).
 
 Inefficient String usage
 ------------------------
