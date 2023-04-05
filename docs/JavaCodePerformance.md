@@ -2149,10 +2149,10 @@ Set<YourEnumType> set = EnumSet.allOf(YourEnumType.class);
 
 #### IUOC07
 
-**Observation: To get an Enum value by its defined field, the values are streamed on every call.**   
+**Observation: To get an enum value by its defined field, the values are streamed on every call.**   
 **Problem:** the time to find element is O(n); n = the number of enum values. This unnecessary processing is executed for every call.  
 **Solution:** use a static Map, value is found by key, the field. Access time is O(1), provided the [hashCode is well defined](http://www.ibm.com/developerworks/library/j-jtp05273/).
-If there is one field, of type String, this usually is implemented by overriding toString. Consider to implement a fromString method to provide the reverse conversion, see the following examples:
+If there is one field, of type String, this usually is implemented by overriding toString. Consider to implement a fromString method to provide the reverse conversion, see the following examples:   
 **Examples:**
 ```java
 // BAD
@@ -2178,7 +2178,7 @@ public enum Fruit {
     }
 }
 ```
-Usage: `Fruit f = Fruit.fromString("apple");`
+Usage: `Fruit f = Fruit.fromString("banana");`
 ```java
 // GOOD
 public enum Fruit {
@@ -2213,7 +2213,7 @@ public enum Fruit { // great, very simple
     BANANA;
 }
 ```
-With usage: `Fruit f = Fruit.valueOf("APPLE");`
+With usage: `Fruit f = Fruit.valueOf("BANANA");`
 
 **See:**
 * This is a special case of [#IUOC04](#IUOC04).
