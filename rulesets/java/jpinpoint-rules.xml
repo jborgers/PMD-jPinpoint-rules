@@ -485,7 +485,7 @@ public class Good {
           class="net.sourceforge.pmd.lang.rule.XPathRule"
           typeResolution="true"
           externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#iuoc07">
-        <description>Problem: the time to find element is O(n); n = the number of enum values. This unnecessary processing is executed for every call.
+        <description>Problem: the time to find element is O(n); n = the number of enum values. This identical processing is executed for every call. Considered problematic when n > 3.
             Solution: use a static field-to-enum-value Map. Access time is O(1), provided the hashCode is well-defined.
             For one String field, usually toString returns that field. Implement a fromString method to provide the reverse conversion by using the map.
         (jpinpoint-rules)</description>
