@@ -2150,31 +2150,27 @@ Set<YourEnumType> set = EnumSet.allOf(YourEnumType.class);
 #### IUOC07
 
 **Observation: To get an enum value by its defined field, the values are streamed on every call.**   
-**Problem:** the time to find element is O(n); n = the number of enum values. This unnecessary processing is executed for every call.  
-**Solution:** use a static Map, value is found by key, the field. Access time is O(1), provided the [hashCode is well defined](http://www.ibm.com/developerworks/library/j-jtp05273/).
-If there is one field, of type String, this usually is implemented by overriding toString. Consider to implement a fromString method to provide the reverse conversion, see the following examples:   
+**Problem:** the time to find element is O(n); n = the number of enum values. This identical processing is executed for every call. Considered problematic when n > 3.     
+**Solution:** use a static field-to-enum-value Map. Access time is O(1), provided the [hashCode is well-defined](http://www.ibm.com/developerworks/library/j-jtp05273/).
+For one String field, usually toString returns that field. Consider to implement a fromString method to provide the reverse conversion by using the map, see the following examples:   
 **Examples:**
 ```java
 // BAD
 public enum Fruit {
     APPLE("apple"),
     ORANGE("orange"),
-    BANANA("banana");
+    BANANA("banana"),
+    KIWI("kiwi");
 
     private final String name;
 
-    Fruit(String name) {
-        this.name = name;
-    }
+    Fruit(String name) { this.name = name; }
 
     @Override
-    public String toString() {
-        return name;
-    }
+    public String toString() { return name; }
 
     public static Optional<Fruit> fromString(String name) {
-        return Arrays.stream(Fruit.values())
-                .filter(v -> v.toString().equals(name)).findAny(); // bad: iterates for every call, O(n) access time
+        return Stream.of(values()).filter(v -> v.toString().equals(name)).findAny(); // bad: iterates for every call, O(n) access time
     }
 }
 ```
@@ -2184,20 +2180,17 @@ Usage: `Fruit f = Fruit.fromString("banana");`
 public enum Fruit {
     APPLE("apple"),
     ORANGE("orange"),
-    BANANA("banana");
+    BANANA("banana"),
+    KIWI("kiwi");
 
     private static final Map<String, Fruit> nameToValue =
             Stream.of(values()).collect(toMap(Object::toString, v -> v));
     private final String name;
 
-    Fruit(String name) {
-        this.name = name;
-    }
+    Fruit(String name) { this.name = name; }
 
     @Override
-    public String toString() {
-        return name;
-    }
+    public String toString() { return name; }
 
     public static Optional<Fruit> fromString(String name) {
         return Optional.ofNullable(nameToValue.get(name)); // good, get from Map, O(1) access time 
@@ -2210,7 +2203,8 @@ so Fruit simply becomes:
 public enum Fruit { // great, very simple
     APPLE,
     ORANGE,
-    BANANA;
+    BANANA,
+    KIWI;
 }
 ```
 With usage: `Fruit f = Fruit.valueOf("BANANA");`
