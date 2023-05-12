@@ -471,6 +471,7 @@ class FeignConfig {
 
 Improper asynchrony 
 -------------------
+
 This categry could be seen as a subcategory of the previous category. However, above mostly deals with remote connections, asynchony mostly deals with threading and parallelism.
 We assume asynchronous calls are typically made to remote services. 
 
@@ -2492,16 +2493,24 @@ Violation of Encapsulation, DRY or SRP
 Still, fields may reference mutable objects.   
 **Problem:** Internal state can be modified from outside of the record, through the implicit accessor method or by the caller of the constructor. Risk of thread-unsafety.  
 **Solution:** Use [record compact constructor](https://docs.oracle.com/en/java/javase/16/language/records.html) to defensively copy the (possibly) mutable object such as a List, Set or Map to make the record _deeply_ immutable. 
-Note that for this the collection elements also need to be deeply immutable.   
+Note that for this the collection elements also need to be deeply immutable. Note that copyOf does not accept a null collection nor null elements.    
 **Rule name:** AvoidExposingMutableRecordState   
 **Example:**
 ```java
 record BadRecord(String name, List<String> list) { // bad, possibly mutable List exposed
 }
 
-record GoodRecord(String name, List<String> list) {
+record GoodRecord(String name, @NonNull List<String> list) {
   public GoodRecord {
     list = List.copyOf(list); // good, immutable list
+  }
+}
+
+record GoodRecordNullable(String name, @Nullable List<String> list) {
+  public GoodRecordNullable {
+    if (list != null) {
+      list = List.copyOf(list);
+    }
   }
 }
 ```

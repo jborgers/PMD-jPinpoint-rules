@@ -6,10 +6,11 @@
     <test-code>
         <description>violation: Avoid exposing mutable record state, use copyOf in the compact constructor.</description>
         <expected-problems>3</expected-problems>
-        <expected-linenumbers>8, 11, 20</expected-linenumbers>
+        <expected-linenumbers>9, 12, 21</expected-linenumbers>
         <code><![CDATA[
 import java.lang.*;
 import java.util.*;
+import static java.util.List.copyOf;
 
 @Builder
 public record Document(
@@ -36,6 +37,48 @@ record MapRecord(String name, Map<String> map) {
     }
 }
 
+record GoodRecordStaticImport(String name, List<String> list) {
+  public GoodRecordStaticImport {
+    list = copyOf(list); // good, immutable list
+  }
+}
+
+record GoodRecordNullable(String name, @Nullable List<String> list) {
+    public GoodRecordNullable {
+        if (list != null) {
+            list = List.copyOf(list);
+        }
+    }
+}
+
+record GoodRecordNotNull(String name, @NotNull List<String> list) {
+    public GoodRecordNotNull {
+        list = List.copyOf(list);
+    }
+}
+
+record GoodRecordNonNull(String name, @NonNull List<String> list) {
+    public GoodRecordNonNull {
+        list = List.copyOf(list);
+    }
+}
+
+record GoodRecordTernary(String name, List<String> list) {
+    public GoodRecordTernary {
+        list = (list == null) ? null : List.copyOf(list); // keep the state null when null is supplied.
+    }
+}
+
+record GoodRecordIf(String name, List<String> list) {
+    public GoodRecordIf {
+        if (list == null) {
+            list = null; // keep the state null when null is supplied.
+        }
+        else {
+            list = List.copyOf(list);
+        }
+    }
+}
      ]]></code>
     </test-code>
 </test-data>

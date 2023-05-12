@@ -1611,8 +1611,7 @@ class Foo {
 //RecordDeclaration//RecordComponent/Type[(pmd-java:typeIs('java.util.Collection') or pmd-java:typeIs('java.util.Map'))
 and
 not(../VariableDeclaratorId/@Name = ancestor::RecordDeclaration/RecordBody/CompactConstructorDeclaration//StatementExpression
-[Expression/PrimaryExpression/PrimaryPrefix/Name[ends-with(@Image, '.copyOf')]]/PrimaryExpression/PrimaryPrefix/Name/@Image)]
-                ]]></value>
+[Expression//PrimaryExpression/PrimaryPrefix/Name[ends-with(@Image, 'copyOf')]]/PrimaryExpression/PrimaryPrefix/Name/@Image)]                ]]></value>
             </property>
         </properties>
         <example>
