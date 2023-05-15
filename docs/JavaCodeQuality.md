@@ -11,6 +11,7 @@ By Jeroen Borgers ([jPinpoint](http://www.jpinpoint.com)) and Peter Paul Bakker 
 - [Incorrect equals and hashCode](#incorrect-equals-and-hashcode)
 - [Potential Session Data Mix-up](#potential-session-data-mix-up)
 - [Suspicious code constructs](#suspicious-code-constructs)
+- [Ineffective Lambdas and Streams](#ineffective-lambdas-and-streams)
 - [Maintainability](#maintainability)
 - [Improved Sonar rules](#improved-sonar-rules)
 
@@ -367,6 +368,46 @@ class VMRDataGood {
     private OrderHandler orderHandler; // proper field name
 }
 ````
+
+Ineffective Lambdas and Streams
+-------------------------------
+
+### ILS01
+
+**Observation: forEach is used to perform a stream computation.**  
+**Problem:** Java Streams is a paradigm based on functional programming: the result should depend only on its input, not on any mutable state nor should it update any state.
+Use of forEach in a stream is actually iterative code masquerading as streams code. It is typically harder to read and less maintainable than the iterative form.  
+**Solution:** Use the for-each (enhanced-for) loop, or the pure functional form. The forEach operation should only be used to report (i.e. log) the result of a stream computation.    
+**See:** Effective Java 3rd Ed. Item 46: Prefer Side-Effect-Free Functions In Streams.   
+**Rule name:** AvoidForEachInStreams   
+**Example:**
+````java
+class AvoidForEachInStreams {
+    List<String> letters = Arrays.asList("a", "b", "c");
+    Map<String, Integer> map;
+    void forEachInStream() {
+        map = new HashMap<>();
+        letters.forEach(l -> map.put(l, 0)); // bad, side effect, modifies map
+    }
+    void forEachInLogging() {
+        letters.forEach(Log::info); // good, logging is okay
+    }
+    void forEachLoop() {
+        map = new HashMap<>();
+        for (String l : letters) {  // good, meant for modifying state
+            map.put(l, 0);
+        }
+    }
+    Map pureFunctional() {
+        return letters.stream().collect(toMap(l -> l, v -> 0)); // good, no side effects, no state used nor modified
+    }
+    void forEachInRange() {
+        map = new HashMap<>();
+        IntStream.range(0, letters.size()).forEach(i -> map.put(letters.get(i), 0)); // bad, side effect, modifies map
+    }
+}
+````
+
 Maintainability
 ---------------
 
@@ -389,7 +430,7 @@ private static final int SIXTIES_START = 1960; // good
     }
 }
 ````
- 
+
 Improved Sonar rules
 --------------------
 We found that several Sonar rules do not meet our needs. We need an improved version.
