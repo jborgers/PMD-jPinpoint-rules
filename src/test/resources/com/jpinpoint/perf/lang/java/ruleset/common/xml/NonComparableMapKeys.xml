@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>violation: NonComparableMapKeys</description>
+        <expected-problems>6</expected-problems>
+        <expected-linenumbers>9,10,11,13,18,20</expected-linenumbers>
+        <code><![CDATA[
+package com.jpinpoint.tryout;
+import java.util.*;
+
+public class NonComparableMapKeys {
+    //Map<NonComparableKey, String> nckMap; // bad, may not be able to check if not compiled in classpath
+    Map<ComparableKey, String> ckMap; // good
+    Map<Comparable, String> cMap; // good
+    Map<String, String> sMap = new HashMap<>(); // good
+    HashMap<Object, String> oMap; // bad, Object does not implement Comparable
+    Map<Thread, String> tMap; // bad, Thread does not implement Comparable
+    Map<Class, String> clMap; // bad, Class does not implement Comparable
+    Map oldStyleMap = new HashMap(); // cannot check here
+    Set<Class> clSet; // bad, Set elements are implemented as Map keys
+    Set oldStyleSet = new HashSet(); // cannot check here
+
+    void putInOldStyleMap() {
+        oldStyleMap.put("key", "value");
+        oldStyleMap.put(new Thread(), new Thread()); // bad
+        oldStyleSet.add("good");
+        oldStyleSet.add(new Thread()); // bad
+    }
+}
+
+class NonComparableKey {
+}
+
+abstract class ComparableKey implements Comparable<ComparableKey> {
+}
+     ]]></code>
+    </test-code>
+
+</test-data>

@@ -2214,6 +2214,41 @@ With usage: `Fruit f = Fruit.valueOf("BANANA");`
 * This is a special case of [#IUOC04](#IUOC04).
 * Effective Java 3rd Ed, p164 (Use enums).
 
+#### IUOC08
+
+**Observation: Map keys or Set elements do not implement Comparable.**   
+**Problem:** If multiple entries end up in the same HashMap bucket, they are stored as LinkedList and with more than 7 as a red black tree.
+The list access time is O(n) and tree access time is only O(log n) which is much faster especially for large n. This tree implementation utilized the compareTo from the Comparable interface.
+If this is not implemented, access will be slow.     
+**Solution:** Implement Comparable for your Map keys and Set elements. Do not use classes for those which don't implement Comparable, like Thread, Class and Object.
+Note that also equals and hashCode must be implemented properly for the keys/elements, and compareTo must be compatible with equals.   
+**Rule name:** NonComparableMapKeys   
+**Examples:**
+```java
+class NonComparableMapKeys {
+    Map<Object, String> oMap; // bad, Object does not implement Comparable
+    Map<Thread, String> tMap; // bad, Thread does not implement Comparable
+    Set<Thread> clSet; // bad, same reason since Set elements are implemented as Map keys
+
+    Map oldStyleMap = new HashMap(); // cannot check here
+    Set oldStyleSet = new HashSet(); // cannot check here
+
+    void putInOldStyleBad() {
+        oldStyleMap.put(new Thread(), "value"); // bad
+        oldStyleSet.add(new Thread()); // bad
+    }
+
+    Map<Comparable, String> cMap; // good
+
+    void putInOldStyleGood() {
+        oldStyleMap.put("key", "value");
+        oldStyleSet.add("good");
+    }
+}
+```
+**See:** [Java 8 HahMap keys and Comparable](https://dzone.com/articles/java-8-hashmaps-keys-and-the-comparable-interface)   
+**Note:** This rule replaces Sonar rule *java:S6411 The key type should implement Comparable*, which has shortcomings. 
+
 Inefficient String usage
 ------------------------
 
@@ -2222,7 +2257,7 @@ Inefficient String usage
 **Observation: A StringBuffer is used.**  
 **Problem:** StringBuffer is thread-safe and has locking overhead.  
 **Solution:** Thread-safety not needed if only accessed by one thread. Use StringBuilder instead.  
-**Rule name:** AvoidStringBuffer.
+**Rule name:** AvoidStringBuffer.   
 
 #### ISU02
 
