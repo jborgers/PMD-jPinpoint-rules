@@ -1698,11 +1698,11 @@ public enum Fruit {
           class="net.sourceforge.pmd.lang.rule.XPathRule"
           typeResolution="true"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#iuoc08">
-        <description>Problem: If multiple entries end up in the same HashMap bucket, they are stored as LinkedList and with more than 7 as a red black tree.
-            The list access time is O(n) and tree access time is only O(log n) which is much faster especially for large n. This tree implementation utilized the compareTo from the Comparable interface.
+        <description>Problem: If multiple entries end up in the same HashMap bucket, they are stored as LinkedList, and with more than 7 as a red black tree.
+            The list access time is O(n) and tree access time is only O(log n) which is much faster for large n. This tree implementation utilizes the compareTo from the Comparable interface.
             If this is not implemented, access will be slow.
             Solution: Implement Comparable for your Map keys and Set elements. Do not use classes for those which don't implement Comparable, like Thread, Class and Object.
-            Note that also equals and hashCode should be implemented properly for the keys/elements, and compareTo should be compatible with equals.
+            Note that also equals and hashCode must be implemented properly for the keys/elements, and compareTo must be compatible with equals.
         </description>
         <priority>3</priority>
         <properties>

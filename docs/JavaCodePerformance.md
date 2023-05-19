@@ -2217,8 +2217,8 @@ With usage: `Fruit f = Fruit.valueOf("BANANA");`
 #### IUOC08
 
 **Observation: Map keys or Set elements do not implement Comparable.**   
-**Problem:** If multiple entries end up in the same HashMap bucket, they are stored as LinkedList and with more than 7 as a red black tree.
-The list access time is O(n) and tree access time is only O(log n) which is much faster especially for large n. This tree implementation utilized the compareTo from the Comparable interface.
+**Problem:** If multiple entries end up in the same HashMap bucket, they are stored as LinkedList, and with more than 7 as a red black tree.
+The list access time is O(n) and tree access time is only O(log n) which is much faster especially for large n. This tree implementation utilizes the compareTo from the Comparable interface.
 If this is not implemented, access will be slow.     
 **Solution:** Implement Comparable for your Map keys and Set elements. Do not use classes for those which don't implement Comparable, like Thread, Class and Object.
 Note that also equals and hashCode must be implemented properly for the keys/elements, and compareTo must be compatible with equals.   
@@ -2246,7 +2246,7 @@ class NonComparableMapKeys {
     }
 }
 ```
-**See:** [Java 8 HahMap keys and Comparable](https://dzone.com/articles/java-8-hashmaps-keys-and-the-comparable-interface)   
+**See:** [Java 8 HashMap keys and Comparable](https://dzone.com/articles/java-8-hashmaps-keys-and-the-comparable-interface)   
 **Note:** This rule replaces Sonar rule *java:S6411 The key type should implement Comparable*, which has shortcomings. 
 
 Inefficient String usage
