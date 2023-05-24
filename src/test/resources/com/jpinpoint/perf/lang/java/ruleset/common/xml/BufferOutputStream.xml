@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>violation: BufferOutputStream</description>
+        <expected-problems>2</expected-problems>
+        <expected-linenumbers>8, 20</expected-linenumbers>
+        <code><![CDATA[
+import java.io.*;
+import java.nio.file.Paths;
+
+class BufferOutputStream {
+    public static void bar(String keyStoreBase64, String path) {
+        try (InputStream inputStream = new ByteArrayInputStream(keyStoreBase64.getBytes(StandardCharsets.UTF_8));
+             var keystoreInputStream = new Base64InputStream(inputStream);
+             OutputStream outputStream = java.nio.file.Files.newOutputStream(Paths.get(path)) // bad
+        ) {
+            int b = 0;
+            while ((b = keystoreInputStream.read()) > -1) {
+                outputStream.write(b);
+            }
+        } catch (IOException e) {
+            log.error("Exception writing keystore to file", e);
+        }
+    }
+
+    OutputStream bad(String path) throws IOException {
+        return java.nio.file.Files.newOutputStream(Paths.get(path)); // bad
+    }
+
+    OutputStream good(String path) throws IOException {
+        return new BufferedOutputStream(java.nio.file.Files.newOutputStream(Paths.get(path)));
+    }
+
+    OutputStream good2() throws IOException {
+        OutputStream outputStream = java.nio.file.Files.newOutputStream(Paths.get("thepath"));
+        return new BufferedOutputStream(outputStream);
+    }
+
+}
+     ]]></code>
+    </test-code>
+
+</test-data>

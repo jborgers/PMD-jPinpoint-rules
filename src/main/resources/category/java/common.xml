@@ -1754,4 +1754,40 @@ and (pmd-java:typeIs('java.lang.Object'))
         </example>
     </rule>
 
+    <rule name="BufferOutputStream"
+          language="java"
+          message="Files.newOutputStream is not buffered, add buffering."
+          class="net.sourceforge.pmd.lang.rule.XPathRule"
+          typeResolution="true"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#isio05">
+        <description>Problem: Files.newOutputStream is not buffered.
+            The stream is written to file byte by byte, where each operating system call has its overhead which makes it slow.
+            Solution: Use buffering to write a chunk of bytes at once with much lower overhead.
+            Use e.g. BufferedOutputStream which has a buffer size of 8 kB to write at once.
+        </description>
+        <priority>3</priority>
+        <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+//PrimaryExpression/PrimaryPrefix/Name[pmd-java:typeIs('java.nio.file.Files') and ends-with(@Image,'.newOutputStream')]
+[ancestor::MethodDeclaration[count(.//AllocationExpression[pmd-java:typeIs('java.io.BufferedOutputStream')]) = 0]]
+                ]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+class Foo {
+    OutputStream bad(String path) throws IOException {
+        return java.nio.file.Files.newOutputStream(Paths.get(path)); // bad
+    }
+    OutputStream good(String path) throws IOException {
+        return new BufferedOutputStream(java.nio.file.Files.newOutputStream(Paths.get(path)));
+    }
+}
+            ]]>
+        </example>
+    </rule>
+
 </ruleset>

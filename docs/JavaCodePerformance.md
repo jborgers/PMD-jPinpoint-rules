@@ -1714,13 +1714,31 @@ The previous example improved:
 1.  switch to binary streaming upload with apache HTTP client. This is also used for back-end service calls with large data transfers, not just uploads. 
 2.  use binary attachments. In this solution, the PayloadData SOAP element only contains a reference to a separate MIME block in the POST body, containing a reference to a file with the binary data. See [Attachments over webservices](http://www.middlewareguru.com/mw/?p=752). This works well in project.
 
-Validate with large object allocation logging that no large objects are allocated and buffered streaming is working correctly, by using a jvm argument like:
+Validate with large object allocation logging that no large objects are allocated and buffered streaming is working correctly, by using a (J9) jvm argument like:
 
 ```
 -Xdump:stack:events=allocation,filter=#6m
 ```
 
 Logging of allocation stack traces will be in native\_stderr.log.
+
+#### ISIO05
+
+**Observation: No buffering is added to the use of Files.newOutputStream.**  
+**Problem:** Files.newOutputStream is not buffered. The stream is written to file byte by byte, where each operating system call has its overhead which makes it slow.   
+**Solution:** Use buffering to write a chunk of bytes at once with much lower overhead. Use e.g. BufferedOutputStream which has a buffer size of 8 kB to write at once.   
+**Rule name:** BufferOutputStream.   
+**Example:**
+```java
+class Foo {
+    OutputStream bad(String path) throws IOException {
+        return java.nio.file.Files.newOutputStream(Paths.get(path)); // bad
+    }
+    OutputStream good(String path) throws IOException {
+        return new BufferedOutputStream(java.nio.file.Files.newOutputStream(Paths.get(path)));
+    }
+}
+```
 
 Extensive use of classpath scanning
 -----------------------------------
