@@ -3664,6 +3664,60 @@ public class XMLConversion {
         </example>
     </rule>
 
+    <rule name="AvoidLeakingRetryEventConsumers"
+          message="Avoid leaking of retry event consumers."
+          class="net.sourceforge.pmd.lang.rule.XPathRule"
+          dfa="false"
+          language="java"
+          typeResolution="true"
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#pml06">
+        <description>Problem: A resilience4j retry event consumer is added to a retry event publisher for every method call. Likely a lambda retaining one or more objects.
+            This will result in a growing list of consumers: a memory leak. Besides, the event will be sent to the growing number of consumers, taking more and more CPU time.&#13;
+            Solution: Only call EventPublisher.onRetry (that is, add a consumer) in the same scope as the Retry instance lives. Note there is no way to unregister a consumer.
+            (jpinpoint-rules)</description>
+        <priority>1</priority>
+        <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+//MethodDeclaration//PrimaryPrefix/Name[pmd-java:typeIs('io.github.resilience4j.retry.Retry') and ends-with(@Image, '.getEventPublisher')]
+(: any on-method: onRetry, onError, .. :)
+[../../PrimarySuffix[starts-with(@Image, 'on')]]
+(: it is a field :)
+[exists(index-of((ancestor::ClassOrInterfaceBody//FieldDeclaration[pmd-java:typeIs('io.github.resilience4j.retry.Retry')]
+/VariableDeclarator/VariableDeclaratorId/@Name), substring-before(@Image,'.')))]
+                ]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+import io.github.resilience4j.retry.Retry;
+
+public class Foo {
+    Retry retryField;
+    RetryRegistry reg;
+    final AtomicInteger retryCountField = new AtomicInteger();
+
+    Foo() {
+        retryField = reg.retry("one per service");
+        retryField.getEventPublisher().onRetry(event -> retryCountField.getAndIncrement()); // good
+    }
+
+    void callService() {
+        AtomicInteger retryCountLocal = new AtomicInteger();
+        retryField.getEventPublisher().onRetry(event -> retryCountLocal.getAndIncrement()); // bad, lambda and AtomicInt leak
+
+        Retry retryLocal = reg.retry("one per method call");
+        retryLocal.getEventPublisher().onRetry(event -> retryCountLocal.getAndIncrement()); // good, no leak
+
+        // same for onSuccess, onError, onIgnoredError
+    }
+}
+            ]]>
+        </example>
+    </rule>
+
     <rule name="AvoidModifyingObjectMapper" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" message="ObjectMapper is configured/modified, only initialize it right after construction."
           typeResolution="true"
           externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#iuojar02">

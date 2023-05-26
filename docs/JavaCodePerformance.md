@@ -2501,6 +2501,42 @@ try {
 
 **Rule name:** AvoidCDIReferenceLeak [PMD-jPinpoint-rules/issues/28](https://github.com/jborgers/PMD-jPinpoint-rules/issues/28)
 
+#### PML06
+
+**Observation: A resilience4j retry event consumer is added to a retry event publisher for every method call.** Likely a lambda retaining one or more objects.   
+**Problem**: This will result in a growing list of consumers: a memory leak. Besides, the event will be sent to the growing number of consumers, taking more and more CPU time.   
+**Solution**: Only call EventPublisher.onRetry (that is, add a consumer) in the same scope as the Retry instance lives. Note there is no way to unregister a consumer.       
+**Example**:
+```java
+import io.github.resilience4j.retry.Retry;
+
+public class Foo {
+  Retry retryField;
+  RetryRegistry reg;
+  final AtomicInteger retryCountField = new AtomicInteger();
+
+  Foo() {
+    retryField = reg.retry("one per service");
+    retryField.getEventPublisher().onRetry(event -> retryCountField.getAndIncrement()); // good
+  }
+
+  void callService() {
+    AtomicInteger retryCountLocal = new AtomicInteger();
+    retryField.getEventPublisher().onRetry(event -> retryCountLocal.getAndIncrement()); // bad, lambda and AtomicInt leak
+
+    Retry retryLocal = reg.retry("one per method call");
+    retryLocal.getEventPublisher().onRetry(event -> retryCountLocal.getAndIncrement()); // good, no leak
+
+    // same for onSuccess, onError, onIgnoredError
+  }
+}
+
+```
+
+**Rule name:** AvoidCDIReferenceLeak [PMD-jPinpoint-rules/issues/28](https://github.com/jborgers/PMD-jPinpoint-rules/issues/28)
+
+
+
 Violation of Encapsulation, DRY or SRP
 --------------------------------------
 

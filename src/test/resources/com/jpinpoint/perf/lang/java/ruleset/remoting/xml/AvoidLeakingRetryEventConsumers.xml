@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>violation: AvoidLeakingRetryEventConsumers</description>
+        <expected-problems>3</expected-problems>
+        <expected-linenumbers>20, 21, 29</expected-linenumbers>
+        <code><![CDATA[
+import io.github.resilience4j.retry.Retry;
+import io.github.resilience4j.retry.RetryRegistry;
+import java.util.concurrent.atomic.AtomicInteger;
+
+public class AvoidLeakingRetryEventConsumers {
+    RetryRegistry retryRegistry = RetryRegistry.ofDefaults();
+    Retry retryField = retryRegistry.retry("one per service");
+    Retry.EventPublisher epField;
+    final AtomicInteger retryCountField = new AtomicInteger();
+    final AtomicInteger otherCountField = new AtomicInteger();
+
+    AvoidLeakingRetryEventConsumers() {
+        retryField.getEventPublisher().onRetry(event -> retryCountField.getAndIncrement()); // good
+        epField = retryField.getEventPublisher();
+    }
+
+    void callService() {
+        AtomicInteger retryCountLocal = new AtomicInteger();
+
+        retryField.getEventPublisher().onRetry(event -> retryCountLocal.getAndIncrement()); // bad, lambda and AtomicInt leak
+        retryField.getEventPublisher().onRetry(event -> retryCountField.getAndIncrement()); // bad, only lambda leak
+
+        Retry retryLocal = retryRegistry.retry("one per method call");
+
+        retryLocal.getEventPublisher().onRetry(event -> retryCountLocal.getAndIncrement()); // good, no leak
+        retryLocal.getEventPublisher().onRetry(event -> retryCountField.getAndIncrement()); // good, no leak
+
+        // same for onSuccess, onError, onIgnoredError
+        retryField.getEventPublisher().onSuccess(event -> otherCountField.getAndIncrement()); // bad, lambda and AtomicInt leak
+    }
+
+    void notCovered() {
+        AtomicInteger retryCountLocal = new AtomicInteger();
+        Retry retryLocal = retryRegistry.retry("one per method call");
+
+        // separate event publisher step
+        // difficult to support and not sure anyone will use it this way
+        Retry.EventPublisher epLocalOfRetryField = retryField.getEventPublisher();
+        epLocalOfRetryField.onRetry(event -> retryCountLocal.getAndIncrement()); // should be bad, lambda and AtomicInt leak
+        epField.onRetry(event -> retryCountLocal.getAndIncrement()); // should be bad, lambda and AtomicInt leak
+        Retry.EventPublisher epLocalOfRetryLocal = retryLocal.getEventPublisher();
+        epLocalOfRetryLocal.onRetry(event -> retryCountLocal.getAndIncrement()); // good
+    }
+}
+
+     ]]></code>
+    </test-code>
+
+</test-data>
