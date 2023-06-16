@@ -1127,7 +1127,7 @@ public class Foo {
           dfa="false"
           language="java"
           typeResolution="true"
-          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ir">
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi22">
         <description>Problem: configuring connection settings like timeouts and pool sizes in code makes it difficult to manage and tune these settings.&#13;
             Solution: use property files, e.g. yml, to define the values for these settings for each called service.
             (jpinpoint-rules)</description>

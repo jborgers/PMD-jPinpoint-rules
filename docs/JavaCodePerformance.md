@@ -475,7 +475,30 @@ class FeignConfig {
 }
 ```
 
+#### IBI22
+**Observation: Connection configuration, that is, timeouts and pool sizes, are hardcoded.**   
+**Problem:** configuring connection settings like timeouts and pool sizes in code makes it difficult to manage and tune these settings.   
+**Solution:** use property files, e.g. yml, to define the values for these settings for each called service.   
+**Rule name:** AvoidHardcodedConnectionConfig   
+**Example:**
+```java
+class AvoidHardcodedConnectionConfig {
+  private static final int CONNECTION_TIMEOUT = 50000;// bad
+  private static final int SOCKET_TIMEOUT = 250000;// bad
+  private static final int TRANSACTION_TIMEOUT_SECONDS = 2;// bad
+  private static final int CONNECTION_TIMEOUTMILLIS = 1000;// bad
 
+  private static final int MAX_CONN_PER_ROUTE = 10;// bad
+  static final int MAX_PER_ROUTE = 100;// bad
+  final int MAX_NUM_ROUTES = 2; // bad
+  int some_timeout_ms = 300; //good, variable
+
+  AvoidHardcodedConnectionConfig() {
+    final int timeout_s_local = 4; // good, method level
+    int otherTimeoutInS = 3; // good, var
+  }
+}
+```
 
 Improper asynchrony 
 -------------------
