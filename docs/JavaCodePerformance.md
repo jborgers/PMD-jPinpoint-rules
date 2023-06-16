@@ -97,6 +97,14 @@ Note that class PoolingClientConnectionManager and several others are deprecated
 
 **Rule name:** HttpClientBuilderWithoutPoolSize.
 
+**Pool size calculation**   
+For calculating the pool size, we suggest the following formula:   
+`#connections = 1,5 * #requests/s (peak) * average service time`   
+So, with a peak load of 5 requests/s and an average time of the called service of 2 seconds, this gets:
+`#connections = 1,5 * 5 * 2 = 15`
+
+**See also:** [Thread pool sizing](https://www.infoq.com/articles/Java-Thread-Pool-Performance-Tuning/) 
+
 #### IBI04
 Moved to [Improper asychrony category](#ia06)
 

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>violation: AvoidHardcodedConnectionConfig</description>
+        <expected-problems>10</expected-problems>
+        <expected-linenumbers>2,3,4,5,6,8,9,10,11,13</expected-linenumbers>
+        <code><![CDATA[
+class AvoidHardcodedConnectionConfig {
+    private static final int TIMEOUT = 5; // bad
+    private static final int CONNECTION_TIMEOUT = 50000;// bad
+    private static final int SOCKET_TIMEOUT = 250000;// bad
+    private static final int TRANSACTION_TIMEOUT_SECONDS = 2;// bad
+    private static final int CONNECTION_TIMEOUTMILLIS = 1000;// bad
+
+    static final int MAX_PER_ROUTE = 100;// bad
+    private static final int MAX_CONN_PER_ROUTE = 10;// bad
+    private static final int CONNECTION_DURATIONOUT = 5000; //bad
+    final int MAX_NUM_ROUTES = 2; // bad
+
+    final int other_timeout_s_blank; // bad, blank final (should actually be capitals, still want to catch it)
+    int some_timeout_ms = 300; //good, variable
+
+    AvoidHardcodedConnectionConfig() {
+        other_timeout_s_blank = 5;
+        final int timeout_local_s = 4; // good, method level
+        int otherTimeoutInS = 3; // good, var
+    }
+
+}
+     ]]></code>
+    </test-code>
+
+</test-data>

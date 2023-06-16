@@ -3594,6 +3594,49 @@ class Good {
         </example>
     </rule>
 
+    <rule name="AvoidHardcodedConnectionConfig"
+          message="Avoid hardcoded connection configuration."
+          class="net.sourceforge.pmd.lang.rule.XPathRule"
+          dfa="false"
+          language="java"
+          typeResolution="true"
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#ir">
+        <description>Problem: configuring connection settings like timeouts and pool sizes in code makes it difficult to manage and tune these settings.&#13;
+            Solution: use property files, e.g. yml, to define the values for these settings for each called service.
+            (jpinpoint-rules)</description>
+        <priority>3</priority>
+        <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+//FieldDeclaration//VariableDeclaratorId[@Final = true()][contains(upper-case(@Name), 'TIMEOUT') or contains(upper-case(@Name), 'DURATIONOUT')
+or(contains(upper-case(@Name), 'MAX') and contains(upper-case(@Name), 'ROUTE'))]
+                ]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+class AvoidHardcodedConnectionConfig {
+    private static final int CONNECTION_TIMEOUT = 50000;// bad
+    private static final int SOCKET_TIMEOUT = 250000;// bad
+    private static final int TRANSACTION_TIMEOUT_SECONDS = 2;// bad
+    private static final int CONNECTION_TIMEOUTMILLIS = 1000;// bad
+
+    private static final int MAX_CONN_PER_ROUTE = 10;// bad
+    static final int MAX_PER_ROUTE = 100;// bad
+    final int MAX_NUM_ROUTES = 2; // bad
+    int some_timeout_ms = 300; //good, variable
+
+    AvoidHardcodedConnectionConfig() {
+        final int timeout_s_local = 4; // good, method level
+        int otherTimeoutInS = 3; // good, var
+    }
+}
+            ]]>
+        </example>
+    </rule>
+
     <rule name="AvoidHttpHostOneArgumentConstructor" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java"
           message="Avoid the HttpHost constructor with only hostname, provide port number and protocol as well."
           typeResolution="true"
