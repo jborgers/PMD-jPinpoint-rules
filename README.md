@@ -107,7 +107,7 @@ As an example you can copy existing files and change the content according to yo
 
 For Kotlin: use the paths that contain `/kotlin/` instead of `/java/`.
 
-- create an issue like 'Rule Request: AvoidRecreatingExpensiveThing'. Use this reference with check-in.
+- create an issue like 'Rule Request: AvoidRecreatingExpensiveThing' with simple compiling examples which can be used as tests. Use this issue reference with check-in.
 - document the pitfall in the proper page and category in docs/ and [regenerate the ToC](https://luciopaiva.com/markdown-toc/)
 - add the Test class in `src/test/java/com/.../perf/lang/java/ruleset/yourruleset/YourRule.java` 
 elements from the package structure are used to lookup the rules xml file you add next. 
