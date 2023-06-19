@@ -102,19 +102,20 @@ or simply:
 
 You can add new rules using the steps below. 
 
-The steps basically tell you to create 3 files. 
-As an example you can copy existing files and change the content according to your needs.
+The steps basically tell you to create an issue, add documentation and create 3 files. 
+As an example you can copy existing files and change the content according to your needs. Always work along the lines of what already exists.
 
 For Kotlin: use the paths that contain `/kotlin/` instead of `/java/`.
 
-- document the pitfall in the proper page in docs/ and [regenerate the ToC](https://luciopaiva.com/markdown-toc/)
+- create an issue like 'Rule Request: AvoidRecreatingExpensiveThing'. Use this reference with check-in.
+- document the pitfall in the proper page and category in docs/ and [regenerate the ToC](https://luciopaiva.com/markdown-toc/)
 - add the Test class in `src/test/java/com/.../perf/lang/java/ruleset/yourruleset/YourRule.java` 
 elements from the package structure are used to lookup the rules xml file you add next. 
 The relevant items based on the example given are: lang/**java**/ruleset/**yourruleset** 
 - rules go into xml files found in `src/main/resources/category/` in this case 
 src/main/resources/category/**java**/**yourruleset.xml**. Also add a rule with name `YourRule` 
 since that is what the framework expects.
-For new rule files you will also need to register it in the `categories.properties` file found in the same directory 
+For new rule files (a new category) you will also need to register it in the `categories.properties` file found in the same directory 
 (category/java/categories.properties) in this case add `category/java/yourruleset.xml`
 - add the unit test in an xml file in 
 `src/test/resources/com/.../perf/lang/java/ruleset/yourruleset/xml/YourRule.xml`. 
