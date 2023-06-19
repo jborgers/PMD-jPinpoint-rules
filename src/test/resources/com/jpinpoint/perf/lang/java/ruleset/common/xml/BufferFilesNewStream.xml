@@ -4,14 +4,14 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
     <test-code>
-        <description>violation: BufferOutputStream</description>
-        <expected-problems>2</expected-problems>
-        <expected-linenumbers>8, 20</expected-linenumbers>
+        <description>violation: BufferFilesNewStream</description>
+        <expected-problems>3</expected-problems>
+        <expected-linenumbers>8, 20, 33</expected-linenumbers>
         <code><![CDATA[
 import java.io.*;
 import java.nio.file.Paths;
 
-class BufferOutputStream {
+class BufferFilesNewStream {
     public static void bar(String keyStoreBase64, String path) {
         try (InputStream inputStream = new ByteArrayInputStream(keyStoreBase64.getBytes(StandardCharsets.UTF_8));
              var keystoreInputStream = new Base64InputStream(inputStream);
@@ -26,19 +26,31 @@ class BufferOutputStream {
         }
     }
 
-    OutputStream bad(String path) throws IOException {
+    OutputStream badO(String path) throws IOException {
         return java.nio.file.Files.newOutputStream(Paths.get(path)); // bad
     }
 
-    OutputStream good(String path) throws IOException {
+    OutputStream goodO(String path) throws IOException {
         return new BufferedOutputStream(java.nio.file.Files.newOutputStream(Paths.get(path)));
     }
 
-    OutputStream good2() throws IOException {
+    OutputStream goodO2() throws IOException {
         OutputStream outputStream = java.nio.file.Files.newOutputStream(Paths.get("thepath"));
         return new BufferedOutputStream(outputStream);
     }
 
+    InputStream badI(String path) throws IOException {
+        return java.nio.file.Files.newInputStream(Paths.get(path)); // bad
+    }
+
+    OutputStream goodI(String path) throws IOException {
+        return new BufferedInputStream(java.nio.file.Files.newInputStream(Paths.get(path)));
+    }
+
+    OutputStream goodI2() throws IOException {
+        InputStream inputStream = java.nio.file.Files.newInputStream(Paths.get("thepath"));
+        return new BufferedInputStream(outputStream);
+    }
 }
      ]]></code>
     </test-code>

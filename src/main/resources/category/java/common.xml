@@ -1786,16 +1786,10 @@ class BufferFileStreaming {
         try (FileInputStream fis = new FileInputStream(inputFilename)) { // bad
             //use fis
         }
-        try (FileOutputStream fos = new FileOutputStream(outputFilename)) { // bad
-            //use fos
-        }
     }
     void good(String inputFilename, String outputFilename) {
         try (InputStream bfis = new BufferedInputStream(new FileInputStream(inputFilename))) { // good
             //use bfis
-        }
-        try (OutputStream bfos = new BufferedOutputStream(new FileOutputStream(outputFilename))) { // good
-            //use bfos
         }
     }
 }
@@ -1803,7 +1797,7 @@ class BufferFileStreaming {
         </example>
     </rule>
 
-    <rule name="BufferOutputStream"
+    <rule name="BufferFilesNewStream"
           language="java"
           message="Files.newOutputStream is not buffered, add buffering."
           class="net.sourceforge.pmd.lang.rule.XPathRule"
@@ -1822,16 +1816,19 @@ class BufferFileStreaming {
                 <value><![CDATA[
 //PrimaryExpression/PrimaryPrefix/Name[pmd-java:typeIs('java.nio.file.Files') and ends-with(@Image,'.newOutputStream')]
 [ancestor::MethodDeclaration[count(.//AllocationExpression[pmd-java:typeIs('java.io.BufferedOutputStream')]) = 0]]
+,
+//PrimaryExpression/PrimaryPrefix/Name[pmd-java:typeIs('java.nio.file.Files') and ends-with(@Image,'.newInputStream')]
+[ancestor::MethodDeclaration[count(.//AllocationExpression[pmd-java:typeIs('java.io.BufferedInputStream')]) = 0]]
                 ]]></value>
             </property>
         </properties>
         <example>
             <![CDATA[
 class Foo {
-    OutputStream bad(String path) throws IOException {
+    OutputStream badO(String path) throws IOException {
         return java.nio.file.Files.newOutputStream(Paths.get(path)); // bad
     }
-    OutputStream good(String path) throws IOException {
+    OutputStream goodO(String path) throws IOException {
         return new BufferedOutputStream(java.nio.file.Files.newOutputStream(Paths.get(path)));
     }
 }

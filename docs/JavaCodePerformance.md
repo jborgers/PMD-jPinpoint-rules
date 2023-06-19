@@ -1755,7 +1755,7 @@ Logging of allocation stack traces will be in native\_stderr.log.
 
 #### ISIO05
 
-**Observation: FileInputStream and FileOutputStream are used without buffered.**  
+**Observation: FileInputStream and FileOutputStream are used without buffer.**  
 **Problem:** With FileInputStream and FileOutputStream, file access is not buffered.
 The stream is read-from/written-to file byte by byte, where each operating system call has its overhead, which makes it slow.   
 **Solution:** Use buffering to read/write a chunk of bytes at once with much lower overhead. Use BufferedOutput/InputStream which has a buffer size of 8 kB by default to write at once.   
@@ -1780,26 +1780,15 @@ class BufferFileStreaming {
       //use bfos
     }
   }
-  void good2(String inputFilename, String outputFilename) {
-    try (FileInputStream fis = new FileInputStream(inputFilename)) { // good
-      InputStream bfis = new BufferedInputStream(fis);
-      //use bfis
-    }
-
-    try (FileOutputStream fos = new FileOutputStream(outputFilename)) { // good
-      OutputStream bfos = new BufferedOutputStream(fos);
-      //use bfos
-    }
-  }
 }
 ```
 
 #### ISIO06
 
-**Observation: No buffering is added to the use of Files.newOutputStream.**  
-**Problem:** Files.newOutputStream is not buffered. The stream is written to file byte by byte, where each operating system call has its overhead which makes it slow.   
-**Solution:** Use buffering to write a chunk of bytes at once with much lower overhead. Use e.g. BufferedOutputStream which has a buffer size of 8 kB to write at once.   
-**Rule name:** BufferOutputStream.   
+**Observation: No buffering is added to the use of Files.newInputStream and Files.newOutputStream.**  
+**Problem:** Files.new[Input/Output]Stream is not buffered. The stream is read/written to file byte by byte, where each operating system call has its overhead which makes it slow.   
+**Solution:** Use buffering to read/write a chunk of bytes at once with much lower overhead. Use e.g. BufferedOutputStream which has a buffer size of 8 kB by default to write at once.   
+**Rule name:** BufferFilesNewStream.   
 **Example:**
 ```java
 class Foo {
@@ -1809,8 +1798,15 @@ class Foo {
     OutputStream good(String path) throws IOException {
         return new BufferedOutputStream(java.nio.file.Files.newOutputStream(Paths.get(path)));
     }
+    InputStream badI(String path) throws IOException {
+        return java.nio.file.Files.newInputStream(Paths.get(path)); // bad
+    }
+    OutputStream goodI(String path) throws IOException {
+        return new BufferedInputStream(java.nio.file.Files.newInputStream(Paths.get(path)));
+    }
 }
 ```
+
 Extensive use of classpath scanning
 -----------------------------------
 
