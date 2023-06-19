@@ -971,12 +971,61 @@ ClassOrInterfaceBodyDeclaration
         </properties>
     </rule>
 
+    <rule name="BufferFileStreaming"
+          language="java"
+          message="FileInputStream and FileOutputStream are not buffered, add buffering."
+          class="net.sourceforge.pmd.lang.rule.XPathRule"
+          typeResolution="true"
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#isio05">
+        <description>Problem: With FileInputStream and FileOutputStream, file access is not buffered.
+            The stream is read-from/written-to file byte by byte, where each operating system call has its overhead, which makes it slow.
+            Solution: Use buffering to read/write a chunk of bytes at once with much lower overhead.
+            Use BufferedOutput/InputStream which has a buffer size of 8 kB by default to write at once.
+        (jpinpoint-rules)</description>
+        <priority>3</priority>
+        <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+//Resource//AllocationExpression/ClassOrInterfaceType[pmd-java:typeIs('java.io.FileInputStream') or pmd-java:typeIs('java.io.FileOutputStream')]
+[not (ancestor::AllocationExpression/ClassOrInterfaceType[pmd-java:typeIs('java.io.BufferedInputStream') or pmd-java:typeIs('BufferedOutputStream')])]
+[not (ancestor::TryStatement/Block//AllocationExpression/ClassOrInterfaceType[pmd-java:typeIs('java.io.BufferedInputStream') or pmd-java:typeIs('BufferedOutputStream')])]
+]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+import java.io.*;
+
+class BufferFileStreaming {
+    void bad(String inputFilename, String outputFilename) {
+        try (FileInputStream fis = new FileInputStream(inputFilename)) { // bad
+            //use fis
+        }
+        try (FileOutputStream fos = new FileOutputStream(outputFilename)) { // bad
+            //use fos
+        }
+    }
+    void good(String inputFilename, String outputFilename) {
+        try (InputStream bfis = new BufferedInputStream(new FileInputStream(inputFilename))) { // good
+            //use bfis
+        }
+        try (OutputStream bfos = new BufferedOutputStream(new FileOutputStream(outputFilename))) { // good
+            //use bfos
+        }
+    }
+}
+            ]]>
+        </example>
+    </rule>
+
     <rule name="BufferOutputStream"
           language="java"
           message="Files.newOutputStream is not buffered, add buffering."
           class="net.sourceforge.pmd.lang.rule.XPathRule"
           typeResolution="true"
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#isio05">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#isio06">
         <description>Problem: Files.newOutputStream is not buffered.
             The stream is written to file byte by byte, where each operating system call has its overhead which makes it slow.
             Solution: Use buffering to write a chunk of bytes at once with much lower overhead.
@@ -3600,7 +3649,7 @@ class Good {
           dfa="false"
           language="java"
           typeResolution="true"
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#ir">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#ibi22">
         <description>Problem: configuring connection settings like timeouts and pool sizes in code makes it difficult to manage and tune these settings.&#13;
             Solution: use property files, e.g. yml, to define the values for these settings for each called service.
             (jpinpoint-rules)</description>
