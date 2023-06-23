@@ -42,6 +42,19 @@ class AvoidForEachInStreams {
         System.out.println(l);
     }
 }
+    ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>no violation: forEach in streams Issue258</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+class Issue258 {
+    Iterable values = new ArrayList();
+    void bad() {
+        values.forEach(log::debug); // good
+    }
+}
      ]]></code>
     </test-code>
 

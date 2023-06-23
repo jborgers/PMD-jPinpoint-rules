@@ -2065,7 +2065,7 @@ public class StringStuff {
                 <value><![CDATA[
 //StatementExpression/PrimaryExpression[(PrimaryPrefix/Name|PrimarySuffix)[ends-with(@Image, 'forEach')]]
 [not (./PrimarySuffix//MethodReference[starts-with(@Image, 'log')] or
-./PrimarySuffix//PrimaryPrefix/Name[starts-with(@Image, 'Log')] or
+./PrimarySuffix//PrimaryPrefix/Name[starts-with(lower-case(@Image), 'log')] or
 ./PrimarySuffix//LambdaExpression//PrimaryPrefix/Name[starts-with(@Image, 'log.')]
 )]
                 ]]></value>
