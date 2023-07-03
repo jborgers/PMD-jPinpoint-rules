@@ -33,4 +33,13 @@ class AvoidHardcodedConnectionConfig {
      ]]></code>
     </test-code>
 
+    <test-code>
+        <description>violation: AvoidHardcodedConnectionConfig</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+class Issue259 {
+    private static final String LOGIN_TIMEOUT_PROPERTY_KEY = "loginTimeout";
+}
+        ]]></code>
+    </test-code>
 </test-data>

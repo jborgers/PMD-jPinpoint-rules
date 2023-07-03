@@ -477,7 +477,7 @@ class FeignConfig {
 
 #### IBI22
 **Observation: Connection configuration, that is, timeouts and pool sizes, are hardcoded.**   
-**Problem:** configuring connection settings like timeouts and pool sizes in code makes it difficult to manage and tune these settings.   
+**Problem:** configuring connection settings like timeouts and pool sizes in code (int values) makes it difficult to manage and tune these settings.   
 **Solution:** use property files, e.g. yml, to define the values for these settings for each called service.   
 **Rule name:** AvoidHardcodedConnectionConfig   
 **Example:**
@@ -492,6 +492,7 @@ class AvoidHardcodedConnectionConfig {
   static final int MAX_PER_ROUTE = 100;// bad
   final int MAX_NUM_ROUTES = 2; // bad
   int some_timeout_ms = 300; //good, variable
+  private static final String LOGIN_TIMEOUT_PROPERTY_KEY = "loginTimeout"; // good, not an int
 
   AvoidHardcodedConnectionConfig() {
     final int timeout_s_local = 4; // good, method level

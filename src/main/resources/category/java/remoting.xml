@@ -1128,7 +1128,7 @@ public class Foo {
           language="java"
           typeResolution="true"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi22">
-        <description>Problem: configuring connection settings like timeouts and pool sizes in code makes it difficult to manage and tune these settings.&#13;
+        <description>Problem: configuring connection settings like timeouts and pool sizes in code (int values) makes it difficult to manage and tune these settings.&#13;
             Solution: use property files, e.g. yml, to define the values for these settings for each called service.
             (jpinpoint-rules)</description>
         <priority>3</priority>
@@ -1137,7 +1137,7 @@ public class Foo {
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
-//FieldDeclaration//VariableDeclaratorId[@Final = true()][contains(upper-case(@Name), 'TIMEOUT') or contains(upper-case(@Name), 'DURATIONOUT')
+//FieldDeclaration[Type/@TypeImage='int']//VariableDeclaratorId[@Final = true()][contains(upper-case(@Name), 'TIMEOUT') or contains(upper-case(@Name), 'DURATIONOUT')
 or(contains(upper-case(@Name), 'MAX') and contains(upper-case(@Name), 'ROUTE'))]
                 ]]></value>
             </property>
@@ -1154,6 +1154,7 @@ class AvoidHardcodedConnectionConfig {
     static final int MAX_PER_ROUTE = 100;// bad
     final int MAX_NUM_ROUTES = 2; // bad
     int some_timeout_ms = 300; //good, variable
+    private static final String LOGIN_TIMEOUT_PROPERTY_KEY = "loginTimeout"; // good, not an int
 
     AvoidHardcodedConnectionConfig() {
         final int timeout_s_local = 4; // good, method level
