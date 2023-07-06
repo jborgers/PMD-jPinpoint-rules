@@ -323,7 +323,7 @@ class Baz extends RemoteException {
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
-//LambdaExpression
+//LambdaExpression/Block
 (: number of statements should be limited, setters are ignored. Chained methods are one statement  :)
 [(count(.//Statement) - count(.//StatementExpression/PrimaryExpression/PrimaryPrefix/Name[contains(@Image, '.set')]) > number($param-max))
 ]
@@ -369,23 +369,45 @@ class Foo {
           externalInfoUrl="${doc_root}/JavaCodeQuality.md#isr05">
         <description>Problem: lambda expressions with deep nesting (lambda's in lambda's) are hard to understand and maintain.
             Solution: extract the lambda expression code block(s) into one or more well-named separate method(s).
+            Note: A violation when the depth of lambda-with-code-block nesting exceeds (by default) 1,
+            or the depth of lambda-single-expression in lambda nesting exceeds (by default) 4.
         </description>
         <priority>3</priority>
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="param-max" value="1" type="String" description="Maximum allowed depth of lambda nesting"/>
+            <property name="param-block-max" value="1" type="String" description="Maximum allowed depth of lambda-with-code-block nesting"/>
+            <property name="param-single-max" value="4" type="String" description="Maximum allowed depth of lambda-single-expression nesting"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
-//LambdaExpression[count(ancestor::LambdaExpression) > number($param-max)]
+//LambdaExpression[Block][count(ancestor::LambdaExpression/Block) > number($param-block-max)]
+|
+//LambdaExpression[Expression][count(ancestor::LambdaExpression) > number($param-single-max)]
                 ]]></value>
             </property>
         </properties>
         <example>
             <![CDATA[
 class Foo {
-    private void bar(List<Map<String, BigDecimal>> lines) {
-        lines.forEach(line -> line.forEach((key, value) -> values.computeIfPresent(key, (k, v) -> v.add(value)))); // bad, nesting levels 2, > 1
+    public Object singleExpressionLambdas(String a, String b) {
+        return detect(a)
+                .orElseGet(() -> single0(b)
+                .orElseGet(() -> single1(b) // single nesting level 1
+                .orElseGet(() -> single2(b)//   2
+                .orElseGet(() -> single3(b)//   3
+                .orElseGet(() -> singlet4(b)//  4
+                .orElseGet(() -> single5(b)//  5 // bad
+                .orElseGet(() -> single6(b))))))));//  6 // bad
+    }
+
+   public Object blockLambdas(String a, String b) {
+        return detect(a)
+                .orElseGet(() -> single0(b)
+                .orElseGet(() -> {block0(b) // block nesting level 0
+                .orElseGet(() -> {block1(b)//  1
+                .orElseGet(() -> {block2(b)//  2 // bad
+                .orElseGet(() -> single4(b)//  single nesting level 4 // good
+                .orElseGet(() -> single5(b)));});});}));//  single nesting level 5, bad
     }
 }
             ]]>

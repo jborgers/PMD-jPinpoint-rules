@@ -472,7 +472,9 @@ An exception to this exception is when extending RemoteException, then fields sh
 
 ### ISR05
 **Issue:** [200](https://github.com/jborgers/PMD-jPinpoint-rules/issues/200)   
-**Observation: A lambda expression has deep nesting of lambdas: it exceeds the limit (default = 1).**  
+**Observation: A lambda expression has deep nesting of lambdas.** 
+The depth of lambda-with-code-block nesting exceeds (by default) 1,
+or the depth of lambda-single-expression in lambda nesting exceeds (by default) 4.    
 **Problem:** lambda expressions with deep nested lambdas are hard to understand and maintain.  
 **Solution:** extract the lambda expression code block into one or more separate method(s).     
 **Rule name:** LimitNestingInLambdas   

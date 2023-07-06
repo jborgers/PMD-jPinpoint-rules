@@ -5,8 +5,7 @@
         xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
     <test-code>
         <description>violations in LimitNestingInLambdas</description>
-        <expected-problems>1</expected-problems>
-        <expected-linenumbers>20</expected-linenumbers>
+        <expected-problems>0</expected-problems>
         <code><![CDATA[
 import java.lang.*;
 import java.util.*;
@@ -27,7 +26,56 @@ class Foo {
          return products;
     }
     private void bar(List<Map<String, BigDecimal>> lines) {
-        lines.forEach(line -> line.forEach((key, value) -> values.computeIfPresent(key, (k, v) -> v.add(value)))); // bad, nesting depth 2, > 1
+        lines.forEach(line -> line.forEach((key, value) -> values.computeIfPresent(key, (k, v) -> v.add(value)))); // good, single nesting depth 2, <4
+    }
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>violations in LimitNestingInLambdas with separate limit on single and block</description>
+        <expected-problems>4</expected-problems>
+        <expected-linenumbers>27,28,36,38</expected-linenumbers>
+        <code><![CDATA[
+import java.util.*;
+class Issue262 {
+    // all good for bar method
+    private Object bar() {
+        var executions = serviceSelector.selectServices(props.getServices()).stream()
+            .map(config -> Mono.just(buildRequestHeaderSpec(method, uriBuilder.apply(config), requestBody))
+                .map(spec -> copyConfigHeaders(config, spec))
+                .flatMap(spec -> gatewayService.sendRequest(config, token -> setupRequest(spec, headersConsumer, token), responseHandler)
+                        .transformDeferred(CircuitBreakerOperator.of(circuitBreakerRegistry.circuitBreaker(config.name())))
+                        .onErrorResume(CircuitBreakerUtil::fail))
+                .onErrorResume(e -> logAndSkip(uriBuilder.apply(config), e)))
+        .toList();
+
+        return userAuthenticationService.getAuthenticationUser(request)
+        .flatMapMany(user -> paymentRetriever.getPayment(paymentId)
+                .flatMapMany(payment -> accountSelectorService.getAccounts(user, payment)
+                        .doOnNext(a -> LOGGER.debug("Returning account: name='{}', iban='{}'", a.getName(), a.getNumber().getIban()))));
+    }
+
+    public Object singleExpressionLambdas(String a, String b) {
+        return detect(a)
+                .orElseGet(() -> single0(b)
+                .orElseGet(() -> single1(b) // single nesting level 1
+                .orElseGet(() -> single2(b)//   2
+                .orElseGet(() -> single3(b)//   3
+                .orElseGet(() -> singlet4(b)//  4
+                .orElseGet(() -> single5(b)//  5 // bad
+                .orElseGet(() -> single6(b))))))));//  6 // bad
+    }
+
+   public Object blockLambdas(String a, String b) {
+        return detect(a)
+                .orElseGet(() -> single0(b)
+                .orElseGet(() -> {block0(b) // block nesting level 0
+                .orElseGet(() -> {block1(b)//  1
+                .orElseGet(() -> {block2(b)//  2 // bad
+                .orElseGet(() -> single4(b)//  single nesting level 4 // good
+                .orElseGet(() -> single5(b)));});});}));//  single nesting level 5, bad
+
     }
 }
      ]]></code>
