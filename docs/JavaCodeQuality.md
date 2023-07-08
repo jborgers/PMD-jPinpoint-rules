@@ -193,7 +193,7 @@ Actually, two cases:
 2. Two unequal objects can have the same hashCode and end up in the same bucket of a Map. This may result in bad performance, O(n) lookup instead of O(1).   
 
 **Solution:** Use the same fields in equals and hashCode and if conversions are needed, use identical conversions in both. So don't use equalsIgnoreCase.  
-**Rule-names:** InconsistentEqualsAndHashCode, MissingFieldInHashCode   
+**Rule-names:** MissingFieldInHashCode, FieldOfHashCodeMissingInEquals, EqualsOperationInconsistentWithHashCode   
 **Examples:**  
 ````java
 class Good {
@@ -238,9 +238,7 @@ class Bad2 {
         return field2 != null ? field2.equalsIgnoreCase(that.field2) : that.field2 == null; // bad: ignore case - inconsistent conversion
     }
     public int hashCode() {
-        int result = field1 != null ? field1.hashCode() : 0;
-        result = 31 * result + (field2 != null ? field2.hashCode() : 0);
-        return result;
+        return Objects.hash(field1, field2);
     }
 }
 
@@ -260,6 +258,39 @@ class Bad3 {
         return result;
     }
 }
+
+class Bad4 {
+    String field1;
+    String field2;
+
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Bad4 that = (Bad4) o;
+        return Objects.equals(field1.toUpperCase(), that.field1.toUpperCase()) && // bad
+                Objects.equals((field2.toLowerCase()), that.field2.toLowerCase()); // bad
+    }
+    public int hashCode() {
+        return Objects.hash(field1, field2);
+    }
+}
+
+class Bad5 {
+    String field1;
+    String field2;
+
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Bad5 that = (Bad5) o;
+        return Objects.equals(field1.toUpperCase(), that.field1.toUpperCase()) && // bad
+                Objects.equals((field2.toLowerCase()), that.field2.toLowerCase());
+    }
+    public int hashCode() {
+        return Objects.hash(field1.toLowerCase(), field2.toLowerCase());
+    }
+}
+
 ````
 
 

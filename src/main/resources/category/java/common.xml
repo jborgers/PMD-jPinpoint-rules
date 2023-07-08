@@ -1025,10 +1025,10 @@ public RetrieveCache(final @Value("${cache.expiryTimeMillis}") long timeToLiveMi
         </example>
     </rule>
 
-    <rule name="InconsistentEqualsAndHashCode" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" message="Equals does not use all fields used by hashCode or it uses inconsistent conversion." typeResolution="true"
+    <rule name="FieldOfHashCodeMissingInEquals" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" message="Equals does not use all fields used by hashCode." typeResolution="true"
           externalInfoUrl="${doc_root}/JavaCodeQuality.md#ieah03">
         <description>Problem: Equal objects may have different hashCodes and end-up in different buckets of a Map/Set. Strange things can happen like adding an object to a Set and not being able to find it back.&#13;
-            Solution: Use the same fields in equals and hashCode and if conversions are needed, use identical conversions in both. So don't use equalsIgnoreCase. (jpinpoint-rules)</description>
+            Solution: Use the same fields in equals and hashCode. (jpinpoint-rules)</description>
         <priority>1</priority>
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
@@ -1041,21 +1041,19 @@ concat(@Name, '.equals') = ancestor::ClassOrInterfaceBody//MethodDeclaration[@Na
 (@Name = ancestor::ClassOrInterfaceBody[1]//MethodDeclaration[@Name='hashCode' and (MethodDeclarator//FormalParameters/@Size = 0)]/Block//(PrimarySuffix|Name)/@Image or
 concat(@Name, '.hashCode') = ancestor::ClassOrInterfaceBody[1]//MethodDeclaration[@Name='hashCode' and (MethodDeclarator//FormalParameters/@Size = 0)]/Block//PrimaryPrefix/Name/@Image)
 ]
-,
-//MethodDeclaration[@Name='equals' and (MethodDeclarator//FormalParameters/@Size = 1)]/Block//Name[ends-with(@Image, 'equalsIgnoreCase')]
 			]]>
                 </value>
             </property>
         </properties>
         <example>
             <![CDATA[
-class Good {
+class Good1 {
     String field1, field2;
 
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        EqHashTryout2 that = (EqHashTryout2) o;
+        Good1 that = (Good1) o;
         return Objects.equals(field1, that.field1) &&
                 Objects.equals(field2, that.field2);
     }
@@ -1064,6 +1062,55 @@ class Good {
     }
 }
 
+class Bad {
+    String field1;
+    String field2; //bad
+
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Bad that = (Bad) o;
+        return Objects.equals(field1, that.field1); // field2 missing
+    }
+    public int hashCode() {
+        return Objects.hash(field1, field2);
+    }
+}
+
+            ]]>
+        </example>
+    </rule>
+
+    <rule name="EqualsOperationInconsistentWithHashCode" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" message="Equals uses a conversion inconsistent with hashCode." typeResolution="true"
+          externalInfoUrl="${doc_root}/JavaCodeQuality.md#ieah03">
+        <description>Problem: Equal objects may have different hashCodes and end-up in different buckets of a Map/Set. Strange things can happen like adding an object to a Set and not being able to find it back.&#13;
+            Solution: Use the same fields in equals and hashCode and use identical conversions like toUpperCase() in both when needed. Don't use equalsIgnoreCase. (jpinpoint-rules)</description>
+        <priority>1</priority>
+        <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+//FieldDeclaration//VariableDeclaratorId[
+(concat(@Name, '.toLowerCase') = ancestor::ClassOrInterfaceBody[1]//MethodDeclaration[@Name='equals' and (MethodDeclarator//FormalParameters/@Size = 1)]/Block//(Name|PrimarySuffix)/@Image ) >
+(concat(@Name, '.toLowerCase') = ancestor::ClassOrInterfaceBody[1]//MethodDeclaration[@Name='hashCode' and (MethodDeclarator//FormalParameters/@Size = 0)]/Block//(PrimarySuffix|Name)/@Image)
+]
+/ancestor::ClassOrInterfaceBody[1]//MethodDeclaration[@Name='equals']/Block//(Name|PrimarySuffix)[ends-with(@Image,'.toLowerCase')]
+,
+//FieldDeclaration//VariableDeclaratorId[
+(concat(@Name, '.toUpperCase') = ancestor::ClassOrInterfaceBody[1]//MethodDeclaration[@Name='equals' and (MethodDeclarator//FormalParameters/@Size = 1)]/Block//(Name|PrimarySuffix)/@Image ) >
+(concat(@Name, '.toUpperCase') = ancestor::ClassOrInterfaceBody[1]//MethodDeclaration[@Name='hashCode'and (MethodDeclarator//FormalParameters/@Size = 0)]/Block//(PrimarySuffix|Name)/@Image)
+]
+/ancestor::ClassOrInterfaceBody[1]//MethodDeclaration[@Name='equals']/Block//(Name|PrimarySuffix)[ends-with(@Image,'.toUpperCase')]
+,
+//MethodDeclaration[@Name='equals' and (MethodDeclarator//FormalParameters/@Size = 1)]/Block//Name[ends-with(@Image, 'equalsIgnoreCase')]
+
+                ]]>
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
 class Bad1 {
     String field1;
     String field2; //bad
@@ -1071,8 +1118,9 @@ class Bad1 {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        EqHashTryoutBad3 that = (EqHashTryoutBad3) o;
-        return Objects.equals(field1, that.field1); // field2 missing
+        Bad1 that = (Bad1) o;
+        if (field1 != null ? !field1.equals(that.field1) : that.field1 != null) return false;
+        return field2 != null ? field2.equalsIgnoreCase(that.field2) : that.field2 == null; // ignore case
     }
     public int hashCode() {
         return Objects.hash(field1, field2);
@@ -1081,19 +1129,48 @@ class Bad1 {
 
 class Bad2 {
     String field1;
-    String field2; //bad
+    String field2;
 
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        EqHashTryoutBad2 that = (EqHashTryoutBad2) o;
-        if (field1 != null ? !field1.equals(that.field1) : that.field1 != null) return false;
-        return field2 != null ? field2.equalsIgnoreCase(that.field2) : that.field2 == null; // ignore case
+        Bad2 that = (Bad2) o;
+        return Objects.equals(field1.toUpperCase(), that.field1.toUpperCase()) && // bad
+                Objects.equals((field2.toLowerCase()), that.field2.toLowerCase()); // bad
     }
     public int hashCode() {
-        int result = field1 != null ? field1.hashCode() : 0;
-        result = 31 * result + (field2 != null ? field2.hashCode() : 0);
-        return result;
+        return Objects.hash(field1, field2);
+    }
+}
+
+class Bad3 {
+    String field1;
+    String field2;
+
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Bad3 that = (Bad3) o;
+        return Objects.equals(field1.toUpperCase(), that.field1.toUpperCase()) && // bad
+                Objects.equals((field2.toLowerCase()), that.field2.toLowerCase());
+    }
+    public int hashCode() {
+        return Objects.hash(field1.toLowerCase(), field2.toLowerCase());
+    }
+}
+
+class Good {
+    String field1, field2;
+
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Good that = (Good) o;
+        return Objects.equals(field1, that.field1) &&
+                Objects.equals(field2.toUpperCase(), that.field2.toUpperCase()); // ignore case
+    }
+    public int hashCode() {
+        return Objects.hash(field1, field2.toUpperCase()); // ignore case
     }
 }
             ]]>
