@@ -1028,7 +1028,7 @@ public RetrieveCache(final @Value("${cache.expiryTimeMillis}") long timeToLiveMi
     <rule name="FieldOfHashCodeMissingInEquals" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" message="Equals does not use all fields used by hashCode." typeResolution="true"
           externalInfoUrl="${doc_root}/JavaCodeQuality.md#ieah03">
         <description>Problem: Equal objects may have different hashCodes and end-up in different buckets of a Map/Set. Strange things can happen like adding an object to a Set and not being able to find it back.&#13;
-            Solution: Use the same fields in equals and hashCode. (jpinpoint-rules)</description>
+            Solution: When objects are equal, hashCode needs to be equal, too. Use the same fields in equals and hashCode. (jpinpoint-rules)</description>
         <priority>1</priority>
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
@@ -1084,7 +1084,7 @@ class Bad {
     <rule name="EqualsOperationInconsistentWithHashCode" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" message="Equals uses a conversion inconsistent with hashCode." typeResolution="true"
           externalInfoUrl="${doc_root}/JavaCodeQuality.md#ieah03">
         <description>Problem: Equal objects may have different hashCodes and end-up in different buckets of a Map/Set. Strange things can happen like adding an object to a Set and not being able to find it back.&#13;
-            Solution: Use the same fields in equals and hashCode and use identical conversions like toUpperCase() in both when needed. Don't use equalsIgnoreCase. (jpinpoint-rules)</description>
+            Solution: When objects are equal, hashCode needs to be equal, too. Use the same fields in equals and hashCode and use identical conversions like toUpperCase() in both when needed. Don't use equalsIgnoreCase. (jpinpoint-rules)</description>
         <priority>1</priority>
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
@@ -1951,6 +1951,61 @@ class Good {
             String line = reader.readLine();
             // process line by line
         }
+    }
+}
+            ]]>
+        </example>
+    </rule>
+
+    <rule name="HashCodeOnlyCallsSuper"
+          language="java"
+          message="hashCode only calls super."
+          class="net.sourceforge.pmd.lang.rule.XPathRule"
+          typeResolution="true"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#isio03">
+        <description>Problem: when equals is implemented, hashCode needs to be implemented, too; and if objects are equal, hashCode needs to be equal, too. If hashCode only calls super.hashCode, it is effectively not implemented.
+            Strange things can happen, for instance, if super.hashCode calls Object.hashCode, it is unique for each object and when used in Set or as key in Map, equal objects can duplicate in Set, and keys not found in Map.
+            Solution: implement hashCode properly, consistent with equals. Meet the equals and hashCode contracts. If objects are equal, hashCode needs to be equal, too. See Effective Java.
+        </description>
+        <priority>1</priority>
+        <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+//MethodDeclaration[@Name='equals' and MethodDeclarator/FormalParameters/@Size=1 and @Public=true() and @Static=false()]
+/ancestor::ClassOrInterfaceBody[1]//MethodDeclaration[@Name='hashCode' and MethodDeclarator/FormalParameters/@Size=0 and @Public=true() and @Static=false()]
+/Block[count(./BlockStatement/Statement) = 1][count(.//ArgumentList) = 0]//PrimaryExpression[PrimaryPrefix[@SuperModifier=true()]]/PrimarySuffix[@Image='hashCode']
+                ]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+class Bad {
+    String field1;
+
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Bad that = (Bad) o;
+        return Objects.equals(field1, that.field1);
+    }
+    public int hashCode() {
+        return super.hashCode(); // bad
+    }
+}
+
+class Good {
+    String field1;
+
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Bad1 that = (Bad1) o;
+        return Objects.equals(field1, that.field1);
+    }
+    public int hashCode() {
+        return Objects.hash(field1); // good
     }
 }
             ]]>

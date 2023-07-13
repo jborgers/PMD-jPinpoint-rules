@@ -188,12 +188,13 @@ Tip 2: [Project Lombok](https://projectlombok.org/features/index.html) provides 
 
 **Observation: Equals and hashCode are inconsistent: they are not based on the same fields or use inconsistent conversion.**  
 **Problem:** 
-Actually, two cases: 
+Actually, two problem cases: 
 1. Equal objects can have different hashCodes and end-up in different buckets of a Map/Set. Strange things can happen like adding an object to a Set and not being able to find it back.
 2. Two unequal objects can have the same hashCode and end up in the same bucket of a Map. This may result in bad performance, O(n) lookup instead of O(1).   
 
-**Solution:** Use the same fields in equals and hashCode and if conversions are needed, use identical conversions in both. So don't use equalsIgnoreCase.  
-**Rule-names:** MissingFieldInHashCode, FieldOfHashCodeMissingInEquals, EqualsOperationInconsistentWithHashCode   
+**Solution:** When objects are equal, hashCode needs to be equal, for correctness. When objects are not equal, hashCodes should also not be equal for good performance. 
+Use the same fields in equals and hashCode and if conversions are needed, use identical conversions in both. So don't use equalsIgnoreCase.  
+**Rule-names:** MissingFieldInHashCode, FieldOfHashCodeMissingInEquals, EqualsOperationInconsistentWithHashCode, HashCodeOnlyCallsSuper   
 **Examples:**  
 ````java
 class Good {
@@ -288,6 +289,20 @@ class Bad5 {
     }
     public int hashCode() {
         return Objects.hash(field1.toLowerCase(), field2.toLowerCase());
+    }
+}
+
+class Bad6 {
+    String field1;
+
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Bad6 that = (Bad6) o;
+        return Objects.equals(field1, that.field1);
+    }
+    public int hashCode() {
+        return super.hashCode(); // bad
     }
 }
 

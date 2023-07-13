@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>no violation: HashCodeOnlyCallsSuper</description>
+        <expected-problems>2</expected-problems>
+        <expected-linenumbers>11,25</expected-linenumbers>
+        <code><![CDATA[
+class Bad1 {
+    String field1;
+
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Bad1 that = (Bad1) o;
+        return Objects.equals(field1, that.field1);
+    }
+    public int hashCode() {
+        return super.hashCode(); // bad
+    }
+}
+
+class Bad2 {
+    String field1;
+
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Bad1 that = (Bad1) o;
+        return Objects.equals(field1, that.field1);
+    }
+    public int hashCode() {
+        int h = super.hashCode(); // bad
+        return h;
+    }
+}
+
+
+class Good { // weird but not wrong
+    String field1;
+
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Bad1 that = (Bad1) o;
+        if (field1 == null) return false; // weird
+        return Objects.equals(field1, that.field1);
+    }
+    public int hashCode() {
+        if (field1 != null) return Objects.hashCode(field1);
+        return super.hashCode(); // weird
+    }
+}
+
+class Good2 { // weird but not wrong
+    String field1;
+
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Bad1 that = (Bad1) o;
+        if (field1 == null) return false;
+        return Objects.equals(field1, that.field1);
+    }
+    public int hashCode() {
+        if (field1 == null) return super.hashCode();
+        return Objects.hashCode(field1);
+    }
+}
+
+class Good3 { // weird but not wrong
+    String field1;
+
+    public int hashCode() {
+        return super.hashCode();
+    }
+}
+
+class Good4 extends SomeClass {
+    String field1;
+   @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
+        Good4 that = (Good4) o;
+        return Objects.equals(field1, that.field1);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), field1);
+    }
+}
+     ]]></code>
+    </test-code>
+
+
+</test-data>

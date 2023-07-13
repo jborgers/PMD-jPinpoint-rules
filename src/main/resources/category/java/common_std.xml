@@ -459,7 +459,7 @@ return ($node[
           language="java"
           message="Prefer side-effect-free functions in streams, use forEach only for logging."
           class="net.sourceforge.pmd.lang.rule.XPathRule"
-          externalInfoUrl="${doc_root}/JavaCodeQuality.md#isr04">
+          externalInfoUrl="${doc_root}/JavaCodeQuality.md#ils01">
         <description>Problem: Streams is a paradigm based on functional programming: the result should depend only on its input and not update any state.
             Use of forEach is actually iterative code masquerading as streams code. It is typically harder to read and less maintainable than the iterative form.
             Solution: Use the for-each (enhanced-for) loop, or the pure functional form. The forEach operation should only be used to report (i.e. log) the result of a stream computation.
