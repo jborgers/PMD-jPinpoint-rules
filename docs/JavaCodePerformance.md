@@ -1732,7 +1732,7 @@ The previous example improved:
 ```java
    private void zipData() {
         FileOutputStream dest = new FileOutputStream(file);
-		ZipOutputStream zos = new ZipOutputStream(new BufferedOutputStream(dest));
+	ZipOutputStream zos = new ZipOutputStream(new BufferedOutputStream(dest));
         // stream 1 GB data from input to output stream (zos) here, which will be written to file
    }
 ```
