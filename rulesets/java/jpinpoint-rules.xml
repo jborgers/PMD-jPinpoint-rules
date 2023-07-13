@@ -341,6 +341,50 @@ class Good {
 
     </rule>
 
+    <rule name="AvoidLoadingAllFromFile"
+          language="java"
+          message="Files.readAll methods load all bytes from a file into memory: a risk of memory problems."
+          class="net.sourceforge.pmd.lang.rule.XPathRule"
+          typeResolution="true"
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#isio03">
+        <description>Problem: Files.readAllBytes and Files.readAllLines load all bytes from a file into the heap memory.
+            This may result in an OutOfMemoryError crash, or long gc pauses and slow responses.
+            Solution: Stream-through: use streaming all the way, don't store the whole thing in memory, don't use byte arrays.
+            Often, functionality can be achieved in a streaming way.
+            Note: not a problem for small files.
+        (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+//MethodDeclaration//PrimaryPrefix/Name[@Image='Files.readAllBytes' or @Image='Files.readAllLines']
+                ]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+class Bad {
+    void bad(Path path) {
+        byte[] fileBytes = Files.readAllBytes(path); // bad
+        List<String> fileLines = Files.readAllLines(path); // bad
+        // process bytes / lines
+    }
+}
+
+class Good {
+    void good(Path in) throws IOException {
+        try (BufferedReader reader = Files.newBufferedReader(in)) {
+            String line = reader.readLine();
+            // process line by line
+        }
+    }
+}
+            ]]>
+        </example>
+    </rule>
+
     <rule name="AvoidLombokAnnotationForNonExistentFields"
           language="java"
           message="Avoid Lombok annotations for fields of a class while the class has no fields."

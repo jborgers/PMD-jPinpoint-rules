@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>violation: AvoidReadingAllFromFile</description>
+        <expected-problems>2</expected-problems>
+        <expected-linenumbers>6, 7</expected-linenumbers>
+        <code><![CDATA[
+import java.io.*;
+import java.nio.file.*;
+
+class Bad {
+    void bad(Path path) {
+        byte[] fileBytes = Files.readAllBytes(path); // bad
+        List<String> fileLines = Files.readAllLines(path); // bad
+        // process bytes / lines
+    }
+}
+
+class Good {
+    void good(Path in) throws IOException {
+        try (BufferedReader reader = Files.newBufferedReader(in)) {
+            String line = reader.readLine();
+            // process line by line
+        }
+    }
+}
+     ]]></code>
+    </test-code>
+
+</test-data>

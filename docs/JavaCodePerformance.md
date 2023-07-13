@@ -1711,7 +1711,7 @@ This especially applies to direct file streaming. Access through ClassLoader.get
 
 #### ISIO03
 
-**Observation: All bytes of a file are loaded into memory.** E.g. for uploading or downloading documents, for instance to determine the mime type or create a digest.    
+**Observation: All bytes of a large file are loaded into memory.** E.g. for uploading or downloading documents, for instance to determine the mime type or create a digest.    
 **Problem:** Large objects are allocated on the heap, up to e.g. 50 MB. We also observed 300 MB and even 1 GB in back-end systems. This likely triggers long gc pauses for compaction or may trigger out of memory crashes.
 
 In the next example, there are two large byte arrays in memory: one in baos and the other is the returned byte array since a copy is made in toByteArray().
@@ -1724,18 +1724,43 @@ In the next example, there are two large byte arrays in memory: one in baos and 
         return baos.toByteArray();
    }
 ```
+Example 2:
+```java
+class Bad1 {
+  void bad(Path path) {
+    byte[] fileBytes = Files.readAllBytes(path); // bad
+    List<String> fileLines = Files.readAllLines(path); // bad
+    // now process bytes / lines
+  }
+}
+```
 
 **Solution:** Stream-through: use streaming all the way, don't store the whole thing in memory, don't use byte arrays. A mime type is determined from the first few bytes of the file, don't read in all 50 MB - 1 GB for that. Often, functionality can be achieved in a streaming way, i.e. [a digest can be computed in a streaming way](http://www.mkyong.com/java/java-sha-hashing-example/).
 
-The previous example improved:
+Example 1 improved:
 
 ```java
-   private void zipData() {
-        FileOutputStream dest = new FileOutputStream(file);
-	ZipOutputStream zos = new ZipOutputStream(new BufferedOutputStream(dest));
-        // stream 1 GB data from input to output stream (zos) here, which will be written to file
-   }
+ private void zipData() {
+      FileOutputStream dest = new FileOutputStream(file);
+  ZipOutputStream zos = new ZipOutputStream(new BufferedOutputStream(dest));
+      // stream 1 GB data from input to output stream (zos) here, which will be written to file
+ }
 ```
+
+Example 2 improved, with some example processing added: 
+```java
+  void good(Path in, Path out) throws IOException {
+      try (BufferedReader reader = Files.newBufferedReader(in);
+           BufferedWriter writer = Files.newBufferedWriter(out, APPEND)) {
+          String line = reader.readLine();
+          if (line.contains("ERROR")) {
+              writer.write(line);
+              writer.newLine();
+          }
+      }
+  }
+```
+**Note:** For small files say < 10 kbyte and not many being processed at the same time, this probably is not an actual problem. 
 
 #### ISIO04
 
@@ -1807,6 +1832,7 @@ class Foo {
     }
 }
 ```
+
 
 Extensive use of classpath scanning
 -----------------------------------
