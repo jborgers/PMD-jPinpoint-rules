@@ -1711,8 +1711,8 @@ This especially applies to direct file streaming. Access through ClassLoader.get
 
 #### ISIO03
 
-**Observation: Streaming is not (fully) used for uploading or downloading documents: somewhere the whole file is loaded into memory in a byte array e.g. to determine the mime type or create a digest.**  
-**Problem:** Large objects are allocated on the heap, up to e.g. 50 MB. We also observed 300 MB and even 1 GB in back-end systems. This likely triggers long gc’s for compaction or may trigger out of memory crashes.
+**Observation: All bytes of a file are loaded into memory.*** E.g. for uploading or downloading documents, for instance to determine the mime type or create a digest.    
+**Problem:** Large objects are allocated on the heap, up to e.g. 50 MB. We also observed 300 MB and even 1 GB in back-end systems. This likely triggers long gc pauses for compaction or may trigger out of memory crashes.
 
 In the next example, there are two large byte arrays in memory: one in baos and the other is the returned byte array since a copy is made in toByteArray().
 
@@ -1725,7 +1725,7 @@ In the next example, there are two large byte arrays in memory: one in baos and 
    }
 ```
 
-**Solution:** Use streaming all the way, don't use byte arrays. A mime type is determined from the first few bytes of the file, don't read in all 50 MB - 1 GB for that. Often, functionality can be achieved in a streaming way, i.e. [a digest can be computed in a streaming way](http://www.mkyong.com/java/java-sha-hashing-example/).
+**Solution:** Stream-through: use streaming all the way, don't store the whole thing in memory, don't use byte arrays. A mime type is determined from the first few bytes of the file, don't read in all 50 MB - 1 GB for that. Often, functionality can be achieved in a streaming way, i.e. [a digest can be computed in a streaming way](http://www.mkyong.com/java/java-sha-hashing-example/).
 
 The previous example improved:
 
