@@ -138,4 +138,43 @@ public class AvoidSpringMVCMemoryLeaks2 {
 }
      ]]></code>
     </test-code>
+    <test-code>
+        <description>Avoid SpringMVCMemoryLeaks Issue #33 </description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.ui.ModelMap;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.view.RedirectView;
+
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+
+public class Foo {
+
+    @RequestMapping(value = "/info/all", method = RequestMethod.GET)
+    public ResponseEntity agentInfoAll() {
+        String result = getAllServers()
+            .stream()
+            .filter(server -> !server.startsWith(GROUP_OF_SERVERS_PREFIX))
+            .map(server -> {
+                CompletableFuture<ResponseEntity<String>> futureResponse =
+                        CompletableFuture.supplyAsync(() -> agentClient.pingAgent(server), executor);
+                ResponseEntity<String> response = futureResponse
+                        .handle((res, ex) -> (res != null) ? res : ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error pinging server: " + ex.getMessage()))
+                        .join();
+                return server + " : " + buildStatus(response) + "\n" + response.getBody() + "\n\n";
+            })
+            .collect(Collectors.joining());
+
+    return ResponseEntity.ok().contentType(MediaType.TEXT_PLAIN).body(Pattern.compile("\n{2,}").matcher(result).replaceAll("\n\n"));
+    }
+}
+     ]]></code>
+    </test-code>
 </test-data>

@@ -118,6 +118,7 @@ and (
     [Expression/AdditiveExpression]
     [ancestor::ClassOrInterfaceBodyDeclaration/Annotation/NormalAnnotation/Name[starts-with(@Image,'RequestMapping')]]
     [ancestor::CompilationUnit/ImportDeclaration/Name[starts-with(@Image,'org.springframework')]]
+    [ancestor::MethodDeclaration/MethodDeclarator//Annotation//Name[@Image='RequestParam']]
 ) | (
     //Block//PrimaryExpression
     [
