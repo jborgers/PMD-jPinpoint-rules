@@ -706,6 +706,7 @@ Entity Equals and HashCode not properly defined
 
 ### IDA-EEH01
 
-**Observation: TODO** - See [http://www.ideyatech.com/effective-java-equals-and-hashcode/](http://www.ideyatech.com/effective-java-equals-and-hashcode/) and [dont-let-hibernate-steal-your-identity](http://www.onjava.com/pub/a/onjava/2006/09/13/dont-let-hibernate-steal-your-identity.html?page=1).
+**Observation: TODO** - 
 **Problem:** .  
 **Solution:**
+**See:** [jpa-entity-equality](https://www.baeldung.com/jpa-entity-equality) [effective-java-equals-and-hashcode/](http://www.ideyatech.com/effective-java-equals-and-hashcode/) and [dont-let-hibernate-steal-your-identity](http://www.onjava.com/pub/a/onjava/2006/09/13/dont-let-hibernate-steal-your-identity.html?page=1).
