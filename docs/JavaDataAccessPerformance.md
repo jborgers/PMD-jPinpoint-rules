@@ -706,7 +706,7 @@ Entity Equals and HashCode not properly defined
 
 ### IDA-EEH01
 
-**Observation: TODO** - 
-**Problem:** .  
-**Solution:**
+**Observation: Equals and hashCode are only based on the primary key**    
+**Problem:** When the entity objects don't have a primary key yet, equality is not properly defined.   
+**Solution:** Use a business key consisting of the fields that have a non-database-technical yet business meaning and which define the logical equality.    
 **See:** [jpa-entity-equality](https://www.baeldung.com/jpa-entity-equality) [effective-java-equals-and-hashcode/](http://www.ideyatech.com/effective-java-equals-and-hashcode/) and [dont-let-hibernate-steal-your-identity](http://www.onjava.com/pub/a/onjava/2006/09/13/dont-let-hibernate-steal-your-identity.html?page=1).
