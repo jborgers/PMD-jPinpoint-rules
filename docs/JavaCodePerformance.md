@@ -99,9 +99,13 @@ Note that class PoolingClientConnectionManager and several others are deprecated
 
 **Pool size calculation**   
 For calculating the pool size, we suggest the following formula:   
-`#connections = 1,5 * #requests/s (peak) * average service time`   
-So, with a peak load of 5 requests/s and an average time of the called service of 2 seconds, this gets:
-`#connections = 1,5 * 5 * 2 = 15`
+
+`#connections = 1,5 * #requests/s (at peak load) * service time (at 90th percentile, in seconds)`   
+
+So, with a peak load of 10 requests/s and the 90th percentile of the time of the called service of 1,2 second, this gets:
+`#connections = 1,5 * 10 * 1,2 = 18`
+
+If you don't know the peak load or the 90th percentile service time, estimate these values.
 
 **See also:** [Thread pool sizing](https://www.infoq.com/articles/Java-Thread-Pool-Performance-Tuning/) 
 
