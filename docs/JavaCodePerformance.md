@@ -101,12 +101,15 @@ Note that class PoolingClientConnectionManager and several others are deprecated
 The pool size must generally not be blocking, it should have enough connections for long yet still valid service times, during peak load. 
 For calculating the pool size, we suggest the following formula:
 ```
-#connections = #requests/s (at peak load) * service read timeout (in seconds)
-```   
-So, with a peak load of 5 requests/s and a read timeout of the called service of 7 second, this gets:
-`#connections = 5 * 7 = 35`
+#connections = 1,5 * #requests/s (at peak load) * service time (at 95th percentile, in seconds)
+```
+So, with a peak load of 10 requests/s and the 95th percentile of the time of the called service of 1,2 second, this gets:
+`#connections = 1,5 * 10 * 1,2 = 18`
 
-If you don't know the peak load, estimate this value.
+If you don't know the peak load or the 95th percentile service time, estimate these values.
+
+With high load like 200 tps, in practice, service times need to be very short in order for the service to work properly. 
+The #connections should typically be limited to < 60.
 
 **See also:** [Thread pool sizing](https://www.infoq.com/articles/Java-Thread-Pool-Performance-Tuning/) 
 
