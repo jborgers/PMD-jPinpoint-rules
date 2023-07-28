@@ -501,8 +501,12 @@ class AvoidHardcodedConnectionConfig {
   final int MAX_NUM_ROUTES = 2; // bad
   int some_timeout_ms = 300; //good, variable
   private static final String LOGIN_TIMEOUT_PROPERTY_KEY = "loginTimeout"; // good, not an int
-
-  AvoidHardcodedConnectionConfig() {
+  final int other_timeout_s_blank; // bad, blank final and hard coded
+  private final int connectTimeoutMillis; // good, not hard coded
+  
+  AvoidHardcodedConnectionConfig(@Value("${connect_timeout:1000}") int connectTimeoutMillis) {
+    this.connectTimeoutMillis = connectTimeoutMillis; // good, not hard coded
+    other_timeout_s_blank = 5; // field bad
     final int timeout_s_local = 4; // good, method level
     int otherTimeoutInS = 3; // good, var
   }

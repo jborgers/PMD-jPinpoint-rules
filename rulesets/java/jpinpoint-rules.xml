@@ -3854,8 +3854,9 @@ class Good {
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
-//FieldDeclaration[Type/@TypeImage='int']//VariableDeclaratorId[@Final = true()][contains(upper-case(@Name), 'TIMEOUT') or contains(upper-case(@Name), 'DURATIONOUT')
-or(contains(upper-case(@Name), 'MAX') and contains(upper-case(@Name), 'ROUTE'))]
+//FieldDeclaration[Type/@TypeImage='int']/VariableDeclarator[VariableDeclaratorId[@Final = true()][contains(upper-case(@Name), 'TIMEOUT') or contains(upper-case(@Name), 'DURATIONOUT')
+or(contains(upper-case(@Name), 'MAX') and contains(upper-case(@Name), 'ROUTE'))]]
+[VariableInitializer//Literal or VariableDeclaratorId/@Image=ancestor::ClassOrInterfaceBody//ConstructorDeclaration//StatementExpression[Expression//Literal]//Name/@Image]
                 ]]></value>
             </property>
         </properties>
@@ -3872,8 +3873,12 @@ class AvoidHardcodedConnectionConfig {
     final int MAX_NUM_ROUTES = 2; // bad
     int some_timeout_ms = 300; //good, variable
     private static final String LOGIN_TIMEOUT_PROPERTY_KEY = "loginTimeout"; // good, not an int
+    final int other_timeout_s_blank; // bad, blank final and hard coded
+    private final int connectTimeoutMillis; // good, not hard coded
 
-    AvoidHardcodedConnectionConfig() {
+    AvoidHardcodedConnectionConfig(@Value("${connect_timeout:1000}") int connectTimeoutMillis) {
+        this.connectTimeoutMillis = connectTimeoutMillis; // good, not hard coded
+        other_timeout_s_blank = 5; // field bad
         final int timeout_s_local = 4; // good, method level
         int otherTimeoutInS = 3; // good, var
     }

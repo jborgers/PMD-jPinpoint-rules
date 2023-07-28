@@ -34,7 +34,7 @@ class AvoidHardcodedConnectionConfig {
     </test-code>
 
     <test-code>
-        <description>violation: AvoidHardcodedConnectionConfig</description>
+        <description>violation: AvoidHardcodedConnectionConfig Issue259</description>
         <expected-problems>0</expected-problems>
         <code><![CDATA[
 class Issue259 {
@@ -42,4 +42,23 @@ class Issue259 {
 }
         ]]></code>
     </test-code>
+
+    <test-code>
+        <description>violation: AvoidHardcodedConnectionConfig: Issue266</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+class Issue266 {
+    private final int connectTimeoutMillis;
+    private final int readTimeoutMillis;
+
+    Issue266(@Value("${jws.connect_timeout:1000}") int connectTimeoutMillis,
+            @Value("${jws.read_timeout:1000}") int readTimeoutMillis) {
+
+        this.connectTimeoutMillis = connectTimeoutMillis;
+        this.readTimeoutMillis = readTimeoutMillis;
+    }
+}
+        ]]></code>
+    </test-code>
+
 </test-data>
