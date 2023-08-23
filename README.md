@@ -11,7 +11,8 @@ We didn't find these checks in other places, like the standard PMD, FindBugs/Spo
 We are are working with the PMD-team to move some of the jpinpoint rules in the standard rule set, as well as make PMD suitable for Kotlin.
 
 Run the jPinpoint rules from the command-line using the PMD tool, from your favorite development
-environment with a PMD-plugin, or in SonarQube after packaging them as Sonar plugin.
+environment with a PMD-plugin, or in SonarQube after packaging them as [Sonar custom plugin](https://github.com/jborgers/sonar-pmd-custom) 
+next to the [Sonar pmd plugin](https://github.com/jborgers/sonar-pmd).
 
 Documentation of the rules are here:
 * [JavaCodePerformance](docs/JavaCodePerformance.md)
