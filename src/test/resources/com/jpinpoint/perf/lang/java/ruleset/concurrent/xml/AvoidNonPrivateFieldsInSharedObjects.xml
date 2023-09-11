@@ -61,4 +61,17 @@ public class RootController {
 }
         ]]></code>
     </test-code>
+
+    <test-code>
+        <description>Avoid non-final non-private fields in shared objects. Not for injected fields, Issue #268</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+@Component
+public abstract class Issue268 implements Strategy {
+
+    @Autowired
+    protected QuickSupport quickSupport;
+}
+        ]]></code>
+    </test-code>
 </test-data>

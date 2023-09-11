@@ -2119,8 +2119,9 @@ prototype scope means that each invocation creates a new object so the field is 
 
 **Observation: A singleton, or more general: an object shared among threads, has a field that is not private.**  
 **Problem:** A shared object needs to be thread safe. Thread safety of fields cannot be guaranteed if not private: 
-the fields can possibly be modified from other classes.
+the fields can possibly be modified from other classes. 
 **Solution:** Make the fields private and make sure that they are used in a threadsafe way.  
+**Note:** Note: fields are excluded when annotated with: @Autowired/@Value/@Inject.   
 **Rule name:** AvoidNonPrivateFieldsInSharedObjects
 
 #### TUTC12

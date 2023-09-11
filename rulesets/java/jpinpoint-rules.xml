@@ -2908,6 +2908,7 @@ ancestor::StatementExpression/PrimaryExpression/PrimaryPrefix/Name/@Image = ance
             Problem: A singleton, or more general: an object shared among threads, has a field that is not private.
             These field can possibly be modified from other classes.&#13;
             Solution: Make the fields private.
+            Note: fields are excluded when annotated with: @Autowired/@Value/@Inject.
             (jpinpoint-rules)</description>
         <priority>1</priority>
         <properties>
@@ -2933,7 +2934,9 @@ ancestor::StatementExpression/PrimaryExpression/PrimaryPrefix/Name/@Image = ance
     and not (ancestor::TypeDeclaration/Annotation/MarkerAnnotation/Name[@Image='NotThreadSafe'])
 ]
 (: non-static, non-final and non-private fields :)
-/../../../ClassOrInterfaceDeclaration[@Static=false()]/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Private=false() and @Final=false()]
+/../../../ClassOrInterfaceDeclaration[@Static=false()]/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Private=false() and @Final=false()
+(: field not injection framework annotated :)
+and not (ancestor::ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='Autowired' or @Image='Value' or @Image='Inject'])]
 ]]>
                 </value>
             </property>
