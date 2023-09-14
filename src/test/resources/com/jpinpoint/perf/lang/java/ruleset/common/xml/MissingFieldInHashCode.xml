@@ -449,4 +449,26 @@ public class Klass {
      ]]></code>
     </test-code>
 
+    <test-code>
+        <description>no violation: equals of direct enclosing (inner) class should be used, issue #269</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+class Issue269 {
+    String field1;
+
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Issue269 that = (Issue269) o;
+        return field1.equals(that.field1);
+    }
+    public int hashCode() {
+        return Objects.hash(field1);
+    }
+    static class Builder {
+        String field1; // good
+    }
+}
+            ]]></code>
+    </test-code>
 </test-data>

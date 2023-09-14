@@ -1246,7 +1246,7 @@ class Bad1 {
                 <value><![CDATA[
 //FieldDeclaration//VariableDeclaratorId[
 (@Name = ancestor::ClassOrInterfaceBody[1]//MethodDeclaration[@Name='equals' and (MethodDeclarator//FormalParameters/@Size = 1)]/Block//(Name|PrimarySuffix)/@Image or
-concat(@Name, '.equals') = ancestor::ClassOrInterfaceBody//MethodDeclaration[@Name='equals' and (MethodDeclarator//FormalParameters/@Size = 1)]/Block//(Name|PrimarySuffix)/@Image) >
+concat(@Name, '.equals') = ancestor::ClassOrInterfaceBody[1]//MethodDeclaration[@Name='equals' and (MethodDeclarator//FormalParameters/@Size = 1)]/Block//(Name|PrimarySuffix)/@Image) >
 (@Name = ancestor::ClassOrInterfaceBody[1]//MethodDeclaration[@Name='hashCode' and (MethodDeclarator//FormalParameters/@Size = 0)]/Block//(PrimarySuffix|Name)/@Image or
 concat(@Name, '.hashCode') = ancestor::ClassOrInterfaceBody[1]//MethodDeclaration[@Name='hashCode' and (MethodDeclarator//FormalParameters/@Size = 0)]/Block//PrimaryPrefix/Name/@Image)
 ]
