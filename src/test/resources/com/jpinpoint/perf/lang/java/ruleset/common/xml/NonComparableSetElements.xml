@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>violation: NonComparableSetElements</description>
+        <expected-problems>6</expected-problems>
+        <expected-linenumbers>12,14,15,16,17,18</expected-linenumbers>
+        <code><![CDATA[
+import java.util.*;
+
+class Foo {
+    Set<String> strSet = new HashSet(); // good
+    Set<Thread> threadSet; // not determined here
+
+    Set oldStyleSet = new HashSet(); // cannot check here
+
+    void retrieveOrModifyByElemBad() {
+        Thread t = new Thread();
+        List<String> strList = new ArrayList();
+        threadSet.contains(t); // bad
+        oldStyleSet.add(new Thread());
+        boolean has = oldStyleSet.contains(new Thread());// bad
+        threadSet.containsAll(strList); // bad
+        threadSet.retainAll(strList); // bad
+        threadSet.removeAll(strList); // bad
+        threadSet.remove(t); // bad
+    }
+
+    void OtherCasesGood() {
+        strSet.contains("bla");
+        oldStyleSet.add("good");
+        strSet.containsAll(strList);
+        strSet.retainAll(strList);
+        strSet.removeAll(strList);
+        strSet.remove(t);
+    }
+}
+     ]]></code>
+    </test-code>
+
+</test-data>

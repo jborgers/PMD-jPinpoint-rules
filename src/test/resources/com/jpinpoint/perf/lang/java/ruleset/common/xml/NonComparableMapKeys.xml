@@ -4,14 +4,15 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
     <test-code>
-        <description>violation: NonComparableMapKeys</description>
-        <expected-problems>7</expected-problems>
-        <expected-linenumbers>5,9,10,11,13,18,20</expected-linenumbers>
+        <description>violati
+            on: NonComparableMapKeys</description>
+        <expected-problems>5</expected-problems>
+        <expected-linenumbers>5,9,10,11,16</expected-linenumbers>
         <code><![CDATA[
 import java.util.*;
 
 public class NonComparableMapKeys {
-    Map<NonComparableKey, String> nckMap; // bad, however not able to test here, not available from classpath, so typeIs does not work
+    Map<NonComparableKey, String> nckMap; // (bad), however not able to test here, not available from classpath, so typeIs does not work
     Map<Runnable, String> rMap; // bad
     Map<ComparableKey, String> ckMap; // good. Not available from classpath, type cannot be determined, then no violation
     Map<Comparable, String> cMap; // good
@@ -20,14 +21,10 @@ public class NonComparableMapKeys {
     Map<Thread, String> tMap; // bad, Thread does not implement Comparable
     Map<Class, String> clMap; // bad, Class does not implement Comparable
     Map oldStyleMap = new HashMap(); // cannot check here
-    Set<Class> clSet; // bad, Set elements are implemented as Map keys
-    Set oldStyleSet = new HashSet(); // cannot check here
 
     void putInOldStyleMap() {
         oldStyleMap.put("key", "value");
         oldStyleMap.put(new Thread(), new Thread()); // bad
-        oldStyleSet.add("good");
-        oldStyleSet.add(new Thread()); // bad
     }
 }
 
