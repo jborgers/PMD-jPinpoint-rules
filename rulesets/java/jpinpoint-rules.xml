@@ -1759,41 +1759,54 @@ and (pmd-java:typeIs('java.lang.Object'))
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
-(: check access by element Set.contains[All], remove[All], retain[All] :)
-//PrimaryExpression[PrimaryPrefix/Name[(ends-with(@Image, '.contains') or ends-with(@Image, '.containsAll') or ends-with(@Image, '.retain')
-    or ends-with(@Image, '.retainAll') or ends-with(@Image, '.remove') or ends-with(@Image, '.removeAll'))and pmd-java:typeIs('java.util.Set')]]
-[PrimarySuffix/Arguments/ArgumentList/Expression[1]
-(: first arg does not implement Comparable :)
-[not(pmd-java:typeIs('java.lang.Comparable'))
+//FieldDeclaration/Type[pmd-java:typeIs('java.util.Set') and ReferenceType//TypeArgument[1][not(pmd-java:typeIs('java.lang.Comparable'))
 (: and can be resolved :)
-and (pmd-java:typeIs('java.lang.Object'))
-]]
+and pmd-java:typeIs('java.lang.Object')]]/..//VariableDeclaratorId[
+ancestor::ClassOrInterfaceBody//PrimaryExpression/PrimaryPrefix/Name/@Image = concat(@Image, '.contains')
+or ancestor::ClassOrInterfaceBody//PrimaryExpression/PrimaryPrefix/Name/@Image = concat(@Image, '.containsAll')
+or ancestor::ClassOrInterfaceBody//PrimaryExpression/PrimaryPrefix/Name/@Image = concat(@Image, '.remove')
+or ancestor::ClassOrInterfaceBody//PrimaryExpression/PrimaryPrefix/Name/@Image = concat(@Image, '.removeAll')
+or ancestor::ClassOrInterfaceBody//PrimaryExpression/PrimaryPrefix/Name/@Image = concat(@Image, '.retainAll')
+]/../..
+,
+//(FormalParameter|LocalVariableDeclaration)/Type[pmd-java:typeIs('java.util.Set') and ReferenceType//TypeArgument[1][not(pmd-java:typeIs('java.lang.Comparable'))
+(: and can be resolved :)
+and pmd-java:typeIs('java.lang.Object')]]/..//VariableDeclaratorId[
+ancestor::MethodDeclaration//PrimaryExpression/PrimaryPrefix/Name/@Image = concat(@Image, '.contains')
+or ancestor::MethodDeclaration//PrimaryExpression/PrimaryPrefix/Name/@Image = concat(@Image, '.containsAll')
+or ancestor::MethodDeclaration//PrimaryExpression/PrimaryPrefix/Name/@Image = concat(@Image, '.remove')
+or ancestor::MethodDeclaration//PrimaryExpression/PrimaryPrefix/Name/@Image = concat(@Image, '.removeAll')
+or ancestor::MethodDeclaration//PrimaryExpression/PrimaryPrefix/Name/@Image = concat(@Image, '.retainAll')
+]/../..
                ]]></value>
             </property>
         </properties>
         <example>
             <![CDATA[
-class NonComparableSetElements {
-  Set<String> strSet = new HashSet();
-  Set<Thread> threadSet;
+import java.util.*;
+import org.apache.hc.client5.http.HttpRoute; // does implement equals/hashCode yet *not* compareTo
 
-    void accessByElemBad() {
-        Thread t = new Thread();
-        List<String> strList = new ArrayList();
-        threadSet.contains(t); // bad
-        threadSet.containsAll(strList); // bad
-        threadSet.retainAll(strList); // bad
-        threadSet.removeAll(strList); // bad
-        threadSet.remove(t); // bad
-    }
+class Foo {
+  Set<String> strSet = new HashSet<>();
+  List<String> strList = new ArrayList<>();
+  Set<HttpRoute> fieldRouteSet = new HashSet<>(); // bad
+  List<HttpRoute> routeList = new ArrayList<>();
 
-    void otherCasesGood() {
-        strSet.contains("bla");
-        strSet.containsAll(strList);
-        strSet.retainAll(strList);
-        strSet.removeAll(strList);
-        strSet.remove(t);
-    }
+  void byElemBad(Set<HttpRoute> paramRouteSet) { // bad
+    paramRouteSet.retainAll(routeList);
+
+    fieldRouteSet.contains(t);
+
+    Set<HttpRoute> localRouteSet = new HashSet<>(); // bad
+    localRouteSet.removeAll(routeList);
+  }
+
+  void otherCasesGood(Set<HttpRoute> paramRouteSet) {
+    strSet.contains("bla");
+    strSet.retainAll(strList);
+    strSet.remove("other");
+    paramRouteSet.iterator().next();
+  }
 }
             ]]>
         </example>

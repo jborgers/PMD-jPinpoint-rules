@@ -2381,27 +2381,29 @@ Note that equals and hashCode must be implemented properly for the elements, and
 **Rule name:** NonComparableSetElements   
 **Examples:**
 ```java
-class NonComparableSetElements {
-  Set<String> strSet = new HashSet(); 
-  Set<Thread> threadSet; 
+import java.util.*;
+import org.apache.hc.client5.http.HttpRoute; // does implement equals/hashCode yet *not* compareTo
 
-  void retrieveOrModifyByElemBad() {
-    Thread t = new Thread();
-    List<String> strList = new ArrayList();
-    threadSet.contains(t); // bad
-    boolean has = oldStyleSet.contains(new Thread());// bad
-    threadSet.containsAll(strList); // bad
-    threadSet.retainAll(strList); // bad
-    threadSet.removeAll(strList); // bad
-    threadSet.remove(t); // bad
+class Foo {
+  Set<String> strSet = new HashSet<>();
+  List<String> strList = new ArrayList<>();
+  Set<HttpRoute> fieldRouteSet = new HashSet<>(); // bad
+  List<HttpRoute> routeList = new ArrayList<>();
+
+  void byElemBad(Set<HttpRoute> paramRouteSet) { // bad
+    paramRouteSet.retainAll(routeList);
+
+    fieldRouteSet.contains(t);
+
+    Set<HttpRoute> localRouteSet = new HashSet<>(); // bad
+    localRouteSet.removeAll(routeList);
   }
 
-  void OtherCasesGood() {
+  void otherCasesGood(Set<HttpRoute> paramRouteSet) {
     strSet.contains("bla");
-    strSet.containsAll(strList);
     strSet.retainAll(strList);
-    strSet.removeAll(strList);
-    strSet.remove(t);
+    strSet.remove("other");
+    paramRouteSet.iterator().next();
   }
 }
 ```

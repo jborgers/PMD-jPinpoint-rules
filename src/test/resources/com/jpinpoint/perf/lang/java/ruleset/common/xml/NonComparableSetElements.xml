@@ -5,36 +5,40 @@
         xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
     <test-code>
         <description>violation: NonComparableSetElements</description>
-        <expected-problems>6</expected-problems>
-        <expected-linenumbers>12,14,15,16,17,18</expected-linenumbers>
+        <expected-problems>4</expected-problems>
+        <expected-linenumbers>6, 12, 17, 20</expected-linenumbers>
         <code><![CDATA[
 import java.util.*;
-
+import org.apache.hc.client5.http.HttpRoute; // does implement equals/hashCode yet not compareTo
+// Thread does not implement equals/hashCode nor compareTo
 class Foo {
-    Set<String> strSet = new HashSet(); // good
-    Set<Thread> threadSet; // not determined here
+    Set<String> strSet = new HashSet<>();
+    Set<Thread> threadFieldSet = new HashSet<>(); // bad
+    Thread t = new Thread();
+    List<String> strList = new ArrayList<>();
+    List<Thread> tList = new ArrayList<>();
+    Set<HttpRoute> routeSet = new HashSet<>();
 
-    Set oldStyleSet = new HashSet(); // cannot check here
+    void byElemBad(Set<Thread> threadParamSet) { // bad
+        threadParamSet.retainAll(tList);
 
-    void retrieveOrModifyByElemBad() {
-        Thread t = new Thread();
-        List<String> strList = new ArrayList();
-        threadSet.contains(t); // bad
-        oldStyleSet.add(new Thread());
-        boolean has = oldStyleSet.contains(new Thread());// bad
-        threadSet.containsAll(strList); // bad
-        threadSet.retainAll(strList); // bad
-        threadSet.removeAll(strList); // bad
-        threadSet.remove(t); // bad
+        threadFieldSet.contains(t);
+
+        Set<Thread> threadLocalSet = new HashSet<>(); // bad
+        threadLocalSet.containsAll(tList);
+
+        Set<HttpRoute> routeLocalSet = new HashSet<>(); // bad
+        routeLocalSet.removeAll(tList);
     }
 
-    void OtherCasesGood() {
+    void otherCasesGood(Set<Thread> threadParamSet) {
         strSet.contains("bla");
-        oldStyleSet.add("good");
         strSet.containsAll(strList);
         strSet.retainAll(strList);
         strSet.removeAll(strList);
         strSet.remove(t);
+        threadParamSet.iterator().next();
+        routeSet.iterator().next();
     }
 }
      ]]></code>
