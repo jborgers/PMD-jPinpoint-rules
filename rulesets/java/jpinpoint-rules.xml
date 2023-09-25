@@ -4253,6 +4253,41 @@ class Foo {
         </example>
     </rule>
 
+    <rule name="AvoidSaajSoapMessaging"
+          message="Avoid SAAJ SOAP messaging, use Axiom instead."
+          class="net.sourceforge.pmd.lang.rule.XPathRule"
+          dfa="false"
+          language="java"
+          typeResolution="true"
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#ibi23">
+        <description>Problem: SAAJ uses DOM to load the XML document in memory which uses a TransformerFactory. The implementation class of it is loaded on every call which causes lock contention under load. This means long response times.&#13;
+            Solution: Use Axiom SOAP messaging which uses the faster StAX. If you want to stick to SAAJ, add the proper JVM parameter to prevent the class loading.
+            (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+//ImportDeclaration/Name[starts-with(@Image, 'org.springframework.ws.soap.saaj') or starts-with(@Image, 'com.sun.xml.messaging.saaj.soap')]
+|
+//Type//ClassOrInterfaceType[@Image='SaajSoapMessageFactory']
+                ]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+import org.springframework.ws.soap.saaj.SaajSoapMessage; // bad
+import org.springframework.ws.soap.saaj.SaajSoapMessageFactory; // bad
+import com.sun.xml.messaging.saaj.soap.*; // bad
+
+class Foo {
+    private final SaajSoapMessageFactory mfField; // bad
+}
+            ]]>
+        </example>
+    </rule>
+
     <rule name="AvoidXMLGregorianCalendar" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" message="XMLGregorianCalendar is used. It is slow in JAXB." typeResolution="true"
           externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#iuoxar05">
         <description>Problem: XMLGregorianCalendar is a large object, involving substantial processing. It is created with the poorly performing DatatypeFactory.

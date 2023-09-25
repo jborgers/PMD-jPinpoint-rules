@@ -513,6 +513,23 @@ class AvoidHardcodedConnectionConfig {
 }
 ```
 
+#### IBI23
+**Observation: SAAJ SOAP messaging is used.**   
+**Problem:** SAAJ uses DOM to load the XML document in memory which uses a TransformerFactory. The implementation class of it is loaded on every call which causes lock contention under load. This means long response times.   
+**Solution:** Use Axiom SOAP messaging which uses the faster StAX. If you want to stick to SAAJ, add the proper JVM parameter to prevent the class loading.   
+**Rule name:** AvoidSaajSoapMessaging   
+**Example:**
+```java
+import org.springframework.ws.soap.saaj.SaajSoapMessage; // bad
+import org.springframework.ws.soap.saaj.SaajSoapMessageFactory; // bad
+import com.sun.xml.messaging.saaj.soap.*; // bad
+
+class Foo {
+    private final SaajSoapMessageFactory mfField; // bad, (also not thread safe)
+}
+```
+**See:** [IUOXAR09: XML related `XXXFactory.newInstance()` is called repeatedly.](IUOXAR09)   
+
 Improper asynchrony 
 -------------------
 
@@ -1365,7 +1382,8 @@ Note that `LocalDateTime` is faster than `DateTime`, however, be aware of its ti
 #### IUOXAR09
 
 **Observation: XML related `XXXFactory.newInstance()` is called repeatedly.**  
-**Problem:** Upon instance creation of `javax.xml.transform.TransformerFactory`, `javax.xml.parsers.DocumentBuilderFactory`, `javax.xml.soap.MessageFactory` or `javax.xml.validation.SchemaFactory`, i.a. the file system is searched for an implementing class in a jar file. This is expensive. The factories are not thread-safe, so they cannot simply be made static and/or shared among threads.  
+**Problem:** Upon instance creation of `javax.xml.transform.TransformerFactory`, `javax.xml.parsers.DocumentBuilderFactory`, `javax.xml.soap.MessageFactory` or `javax.xml.validation.SchemaFactory`, 
+i.a. the file system is searched for an implementing class in a jar file. This is expensive. The factories are not thread-safe, so they cannot simply be made static and/or shared among threads.  
 **Solution:**
 
 1.  Preferably create the factory once. Use a lock to guard the factory, preferably with a synchronizing wrapper. Be aware of possible contention. Or use a `ThreadLocal`.
@@ -1376,9 +1394,11 @@ Note that `LocalDateTime` is faster than `DateTime`, however, be aware of its ti
 -Djavax.xml.parsers.DocumentBuilderFactory=org.apache.xerces.jaxp.DocumentBuilderFactoryImpl 
 -Djavax.xml.transform.TransformerFactory=org.apache.xalan.processor.TransformerFactoryImpl //old
 -Djavax.xml.transform.TransformerFactory=net.sf.saxon.TransformerFactoryImpl //newer
+-Djavax.xml.transform.TransformerFactory=com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl //alternative
 -Djavax.xml.soap.MessageFactory=org.apache.axis.soap.MessageFactoryImpl
 -Djavax.xml.validation.SchemaFactory=com.saxonica.ee.jaxp.SchemaFactoryImpl
 ```
+**Note:** Find out from a heap dump or classloading logging which implementation class is actually used in your app.   
 
 **Note:** More on `TransformerFactory` and caching compiled templates, see IBM's [XSLT transformations cause high CPU and slow performance](http://www-01.ibm.com/support/docview.wss?uid=swg21641274).
 
