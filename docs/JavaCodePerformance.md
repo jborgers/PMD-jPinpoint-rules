@@ -528,7 +528,7 @@ class Foo {
     private final SaajSoapMessageFactory mfField; // bad, (also not thread safe)
 }
 ```
-**See:** [IUOXAR09: XML related `XXXFactory.newInstance()` is called repeatedly.](IUOXAR09)   
+**See:** [IUOXAR09: XML related `XXXFactory.newInstance()` is called repeatedly.](JavaCodePerformance.md#IUOXAR09)   
 
 Improper asynchrony 
 -------------------
