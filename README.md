@@ -3,7 +3,7 @@ PMD rule set for performance aware Java and Kotlin coding, sponsored by [Raboban
 
 The purpose of this project is to create and manage automatic java code checks. 
 
-To get apps which are faster, use less CPU, emit less CO2, are more stable, more confidential, with less effort and lower cost.
+To get apps which are faster, use less resources, have a smaller ecological footprint, are more stable, more confidential, with less effort and lower cost.
  
 We have distilled these code checks from what we learned in several years of analyzing performance problems and failures found in code, tests and production situations. And the ruleset is growing every month.
 
