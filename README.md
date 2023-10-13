@@ -48,7 +48,7 @@ After installing the tool you can run `pmd.sh` or `pmd.bat` similar to the follo
 - You need a recent version of IntelliJ. The Community Edition is fine.
 - Install PMDPlugin: 
 
-      Settings/Preferences > Plugins > Browse Repositories > Search 'PMDPlugin' > Select 'PMDPlugin' > Install > Close > OK > Restart
+      Settings/Preferences > Plugins > Browse Repositories > Search 'PMD' > Select 'PMD' > Install > Close > OK > Restart
 
 - Configure (add) the ruleset from this repo: *rulesets/java/jpinpoint-rules.xml*:
 
@@ -73,6 +73,9 @@ The Acanda PMD plugin seems to be the best one to use.
 - [Import it into eclipse](http://www.acanda.ch/eclipse-pmd/release/latest).
 - enable PMD through the properties of the project
 - add the ruleset from this project *rulesets/java/jpinpoint-rules.xml*
+
+## SonarQube
+In SonarQube, you need to install [sonar-pmd plugin](https://github.com/jborgers/sonar-pmd) from the market place, and [sonar-pmd-custom plugin](https://github.com/jborgers/sonar-pmd-custom) for these custom rules.
 
 # Development
 
