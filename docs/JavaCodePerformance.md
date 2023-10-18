@@ -1816,7 +1816,8 @@ Logging of allocation stack traces will be in native\_stderr.log.
 **Observation: FileInputStream and FileOutputStream are used without buffer.**  
 **Problem:** With FileInputStream and FileOutputStream, file access is not buffered.
 The stream is read-from/written-to file byte by byte, where each operating system call has its overhead, which makes it slow.   
-**Solution:** Use buffering to read/write a chunk of bytes at once with much lower overhead. Use BufferedOutput/InputStream which has a buffer size of 8 kB by default to write at once.   
+**Solution:** Use buffering to read/write a chunk of bytes at once with much lower overhead. Use BufferedOutput/InputStream which has a buffer size of 8 kB by default to write at once. 
+Make sure to close (flush) a BufferedOutputStream after the last write, otherwise the last part may not be written to file.   
 **Rule name:** BufferFileStreaming.   
 **Example:**
 ```java
@@ -1845,7 +1846,8 @@ class BufferFileStreaming {
 
 **Observation: No buffering is added to the use of Files.newInputStream and Files.newOutputStream.**  
 **Problem:** Files.newInputStream or Files.newOutputStream is not buffered. The stream is read/written to file byte by byte, where each operating system call has its overhead which makes it slow.   
-**Solution:** Use buffering to read/write a chunk of bytes at once with much lower overhead. Use e.g. BufferedInputStream or BufferedOutputStream which has a buffer size of 8 kB by default to write at once.   
+**Solution:** Use buffering to read/write a chunk of bytes at once with much lower overhead. Use e.g. BufferedInputStream or BufferedOutputStream which has a buffer size of 8 kB by default to write at once. 
+Make sure to close (flush) a BufferedOutputStream after the last write, otherwise the last part may not be written to file.   
 **Rule name:** BufferFilesNewStream.   
 **Example:**
 ```java
