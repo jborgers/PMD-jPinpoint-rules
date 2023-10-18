@@ -182,7 +182,7 @@ public class RulesetMerger {
 
             List<String> allLines = new ArrayList<>(headerLines);
             allLines.addAll(mergedFileLines);
-            IOUtils.writeLines(allLines, LSEP, Files.newOutputStream(resultFile.toPath()), Charset.defaultCharset());
+            IOUtils.writeLines(allLines, LSEP, new BufferedOutputStream(Files.newOutputStream(resultFile.toPath())), Charset.defaultCharset());
             System.out.println(String.format("INFO: merged files into '%s'.", resultFile.getPath()));
         }
         catch(IOException e) {
@@ -192,7 +192,7 @@ public class RulesetMerger {
     }
 
     private static void mergeFileIntoLines(File file, List<String> mergedFileLines) throws IOException {
-        try (InputStream is1 = Files.newInputStream(file.toPath())) {
+        try (InputStream is1 = new BufferedInputStream(Files.newInputStream(file.toPath()))) {
             System.out.print(String.format("INFO: processing '%s'", file.getName()));
             List<String> file1Lines = IOUtils.readLines(is1, Charset.defaultCharset());
 

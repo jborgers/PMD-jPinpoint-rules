@@ -1946,14 +1946,14 @@ class BufferFileStreaming {
 
     <rule name="BufferFilesNewStream"
           language="java"
-          message="Files.newOutputStream is not buffered, add buffering."
+          message="Files.newInputStream or Files.newOutputStream is not buffered, add buffering."
           class="net.sourceforge.pmd.lang.rule.XPathRule"
           typeResolution="true"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#isio06">
-        <description>Problem: Files.newOutputStream is not buffered.
-            The stream is written to file byte by byte, where each operating system call has its overhead which makes it slow.
-            Solution: Use buffering to write a chunk of bytes at once with much lower overhead.
-            Use e.g. BufferedOutputStream which has a buffer size of 8 kB to write at once.
+        <description>Problem: Files.newInputStream or Files.newOutputStream is not buffered.
+            The stream is read from/written to file byte by byte, where each operating system call has its overhead which makes it slow.
+            Solution: Use buffering to read/write a chunk of bytes at once with much lower overhead.
+            Use e.g. BufferedInputStream or BufferedOutputStream which has a buffer size of 8 kB to write at once.
         </description>
         <priority>3</priority>
         <properties>

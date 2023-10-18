@@ -1844,22 +1844,22 @@ class BufferFileStreaming {
 #### ISIO06
 
 **Observation: No buffering is added to the use of Files.newInputStream and Files.newOutputStream.**  
-**Problem:** Files.new[Input/Output]Stream is not buffered. The stream is read/written to file byte by byte, where each operating system call has its overhead which makes it slow.   
-**Solution:** Use buffering to read/write a chunk of bytes at once with much lower overhead. Use e.g. BufferedOutputStream which has a buffer size of 8 kB by default to write at once.   
+**Problem:** Files.newInputStream or Files.newOutputStream is not buffered. The stream is read/written to file byte by byte, where each operating system call has its overhead which makes it slow.   
+**Solution:** Use buffering to read/write a chunk of bytes at once with much lower overhead. Use e.g. BufferedInputStream or BufferedOutputStream which has a buffer size of 8 kB by default to write at once.   
 **Rule name:** BufferFilesNewStream.   
 **Example:**
 ```java
 class Foo {
-    OutputStream bad(String path) throws IOException {
+    OutputStream badOut(String path) throws IOException {
         return java.nio.file.Files.newOutputStream(Paths.get(path)); // bad
     }
-    OutputStream good(String path) throws IOException {
+    OutputStream goodOut(String path) throws IOException {
         return new BufferedOutputStream(java.nio.file.Files.newOutputStream(Paths.get(path)));
     }
-    InputStream badI(String path) throws IOException {
+    InputStream badIn(String path) throws IOException {
         return java.nio.file.Files.newInputStream(Paths.get(path)); // bad
     }
-    OutputStream goodI(String path) throws IOException {
+    OutputStream goodIn(String path) throws IOException {
         return new BufferedInputStream(java.nio.file.Files.newInputStream(Paths.get(path)));
     }
 }
