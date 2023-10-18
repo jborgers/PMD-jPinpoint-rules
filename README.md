@@ -3,7 +3,7 @@ PMD rule set for performance aware Java and Kotlin coding, sponsored by [Raboban
 
 The purpose of this project is to create and manage automatic java code checks. 
 
-To get apps which are faster, use less CPU, emit less CO2, are more stable, more confidential, with less effort and lower cost.
+To get apps which are faster, use less resources, have a smaller ecological footprint, are more stable, more confidential, with less effort and lower cost.
  
 We have distilled these code checks from what we learned in several years of analyzing performance problems and failures found in code, tests and production situations. And the ruleset is growing every month.
 
@@ -48,7 +48,7 @@ After installing the tool you can run `pmd.sh` or `pmd.bat` similar to the follo
 - You need a recent version of IntelliJ. The Community Edition is fine.
 - Install PMDPlugin: 
 
-      Settings/Preferences > Plugins > Browse Repositories > Search 'PMDPlugin' > Select 'PMDPlugin' > Install > Close > OK > Restart
+      Settings/Preferences > Plugins > Browse Repositories > Search 'PMD' > Select 'PMD' > Install > Close > OK > Restart
 
 - Configure (add) the ruleset from this repo: *rulesets/java/jpinpoint-rules.xml*:
 
@@ -73,6 +73,9 @@ The Acanda PMD plugin seems to be the best one to use.
 - [Import it into eclipse](http://www.acanda.ch/eclipse-pmd/release/latest).
 - enable PMD through the properties of the project
 - add the ruleset from this project *rulesets/java/jpinpoint-rules.xml*
+
+## SonarQube
+In SonarQube, you need to install [sonar-pmd plugin](https://github.com/jborgers/sonar-pmd) from the market place, and [sonar-pmd-custom plugin](https://github.com/jborgers/sonar-pmd-custom) for these custom rules.
 
 # Development
 
