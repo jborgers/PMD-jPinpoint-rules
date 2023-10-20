@@ -2081,4 +2081,51 @@ class Good {
             ]]>
         </example>
     </rule>
+
+    <rule name="AvoidRecreatingSecurityProviders"
+          language="java"
+          message="Avoid re-creating security providers."
+          class="net.sourceforge.pmd.lang.rule.XPathRule"
+          typeResolution="true"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#iuosf01">
+        <description>Problem: Creating a security provider is expensive because of loading of algorithms and other classes. Additionally, it uses synchronized which leads to lock contention when used with multiple threads.
+            Solution: This only needs to happen once in the JVM lifetime, because once loaded, the provider is available from the Security class. Create the security provider only once: only in case it is nog available from the Security class, yet.
+        </description>
+        <priority>2</priority>
+        <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+//MethodDeclaration[not(.//IfStatement//EqualityExpression[@Operator='=='][
+.//PrimaryExpression[pmd-java:typeIs('java.security.Provider')] and .//NullLiteral])]
+//AllocationExpression[pmd-java:typeIs('java.security.Provider')]
+                ]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+import java.security.*;
+import javax.crypto.*;
+import org.bouncycastle.jce.provider.*;
+
+class Foo {
+    public Cipher initBlowfishBad() throws GeneralSecurityException {
+        Security.addProvider(new BouncyCastleProvider()); // bad
+        // build a Cipher
+    }
+
+    public Cipher initBlowfishGood() throws GeneralSecurityException {
+        Provider bouncyCastleProvider = Security.getProvider(BouncyCastleProvider.PROVIDER_NAME);
+        if (bouncyCastleProvider == null) {
+            bouncyCastleProvider = new BouncyCastleProvider();
+            Security.addProvider(bouncyCastleProvider);
+        }
+        // build a Cipher
+    }
+}
+            ]]>
+        </example>
+    </rule>
+
 </ruleset>

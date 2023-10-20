@@ -1867,6 +1867,35 @@ class Foo {
 }
 ```
 
+Inefficient use of security features
+------------------------------------
+
+#### IUOSF01
+
+**Observation: A security provider is re-created, that is, created in a method called more than once.**   
+**Problem:** Creating a security provider is expensive because of loading of algorithms and other classes. 
+Additionally, it uses synchronized which leads to lock contention when used with multiple threads.  
+**Solution:** This only needs to happen once in the JVM lifetime, because once loaded, the provider is available from the Security class. 
+Create the security provider only once: only in case it is nog available from the Security class, yet.   
+**Rule name:** AvoidRecreatingSecurityProviders.    
+**Example:**
+```java
+class Foo {
+  public Cipher initBlowfishBad() throws GeneralSecurityException {
+    Security.addProvider(new BouncyCastleProvider());  // bad
+    // build a Cipher
+  }
+
+  public Cipher initBlowfishGood() throws GeneralSecurityException {
+    Provider bouncyCastleProvider = Security.getProvider(BouncyCastleProvider.PROVIDER_NAME);
+    if (bouncyCastleProvider == null) {
+      bouncyCastleProvider = new BouncyCastleProvider();
+      Security.addProvider(bouncyCastleProvider);
+    }
+    // build a Cipher
+  }
+}
+```
 
 Extensive use of classpath scanning
 -----------------------------------
