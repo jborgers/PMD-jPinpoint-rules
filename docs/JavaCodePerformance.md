@@ -37,7 +37,7 @@ Introduction
 
 We categorized many performance pitfalls based on our findings in practice in the last decade. Sources we used are: performance code reviews, load and stress tests, heap analyses, 
 profiling and production problems of various applications of companies. We present these pitfalls with best practice solutions as follows. 
-Several of these pitfalls are automated into custom PMD/Sonar jPinpoint-rules.
+Several of these pitfalls are automated into custom PMD/Sonar jPinpoint-rules. Disclaimer: these best practices come without warranty of any kind. Use at your own risk and always (load)test in your own situation.
 
 Improper back-end interaction / remote service calls
 ----------------------------------------------------
@@ -515,8 +515,13 @@ class AvoidHardcodedConnectionConfig {
 
 #### IBI23
 **Observation: SAAJ SOAP messaging is used.**   
-**Problem:** SAAJ uses DOM to load the XML document in memory which uses a TransformerFactory. The implementation class of it is loaded on every call which causes lock contention under load. This means long response times.   
-**Solution:** Use Axiom SOAP messaging which uses the faster StAX. If you want to stick to SAAJ, add the proper JVM parameter to prevent the class loading.   
+**Problem:** SAAJ uses DOM to load the XML document in memory which uses a TransformerFactory. The implementation class of it is loaded on every call which is expensive and causes lock contention under load. This means long response times.   
+**Solutions:** 
+1. Use Axiom SOAP messaging which uses the faster StAX instead of DOM.       
+2. If you want or have to use SAAJ, set the proper JVM parameter/system property for TransformerFactory and MessageFactory to prevent the excessive class loading. 
+When solved not in the file with the violation, just suppress the rule with the reason explained.   
+
+**Note:** Unfortunately, [AxiomSoapMessageFactory has been removed from spring-ws with Spring Boot 3.0](https://spring.io/blog/2022/12/02/spring-ws-samples-upgraded-for-spring-boot-3-0). In that case, only solution 2 is possible.   
 **Rule name:** AvoidSaajSoapMessaging   
 **Example:**
 ```java
@@ -525,7 +530,9 @@ import org.springframework.ws.soap.saaj.SaajSoapMessageFactory; // bad
 import com.sun.xml.messaging.saaj.soap.*; // bad
 
 class Foo {
-    private final SaajSoapMessageFactory mfField; // bad, (also not thread safe)
+  public WebServiceTemplate getTemplate(final String uri, final HttpClientMessageSender httpClientMessageSender) throws SOAPException {
+    final SoapMessageFactory saajSoapMessageFactory = new SaajSoapMessageFactory(MessageFactory.newInstance()); // bad
+    //.. 
 }
 ```
 **See:** [IUOXAR09: XML related `XXXFactory.newInstance()` is called repeatedly.](JavaCodePerformance.md#IUOXAR09)   
@@ -1383,12 +1390,16 @@ Note that `LocalDateTime` is faster than `DateTime`, however, be aware of its ti
 
 **Observation: XML related `XXXFactory.newInstance()` is called repeatedly.**  
 **Problem:** Upon instance creation of `javax.xml.transform.TransformerFactory`, `javax.xml.parsers.DocumentBuilderFactory`, `javax.xml.soap.MessageFactory` or `javax.xml.validation.SchemaFactory`, 
-i.a. the file system is searched for an implementing class in a jar file. This is expensive. The factories are not thread-safe, so they cannot simply be made static and/or shared among threads.  
+i.a. the file system is searched for an implementing class in a jar file. This is excessive classloading, it is expensive. The factories are not thread-safe, so they cannot simply be made static and/or shared among threads. Loading the classes every time results in poor performance.  
 **Solution:**
 
-1.  Preferably create the factory once. Use a lock to guard the factory, preferably with a synchronizing wrapper. Be aware of possible contention. Or use a `ThreadLocal`.
-2.  If many threads access often, consider using `ThreadLocal`s, or a pooling factory solution with for instance a `BlockingQueue` of a few factories.
-3.  Simple alternative: use jvm system properties to specify your default implementation class. This at least prevents the biggest bottleneck: class path scanning. Examples:
+1.  Preferably create the factory only once. Use a lock to guard the factory, e.g. with a synchronizing wrapper. Be aware of possible contention, so with high load a better solution is:    
+2.  To prevent contention, use `ThreadLocal`s, see example below.
+3.  Or a pooling factory solution with for instance a `BlockingQueue` of a few factories.
+3.  Simple solution: use jvm system properties to specify your default implementation class. This at least prevents the biggest bottleneck: class path scanning. 
+
+**Examples:**
+* Using JVM parameters
 
 ```
 -Djavax.xml.parsers.DocumentBuilderFactory=org.apache.xerces.jaxp.DocumentBuilderFactoryImpl 
@@ -1398,7 +1409,18 @@ i.a. the file system is searched for an implementing class in a jar file. This i
 -Djavax.xml.soap.MessageFactory=org.apache.axis.soap.MessageFactoryImpl
 -Djavax.xml.validation.SchemaFactory=com.saxonica.ee.jaxp.SchemaFactoryImpl
 ```
-**Note:** Find out from a heap dump or classloading logging which implementation class is actually used in your app.   
+* In code:
+```java
+   static {
+        System.setProperty("javax.xml.transform.TransformerFactory", "com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl");
+        System.setProperty("javax.xml.soap.MessageFactory", "com.sun.xml.internal.messaging.saaj.soap.ver1_1.SOAPMessageFactory1_1Impl");
+    }
+```
+
+**Note:** The implementation class of the factory actually used might be just the default class specified in the factory interface code. This depends on your configuration.
+However, find out from a heap dump or classloading logging (-verbose:class) which one is actually used in your app.   
+Here it shows in a heap dump in VisualVM as only class with objects retaining bytes:
+![transformerFactory in heap](transformerFactoryInHeap.png)
 
 **Note:** More on `TransformerFactory` and caching compiled templates, see IBM's [XSLT transformations cause high CPU and slow performance](http://www-01.ibm.com/support/docview.wss?uid=swg21641274).
 
