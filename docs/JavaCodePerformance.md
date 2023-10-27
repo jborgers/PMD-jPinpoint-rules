@@ -518,7 +518,7 @@ class AvoidHardcodedConnectionConfig {
 **Problem:** SAAJ uses DOM to load the XML document in memory which uses a TransformerFactory. The implementation class of it is loaded on every call which is expensive and causes lock contention under load. This means long response times.   
 **Solutions:** 
 1. Use Axiom SOAP messaging which uses the faster StAX instead of DOM.       
-2. If you want or have to use SAAJ, set the proper JVM parameter/system property for TransformerFactory and MessageFactory to prevent the excessive class loading. 
+2. If you want or have to use SAAJ, set the proper JVM parameter/system property for TransformerFactory and MessageFactory (see link below) to prevent the excessive class loading. 
 When solved not in the file with the violation, just suppress the rule with the reason explained.   
 
 **Note:** Unfortunately, [AxiomSoapMessageFactory has been removed from spring-ws with Spring Boot 3.0](https://spring.io/blog/2022/12/02/spring-ws-samples-upgraded-for-spring-boot-3-0). In that case, only solution 2 is possible.   
@@ -531,8 +531,9 @@ import com.sun.xml.messaging.saaj.soap.*; // bad
 
 class Foo {
   public WebServiceTemplate getTemplate(final String uri, final HttpClientMessageSender httpClientMessageSender) throws SOAPException {
-    final SoapMessageFactory saajSoapMessageFactory = new SaajSoapMessageFactory(MessageFactory.newInstance()); // bad
-    //.. 
+      SoapMessageFactory saajSoapMessageFactory = new SaajSoapMessageFactory(MessageFactory.newInstance()); // bad
+      //.. 
+  }
 }
 ```
 **See:** [IUOXAR09: XML related `XXXFactory.newInstance()` is called repeatedly.](JavaCodePerformance.md#IUOXAR09)   
@@ -1392,11 +1393,10 @@ Note that `LocalDateTime` is faster than `DateTime`, however, be aware of its ti
 **Problem:** Upon instance creation of `javax.xml.transform.TransformerFactory`, `javax.xml.parsers.DocumentBuilderFactory`, `javax.xml.soap.MessageFactory` or `javax.xml.validation.SchemaFactory`, 
 i.a. the file system is searched for an implementing class in a jar file. This is excessive classloading, it is expensive. The factories are not thread-safe, so they cannot simply be made static and/or shared among threads. Loading the classes every time results in poor performance.  
 **Solution:**
-
 1.  Preferably create the factory only once. Use a lock to guard the factory, e.g. with a synchronizing wrapper. Be aware of possible contention, so with high load a better solution is:    
 2.  To prevent contention, use `ThreadLocal`s, see example below.
-3.  Or a pooling factory solution with for instance a `BlockingQueue` of a few factories.
-3.  Simple solution: use jvm system properties to specify your default implementation class. This at least prevents the biggest bottleneck: class path scanning. 
+3. Or a pooling factory solution with for instance a `BlockingQueue` of a few factories. 
+4. Simple solution: use jvm / system properties to specify your default implementation class. This at least prevents the biggest bottleneck: class path scanning. 
 
 **Examples:**
 * Using JVM parameters
