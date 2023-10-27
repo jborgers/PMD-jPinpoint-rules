@@ -3957,6 +3957,52 @@ class Good {
         </example>
     </rule>
 
+    <rule name="AvoidExcessiveClassloadingWithSaajSoap"
+          message="Avoid excessive class loading with SAAJ SOAP messaging, use alternative Axiom, or system properties."
+          class="net.sourceforge.pmd.lang.rule.XPathRule"
+          dfa="false"
+          language="java"
+          typeResolution="true"
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#ibi23">
+        <description>Problem: SAAJ uses DOM to load the XML document in memory which uses a TransformerFactory. The implementation class of it is loaded on every call which causes lock contention under load. This means long response times.&#13;
+            Solution: If possible, use Axiom SOAP messaging which uses the faster StAX. If you have/want to stick to SAAJ, set the proper system properties to prevent the excessive class loading.
+            (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+//Type//ClassOrInterfaceType[@Image='SaajSoapMessageFactory'
+and not (ancestor::ClassOrInterfaceBody//PrimaryExpression[./PrimaryPrefix/Name[@Image='System.setProperty'] and ./PrimarySuffix/Arguments//Literal[@Image = '"javax.xml.transform.TransformerFactory"']])]
+|
+//AllocationExpression/ClassOrInterfaceType[@Image='SaajSoapMessageFactory'
+and not (ancestor::ClassOrInterfaceBody//PrimaryExpression[./PrimaryPrefix/Name[@Image='System.setProperty'] and ./PrimarySuffix/Arguments//Literal[@Image='"javax.xml.transform.TransformerFactory"']])]
+                ]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+import org.springframework.ws.soap.saaj.SaajSoapMessageFactory;
+
+class Foo {
+    private final SaajSoapMessageFactory mfField; // bad, also possibly thread-unsafe
+
+    public WebServiceTemplate getTemplate(final String uri, final HttpClientMessageSender httpClientMessageSender) throws SOAPException {
+        SoapMessageFactory saajSoapMessageFactory = new SaajSoapMessageFactory(MessageFactory.newInstance()); // bad
+        //..
+    }
+}
+
+//To solve, add to the above:
+    static {
+        System.setProperty("javax.xml.transform.TransformerFactory", "com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl");
+        System.setProperty("javax.xml.soap.MessageFactory", "com.sun.xml.internal.messaging.saaj.soap.ver1_1.SOAPMessageFactory1_1Impl");
+    }
+            ]]>
+        </example>
+    </rule>
+
     <rule name="AvoidHardcodedConnectionConfig"
           message="Avoid hardcoded connection configuration."
           class="net.sourceforge.pmd.lang.rule.XPathRule"
@@ -4294,41 +4340,6 @@ class Foo {
         HttpClient httpClient = HttpClientBuilder.create().setMaxConnPerRoute(10).build(); // bad
         return remoteCall(httpClient, requestEntity);
     }
-}
-            ]]>
-        </example>
-    </rule>
-
-    <rule name="AvoidSaajSoapMessaging"
-          message="Avoid SAAJ SOAP messaging, use Axiom instead."
-          class="net.sourceforge.pmd.lang.rule.XPathRule"
-          dfa="false"
-          language="java"
-          typeResolution="true"
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#ibi23">
-        <description>Problem: SAAJ uses DOM to load the XML document in memory which uses a TransformerFactory. The implementation class of it is loaded on every call which causes lock contention under load. This means long response times.&#13;
-            Solution: Use Axiom SOAP messaging which uses the faster StAX. If you want to stick to SAAJ, add the proper JVM parameter to prevent the class loading.
-            (jpinpoint-rules)</description>
-        <priority>2</priority>
-        <properties>
-            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
-            <property name="xpath">
-                <value><![CDATA[
-//ImportDeclaration/Name[starts-with(@Image, 'org.springframework.ws.soap.saaj') or starts-with(@Image, 'com.sun.xml.messaging.saaj.soap')]
-|
-//Type//ClassOrInterfaceType[@Image='SaajSoapMessageFactory']
-                ]]></value>
-            </property>
-        </properties>
-        <example>
-            <![CDATA[
-import org.springframework.ws.soap.saaj.SaajSoapMessage; // bad
-import org.springframework.ws.soap.saaj.SaajSoapMessageFactory; // bad
-import com.sun.xml.messaging.saaj.soap.*; // bad
-
-class Foo {
-    private final SaajSoapMessageFactory mfField; // bad
 }
             ]]>
         </example>
