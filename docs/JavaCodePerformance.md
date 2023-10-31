@@ -1598,7 +1598,7 @@ class Good {
 **Problem:** XPath is reported to have bad performance, see [stack overflow](http://stackoverflow.com/questions/6340802/java-xpath-apache-jaxp-implementation-performance) and [XalanJ Jira issue](https://issues.apache.org/jira/browse/XALANJ-2540).  
 **Solution:**  
 1\. Avoid the use of XPath.  
-2\. If avoiding XPath turns out to be very difficult, check if the reference applies to the application situation concerning implementation / versions and if so, consider to adopt the presented solution and benchmark before and after the fix. That solution being: use JVM option:
+2\. If avoiding XPath turns out to be very difficult, check if the reference above applies and if so, use JVM option:
 
 ```
 -Dcom.sun.org.apache.xml.internal.dtm.DTMManager=com.sun.org.apache.xml.internal.dtm.ref.DTMManagerDefault
@@ -1608,7 +1608,7 @@ or
 -Dorg.apache.xml.dtm.DTMManager=org.apache.xml.dtm.ref.DTMManagerDefault 
 ```
 Depending on e.g. which one shows up in your Java stack traces / heap dump, for example in VisualVM with filter DTMManager:
-![heapdump with DTMManager](https://github.com/jborgers/PMD-jPinpoint-rules/assets/24591067/bfc459c3-3a33-4b21-86c5-0f9172f07e8f)
+![heapdump with DTMManager](https://github.com/jborgers/PMD-jPinpoint-rules/assets/24591067/bfc459c3-3a33-4b21-86c5-0f9172f07e8f | width=400)
 
 3\. Use CachedXPathAPI, see [Ways to increase the performance of XML processing in Java](https://xml.apache.org/xalan-j/apidocs/org/apache/xpath/CachedXPathAPI.html) - Case 2. Be aware of higher memory usage. Note that CachedXPathAPI object is thread-unsafe.  
 **Alternative approach:** If XPath evaluation still turns out to be a bottleneck by profiling, consider to switch to [VTD-XML](http://vtd-xml.sourceforge.net/)
