@@ -1608,8 +1608,7 @@ or
 -Dorg.apache.xml.dtm.DTMManager=org.apache.xml.dtm.ref.DTMManagerDefault 
 ```
 Depending on e.g. which one shows up in your Java stack traces / heap dump, for example in VisualVM with filter DTMManager:
-![heapdump with DTMManager](https://github.com/jborgers/PMD-jPinpoint-rules/assets/24591067/bfc459c3-3a33-4b21-86c5-0f9172f07e8f)
-<img src="https://github.com/jborgers/PMD-jPinpoint-rules/assets/24591067/bfc459c3-3a33-4b21-86c5-0f9172f07e8f" width="400">
+<img src="https://github.com/jborgers/PMD-jPinpoint-rules/assets/24591067/bfc459c3-3a33-4b21-86c5-0f9172f07e8f" width="800">
 
 3\. Use CachedXPathAPI, see [Ways to increase the performance of XML processing in Java](https://xml.apache.org/xalan-j/apidocs/org/apache/xpath/CachedXPathAPI.html) - Case 2. Be aware of higher memory usage. Note that CachedXPathAPI object is thread-unsafe.  
 **Alternative approach:** If XPath evaluation still turns out to be a bottleneck by profiling, consider to switch to [VTD-XML](http://vtd-xml.sourceforge.net/)
