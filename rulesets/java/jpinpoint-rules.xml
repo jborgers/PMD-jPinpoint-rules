@@ -846,11 +846,11 @@ class Foo {
 ends-with(lower-case(@Name), 'time')
 or ends-with(lower-case(@Name), 'timeout') or ends-with(lower-case(@Name), 'time_out')
 or ends-with(lower-case(@Name), 'duration') or ends-with(lower-case(@Name), 'durationout') or ends-with(lower-case(@Name), 'duration_out')
-or ends-with(lower-case(@Name), 'ttl')]
+or ends-with(lower-case(@Name), 'ttl') or ends-with(lower-case(@Name), 'timestamp')]
 ,
 (: @Value :)
 //SingleMemberAnnotation/Name[@Image='Value']/..//Literal[ends-with(lower-case(@Image), 'timetolive') or ends-with(lower-case(@Image), 'expirytime}"')
-or ends-with(lower-case(@Image), 'timeout}"') or ends-with(lower-case(@Image), 'ttl}"')]
+or ends-with(lower-case(@Image), 'timeout}"') or ends-with(lower-case(@Image), 'ttl}"') or ends-with(lower-case(@Image), 'timestamp}"')]
 			]]>
                 </value>
             </property>

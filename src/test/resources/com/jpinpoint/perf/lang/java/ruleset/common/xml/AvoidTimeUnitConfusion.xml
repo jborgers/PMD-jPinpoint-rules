@@ -117,5 +117,22 @@ public final class TimeUtils {
 ]]></code>
     </test-code>
 
+    <test-code>
+        <description>violation: time unit missing in long Timestamp</description>
+        <expected-problems>4</expected-problems>
+        <expected-linenumbers>3,4,7,8</expected-linenumbers>
+        <code><![CDATA[
+import java.time.*;
+class Foo {
+    private static final long ttlTimeStamp = 1000L * 60 * 15; // bad
+    private long expirationTimestamp; // bad
+    private Instant timestamp; // good
+
+    public confuse(@Value("${start.timeStamp}") // bad
+                        int expiryTimeStamp) { // bad
+    }
+}
+     ]]></code>
+    </test-code>
 
 </test-data>
