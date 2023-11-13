@@ -13,7 +13,7 @@
             Don't combine 2+ of [@Component, @Service, @Configuration, @Controller, @RestController, @Repository, @Entity] (Spring/JPA)
             Don't combine @Aspect with one of [@Service, @Configuration, @Controller, @RestController, @Repository, @Entity] (Spring/AspectJ)
             Don't combine [@Data with @Value] and [@Data or @Value] with any of [@ToString, @EqualsHashCode, @Getter, @Setter, @RequiredArgsConstructor] (Lombok)
-            Don't combine @Data with any of [@Component, @Service, @Configuration, @Controller, @RestController, @Repository], it may cause user data mix-up.
+            Don't combine @Data with any of [@Component, @Service, @Controller, @RestController, @Repository], it may cause user data mix-up.
             (jpinpoint-rules)</description>
         <priority>3</priority>
         <properties>
@@ -31,7 +31,7 @@
 //(TypeDeclaration|ClassOrInterfaceBodyDeclaration/ClassOrInterfaceDeclaration/..)[./Annotation//Name[@Image='Data' or @Image='Value'] and ./Annotation/MarkerAnnotation/Name[@Image='ToString' or @Image='EqualsAndHashCode' or @Image='Getter' or @Image='Setter' or @Image='RequiredArgsConstructor']]/Annotation[2]
 ,
 //(TypeDeclaration|ClassOrInterfaceBodyDeclaration/ClassOrInterfaceDeclaration/..)[./Annotation//Name[@Image='Data'] and
-exists(./Annotation//Name[@Image='Component' or @Image='Service' or @Image='Configuration' or @Image='Controller' or @Image='RestController' or @Image='Repository'])]/Annotation[not(.//Name/@Image='Data')][1]
+exists(./Annotation//Name[@Image='Component' or @Image='Service' or @Image='Controller' or @Image='RestController' or @Image='Repository'])]/Annotation[not(.//Name/@Image='Data')][1]
                     ]]>
                 </value>
             </property>

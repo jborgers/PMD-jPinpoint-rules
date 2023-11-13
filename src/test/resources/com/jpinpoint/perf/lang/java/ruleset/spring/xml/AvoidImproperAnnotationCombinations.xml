@@ -116,7 +116,7 @@ public class AvoidImproperAnnotationCombinations {
     </test-code>
 
     <test-code>
-        <description>Avoid improper annotation combinations</description>
+        <description>Avoid improper annotation combinations, Issue 223</description>
         <expected-problems>1</expected-problems>
         <expected-linenumbers>3</expected-linenumbers>
         <code><![CDATA[
@@ -128,4 +128,18 @@ public class Issue223 {
 }
         ]]></code>
     </test-code>
+
+    <test-code>
+        <description>Avoid improper annotation combinations, Issue 277</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import lombok.*;
+import org.springframework.stereotype.*;
+@Configuration // good
+@Data
+public class Issue277 {
+}
+        ]]></code>
+    </test-code>
+
 </test-data>

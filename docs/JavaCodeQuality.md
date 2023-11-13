@@ -373,8 +373,11 @@ Exceptional case: a duplicate assignment to a boolean is considered safe since i
 Don't combine:
   * 2+ of [@Component, @Service, @Configuration, @Controller, @RestController, @Repository, @Entity] (Spring/JPA)   
   * @Aspect with one of [@Service, @Configuration, @Controller, @RestController, @Repository, @Entity] (Spring/AspectJ)   
-  * [@Data with @Value] and [@Data or @Value] with any of [@ToString, @EqualsHashCode, @Getter, @Setter, @RequiredArgsConstructor] (Lombok)   
-  * @Data with any of [@Component, @Service, @Configuration, @Controller, @RestController, @Repository], it may cause user data mix-up.  
+  * [@Data with @Value]; and [@Data or @Value] with any of [@ToString, @EqualsHashCode, @Getter, @Setter, @RequiredArgsConstructor] (Lombok)   
+  * @Data with any of [@Component, @Service, @Controller, @RestController, @Repository], it may cause user data mix-up: 
+@Data is meant for passing around, to put in collections, etc. while 
+@Component is typically meant for singletons, preferably stateless; and if not: made thread-safe. 
+    * Note that @Data combined with @Configuration is not on this list since the setters are called only once by Spring to initialize (assumed in a thread-safe manner) and are thread-safe afterward.     
 
 **Solution:** Don't combine the annotations. Understand what they do and choose and keep only the right one.     
 **Rule name:** AvoidImproperAnnotationCombinations
