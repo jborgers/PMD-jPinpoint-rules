@@ -39,7 +39,7 @@ Notes:
 ```
 **Problem:** BigDecimal is intended to be used for amounts of e.g. euro’s with cents. It should e.g. represent 0,11 exactly. However, with the used constructor, one easily gets unexpected rounding, e.g.:
 ```java
-System.out.println("result = " + new BigDecimal(0.105).setScale(2, BigDecimal.ROUND\_HALF\_UP));
+System.out.println("result = " + new BigDecimal(0.105).setScale(2, BigDecimal.ROUND_HALF_UP));
 ```
 Results unexpectedly in:
 ````java
@@ -47,7 +47,7 @@ result = 0.10
 ````
 **Solution:** Use the factory method BigDecimal.valueOf(double) instead. E.g.:
 ````java
-System.out.println("result = " + BigDecimal.valueOf(0.105).setScale(2, BigDecimal.ROUND\_HALF\_UP));
+System.out.println("result = " + BigDecimal.valueOf(0.105).setScale(2, BigDecimal.ROUND_HALF_UP));
 ````
 Results as expected in:
 ````java
