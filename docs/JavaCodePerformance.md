@@ -37,7 +37,8 @@ Introduction
 
 We categorized many performance pitfalls based on our findings in practice in the last decade. Sources we used are: performance code reviews, load and stress tests, heap analyses, 
 profiling and production problems of various applications of companies. We present these pitfalls with best practice solutions as follows. 
-Several of these pitfalls are automated into custom PMD/Sonar jPinpoint-rules. Disclaimer: these best practices come without warranty of any kind. Use at your own risk and always (load)test in your own situation.
+Several of these pitfalls are automated into custom PMD/Sonar jPinpoint-rules.   
+Disclaimer: these best practices come without warranty of any kind. Use at your own risk and always (load)test in your own situation.
 
 Improper back-end interaction / remote service calls
 ----------------------------------------------------

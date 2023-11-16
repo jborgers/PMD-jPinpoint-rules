@@ -18,7 +18,8 @@ By Jeroen Borgers ([jPinpoint](http://www.jpinpoint.com)) and Peter Paul Bakker 
 Introduction 
 ------------
 We categorized many performance and quality issues based on performance code reviews, load tests, heap analyses, profiling and production problems of various applications. Several of these items are automated into PMD-jPinpoint-rules code checks.
-The next items do have performance implications. However, they are actually more concerning general software quality or security.
+The next items do have performance implications. However, they are actually more concerning general software quality or security.   
+Disclaimer: these best practices come without warranty of any kind. Use at your own risk and always (load)test in your own situation.
 
 Improper use of BigDecimal
 --------------------------

@@ -21,7 +21,8 @@ By Jeroen Borgers ([jPinpoint](www.jpinpoint.com)) and Peter Paul Bakker ([Stokp
 Introduction
 ------------
 
-We observed the following pitfalls in performance code reviews of various projects. Based on these items, we have created code checks. Each pitfall is described for itself, and for some specific data access technologies when applicable/experienced. These technologies include Hibernate, JPA, Spring, jdbc and MyBatis.
+We observed the following pitfalls in performance code reviews of various projects. Based on these items, we have created code checks. Each pitfall is described for itself, and for some specific data access technologies when applicable/experienced. These technologies include Hibernate, JPA, Spring, jdbc and MyBatis.   
+Disclaimer: these best practices come without warranty of any kind. Use at your own risk and always (load)test in your own situation.
 
 If you use JPA, see the [How to improve JPA performance by 1_825%](http://java-persistence-performance.blogspot.nl/2011/06/how-to-improve-jpa-performance-by-1825.html) blog entry.
 
