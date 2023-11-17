@@ -43,4 +43,22 @@ class BufferFileStreaming {
      ]]></code>
     </test-code>
 
+ <test-code>
+        <description>violation: BufferFileStreaming Issue272</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import java.io.*;
+class Issue272 {
+
+    void bar() {
+        Properties props = new Properties();
+        try(InputStream fis = new FileInputStream(fileName);      // false violation on fis
+	        InputStream bis = new BufferedInputStream(fis)) {
+	        props.load(bis);
+        }
+    }
+}
+     ]]></code>
+    </test-code>
+
 </test-data>

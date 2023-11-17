@@ -1080,7 +1080,7 @@ ClassOrInterfaceBodyDeclaration
                 <value><![CDATA[
 //Resource//AllocationExpression/ClassOrInterfaceType[pmd-java:typeIs('java.io.FileInputStream') or pmd-java:typeIs('java.io.FileOutputStream')]
 [not (ancestor::AllocationExpression/ClassOrInterfaceType[pmd-java:typeIs('java.io.BufferedInputStream') or pmd-java:typeIs('BufferedOutputStream')])]
-[not (ancestor::TryStatement/Block//AllocationExpression/ClassOrInterfaceType[pmd-java:typeIs('java.io.BufferedInputStream') or pmd-java:typeIs('BufferedOutputStream')])]
+[not (ancestor::TryStatement//AllocationExpression/ClassOrInterfaceType[pmd-java:typeIs('java.io.BufferedInputStream') or pmd-java:typeIs('BufferedOutputStream')])]
 ]]></value>
             </property>
         </properties>
