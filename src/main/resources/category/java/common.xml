@@ -1965,7 +1965,9 @@ class BufferFileStreaming {
 [ancestor::MethodDeclaration[count(.//AllocationExpression[pmd-java:typeIs('java.io.BufferedOutputStream')]) = 0]]
 ,
 //PrimaryExpression/PrimaryPrefix/Name[pmd-java:typeIs('java.nio.file.Files') and ends-with(@Image,'.newInputStream')]
-[ancestor::MethodDeclaration[count(.//AllocationExpression[pmd-java:typeIs('java.io.BufferedInputStream')]) = 0]]
+[ancestor::MethodDeclaration[count(.//AllocationExpression[pmd-java:typeIs('java.io.BufferedInputStream')]) = 0
+and (not(.//PrimaryPrefix/Name[pmd-java:typeIs('org.apache.commons.io.IOUtils') and starts-with(@Image, 'IOUtils.read')]))
+]]
                 ]]></value>
             </property>
         </properties>
