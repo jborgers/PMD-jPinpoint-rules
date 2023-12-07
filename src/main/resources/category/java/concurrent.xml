@@ -1099,6 +1099,53 @@ public class Foo {
         </example>
     </rule>
 
+    <rule name="AvoidParallelFlux"
+          message="Avoid dividing the data and parallel processing because this is typically slower."
+          class="net.sourceforge.pmd.lang.rule.XPathRule"
+          dfa="false"
+          language="java"
+          typeResolution="true"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ia11">
+        <description>Problem: With Reactor Flux.parallel.runOn, the data is divided on a number of 'rails' matching the number of CPU cores.
+            This is only useful in case much CPU processing is performed: if the sequential form takes more than 0,1 ms of CPU time.
+            With remote calls this is usually not the case. In addition, it introduces more complexity with risk of failures.&#13;
+            Solution: Remove parallel().runOn. Unless the CPU work takes more than 0,1 ms in sequential form and proves to be faster with parallelization.
+            So only for large collections and much CPU processing.
+            (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+//PrimaryExpression/PrimarySuffix[@Image='parallel' and ../PrimaryPrefix/Name[@Image = 'Flux.fromIterable']
+and //ImportDeclaration/Name[starts-with(@Image, 'reactor.core.publisher')]]
+                ]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+import reactor.core.publisher.*;
+
+class FooBad {
+    public Flux<Account> getResponseAccounts(List<AccountKey> accountKeys, List<FieldName> requestedFields) {
+        return Flux.fromIterable(accountKeys)
+                .parallel(schedulerProperties.getParallelism()) //bad
+                .runOn(scheduler)
+                .flatMap(accountKey -> constructAccountDetails(accountKey, requestedFields))
+                .sequential();
+    }
+}
+
+class FooGood {
+    public Flux<Account> getResponseAccounts(List<AccountKey> accountKeys, List<FieldName> requestedFields) {
+        return Flux.fromIterable(accountKeys)
+                .flatMap(accountKey -> constructAccountDetails(accountKey, requestedFields));
+    }
+}
+            ]]>
+        </example>
+    </rule>
 </ruleset>
 
 

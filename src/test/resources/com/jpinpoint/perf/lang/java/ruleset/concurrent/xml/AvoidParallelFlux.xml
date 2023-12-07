@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>violation: AvoidParallelFlux</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>6</expected-linenumbers>
+        <code><![CDATA[
+import reactor.core.publisher.*;
+
+class FooBad {
+    public Flux<Account> getResponseAccounts(List<AccountKey> accountKeys, List<FieldName> requestedFields) {
+        return Flux.fromIterable(accountKeys)
+                .parallel(schedulerProperties.getParallelism()) //bad
+                .runOn(scheduler)
+                .flatMap(accountKey -> constructAccountDetails(accountKey, requestedFields))
+                .sequential();
+    }
+}
+
+class FooGood {
+    public Flux<Account> getResponseAccounts(List<AccountKey> accountKeys, List<FieldName> requestedFields) {
+        return Flux.fromIterable(accountKeys)
+                .flatMap(accountKey -> constructAccountDetails(accountKey, requestedFields));
+    }
+}
+     ]]></code>
+    </test-code>
+
+</test-data>

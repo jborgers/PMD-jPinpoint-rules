@@ -829,6 +829,36 @@ public class Foo {
 ```
 See for the example good2: [custom-thread-pool-in-parallel-stream](https://stackoverflow.com/questions/21163108/custom-thread-pool-in-java-8-parallel-stream/34930831#34930831).
 
+#### IA11
+**Observation: Project Reactor Flux.parallel().runOn() is used.**  
+**Problem:** The data is divided on a number of 'rails' matching the number of CPU cores.
+This is only useful in case much CPU processing is performed: if the sequential form takes more than 0,1 ms of CPU time.
+With remote calls this is usually not the case. In addition, it introduces more complexity with risk of failures.   
+**Solution:** Remove parallel().runOn. For pure CPU processing: use ordinary sequential streaming unless the work takes more than about 0,1 ms in sequential form and proves to be faster with parallelization.
+So only for large collections and much processing. (jpinpoint-rules)</description>   
+**Rule name:** AvoidParallelFlux   
+**Example:**
+```java
+import reactor.core.publisher.*;
+
+class FooBad {
+    public Flux<Account> getResponseAccounts(List<AccountKey> accountKeys, List<FieldName> requestedFields) {
+        return Flux.fromIterable(accountKeys)
+                .parallel(schedulerProperties.getParallelism()) //bad
+                .runOn(scheduler)
+                .flatMap(accountKey -> constructAccountDetails(accountKey, requestedFields))
+                .sequential();
+    }
+}
+
+class FooGood {
+    public Flux<Account> getResponseAccounts(List<AccountKey> accountKeys, List<FieldName> requestedFields) {
+        return Flux.fromIterable(accountKeys)
+                .flatMap(accountKey -> constructAccountDetails(accountKey, requestedFields));
+    }
+}
+```
+
 Improper caching  
 -------------------
 
