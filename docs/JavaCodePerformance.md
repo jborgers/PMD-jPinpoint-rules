@@ -780,7 +780,7 @@ In addition, parallelizing has overhead and risks, should only be used for much 
 The common pool must *not* be used for blocking calls, see [Be Aware of ForkJoinPool#commonPool()](https://dzone.com/articles/be-aware-of-forkjoinpoolcommonpo)   
 **Solution:** For remote/blocking calls: Use a dedicated thread pool with enough threads to get proper parallelism independent of the number of cores.
 For pure CPU processing: use ordinary sequential streaming unless the work takes more than about 0,1 ms in sequential form and proves to be faster with parallelization. 
-So only for large collections and much processing without having to wait.   (jpinpoint-rules)</description>   
+So only for large collections and much processing without having to wait.</description>   
 **Rule name:** AvoidParallelStreamWithCommonPool   
 **Example:**
 ```java
@@ -835,7 +835,7 @@ See for the example good2: [custom-thread-pool-in-parallel-stream](https://stack
 This is only useful in case much CPU processing is performed: if the sequential form takes more than 0,1 ms of CPU time.
 With remote calls this is usually not the case. In addition, it introduces more complexity with risk of failures.   
 **Solution:** Remove parallel().runOn. For pure CPU processing: use ordinary sequential streaming unless the work takes more than about 0,1 ms in sequential form and proves to be faster with parallelization.
-So only for large collections and much processing. (jpinpoint-rules)</description>   
+So only for large collections and much processing.</description>   
 **Rule name:** AvoidParallelFlux   
 **Example:**
 ```java
@@ -855,6 +855,43 @@ class FooGood {
     public Flux<Account> getResponseAccounts(List<AccountKey> accountKeys, List<FieldName> requestedFields) {
         return Flux.fromIterable(accountKeys)
                 .flatMap(accountKey -> constructAccountDetails(accountKey, requestedFields));
+    }
+}
+```
+
+#### IA12
+**Observation: Mapped Diagnostic Context (MDC) is used in projector Reactor flows.**   
+**Problem:** Mapped Diagnostic Context (MDC) of logging frameworks uses ThreadLocals to store things like traceIds from headers, userId, correlationId.
+Reactive programming uses multiple threads to handle a request, and one thread can deal with asynchronous steps of many requests. 
+Therefore, MDC is tricky to use in reactive context and may take much processing time to propagate to another threads, likely so for much data in the MDC.   
+**Solution:** Propagate by use of deferContextual and use directly from the Context only when and where needed. 
+Avoid io.micrometer:context-propagation default as well as automatic mode, as both have an impact on performance.</description>   
+**Rule name:** AvoidMDCInReactor   
+**See:** [GitHub issue](https://github.com/reactor/reactor-core/issues/1985), search for 'performance'; and [reactor Context](https://projectreactor.io/docs/core/release/reference/#context).  
+**Example:**
+```java
+import reactor.core.publisher.*;
+import org.slf4j.MDC;
+import reactor.util.context.Context;
+
+class FooBad {
+  public Flux<ServerResponse> doIt(Map<String,String> contextMap) {
+      return Flux.fromIterable(service.doWork())
+          .doOnNext(s -> MDC.setContextMap(contextMap))
+          .doOnNext(
+              response -> {
+                  log.info("your log"); // includes trace ids from MDC, put in a ServletFilter, specified by log configuration
+          });
+      }
+}
+
+class FooGood {
+    public Flux<ServerResponse> doIt() {
+        // using deferContextual gives access to the read-only ContextView created in the ContextFilter
+        return Flux.deferContextual(contextView -> service.doWork()
+            .doOnNext(response -> {
+                log.info("your log", StructuredArguments.entries(contextView));
+            }));
     }
 }
 ```

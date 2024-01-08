@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>violation: AvoidMDCInReactor examples</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>8</expected-linenumbers>
+        <code><![CDATA[
+import reactor.core.publisher.*;
+import org.slf4j.MDC;
+import reactor.util.context.Context;
+
+class FooBad {
+  public Flux<ServerResponse> doIt(Map<String,String> contextMap) {
+      return Flux.fromIterable(service.doWork())
+          .doOnNext(s -> MDC.setContextMap(contextMap))
+          .doOnNext(
+              response -> {
+                  log.info("your log"); // includes trace ids from MDC, put in a ServletFilter, specified by log configuration
+          });
+      }
+}
+
+class FooGood {
+    public Flux<ServerResponse> doIt() {
+        // using deferContextual gives access to the read-only ContextView created in the ContextFilter
+        return Flux.deferContextual(contextView -> service.doWork()
+            .doOnNext(response -> {
+                log.info("your log", StructuredArguments.entries(contextView));
+            }));
+    }
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>violation: AvoidMDCInReactor MdcContextLifter</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>16</expected-linenumbers>
+        <code><![CDATA[
+import reactor.core.*;
+import reactor.core.publisher.*;
+import org.slf4j.MDC;
+import reactor.util.context.Context;
+
+abstract class MdcContextLifter<T> implements CoreSubscriber<T> {
+    /**
+     * Extension function for the Reactor [Context]. Copies the current context to the MDC, if context is empty clears the MDC.
+     * State of the MDC after calling this method should be same as Reactor [Context] state.
+     * One thread-local access only.
+     */
+    private void copyToMdc(Context context) {
+        if (!context.isEmpty()) {
+            Map<String, String> map = context.stream()
+                    .collect(Collectors.toMap(e -> e.getKey().toString(), e -> e.getValue().toString()));
+            MDC.setContextMap(map);
+        } else {
+            MDC.clear();
+        }
+    }
+}
+            ]]></code>
+    </test-code>
+
+</test-data>

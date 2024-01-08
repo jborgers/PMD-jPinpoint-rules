@@ -1146,6 +1146,60 @@ class FooGood {
             ]]>
         </example>
     </rule>
+
+    <rule name="AvoidMDCInReactor"
+          message="Avoid using MDC with Reactor."
+          class="net.sourceforge.pmd.lang.rule.XPathRule"
+          dfa="false"
+          language="java"
+          typeResolution="true"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ia12">
+        <description>Problem: Mapped Diagnostic Context (MDC) of logging frameworks uses ThreadLocals to store things like traceIds from headers, userId, correlationId.
+            Reactive programming uses multiple threads to handle a request, and one thread can deal with asynchronous steps of many requests.
+            Therefore, MDC is tricky to use in reactive context and may take much processing time to propagate, likely so for much data in the MDC.&#13;
+            Solution: Propagate by use of deferContextual and use directly from the Context only when and where needed. Avoid MDC propagation mechanisms.
+            (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+//PrimaryExpression/PrimaryPrefix/Name[@Image='MDC.setContextMap' and
+(ancestor::MethodDeclaration/ResultType/Type[@TypeImage='Flux' or TypeImage='Mono']
+or ancestor::MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter[pmd-java:typeIs('reactor.util.context.Context')])]
+                ]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+import reactor.core.publisher.*;
+import org.slf4j.MDC;
+import reactor.util.context.Context;
+
+class FooBad {
+  public Flux<ServerResponse> doIt(Map<String,String> contextMap) {
+      return Flux.fromIterable(service.doWork())
+          .doOnNext(s -> MDC.setContextMap(contextMap))
+          .doOnNext(
+              response -> {
+                  log.info("your log"); // includes trace ids from MDC, put in a ServletFilter, specified by log configuration
+          });
+      }
+}
+
+class FooGood {
+    public Flux<ServerResponse> doIt() {
+        // using deferContextual gives access to the read-only ContextView created in the ContextFilter
+        return Flux.deferContextual(contextView -> service.doWork()
+            .doOnNext(response -> {
+                log.info("your log", StructuredArguments.entries(contextView));
+            }));
+    }
+}
+            ]]>
+        </example>
+    </rule>
 </ruleset>
 
 
