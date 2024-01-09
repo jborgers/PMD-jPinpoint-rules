@@ -871,8 +871,9 @@ Avoid io.micrometer:context-propagation default as well as automatic mode, as bo
 **Example:**
 ```java
 import reactor.core.publisher.*;
-import org.slf4j.MDC;
 import reactor.util.context.Context;
+import org.slf4j.MDC;
+import net.logstash.logback.argument.StructuredArguments;
 
 class FooBad {
   public Flux<ServerResponse> doIt(Map<String,String> contextMap) {
@@ -890,7 +891,7 @@ class FooGood {
         // using deferContextual gives access to the read-only ContextView created in the ContextFilter
         return Flux.deferContextual(contextView -> service.doWork()
             .doOnNext(response -> {
-                log.info("your log", StructuredArguments.entries(contextView));
+                log.info("your log", StructuredArguments.entries((Map)contextView));
             }));
     }
 }
