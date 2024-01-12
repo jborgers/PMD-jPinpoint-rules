@@ -1201,6 +1201,44 @@ class FooGood {
             ]]>
         </example>
     </rule>
+
+    <rule name="AvoidReactorOnEachOperator"
+          message="Avoid using Reactor Hooks.onEachOperator."
+          class="net.sourceforge.pmd.lang.rule.XPathRule"
+          dfa="false"
+          language="java"
+          typeResolution="true"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ia13">
+        <description>Problem: Using Reactor Hooks.onEachOperator means executing the code on every operator in the Reactor flow, for every element. This typically means much processing time.&#13;
+            Solution: Just do processing when and where actually needed. (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+//StatementExpression/PrimaryExpression/PrimaryPrefix/Name[@Image='Hooks.onEachOperator']
+                ]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+import reactor.core.publisher.*;
+
+@Configuration
+public class FooBad {
+    private String MDC_CONTEXT_REACTOR_KEY = "CONTEXT";
+    @PostConstruct
+    private void contextOperatorHook() {
+        Hooks.onEachOperator(MDC_CONTEXT_REACTOR_KEY,
+                Operators.lift((scannable, coreSubscriber) -> new MdcContextLifter<>(coreSubscriber))
+        );
+    }
+}
+            ]]>
+        </example>
+    </rule>
+
 </ruleset>
 
 
