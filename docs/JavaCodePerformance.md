@@ -900,8 +900,8 @@ class FooGood {
 #### IA13
 **Observation: Reactor Hooks.onEachOperator is used.**   
 **Problem:** Using Reactor Hooks.onEachOperator means executing the code on every operator in the Reactor flow, for every element. 
-This typically means much processing time.   
-**Solution:** Just do processing when and where actually needed. This is also described as the manual strategy of Spring Cloud Sleuth. E.g. get userId from the Reactor Context when needed to log.  
+This typically means much processing time. So, for example copying a context Map on every operator (for MDC propagation) is not a good idea.   
+**Solution:** Just do processing when and where actually needed. For example, for MDC propagation this is described as the manual strategy of Spring Cloud Sleuth. E.g. get userId from the Reactor Context when needed to log.  
 **Rule name:** AvoidReactorOnEachOperator   
 **See:** [context-propagation-with-project-reactor-2-the-bumpy-road-of-spring-cloud](https://spring.io/blog/2023/03/29/context-propagation-with-project-reactor-2-the-bumpy-road-of-spring-cloud/#oneachoperator-hook), and [reactor Context](https://projectreactor.io/docs/core/release/reference/#context).  
 **Example:**
