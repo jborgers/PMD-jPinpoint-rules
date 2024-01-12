@@ -903,7 +903,7 @@ class FooGood {
 This typically means much processing time.   
 **Solution:** Just do processing when and where actually needed. This is also described as the manual strategy of Spring Cloud Sleuth. E.g. get userId from the Reactor Context when needed to log.  
 **Rule name:** AvoidReactorOnEachOperator   
-**See:** [context-propagation-with-project-reactor-2-the-bumpy-road-of-spring-cloud](https://spring.io/blog/2023/03/29/context-propagation-with-project-reactor-2-the-bumpy-road-of-spring-cloud/#oneachoperator-hook), search for 'performance'; and [reactor Context](https://projectreactor.io/docs/core/release/reference/#context).  
+**See:** [context-propagation-with-project-reactor-2-the-bumpy-road-of-spring-cloud](https://spring.io/blog/2023/03/29/context-propagation-with-project-reactor-2-the-bumpy-road-of-spring-cloud/#oneachoperator-hook), and [reactor Context](https://projectreactor.io/docs/core/release/reference/#context).  
 **Example:**
 ```java
 import reactor.core.publisher.*;
