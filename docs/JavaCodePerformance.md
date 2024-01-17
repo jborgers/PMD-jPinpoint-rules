@@ -2351,6 +2351,7 @@ public class Foo {
 **Problem:** @Singleton has default @ConcurrencyManagement(CONTAINER) and write locks on the methods. Using defaults is unclear and write locks typically cause much more contention than read locks.  
 **Solution:** Make @ConcurrencyManagement and @Lock-s explicit, @Lock on class level or on all public methods. Or use BEAN managed for full control using e.g. synchronized or volatile.   
 **Rule name:** DefineConcurrencyForJavaEESingleton   
+**See:** [Managing Concurrent Access in a Singleton Session Bean](https://docs.oracle.com/cd/E19798-01/821-1841/gipsz/index.html)   
 **Example:**
 ```java
 @Singleton // bad - 1. @ConcurrencyManagement missing 2. @Lock missing on public method
