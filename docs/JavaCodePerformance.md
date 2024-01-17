@@ -2345,6 +2345,51 @@ public class Foo {
 }
 ```
 
+#### TUTC13
+
+**Observation: A JavaEE @Singleton is used with default @ConcurrencyManagement(CONTAINER).**  
+**Problem:** @Singleton has default @ConcurrencyManagement(CONTAINER) and write locks on the methods. Using defaults is unclear and write locks typically cause much more contention than read locks.  
+**Solution:** Make @ConcurrencyManagement and @Lock-s explicit, @Lock on class level or on all public methods. Or use BEAN managed for full control using e.g. synchronized or volatile.   
+**Rule name:** DefineConcurrencyForJavaEESingleton   
+**Example:**
+```java
+@Singleton // bad - 1. @ConcurrencyManagement missing 2. @Lock missing on public method
+class SingletonBad {
+    private String state;
+    public String getState() {
+        return state;
+    }
+    @Lock(LockType.WRITE)
+    public void setState(String newState) {
+        state = newState;
+    }
+}
+@Singleton // good Container Managed version
+@ConcurrencyManagement(ConcurrencyManagementType.CONTAINER)
+class SingletonCMGood {
+    private String state;
+    @Lock(LockType.READ)
+    public String getState() {
+        return state;
+    }
+    @Lock(LockType.WRITE)
+    public void setState(String newState) {
+        state = newState;
+    }
+}
+@Singleton // good Bean Managed version
+@ConcurrencyManagement(ConcurrencyManagementType.BEAN)
+class SingletonBMGood {
+    private volatile String state; // thread-safe for the reference, and String is immutable
+    public String getState() {
+        return state;
+    }
+    public void setState(String newState) {
+        state = newState;
+    }
+}
+```
+
 Unnecessary execution
 ---------------------
 

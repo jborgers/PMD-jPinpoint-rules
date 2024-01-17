@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<ruleset name="jpinpoint-concurrent-rules" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 https://pmd.sourceforge.io/ruleset_2_0_0.xsd" xmlns="http://pmd.sourceforge.net/ruleset/2.0.0">
+<ruleset name="jpinpoint-enterprise-rules" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 https://pmd.sourceforge.io/ruleset_2_0_0.xsd" xmlns="http://pmd.sourceforge.net/ruleset/2.0.0">
     <description>jPinpoint rule set for performance aware Java coding, sponsored by Rabobank.</description>
 
     <rule name="DefineConcurrencyForJavaEESingleton"
       message="For JavaEE @Singleton, make @ConcurrencyManagement explicit and define @Lock on class level or for all public methods."
       class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java"
-      typeResolution="true" externalInfoUrl="${doc_root}/JavaCodePerformance.md#tutc07">
+      typeResolution="true" externalInfoUrl="${doc_root}/JavaCodePerformance.md#tutc13">
     <description>
         Problem: A JavaEE @Singleton has default @ConcurrencyManagement CONTAINER and write locks. Using defaults is unclear and write locks typically cause much more contention than read locks. &#13;
-        Solution: Make @ConcurrencyManagement and @Lock-s explicit, @Lock on class level or on all public methods.&#13;
+        Solution: Make @ConcurrencyManagement and @Lock-s explicit, @Lock on class level or on all public methods. Or use BEAN managed for full control using e.g. synchronized or volatile.&#13;
         (jpinpoint-rules)</description>
     <priority>3</priority>
     <properties>
