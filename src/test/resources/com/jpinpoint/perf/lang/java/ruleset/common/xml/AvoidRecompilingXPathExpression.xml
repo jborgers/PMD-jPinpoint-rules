@@ -87,7 +87,7 @@ class MyCompiler {
         public static NodeList bad(Document doc) {
             XPathFactory factory = XPathFactory.newInstance();
             XPath xpath = factory.newXPath();
-            XPathExpression expr = xpath.compile("//book[author='Isaac Asimov']/title/text()");
+            XPathExpression expr = xpath.compile("//book[author='Isaac Asimov']/title/text()"); //bad
             return expr.evaluate(doc, XPathConstants.NODESET);
         }
     }
@@ -101,6 +101,25 @@ class MyCompiler {
         }
         public static NodeList good(Document doc) {
             return tlExpr.get().evaluate(doc, XPathConstants.NODESET);
+        }
+    }
+    ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>violation: Avoid recompiling xpath expression, evaluate on XPath with implicit compile</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>9</expected-linenumbers>
+        <code><![CDATA[
+import org.w3c.dom.Document;
+import org.w3c.dom.NodeList;
+import javax.xml.xpath.*;
+
+    class Bad2 {
+        public static NodeList bad2(Document doc) throws XPathExpressionException {
+            XPath xpath = XPathFactory.newInstance().newXPath();
+            String xPathQuery = "//book[author='Isaac Asimov']/title/text()";
+            return (NodeList) xpath.evaluate(xPathQuery, doc, XPathConstants.NODESET); // bad
         }
     }
     ]]></code>

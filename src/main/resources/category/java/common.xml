@@ -338,8 +338,9 @@ class Good {
 
     <rule name="AvoidRecompilingXPathExpression" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" message="XPathExpression is created and compiled every time. Beware it is thread-unsafe." typeResolution="true"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#ux02">
-        <description>XPathExpression is created and compiled on every method call. Problem: Creation XPath and compilation of XPathExpression takes time. It may slow down your application. &#13;
-            Solution: 1. Avoid XPath usage. 2. Since XPath and XPathExpression classes are thread-unsafe, they are not easily cached. Caching in Thread locals may be a solution.
+        <description>XPathExpression is created and compiled on every method call, compiled possibly implicitly by XPath::evaluate.
+            Problem: Creation of XPath and compilation of XPathExpression takes time. It may slow down your application. &#13;
+            Solution: 1. Avoid XPath usage. 2. Compile the xpath expression as String into a XPathExpression. However, since XPath and XPathExpression classes are thread-unsafe, they are not easily cached. Caching it in a ThreadLocal may be a solution.
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
@@ -348,19 +349,25 @@ class Good {
             <property name="xpath">
                 <value><![CDATA[
 //TypeDeclaration//ClassOrInterfaceBodyDeclaration/MethodDeclaration
-//PrimaryExpression/PrimaryPrefix/Name[ends-with(@Image,'.newXPath')]
-/ancestor::ClassOrInterfaceBodyDeclaration
-//PrimaryExpression/PrimaryPrefix/Name[ends-with(@Image, '.compile')]
-	]]></value>
+//PrimaryExpression/(PrimarySuffix|PrimaryPrefix/Name)[ends-with(@Image,'newXPath')]
+/ancestor::MethodDeclaration
+//PrimaryExpression/(PrimarySuffix|PrimaryPrefix/Name)[ends-with(@Image, 'compile')
+or (pmd-java:typeIs('javax.xml.xpath.XPath') and ends-with(@Image, 'evaluate'))]
+]]></value>
             </property>
         </properties>
         <example>
             <![CDATA[
 class Bad {
-    public static NodeList bad(Document doc) {
+    public static NodeList bad1(Document doc) {
         XPath xpath = XPathFactory.newInstance().newXPath();
         XPathExpression expr = xpath.compile("//book[author='Isaac Asimov']/title/text()"); // bad
-        return expr.evaluate(doc, XPathConstants.NODESET);
+        return (NodeList) expr.evaluate(doc, XPathConstants.NODESET);
+    }
+    public static NodeList bad2(Document doc) throws XPathExpressionException {
+        XPath xpath = XPathFactory.newInstance().newXPath();
+        String xPathQuery = "//book[author='Isaac Asimov']/title/text()";
+        return (NodeList) xpath.evaluate(xPathQuery, doc, XPathConstants.NODESET); // bad
     }
 }
 

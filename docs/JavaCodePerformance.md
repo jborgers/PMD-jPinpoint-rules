@@ -1661,25 +1661,37 @@ Using XPath
 
 **Observation: The XPathExpression is created and compiled every time.**
 
+Explicitly compiled:
 ```java
-XPathFactory.newInstance().newXPath().compile(xPathExpression).evaluate(..) 
+XPathFactory.newInstance().newXPath().compile(xPathExprString).evaluate(..) 
+```
+or implicitly compiled in evaluate:
+```java
+xpath.evaluate(xPathExprString, doc, XPathConstants.NODESET);
 ```
 
-is used. The new factory, new XPath, and the compiled expression are hard to cache, because those objects are not thread-safe.
+is used. 
+The new factory, new XPath, and the compiled expression are hard to cache, because those objects are not thread-safe.
 
-**Problem:** Execution of the same code on the same expression is performed on every node retrieval, several times per user request. This takes CPU cycles, unnecessarily.  
+**Problem:** Creation and compilation of the same expression is performed on every node retrieval, several times per user request. This takes CPU cycles, unnecessarily.  
 **Solution:** There is no easy solution, other than not using XPath. Caching in a ThreadLocal might be an option, however, this introduces some complexity.   
 **See:** [XPath performance tweaks](http://leakfromjavaheap.blogspot.com/2014/12/xpath-evaluation-performance-tweaks.html).   
+**Rule name:** AvoidRecompilingXPathExpression   
 **Example:**   
 Using `ThreadLocal` for `XPathExpression`:
 
 ```java
 class Bad {
-    public static NodeList bad(Document doc) {
-        XPath xpath = XPathFactory.newInstance().newXPath();
-        XPathExpression expr = xpath.compile("//book[author='Isaac Asimov']/title/text()"); // bad
-        return expr.evaluate(doc, XPathConstants.NODESET);
-    }
+  private static final String xPathQuery = "//book[author='Isaac Asimov']/title/text()";
+  public static NodeList bad1(Document doc) {
+    XPath xpath = XPathFactory.newInstance().newXPath();
+    XPathExpression expr = xpath.compile(xPathQuery); // bad
+    return (NodeList) expr.evaluate(doc, XPathConstants.NODESET);
+  }
+  public static NodeList bad2(Document doc) throws XPathExpressionException {
+    XPath xpath = XPathFactory.newInstance().newXPath();
+    return (NodeList) xpath.evaluate(xPathQuery, doc, XPathConstants.NODESET); // bad
+  }
 }
 
 class Good {
@@ -1691,7 +1703,7 @@ class Good {
         tlExpr = ThreadLocal.withInitial(expr); 
     }
     public static NodeList good(Document doc) {
-        return tlExpr.get().evaluate(doc, XPathConstants.NODESET); // good
+        return (NodeList) tlExpr.get().evaluate(doc, XPathConstants.NODESET); // good
     }
 }
 ```
