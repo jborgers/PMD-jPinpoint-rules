@@ -308,9 +308,9 @@ ancestor::MethodDeclaration//PrimarySuffix/@Image="disableConnectionState")]
     </rule>
 
     <rule name="HttpClientBuilderWithoutTimeouts" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java"
-          message="HttpClient builder is used and not all three timeouts are configured. The defaults are probably not optimal (e.g. infinite). " typeResolution="true"
+          message="HttpClient-v4 builder is used and not all three timeouts are configured. The defaults are probably not optimal (e.g. infinite). " typeResolution="true"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#IBI10">
-        <description>Problem: For connectionRequestTimeout, connectTimeout, socketTimeout (for HttpComponentsClientHttpRequestFactory) or readTimeout (for RequestConfig) the default timeout settings are not optimal in most cases. &#13;
+        <description>Problem: (Apache client version 4) For connectionRequestTimeout, connectTimeout, socketTimeout (for HttpComponentsClientHttpRequestFactory) or readTimeout (for RequestConfig) the default timeout settings are not optimal in most cases. &#13;
             Solution: Set the timeouts explicitly to proper reasoned values. See best practice values via the link. Use the setDefaultRequestConfig with a method with a RequestConfig object on HttpClient builders to set the timeouts.(jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
@@ -318,6 +318,7 @@ ancestor::MethodDeclaration//PrimarySuffix/@Image="disableConnectionState")]
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
+(: only for Apache http client 4 :)
 (: locally created http client builder without setDefaultRequestConfig to set timeouts :)
 //MethodDeclaration//PrimaryExpression/PrimaryPrefix/Name[
  (
@@ -350,28 +351,32 @@ ancestor::MethodDeclaration//PrimarySuffix/@Image="disableConnectionState")]
 (: HttpComponentsClientHttpRequestFactory without httpClient and without setConnectionRequestTimeout/setConnectTimeout/setReadTimeout :)
 //MethodDeclaration//AllocationExpression/ClassOrInterfaceType[
    pmd-java:typeIs('org.springframework.http.client.HttpComponentsClientHttpRequestFactory')
+    and ancestor::CompilationUnit/ImportDeclaration/Name[starts-with(@Image, 'org.apache.http')]
    (: not if setHttpClient called on it :)
    and not(ancestor::Block//(PrimaryPrefix/Name|PrimarySuffix)[ends-with(@Image, 'setHttpClient')]
         (: not if one argument provided (HttpClient) as ctor arg :)
         or ancestor::Expression//Arguments[@Size = 1])
    and count(ancestor::MethodDeclaration//(PrimaryPrefix/Name|PrimarySuffix)[ends-with(@Image, 'setConnectionRequestTimeout') or ends-with(@Image, 'setConnectTimeout') or ends-with(@Image, 'setReadTimeout')])<3
 ]
-,
+|
 (: HttpComponentsClientHttpRequestFactory with local httpClient and with not all three of setConnectionRequestTimeout/setConnectTimeout/[setReadTimeout or setSocketTimeout] :)
 //MethodDeclaration//AllocationExpression/ClassOrInterfaceType[
    pmd-java:typeIs('org.springframework.http.client.HttpComponentsClientHttpRequestFactory')
+    and ancestor::CompilationUnit/ImportDeclaration/Name[starts-with(@Image, 'org.apache.http')]
    and (ancestor::Block//(PrimaryPrefix/Name|PrimarySuffix)[ends-with(@Image, 'setHttpClient')]
         or ancestor::Expression//Arguments//PrimaryPrefix[pmd-java:typeIs('org.apache.http.client.HttpClient')])
    and count(ancestor::MethodDeclaration//(PrimaryPrefix/Name|PrimarySuffix)[ends-with(@Image, 'setConnectionRequestTimeout') or ends-with(@Image, 'setConnectTimeout') or ends-with(@Image, 'setReadTimeout') or ends-with(@Image, 'setSocketTimeout')])<3
    and count(ancestor::MethodDeclaration//(PrimaryPrefix/Name|PrimarySuffix)[ends-with(@Image, 'setConnectionRequestTimeout') or ends-with(@Image, 'setConnectTimeout') or ends-with(@Image, 'setReadTimeout') or ends-with(@Image, 'setSocketTimeout')])>0
 ]
-,
+|
 (: HttpComponentsClientHttpRequestFactory as param and with not all three of setConnectionRequestTimeout/setConnectTimeout/setReadTimeout :)
 //MethodDeclaration//FormalParameter//ClassOrInterfaceType[
    pmd-java:typeIs('org.springframework.http.client.HttpComponentsClientHttpRequestFactory')
+    and ancestor::CompilationUnit/ImportDeclaration/Name[starts-with(@Image, 'org.apache.http')]
    and count(ancestor::MethodDeclaration//(PrimaryPrefix/Name|PrimarySuffix)[ends-with(@Image, 'setConnectionRequestTimeout') or ends-with(@Image, 'setConnectTimeout') or ends-with(@Image, 'setReadTimeout')])<3
    and count(ancestor::MethodDeclaration//(PrimaryPrefix/Name|PrimarySuffix)[ends-with(@Image, 'setConnectionRequestTimeout') or ends-with(@Image, 'setConnectTimeout') or ends-with(@Image, 'setReadTimeout')])>0
 ]
+
 ]]>
                 </value>
             </property>
