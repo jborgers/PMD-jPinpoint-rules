@@ -829,7 +829,7 @@ public class Foo {
 ```
 See for the example good2: [custom-thread-pool-in-parallel-stream](https://stackoverflow.com/questions/21163108/custom-thread-pool-in-java-8-parallel-stream/34930831#34930831).
 
-#### IA11
+#### IA12
 **Observation: Project Reactor Flux.parallel().runOn() is used.**  
 **Problem:** The data is divided on a number of 'rails' matching the number of CPU cores.
 This is only useful in case much CPU processing is performed: if the sequential form takes more than 0,1 ms of CPU time.
@@ -859,7 +859,7 @@ class FooGood {
 }
 ```
 
-#### IA12
+#### IA13
 **Observation: Mapped Diagnostic Context (MDC) is used in projector Reactor flows.**   
 **Problem:** Mapped Diagnostic Context (MDC) of logging frameworks uses ThreadLocals to store things like traceIds from headers, userId, correlationId.
 Reactive programming uses multiple threads to handle a request, and one thread can deal with asynchronous steps of many requests. 
@@ -897,7 +897,7 @@ class FooGood {
 }
 ```
 
-#### IA13
+#### IA14
 **Observation: Reactor Hooks.onEachOperator is used.**   
 **Problem:** Using Reactor Hooks.onEachOperator means executing the code on every operator in the Reactor flow, for every element. 
 This typically means much processing time. So, for example copying a context Map on every operator (for MDC propagation) is not a good idea.   

@@ -128,4 +128,32 @@ public class Foo implements WebRequestInterceptor {
 }
      ]]></code>
     </test-code>
+
+    <test-code>
+        <description>no violation: MDC Values are removed with a postHandle for Spring HandlerInterceptorAdapter </description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>7</expected-linenumbers>
+        <code><![CDATA[
+public class TracingInterceptor extends HandlerInterceptorAdapter {
+
+    @Override
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
+        MDC.put("sessionId", request.getSession().getId());
+        Optional.ofNullable(request.getHeader(Y_REQUEST_ID)).ifPresent(id -> MDC.put(REQUEST_ID, id));
+        Optional.ofNullable(request.getHeader(REQUESTOR_ID)).ifPresent(id -> MDC.put(MDC_REQUESTOR_ID, id)); // bad
+        return true;
+    }
+
+    @Override
+    public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler,
+                           @Nullable ModelAndView modelAndView) {
+        MDC.remove("sessionId");
+        //MDC.clear();
+        Optional.ofNullable(MDC.get(REQUEST_ID)).ifPresent(id -> MDC.remove(REQUEST_ID));
+        //Optional.ofNullable(MDC.get(MDC_REQUESTOR_ID)).ifPresent(id -> MDC.remove(MDC_REQUESTOR_ID));
+    }
+}
+     ]]></code>
+    </test-code>
+
 </test-data>

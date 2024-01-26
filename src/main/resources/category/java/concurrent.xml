@@ -1105,7 +1105,7 @@ public class Foo {
           dfa="false"
           language="java"
           typeResolution="true"
-          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ia11">
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ia12">
         <description>Problem: With Reactor Flux.parallel.runOn, the data is divided on a number of 'rails' matching the number of CPU cores.
             This is only useful in case much CPU processing is performed: if the sequential form takes more than 0,1 ms of CPU time.
             With remote calls this is usually not the case. In addition, it introduces more complexity with risk of failures.&#13;
@@ -1153,7 +1153,7 @@ class FooGood {
           dfa="false"
           language="java"
           typeResolution="true"
-          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ia12">
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ia13">
         <description>Problem: Mapped Diagnostic Context (MDC) of logging frameworks uses ThreadLocals to store things like traceIds from headers, userId, correlationId.
             Reactive programming uses multiple threads to handle a request, and one thread can deal with asynchronous steps of many requests.
             Therefore, MDC is tricky to use in reactive context and may take much processing time to propagate, likely so for much data in the MDC.&#13;
@@ -1208,7 +1208,7 @@ class FooGood {
           dfa="false"
           language="java"
           typeResolution="true"
-          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ia13">
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ia14">
         <description>Problem: Using Reactor Hooks.onEachOperator means executing the code on every operator in the Reactor flow, for every element. This typically means much processing time.&#13;
             Solution: Just do processing when and where actually needed. (jpinpoint-rules)</description>
         <priority>2</priority>
