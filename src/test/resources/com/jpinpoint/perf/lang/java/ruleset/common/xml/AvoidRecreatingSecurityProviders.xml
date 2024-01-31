@@ -30,4 +30,46 @@ class Foo {
      ]]></code>
     </test-code>
 
+    <test-code>
+        <description>violation: false positives in AvoidRecreatingSecurityProviders #287</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>32</expected-linenumbers>
+        <code><![CDATA[
+import java.security.Provider;
+import org.bouncycastle.jce.provider.*;
+
+@Service
+public class SomeService {
+
+    private Verifier verifier;
+
+    @PostConstruct
+    void createVerifier() {
+        verifier = new VerifierBuilder()
+            .setProvider(new BouncyCastleProvider()) // false positive, in @PostConstruct method, executed only once
+            .build(getCertificate().getPublicKey());
+    }
+}
+
+class OurApplication {
+    public static void main(String[] args) {
+        Security.insertProviderAt(new OurProvider(), 1);
+        Security.addProvider(new BouncyCastleProvider()); // false positive, in static main method, executed only once
+        SpringApplication.run(OurApplication.class, args);
+    }
+}
+
+class OurWorkerApplication implements CommandLineRunner {
+    public static void main(String... args) {
+        execute(args);
+    }
+
+    public static ConfigurableApplicationContext execute(String... args) {
+        Security.insertProviderAt(new OurProvider(), 1);
+        Security.addProvider(new BouncyCastleProvider()); // bad, 'execute' can be called multiple times
+        return SpringApplication.run(OurWorkerApplication.class, args);
+    }
+}
+     ]]></code>
+    </test-code>
 </test-data>

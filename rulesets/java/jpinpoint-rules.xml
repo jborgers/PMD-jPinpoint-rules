@@ -734,7 +734,8 @@ ancestor::MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter/Va
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
-//MethodDeclaration[not(.//IfStatement//EqualityExpression[@Operator='=='][
+//MethodDeclaration[not((@Name='main' and @Static=true())or ../Annotation//Name/@Image='PostConstruct'
+or .//IfStatement//EqualityExpression[@Operator='=='][
 .//PrimaryExpression[pmd-java:typeIs('java.security.Provider')] and .//NullLiteral])]
 //AllocationExpression[pmd-java:typeIs('java.security.Provider')]
                 ]]></value>

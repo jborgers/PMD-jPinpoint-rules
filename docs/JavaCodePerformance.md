@@ -2034,7 +2034,7 @@ Inefficient use of security features
 **Problem:** Creating a security provider is expensive because of loading of algorithms and other classes. 
 Additionally, it uses synchronized which leads to lock contention when used with multiple threads.  
 **Solution:** This only needs to happen once in the JVM lifetime, because once loaded, the provider is available from the Security class. 
-Create the security provider only once: only in case it is nog available from the Security class, yet.   
+Create the security provider only once: only in case it is not available from the Security class, yet.   
 **Rule name:** AvoidRecreatingSecurityProviders.    
 **Example:**
 ```java
@@ -2054,6 +2054,7 @@ class Foo {
   }
 }
 ```
+**Note:** An addProvider call inside a static main method or inside a @PostConstruct annotated method is not reported as a violation since it is assumed to be called only once. 
 
 Extensive use of classpath scanning
 -----------------------------------
