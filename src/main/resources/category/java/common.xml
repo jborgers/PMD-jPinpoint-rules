@@ -1858,21 +1858,21 @@ and (pmd-java:typeIs('java.lang.Object'))
 //FieldDeclaration/Type[pmd-java:typeIs('java.util.Set') and ReferenceType//TypeArgument[1][not(pmd-java:typeIs('java.lang.Comparable'))
 (: and can be resolved :)
 and pmd-java:typeIs('java.lang.Object')]]/..//VariableDeclaratorId[
-ancestor::ClassOrInterfaceBody//PrimaryExpression/PrimaryPrefix/Name/@Image = concat(@Image, '.contains')
-or ancestor::ClassOrInterfaceBody//PrimaryExpression/PrimaryPrefix/Name/@Image = concat(@Image, '.containsAll')
-or ancestor::ClassOrInterfaceBody//PrimaryExpression/PrimaryPrefix/Name/@Image = concat(@Image, '.remove')
-or ancestor::ClassOrInterfaceBody//PrimaryExpression/PrimaryPrefix/Name/@Image = concat(@Image, '.removeAll')
-or ancestor::ClassOrInterfaceBody//PrimaryExpression/PrimaryPrefix/Name/@Image = concat(@Image, '.retainAll')
+ancestor::ClassOrInterfaceBody//PrimaryExpression/PrimaryPrefix/Name/@Image = concat(@Name, '.contains')
+or ancestor::ClassOrInterfaceBody//PrimaryExpression/PrimaryPrefix/Name/@Image = concat(@Name, '.containsAll')
+or ancestor::ClassOrInterfaceBody//PrimaryExpression/PrimaryPrefix/Name/@Image = concat(@Name, '.remove')
+or ancestor::ClassOrInterfaceBody//PrimaryExpression/PrimaryPrefix/Name/@Image = concat(@Name, '.removeAll')
+or ancestor::ClassOrInterfaceBody//PrimaryExpression/PrimaryPrefix/Name/@Image = concat(@Name, '.retainAll')
 ]/../..
 ,
 //(FormalParameter|LocalVariableDeclaration)/Type[pmd-java:typeIs('java.util.Set') and ReferenceType//TypeArgument[1][not(pmd-java:typeIs('java.lang.Comparable'))
 (: and can be resolved :)
 and pmd-java:typeIs('java.lang.Object')]]/..//VariableDeclaratorId[
-ancestor::MethodDeclaration//PrimaryExpression/PrimaryPrefix/Name/@Image = concat(@Image, '.contains')
-or ancestor::MethodDeclaration//PrimaryExpression/PrimaryPrefix/Name/@Image = concat(@Image, '.containsAll')
-or ancestor::MethodDeclaration//PrimaryExpression/PrimaryPrefix/Name/@Image = concat(@Image, '.remove')
-or ancestor::MethodDeclaration//PrimaryExpression/PrimaryPrefix/Name/@Image = concat(@Image, '.removeAll')
-or ancestor::MethodDeclaration//PrimaryExpression/PrimaryPrefix/Name/@Image = concat(@Image, '.retainAll')
+ancestor::MethodDeclaration//PrimaryExpression/PrimaryPrefix/Name/@Image = concat(@Name, '.contains')
+or ancestor::MethodDeclaration//PrimaryExpression/PrimaryPrefix/Name/@Image = concat(@Name, '.containsAll')
+or ancestor::MethodDeclaration//PrimaryExpression/PrimaryPrefix/Name/@Image = concat(@Name, '.remove')
+or ancestor::MethodDeclaration//PrimaryExpression/PrimaryPrefix/Name/@Image = concat(@Name, '.removeAll')
+or ancestor::MethodDeclaration//PrimaryExpression/PrimaryPrefix/Name/@Image = concat(@Name, '.retainAll')
 ]/../..
                ]]></value>
             </property>

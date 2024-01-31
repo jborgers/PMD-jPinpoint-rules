@@ -75,7 +75,7 @@ public class Foo {
     </test-code>
 
     <test-code>
-        <description>no violation: false positive in AvoidUnusedAsignments #221</description>
+        <description>no violation: false positive in AvoidUnusedAssignments #221</description>
         <expected-problems>0</expected-problems>
         <code><![CDATA[
 class CarStuff {

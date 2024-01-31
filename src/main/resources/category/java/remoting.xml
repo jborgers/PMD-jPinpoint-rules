@@ -1144,7 +1144,7 @@ public class Foo {
                 <value><![CDATA[
 //FieldDeclaration[Type/@TypeImage='int']/VariableDeclarator[VariableDeclaratorId[@Final = true()][contains(upper-case(@Name), 'TIMEOUT') or contains(upper-case(@Name), 'DURATIONOUT')
 or(contains(upper-case(@Name), 'MAX') and contains(upper-case(@Name), 'ROUTE'))]]
-[VariableInitializer//Literal or VariableDeclaratorId/@Image=ancestor::ClassOrInterfaceBody//ConstructorDeclaration//StatementExpression[Expression//Literal]//Name/@Image]
+[VariableInitializer//Literal or VariableDeclaratorId/@Name=ancestor::ClassOrInterfaceBody//ConstructorDeclaration//StatementExpression[Expression//Literal]//Name/@Image]
                 ]]></value>
             </property>
         </properties>
