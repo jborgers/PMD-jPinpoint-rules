@@ -833,9 +833,14 @@ See for the example good2: [custom-thread-pool-in-parallel-stream](https://stack
 This is only useful in case much CPU processing is performed: if the sequential form takes more than 0,1 ms of CPU time.
 With remote calls this is usually not the case. In addition, it introduces more complexity with risk of failures.   
 **Solution:** Remove parallel().runOn. For pure CPU processing: use ordinary sequential streaming unless the work takes more than about 0,1 ms in sequential form and proves to be faster with parallelization.
-So only for large collections and much processing.  
+So only for large collections and much processing.   
 **Rule name:** AvoidParallelFlux   
-**Example:**
+**Note:** If the call you do is a blocking (remote) call, you are not fully reactive. Then you still need a thread pool for threads waiting for the response. 
+This can be achieved by [subscribeOn](https://projectreactor.io/docs/core/release/reference/#_the_subscribeon_method) or publishOn.   
+**See:** 
+1. [Project Reactor Schedulers](https://projectreactor.io/docs/core/release/reference/#schedulers) 
+1. [ParallelFlux for CPU work](https://projectreactor.io/docs/core/release/reference/#advanced-parallelizing-parralelflux) 
+1. [How to wrap a blocking call](https://projectreactor.io/docs/core/release/reference/#advanced-parallelizing-parralelflux)    
 ```java
 import reactor.core.publisher.*;
 
@@ -852,7 +857,8 @@ class FooBad {
 class FooGood {
     public Flux<Account> getResponseAccounts(List<AccountKey> accountKeys, List<FieldName> requestedFields) {
         return Flux.fromIterable(accountKeys)
-                .flatMap(accountKey -> constructAccountDetails(accountKey, requestedFields));
+                .flatMap(accountKey -> constructAccountDetails(accountKey, requestedFields)); 
+                // assumed a non-blocking/async call, with blocking you need e.g. subscribeOn(Schedulers.boundedElastic())
     }
 }
 ```
