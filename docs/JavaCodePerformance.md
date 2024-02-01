@@ -538,11 +538,9 @@ class Bad {
 }
 
 class Good {
-  private final SaajSoapMessageFactory mfField; // thread-unsafe
-
   static {
-    System.setProperty("javax.xml.transform.TransformerFactory", "com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl");
-    System.setProperty("javax.xml.soap.MessageFactory", "com.sun.xml.internal.messaging.saaj.soap.ver1_1.SOAPMessageFactory1_1Impl");
+    System.setProperty("javax.xml.transform.TransformerFactory", "com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl"); // may be different for you
+    System.setProperty("javax.xml.soap.MessageFactory", "com.sun.xml.internal.messaging.saaj.soap.ver1_1.SOAPMessageFactory1_1Impl"); // may be different for you
   }
 
   public WebServiceTemplate getTemplate(final String uri, final HttpClientMessageSender httpClientMessageSender) throws SOAPException {
