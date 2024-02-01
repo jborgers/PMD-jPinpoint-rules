@@ -627,9 +627,9 @@ Note that the pool will only grow beyond CorePoolSize up to MaxPoolSize when the
 ```
 #### IA06
 **Observation: A blocking asynchronous call future.get() without time-out is used.**  
-**Problem:** Stalls indefinitely in case of hanging thread(s) and consumes a thread. Threads may get stuck in database, a remote system, because of a network hiccup, in error or other exceptional situations.  
-**Solution:** Use the version with timeout and handle a timeout situation.
-**Rule name:** AvoidFutureGetWithoutTimeout
+**Problem:** Stalls indefinitely in case of hanging thread(s) and consumes a thread. Threads may get stuck in database, a remote system, because of a network hiccup, in error or other exceptional situations.   
+**Solution:** Use the version with timeout and handle a timeout situation.   
+**Rule name:** AvoidFutureGetWithoutTimeout   
 **Example:**   
 ```java
 future.get(long timeout, TimeUnit unit)
@@ -930,6 +930,25 @@ class FooGood {
 }
 ```
 
+#### IA15
+**Observation: Avoid ExecutorService invokeAll and invokeAny without timeout.**   
+**Problem:** Stalls indefinitely in case of stalled Callable(s) and consumes threads.   
+**Solution:** Provide a timeout to the invokeAll/invokeAny method and handle the timeout.   
+**Rule name:** AvoidExecutorInvokeWithoutTimeout   
+**Note:** Also in case all Callables have a proper timeout, use an overall timeout on the ExecutorService level, e.g. for issues with handling of the individual Callable timeouts.
+**Example:**   
+```java
+import java.util.concurrent.*;
+
+class Foo {
+  private List<Future<ServiceResult>> executeTasksBad(Collection<Callable<ServiceResult>> tasks, ExecutorService executor) throws Exception {
+    return executor.invokeAll(tasks); // bad, no timeout
+  }
+  private List<Future<ServiceResult>> executeTasksGood(Collection<Callable<ServiceResult>> tasks, ExecutorService executor) throws Exception {
+    return executor.invokeAll(tasks, OUR_TIMEOUT_IN_MILLIS, TimeUnit.MILLISECONDS); // good
+  }
+}
+```
 Improper caching  
 -------------------
 

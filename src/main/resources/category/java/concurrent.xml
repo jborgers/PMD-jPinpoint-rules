@@ -1239,6 +1239,41 @@ public class FooBad {
         </example>
     </rule>
 
+    <rule name="AvoidExecutorInvokeWithoutTimeout"
+          message="Avoid using ExecutorService::invokeAll or invokeAny without a timeout."
+          class="net.sourceforge.pmd.lang.rule.XPathRule"
+          dfa="false"
+          language="java"
+          typeResolution="true"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ia15">
+        <description>Problem: Stalls indefinitely in case of stalled Callable(s) and consumes threads.&#13;
+            Solution: Provide a timeout to the invokeAll/invokeAny method and handle the timeout. (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+//PrimaryExpression[PrimarySuffix[@ArgumentCount=1]]/PrimaryPrefix[pmd-java:typeIs('java.util.concurrent.ExecutorService')]/Name[ends-with(@Image,'.invokeAll') or ends-with(@Image,'.invokeAny')]
+                ]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+import java.util.concurrent.*;
+
+class Foo {
+    private List<Future<ServiceResult>> executeTasksBad(Collection<Callable<ServiceResult>> tasks, ExecutorService executor) throws Exception {
+        return executor.invokeAll(tasks); // bad, no timeout
+    }
+    private List<Future<ServiceResult>> executeTasksGood(Collection<Callable<ServiceResult>> tasks, ExecutorService executor) throws Exception {
+        return executor.invokeAll(tasks, OUR_TIMEOUT_IN_MILLIS, TimeUnit.MILLISECONDS); // good
+    }
+}
+            ]]>
+        </example>
+    </rule>
+
 </ruleset>
 
 

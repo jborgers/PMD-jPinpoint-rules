@@ -1818,21 +1818,21 @@ and (pmd-java:typeIs('java.lang.Object'))
 //FieldDeclaration/Type[pmd-java:typeIs('java.util.Set') and ReferenceType//TypeArgument[1][not(pmd-java:typeIs('java.lang.Comparable'))
 (: and can be resolved :)
 and pmd-java:typeIs('java.lang.Object')]]/..//VariableDeclaratorId[
-ancestor::ClassOrInterfaceBody//PrimaryExpression/PrimaryPrefix/Name/@Image = concat(@Image, '.contains')
-or ancestor::ClassOrInterfaceBody//PrimaryExpression/PrimaryPrefix/Name/@Image = concat(@Image, '.containsAll')
-or ancestor::ClassOrInterfaceBody//PrimaryExpression/PrimaryPrefix/Name/@Image = concat(@Image, '.remove')
-or ancestor::ClassOrInterfaceBody//PrimaryExpression/PrimaryPrefix/Name/@Image = concat(@Image, '.removeAll')
-or ancestor::ClassOrInterfaceBody//PrimaryExpression/PrimaryPrefix/Name/@Image = concat(@Image, '.retainAll')
+ancestor::ClassOrInterfaceBody//PrimaryExpression/PrimaryPrefix/Name/@Image = concat(@Name, '.contains')
+or ancestor::ClassOrInterfaceBody//PrimaryExpression/PrimaryPrefix/Name/@Image = concat(@Name, '.containsAll')
+or ancestor::ClassOrInterfaceBody//PrimaryExpression/PrimaryPrefix/Name/@Image = concat(@Name, '.remove')
+or ancestor::ClassOrInterfaceBody//PrimaryExpression/PrimaryPrefix/Name/@Image = concat(@Name, '.removeAll')
+or ancestor::ClassOrInterfaceBody//PrimaryExpression/PrimaryPrefix/Name/@Image = concat(@Name, '.retainAll')
 ]/../..
 ,
 //(FormalParameter|LocalVariableDeclaration)/Type[pmd-java:typeIs('java.util.Set') and ReferenceType//TypeArgument[1][not(pmd-java:typeIs('java.lang.Comparable'))
 (: and can be resolved :)
 and pmd-java:typeIs('java.lang.Object')]]/..//VariableDeclaratorId[
-ancestor::MethodDeclaration//PrimaryExpression/PrimaryPrefix/Name/@Image = concat(@Image, '.contains')
-or ancestor::MethodDeclaration//PrimaryExpression/PrimaryPrefix/Name/@Image = concat(@Image, '.containsAll')
-or ancestor::MethodDeclaration//PrimaryExpression/PrimaryPrefix/Name/@Image = concat(@Image, '.remove')
-or ancestor::MethodDeclaration//PrimaryExpression/PrimaryPrefix/Name/@Image = concat(@Image, '.removeAll')
-or ancestor::MethodDeclaration//PrimaryExpression/PrimaryPrefix/Name/@Image = concat(@Image, '.retainAll')
+ancestor::MethodDeclaration//PrimaryExpression/PrimaryPrefix/Name/@Image = concat(@Name, '.contains')
+or ancestor::MethodDeclaration//PrimaryExpression/PrimaryPrefix/Name/@Image = concat(@Name, '.containsAll')
+or ancestor::MethodDeclaration//PrimaryExpression/PrimaryPrefix/Name/@Image = concat(@Name, '.remove')
+or ancestor::MethodDeclaration//PrimaryExpression/PrimaryPrefix/Name/@Image = concat(@Name, '.removeAll')
+or ancestor::MethodDeclaration//PrimaryExpression/PrimaryPrefix/Name/@Image = concat(@Name, '.retainAll')
 ]/../..
                ]]></value>
             </property>
@@ -2408,9 +2408,8 @@ public class StringStuff {
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
-(: for each local variable declaration or assignment node :)
-(for $node in (//StatementExpression[AssignmentOperator[@Image='=']][not(ancestor::IfStatement or ancestor::TryStatement or ancestor::SwitchStatement)]/PrimaryExpression/PrimaryPrefix/Name
-| //LocalVariableDeclaration/VariableDeclarator[VariableInitializer]//VariableDeclaratorId)
+(: for each assignment node :)
+(for $node in //StatementExpression[AssignmentOperator[@Image='=']][not(ancestor::IfStatement or ancestor::TryStatement or ancestor::SwitchStatement)]/PrimaryExpression/PrimaryPrefix/Name
 (: match if for that node the next occurrence of ((assignment without use in same statement) union with (use) is an assignment to the var) :)
 return ($node[
 (: assignment without use, Name is result :)
@@ -2424,6 +2423,23 @@ return ($node[
 /PrimaryPrefix[substring-before(concat(Name/@Image, '.'), '.')=$node/@Image])[1])
 (: first is the var name :)
 [1]/@Image = $node/@Image])
+)
+,
+(: for each local variable declaration :)
+(for $node in (//LocalVariableDeclaration/VariableDeclarator[VariableInitializer]//VariableDeclaratorId)
+(: match if for that node the next occurrence of ((assignment without use in same statement) union with (use) is an assignment to the var) :)
+return ($node[
+(: assignment without use, Name is result :)
+((ancestor::BlockStatement/following-sibling::BlockStatement//StatementExpression[AssignmentOperator[@Image='=']][not(ancestor::IfStatement or ancestor::TryStatement or ancestor::SwitchStatement)]/PrimaryExpression/PrimaryPrefix/Name[@Image=$node/@Name]
+[not(ancestor::BlockStatement//PrimaryExpression[not(../AssignmentOperator[@Image='=']) and (not(PrimarySuffix/Arguments) or PrimaryPrefix[contains(Name/@Image, '.')])]
+/PrimaryPrefix[substring-before(concat(Name/@Image, '.'), '.')=$node/@Name])]
+)[1]
+|
+(: use, PrimaryPrefix is result, so @Image is empty string :)
+(ancestor::BlockStatement/following-sibling::BlockStatement//PrimaryExpression[not(../AssignmentOperator[@Image='='] and not(PrimarySuffix/Expression)) and (not(PrimarySuffix/Arguments) or PrimaryPrefix[contains(Name/@Image, '.')])]
+/PrimaryPrefix[substring-before(concat(Name/@Image, '.'), '.')=$node/@Name])[1])
+(: first is the var name :)
+[1]/@Image = $node/@Name])
 )
                 ]]></value>
             </property>
@@ -2788,6 +2804,41 @@ public class Foo {
                 </value>
             </property>
         </properties>
+    </rule>
+
+    <rule name="AvoidExecutorInvokeWithoutTimeout"
+          message="Avoid using ExecutorService::invokeAll or invokeAny without a timeout."
+          class="net.sourceforge.pmd.lang.rule.XPathRule"
+          dfa="false"
+          language="java"
+          typeResolution="true"
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#ia15">
+        <description>Problem: Stalls indefinitely in case of stalled Callable(s) and consumes threads.&#13;
+            Solution: Provide a timeout to the invokeAll/invokeAny method and handle the timeout. (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+//PrimaryExpression[PrimarySuffix[@ArgumentCount=1]]/PrimaryPrefix[pmd-java:typeIs('java.util.concurrent.ExecutorService')]/Name[ends-with(@Image,'.invokeAll') or ends-with(@Image,'.invokeAny')]
+                ]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+import java.util.concurrent.*;
+
+class Foo {
+    private List<Future<ServiceResult>> executeTasksBad(Collection<Callable<ServiceResult>> tasks, ExecutorService executor) throws Exception {
+        return executor.invokeAll(tasks); // bad, no timeout
+    }
+    private List<Future<ServiceResult>> executeTasksGood(Collection<Callable<ServiceResult>> tasks, ExecutorService executor) throws Exception {
+        return executor.invokeAll(tasks, OUR_TIMEOUT_IN_MILLIS, TimeUnit.MILLISECONDS); // good
+    }
+}
+            ]]>
+        </example>
     </rule>
 
     <rule name="AvoidFutureGetWithoutTimeout"
@@ -4171,7 +4222,7 @@ class Foo {
                 <value><![CDATA[
 //FieldDeclaration[Type/@TypeImage='int']/VariableDeclarator[VariableDeclaratorId[@Final = true()][contains(upper-case(@Name), 'TIMEOUT') or contains(upper-case(@Name), 'DURATIONOUT')
 or(contains(upper-case(@Name), 'MAX') and contains(upper-case(@Name), 'ROUTE'))]]
-[VariableInitializer//Literal or VariableDeclaratorId/@Image=ancestor::ClassOrInterfaceBody//ConstructorDeclaration//StatementExpression[Expression//Literal]//Name/@Image]
+[VariableInitializer//Literal or VariableDeclaratorId/@Name=ancestor::ClassOrInterfaceBody//ConstructorDeclaration//StatementExpression[Expression//Literal]//Name/@Image]
                 ]]></value>
             </property>
         </properties>
