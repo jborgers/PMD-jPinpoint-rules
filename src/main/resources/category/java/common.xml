@@ -8,7 +8,7 @@
           class="net.sourceforge.pmd.lang.rule.XPathRule"
           typeResolution="true"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#pml05">
-        <description>Problem: A proxy object is created by CDI for explicit references, they are not de-referenced implicitly and become a memory leak. &#13;
+        <description>Problem: A proxy object is created by Contexts and Dependency Injection (CDI) for explicit references, they are not de-referenced implicitly and become a memory leak. &#13;
             Solution: Destroy the reference explicitly.
         </description>
         <priority>1</priority>
