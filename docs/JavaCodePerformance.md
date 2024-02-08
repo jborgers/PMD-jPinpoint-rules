@@ -2868,43 +2868,43 @@ Potential memory leaks
 **Problem:** The field can unintentionally be added to, so grow and become a memory leak.  
 **Solution:** Make the field immutable and final. In a constructor, defensively copy the modifiable argument, so also the caller is not able to modify the object referenced by the field anymore. 
 In case of an unmodifiable wrapped collection, make sure the inner collection is not directly reachable anymore after initialization.  
-Use e.g. for Lists: Java 9 List.of, Java 11 List.copyOf, Collections.unmodifiableList or Guava ImmutableList.
+Use e.g. for Lists: Java 9 List.of, Java 11 List.copyOf, Collections.unmodifiableList or Guava ImmutableList.   
 **Rule name:** AvoidMutableLists   
 **Example:**
 ```java
 class ConfBad {
-  private final List configItems;
-
-  public Conf(List listOfImmutableElems) {
-    configItems = new ArrayList(listOfImmutableElems); // bad, can be mutated while not intended to be mutated
-  }
+    private final List configItems;
+  
+    public Conf(List listOfImmutableElems) {
+        configItems = new ArrayList(listOfImmutableElems); // bad, can be mutated while not intended to be mutated
+    }
 }
 class ConfStillBad {
-  private List configItems = Collections.emptyList(); // immutable but re-assigned in constructor
-
-  public Conf(List listOfImmutableElems) {
-    configItems = new ArrayList(listOfImmutableElems); // bad, can be mutated while not intended to be mutated
-  }
+    private List configItems = Collections.emptyList(); // immutable but re-assigned in constructor
+  
+    public Conf(List listOfImmutableElems) {
+        configItems = new ArrayList(listOfImmutableElems); // bad, can be mutated while not intended to be mutated
+    }
 }
 class ConfGood {
-  private final List configItems;
-  
-  public Conf(List listOfImmutableElems) { 
-    configItems = Collections.unmodifiableList(new ArrayList(listOfImmutableElems));
-    // configItems = List.copyOf(listOfImmutableElems) // Java 11
-  }
+    private final List configItems;
+    
+    public Conf(List listOfImmutableElems) { 
+        configItems = Collections.unmodifiableList(new ArrayList(listOfImmutableElems));
+        // configItems = List.copyOf(listOfImmutableElems) // Java 11
+    }
 }
  
 class PaymentUtil {
-  private static final Set<String> BRANCH_NAMES;
-  static {
-    final Set<String> branches = new HashSet<>();
-    branches.add("Company Antwerp Branch");
-    branches.add("Company Frankfurt Branch");
-    branches.add("Company London Branch");
-    BRANCH_NAMES = Collections.unmodifiableSet(branches);
-    // BRANCH_NAMES = Set.of(branches) // Java 9
-  }    
+    private static final Set<String> BRANCH_NAMES;
+    static {
+        final Set<String> branches = new HashSet<>();
+        branches.add("Company Antwerp Branch");
+        branches.add("Company Frankfurt Branch");
+        branches.add("Company London Branch");
+        BRANCH_NAMES = Collections.unmodifiableSet(branches);
+        // BRANCH_NAMES = Set.of(branches) // Java 9
+    }    
 }
 ```
 
