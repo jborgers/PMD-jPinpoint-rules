@@ -2873,17 +2873,17 @@ Use e.g. for Lists: Java 9 List.of, Java 11 List.copyOf, Collections.unmodifiabl
 **Example:**
 ```java
 class ConfBad {
-    private final List configItems;
+    private final List configItems; // bad, violation points here
   
     public Conf(List listOfImmutableElems) {
-        configItems = new ArrayList(listOfImmutableElems); // bad, can be mutated while not intended to be mutated
+        configItems = new ArrayList(listOfImmutableElems); // can be mutated while not intended to be mutated
     }
 }
 class ConfStillBad {
-    private List configItems = Collections.emptyList(); // immutable but re-assigned in constructor
+    private List configItems = Collections.emptyList(); // bad, violation points here - immutable but re-assigned in constructor
   
     public Conf(List listOfImmutableElems) {
-        configItems = new ArrayList(listOfImmutableElems); // bad, can be mutated while not intended to be mutated
+        configItems = new ArrayList(listOfImmutableElems); // can be mutated while not intended to be mutated
     }
 }
 class ConfGood {
