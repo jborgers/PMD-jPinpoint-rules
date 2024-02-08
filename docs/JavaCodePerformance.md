@@ -2609,7 +2609,7 @@ public enum Fruit { // great, very simple
     APPLE,
     ORANGE,
     BANANA,
-    KIWI;
+    KIWI
 }
 ```
 With usage: `Fruit f = Fruit.valueOf("BANANA");`
@@ -2866,15 +2866,32 @@ Potential memory leaks
 
 **Observation: An object field is mutable while it should not change after initialization**, for a field like an ArrayList, HashMap, StringBuilder or a custom object.  
 **Problem:** The field can unintentionally be added to, so grow and become a memory leak.  
-**Solution:** Make the field immutable and final. In a constructor, defensively copy the modifiable argument, so also the caller is not able to modify the object referenced by the field anymore. In case of an unmodifiable wrapped collection, make sure the inner collection is not directly reachable anymore after initialization.  
+**Solution:** Make the field immutable and final. In a constructor, defensively copy the modifiable argument, so also the caller is not able to modify the object referenced by the field anymore. 
+In case of an unmodifiable wrapped collection, make sure the inner collection is not directly reachable anymore after initialization.  
+Use e.g. for Lists: Java 9 List.of, Java 11 List.copyOf, Collections.unmodifiableList or Guava ImmutableList.
 **Rule name:** AvoidMutableLists   
 **Example:**
 ```java
-class Conf {
-  private final List configurationItems;
+class ConfBad {
+  private final List configItems;
+
+  public Conf(List listOfImmutableElems) {
+    configItems = new ArrayList(listOfImmutableElems); // bad, can be mutated while not intended to be mutated
+  }
+}
+class ConfStillBad {
+  private List configItems = Collections.emptyList(); // immutable but re-assigned in constructor
+
+  public Conf(List listOfImmutableElems) {
+    configItems = new ArrayList(listOfImmutableElems); // bad, can be mutated while not intended to be mutated
+  }
+}
+class ConfGood {
+  private final List configItems;
   
   public Conf(List listOfImmutableElems) { 
-    configurationItems = Collections.unmodifiableList(new ArrayList(listOfImmutableElems));
+    configItems = Collections.unmodifiableList(new ArrayList(listOfImmutableElems));
+    // configItems = List.copyOf(listOfImmutableElems) // Java 11
   }
 }
  
@@ -2886,6 +2903,7 @@ class PaymentUtil {
         branches.add("Company Frankfurt Branch");
         branches.add("Company London Branch");
 		BRANCH_NAMES = Collections.unmodifiableSet(branches);
+        // BRANCH_NAMES = Set.of(branches) // Java 9
     }    
 }
 ```
