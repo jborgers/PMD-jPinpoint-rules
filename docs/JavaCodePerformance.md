@@ -2896,15 +2896,15 @@ class ConfGood {
 }
  
 class PaymentUtil {
-    private static final Set<String> BRANCH_NAMES;
-    static {
-		final Set<String> branches = new HashSet<>();
-        branches.add("Company Antwerp Branch");
-        branches.add("Company Frankfurt Branch");
-        branches.add("Company London Branch");
-		BRANCH_NAMES = Collections.unmodifiableSet(branches);
-        // BRANCH_NAMES = Set.of(branches) // Java 9
-    }    
+  private static final Set<String> BRANCH_NAMES;
+  static {
+    final Set<String> branches = new HashSet<>();
+    branches.add("Company Antwerp Branch");
+    branches.add("Company Frankfurt Branch");
+    branches.add("Company London Branch");
+    BRANCH_NAMES = Collections.unmodifiableSet(branches);
+    // BRANCH_NAMES = Set.of(branches) // Java 9
+  }    
 }
 ```
 
