@@ -428,7 +428,7 @@ ancestor::MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter/Va
     <rule name="AvoidReflectionInToStringAndHashCode" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" message="Reflection is used in toString or hashCode, which is expensive." typeResolution="true"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#uuor01">
         <description>Problem: Reflection is relatively expensive. &#13;
-            Solution: Avoid to use reflection. Use the non-reflective, explicit way, preferably using Guava.
+            Solution: Avoid to use reflection. Use the non-reflective, explicit way, like generation by IDE or Lombok.
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
@@ -460,7 +460,7 @@ ancestor::MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter/Va
     <rule name="AvoidSimpleDateFormat" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" message="SimpleDateFormat is used. Since it is thread-unsafe, it needs expensive recreation."  typeResolution="true"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#idtf01">
         <description>Problem: java.util.SimpleDateFormat is thread-unsafe. The usual solution is to create a new one when needed in a method. Creating SimpleDateFormat is relatively expensive. &#13;
-            Solution: Use a Joda-Time DateTimeFormat to create a specific DateTimeFormatter or Java 8 java.time.DateTimeFormatter. These classes are immutable, thus thread-safe and can be made static.
+            Solution: Use java.time.DateTimeFormatter. These classes are immutable, thus thread-safe and can be made static.
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
