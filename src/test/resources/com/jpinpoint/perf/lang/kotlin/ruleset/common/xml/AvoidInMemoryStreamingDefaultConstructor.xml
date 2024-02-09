@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>AvoidInMemoryStreamingDefaultConstructor - default constructor</description>
+        <expected-problems>2</expected-problems>
+        <expected-linenumbers>6,7</expected-linenumbers>
+        <code><![CDATA[
+import java.io.ByteArrayOutputStream
+import java.io.StringWriter
+
+class AvoidInMemoryStreamingDefaultConstructor {
+    fun bad() {
+        var baos = ByteArrayOutputStream() //bad
+        val sw = StringWriter() //bad
+    }
+    fun good() {
+        val baos = ByteArrayOutputStream(8192) // 8 kiB
+        val sw = StringWriter(2048)
+    }
+}
+]]></code>
+    </test-code>
+
+    <test-code>
+        <description>AvoidInMemoryStreamingDefaultConstructor - capacity not larger than default - TODO</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>6</expected-linenumbers>
+        <code><![CDATA[
+import java.io.ByteArrayOutputStream
+import java.io.StringWriter
+
+class AvoidInMemoryStreamingDefaultConstructor {
+    fun bad() {
+        baos = ByteArrayOutputStream(32) //bad - not larger than default
+    }
+    fun good() {
+        val baos = ByteArrayOutputStream(8192) // 8 kiB
+        val sw = StringWriter(2048)
+    }
+}
+]]></code>
+    </test-code>
+</test-data>
