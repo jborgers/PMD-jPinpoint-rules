@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ruleset name="jpinpoint-remoting-rules" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 https://pmd.sourceforge.io/ruleset_2_0_0.xsd" xmlns="http://pmd.sourceforge.net/ruleset/2.0.0">
+    <description>jPinpoint rule set for performance aware Kotlin coding, sponsored by Rabobank.</description>
+
+    <rule name="AvoidInMemoryStreamingDefaultConstructor"
+          since="7.0"
+          language="kotlin"
+          message="The default capacity or smaller is used for ByteArrayOutputStream or StringWriter, it usually needs expensive expansions."
+          class="net.sourceforge.pmd.lang.rule.XPathRule"
+          typeResolution="true"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#isio01">
+        <description>
+            The default constructor of ByteArrayOutputStream creates a 32 bytes initial capacity and for StringWriter 16 chars. Problem: Such a small buffer as capacity usually needs several expensive expansions.&#13;
+            Solution: Presize the ByteArrayOutputStream or StringWriter with an initial capacity such that an expansion is not needed in most cases, typically much larger than 32, for instance 4096.
+            (jpinpoint-rules)
+        </description>
+        <priority>2</priority>
+        <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <property name="version" value="3.1"/>
+            <property name="xpath">
+                <value><![CDATA[
+//ImportHeader[.//T-Identifier[@Text='java'] and .//T-Identifier[@Text='io']]/ancestor::KotlinFile
+//Expression//T-Identifier[@Text='ByteArrayOutputStream' or @Text='StringWriter']/../../../PostfixUnarySuffix//ValueArguments[not(ValueArgument)]/../../..
+]]>
+                </value>
+            </property>
+        </properties>
+        <example><![CDATA[
+import java.io.ByteArrayOutputStream
+import java.io.StringWriter
+
+class AvoidInMemoryStreamingDefaultConstructor {
+    fun bad() {
+        var baos = ByteArrayOutputStream() //bad
+        val sw = StringWriter() //bad
+        baos = ByteArrayOutputStream(32) //bad - not larger than default // TODO
+    }
+    fun good() {
+        val baos = ByteArrayOutputStream(8192) // 8 kiB
+        val sw = StringWriter(2048)
+    }
+}
+]]>
+        </example>
+    </rule>
+
+
+</ruleset>
