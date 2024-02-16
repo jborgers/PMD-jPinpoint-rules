@@ -212,9 +212,10 @@
         </profile>
         <profile>
             <id>kotlin-pmd7</id>
-            <!--properties>
-                <pmd.kotlin.version>7.0.0-SNAPSHOT</pmd.kotlin.version>
-            </properties!-->
+            <properties>
+                <pmd.kotlin.version>7.0.0-rc4</pmd.kotlin.version>
+                <pmd.version>7.0.0-rc4</pmd.version>
+            </properties>
             <dependencies>
                 <dependency>
                     <groupId>net.sourceforge.pmd</groupId>
