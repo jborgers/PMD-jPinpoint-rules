@@ -10,10 +10,14 @@
         <code><![CDATA[
 public class Foo {
 
-	private StringBuffer buffer = new StringBuffer(); // Avoid!!!
+	private StringBuffer buffer = new StringBuffer(); // bad
 
-    public void testUnConditionalStringOperations() {
-        StringBuffer sb = new StringBuffer(); // Avoid!!!
+    public void bad() {
+        StringBuffer sb = new StringBuffer(); // bad
+        // var sb2 = new StringBuffer(); // bad - TODO
+    }
+    public void good() {
+        StringBuilder sb = new StringBuilder(); // good
     }
 }
      ]]></code>
