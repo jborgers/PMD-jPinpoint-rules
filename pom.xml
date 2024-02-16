@@ -15,8 +15,8 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <spring.version>6.0.9</spring.version>
-        <pmd.version>6.55.0</pmd.version>
-        <pmd.kotlin.version>7.0.0-SNAPSHOT</pmd.kotlin.version>
+        <!--pmd.version>6.55.0</pmd.version>
+        <pmd.kotlin.version>7.0.0-rc4</pmd.kotlin.version-->
     </properties>
 
     <build>
@@ -193,9 +193,9 @@
             <activation>
                 <activeByDefault>true</activeByDefault>
             </activation>
-            <!--properties>
-                <pmd.version>6.51.0</pmd.version>
-            </properties-->
+            <properties>
+                <pmd.version>6.55.0</pmd.version>
+            </properties>
             <build>
                 <plugins>
                     <plugin>
@@ -212,9 +212,10 @@
         </profile>
         <profile>
             <id>kotlin-pmd7</id>
-            <!--properties>
-                <pmd.kotlin.version>7.0.0-SNAPSHOT</pmd.kotlin.version>
-            </properties!-->
+            <properties>
+                <pmd.version>7.0.0-rc4</pmd.version>
+                <pmd.kotlin.version>7.0.0-rc4</pmd.kotlin.version>
+            </properties>
             <dependencies>
                 <dependency>
                     <groupId>net.sourceforge.pmd</groupId>

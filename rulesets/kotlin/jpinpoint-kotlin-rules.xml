@@ -30,7 +30,10 @@
             <property name="xpath">
                 <value><![CDATA[
 //ImportHeader[.//T-Identifier[@Text='java'] and .//T-Identifier[@Text='io']]/ancestor::KotlinFile
-//Expression//T-Identifier[@Text='ByteArrayOutputStream' or @Text='StringWriter']/../../../PostfixUnarySuffix//ValueArguments[not(ValueArgument)]/../../..
+//Expression//T-Identifier[(@Text='ByteArrayOutputStream' and ../../../
+PostfixUnarySuffix//ValueArguments[not(ValueArgument) or ValueArgument//T-IntegerLiteral[number(@Text)<=32]])
+or (@Text='StringWriter' and ../../../
+PostfixUnarySuffix//ValueArguments[not(ValueArgument) or ValueArgument//T-IntegerLiteral[number(@Text)<=16]])]
 ]]>
                 </value>
             </property>
@@ -43,7 +46,7 @@ class AvoidInMemoryStreamingDefaultConstructor {
     fun bad() {
         var baos = ByteArrayOutputStream() //bad
         val sw = StringWriter() //bad
-        baos = ByteArrayOutputStream(32) //bad - not larger than default // TODO
+        baos = ByteArrayOutputStream(32) //bad - not larger than default
     }
     fun good() {
         val baos = ByteArrayOutputStream(8192) // 8 kiB
