@@ -21,7 +21,10 @@
             <property name="xpath">
                 <value><![CDATA[
 //ImportHeader[.//T-Identifier[@Text='java'] and .//T-Identifier[@Text='io']]/ancestor::KotlinFile
-//Expression//T-Identifier[@Text='ByteArrayOutputStream' or @Text='StringWriter']/../../../PostfixUnarySuffix//ValueArguments[not(ValueArgument)]/../../..
+//Expression//T-Identifier[(@Text='ByteArrayOutputStream' and ../../../
+PostfixUnarySuffix//ValueArguments[not(ValueArgument) or ValueArgument//T-IntegerLiteral[number(@Text)<=32]])
+or (@Text='StringWriter' and ../../../
+PostfixUnarySuffix//ValueArguments[not(ValueArgument) or ValueArgument//T-IntegerLiteral[number(@Text)<=16]])]
 ]]>
                 </value>
             </property>
