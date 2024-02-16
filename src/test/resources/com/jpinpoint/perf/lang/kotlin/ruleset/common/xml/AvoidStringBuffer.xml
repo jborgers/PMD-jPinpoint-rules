@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>AvoidStringBuffer</description>
+        <expected-problems>2</expected-problems> <!-- should be 2, bug in pmd-test? -->
+        <expected-linenumbers>2,4</expected-linenumbers>
+        <code><![CDATA[
+class AvoidStringBuffer {
+    var fieldSb: StringBuffer? = null // bad
+    fun bad() {
+        val sb = StringBuffer() // bad
+    }
+    fun good() {
+        val sb = StringBuilder()
+    }
+}
+]]></code>
+    </test-code>
+
+</test-data>
