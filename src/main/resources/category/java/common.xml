@@ -88,8 +88,9 @@ public interface Foo {
           message="Avoid using DecimalFormat or ChoiceFormat as field since it is thread-unsafe."
           typeResolution="true"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#idtf01">
-        <description>Problem: java.text.DecimalFormat and java.text.ChoiceFormat are thread-unsafe. The usual solution
-            is to create a new local one when needed in a method.
+        <description>Problem: java.text.DecimalFormat and java.text.ChoiceFormat are thread-unsafe.&#13;
+            Solution: usual solution is to create a new local one when needed in a method.
+            (jpinpoint-rules)
         </description>
         <priority>1</priority>
         <properties>

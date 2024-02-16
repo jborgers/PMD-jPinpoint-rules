@@ -45,5 +45,56 @@ class AvoidInMemoryStreamingDefaultConstructor {
         </example>
     </rule>
 
+    <rule name="AvoidDecimalAndChoiceFormatAsField"
+          since="7.0"
+          language="kotlin"
+          message="Avoid using NumberFormat, DecimalFormat or ChoiceFormat as field since it is thread-unsafe."
+          class="net.sourceforge.pmd.lang.rule.XPathRule"
+          typeResolution="true"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#isio01">
+        <description>
+            Problem: java.text.DecimalFormat and java.text.ChoiceFormat are thread-unsafe.
+            Solution: usual solution is to create a new local one when needed in a method.
+            (jpinpoint-rules)
+        </description>
+        <priority>1</priority>
+        <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <property name="version" value="3.1"/>
+            <property name="xpath">
+                <value><![CDATA[
+(: check if java.text imports exists as filter for same named classes in other packages :)
+//ImportHeader[.//T-Identifier[@Text='java'] and .//T-Identifier[@Text='text']]/ancestor::KotlinFile
+(: PrimaryExpression finds the constructors instead of type declarations :)
+(: filter matches in functions :)
+//ClassDeclaration//PrimaryExpression//SimpleIdentifier//T-Identifier[
+ (@Text="DecimalFormat" or @Text="ChoiceFormat")
+ and not(ancestor::FunctionDeclaration)
+]
+]]>
+                </value>
+            </property>
+        </properties>
+        <example><![CDATA[
+class Foo {
+
+    companion object {
+        val NUMBER_FORMAT: DecimalFormat = DecimalFormat("###.###") // bad
+    }
+
+    private val numFormat: NumberFormat = DecimalFormat("###.###") //bad
+
+    private val limits = doubleArrayOf(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0)
+    private val dayOfWeekNames = arrayOf("Sun", "Mon", "Tue", "Wed", "Thur", "Fri", "Sat")
+    private val form = ChoiceFormat(limits, dayOfWeekNames) // bad
+
+    fun shouldNotMatchInsideMethod() {
+        val format: NumberFormat = DecimalFormat("##.##")
+        val choiceFormat = ChoiceFormat(limits, dayOfWeekNames)
+    }
+}
+]]>
+        </example>
+    </rule>
 
 </ruleset>
