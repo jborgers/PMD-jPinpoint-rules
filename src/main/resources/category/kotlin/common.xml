@@ -20,7 +20,7 @@
             <property name="version" value="3.1"/>
             <property name="xpath">
                 <value><![CDATA[
-//ImportHeader[.//T-Identifier[@Text='java'] and .//T-Identifier[@Text='io']]/ancestor::KotlinFile
+//ImportHeader[.//T-Identifier[@Text='java'] and .//T-Identifier[@Text='io']][1]/ancestor::KotlinFile
 //Expression//T-Identifier[@Text='ByteArrayOutputStream' or @Text='StringWriter']/../../../PostfixUnarySuffix//ValueArguments[not(ValueArgument)]/../../..
 ]]>
                 </value>
@@ -63,8 +63,8 @@ class AvoidInMemoryStreamingDefaultConstructor {
             <property name="version" value="3.1"/>
             <property name="xpath">
                 <value><![CDATA[
-(: check if java.text imports exists as filter for same named classes in other packages :)
-//ImportHeader[.//T-Identifier[@Text='java'] and .//T-Identifier[@Text='text']]/ancestor::KotlinFile
+(: check if at least one java.text imports exists as filter for same named classes in other packages :)
+//ImportHeader[.//T-Identifier[@Text='java'] and .//T-Identifier[@Text='text']][1]/ancestor::KotlinFile
 (: PrimaryExpression finds the constructors instead of type declarations :)
 (: filter matches in functions :)
 //ClassDeclaration//PrimaryExpression//SimpleIdentifier//T-Identifier[
