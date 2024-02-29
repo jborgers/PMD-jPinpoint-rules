@@ -840,25 +840,36 @@ This can be achieved by [subscribeOn](https://projectreactor.io/docs/core/releas
 **See:** 
 1. [Project Reactor Schedulers](https://projectreactor.io/docs/core/release/reference/#schedulers) 
 1. [ParallelFlux for CPU work](https://projectreactor.io/docs/core/release/reference/#advanced-parallelizing-parralelflux) 
-1. [How to wrap a blocking call](https://projectreactor.io/docs/core/release/reference/#advanced-parallelizing-parralelflux)    
+1. [How to wrap a blocking call](https://projectreactor.io/docs/core/release/reference/#advanced-parallelizing-parralelflux)
+2. [ParallelFlux vs flatMap() for a Blocking I/O task](https://stackoverflow.com/questions/43269275/parallelflux-vs-flatmap-for-a-blocking-i-o-task/43273991#43273991)
+   
 ```java
 import reactor.core.publisher.*;
 
 class FooBad {
     public Flux<Account> getResponseAccounts(List<AccountKey> accountKeys, List<FieldName> requestedFields) {
         return Flux.fromIterable(accountKeys)
-                .parallel(schedulerProperties.getParallelism()) //bad
+                .parallel(schedulerProps.getParallelism()) //bad
                 .runOn(scheduler)
                 .flatMap(accountKey -> constructAccountDetails(accountKey, requestedFields))
                 .sequential();
     }
 }
 
-class FooGood {
+class FooGood_NonBlocking {
     public Flux<Account> getResponseAccounts(List<AccountKey> accountKeys, List<FieldName> requestedFields) {
         return Flux.fromIterable(accountKeys)
                 .flatMap(accountKey -> constructAccountDetails(accountKey, requestedFields)); 
-                // assumed a non-blocking/async call, with blocking you need e.g. subscribeOn(Schedulers.boundedElastic())
+                // for a non-blocking/async call, fully reactive
+    }
+}
+
+class FooGood_Blocking {
+    public Flux<Account> getResponseAccounts(List<AccountKey> accountKeys, List<FieldName> requestedFields) {
+        return Flux.fromIterable(accountKeys)
+                .flatMap(accountKey -> Mono.fromCallable(() -> {constructAccountDetails(accountKey, requestedFields); return accountKey;})
+			.subscribeOn(Schedulers.boundedElastic()), schedulerProps.getParallelism());
+		// for a blocking (I/O) call you still need a thread pool                
     }
 }
 ```
