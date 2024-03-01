@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>violation: Avoid the use of SimpleDateFormat</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>6</expected-linenumbers>
+        <code><![CDATA[
+import java.text.SimpleDateFormat
+import java.util.*
+
+class Foo {
+    private fun toKey(rekenDatum: Date): String {
+        val formatter = SimpleDateFormat("yyyy-MM-dd") //bad
+        return formatter.format(rekenDatum)
+    }
+}
+     ]]></code>
+    </test-code>
+    <test-code>
+        <description>no violation: SimpleDateFormat is allowed in Jackon's ObjectMapper</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.dataformat.xml.XmlMapper
+import java.text.SimpleDateFormat
+
+object Foo {
+    private val OBJECT_MAPPER = createObjectMapper()
+    private val XML_MAPPER: XmlMapper
+    private val unknown: Unknown = createUnknownObject()
+
+    init {
+        XML_MAPPER = XmlMapper()
+        val df = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss") // good, used in XmlMapper
+        XML_MAPPER.setDateFormat(df)
+    }
+
+    private fun createObjectMapper(): ObjectMapper {
+        val mapper = ObjectMapper()
+        mapper.setDateFormat(SimpleDateFormat("yyyy-MM-dd")) // good, used in ObjectMapper
+        return mapper
+    }
+
+}
+        ]]></code>
+    </test-code>
+    <test-code>
+        <description>violation: SimpleDateFormat is not allowed in non XmlMapper or ObjectMapper</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>8</expected-linenumbers>
+        <code><![CDATA[
+import java.text.SimpleDateFormat
+
+object Foo {
+    private val unknown: Unknown = createUnknownObject()
+
+    private fun createUnknownObject(): Unknown {
+        val unknown: Unknown = Unknown()
+        unknown.setDateFormat(SimpleDateFormat("yyyy-MM-dd")) // bad, used in unknown object
+        return unknown
+    }
+}
+        ]]></code>
+    </test-code>
+</test-data>
