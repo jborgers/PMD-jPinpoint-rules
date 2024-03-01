@@ -829,15 +829,15 @@ See for the example good2: [custom-thread-pool-in-parallel-stream](https://stack
 
 #### IA12
 **Observation: Project Reactor Flux.parallel().runOn() is used.**  
-**Problem:** The data is divided on a number of 'rails' matching the number of CPU cores.
-This is only useful in case much CPU processing is performed: if the sequential form takes more than 0,1 ms of CPU time.
+**Problem:** The data is divided on a number of 'rails' matching the number of CPU cores (by default).
+This is only the proper solution in case much CPU processing is performed: if the sequential form of the CPU work takes more than 0,1 ms of CPU time.
 With remote calls this is usually not the case. In addition, it introduces more complexity with risk of failures.   
-**Solution:** Remove parallel().runOn. For pure CPU processing: use ordinary sequential streaming unless the work takes more than about 0,1 ms in sequential form and proves to be faster with parallelization.
+**Solution:** Remove parallel().runOn. For pure CPU processing: only use parallel().runOn() when the work takes more than about 0,1 ms in sequential form and proves to be faster with parallelization.
 So only for large collections and much processing.   
 **Rule name:** AvoidParallelFlux   
 **Note:** If the call you do is a blocking (remote) call, you are not fully reactive. Then you still need a thread pool for threads waiting for the response. 
-This can be achieved by [subscribeOn](https://projectreactor.io/docs/core/release/reference/#_the_subscribeon_method) or publishOn.   
-**See:** 
+This can be achieved by wrapping the blocking call, using flatMap and [subscribeOn](https://projectreactor.io/docs/core/release/reference/#_the_subscribeon_method) or publishOn.   
+**See:**   
 1. [Project Reactor Schedulers](https://projectreactor.io/docs/core/release/reference/#schedulers) 
 1. [ParallelFlux for CPU work](https://projectreactor.io/docs/core/release/reference/#advanced-parallelizing-parralelflux) 
 1. [How to wrap a blocking call](https://projectreactor.io/docs/core/release/reference/#advanced-parallelizing-parralelflux)
