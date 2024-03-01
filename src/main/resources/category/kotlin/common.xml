@@ -48,38 +48,4 @@ class AvoidInMemoryStreamingDefaultConstructor {
         </example>
     </rule>
 
-    <rule name="AvoidStringBuffer" class="net.sourceforge.pmd.lang.rule.XPathRule"
-          since="7.0"
-          language="kotlin"
-          message="StringBuffer is used. It introduces locking overhead, use StringBuilder."
-          typeResolution="true"
-          externalInfoUrl="${doc_root}/JavaCodePerformance.md#isu01" >
-        <description>Problem: StringBuffer introduces locking overhead because it is thread safe. Its thread-safety is rarely needed.&#13;
-            Solution: Replace StringBuffer by StringBuilder.  (jpinpoint-rules)</description>
-        <priority>3</priority>
-        <properties>
-            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="version" value="3.1"/>
-            <property name="xpath">
-                <value><![CDATA[
-//VariableDeclaration/Type//T-Identifier[@Text='StringBuffer'],
-//Declaration//PrimaryExpression//T-Identifier[@Text='StringBuffer']
-]]>
-                </value>
-            </property>
-        </properties>
-        <example>
-            <![CDATA[
-class AvoidStringBuffer {
-    var fieldSb: StringBuffer? = null // bad
-    fun bad() {
-        val sb = StringBuffer() // bad
-    }
-    fun good() {
-        val sb = StringBuilder()
-    }
-]]>
-        </example>
-    </rule>
-
 </ruleset>
