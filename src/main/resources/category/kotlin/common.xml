@@ -20,7 +20,7 @@
             <property name="version" value="3.1"/>
             <property name="xpath">
                 <value><![CDATA[
-//ImportHeader[.//T-Identifier[@Text='java'] and .//T-Identifier[@Text='io']]/ancestor::KotlinFile
+//ImportHeader[.//T-Identifier[@Text='java'] and .//T-Identifier[@Text='io']][1]/ancestor::KotlinFile
 //Expression//T-Identifier[(@Text='ByteArrayOutputStream' and ../../../
 PostfixUnarySuffix//ValueArguments[not(ValueArgument) or ValueArgument//T-IntegerLiteral[number(@Text)<=32]])
 or (@Text='StringWriter' and ../../../
