@@ -133,4 +133,52 @@ class Foo {
         </example>
     </rule>
 
+    <rule name="AvoidRecompilingXPathExpression" class="net.sourceforge.pmd.lang.rule.XPathRule"
+          language="kotlin"
+          message="XPathExpression is created and compiled every time. Beware it is thread-unsafe."
+          typeResolution="true"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ux02">
+        <description>XPathExpression is created and compiled on every method call, compiled possibly implicitly by XPath::evaluate.
+            Problem: Creation of XPath and compilation of XPathExpression takes time. It may slow down your application. &#13;
+            Solution: 1. Avoid XPath usage. 2. Compile the xpath expression as String into a XPathExpression. However, since XPath and XPathExpression classes are thread-unsafe, they are not easily cached. Caching it in a ThreadLocal may be a solution (sure? - TODO) .
+            (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+//ImportHeader[.//T-Identifier[@Text='javax'] and .//T-Identifier[@Text='xml'] and .//T-Identifier[@Text='xpath']]/ancestor::KotlinFile
+//FunctionBody//T-Identifier[@Text='newXPath']
+/ancestor::FunctionBody//T-Identifier[@Text='compile'
+or @Text='evaluate' and ancestor::PostfixUnarySuffix/..//ValueArguments[count(./ValueArgument) = 3]]
+(: note on limitation, the 2-argument version is not found, difficult to do the typeIs checking like in Java :)
+]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+import org.w3c.dom.Document
+import org.w3c.dom.NodeList
+import javax.xml.xpath.*
+
+class AvoidRecompilingXPathExpressionKotlin {
+    fun bad1(doc: Document?): NodeList {
+        val xpath: XPath = XPathFactory.newInstance().newXPath()
+        val expr: XPathExpression = xpath.compile("//book[author='Isaac Asimov']/title/text()") // bad
+        return expr.evaluate(doc, XPathConstants.NODESET) as NodeList
+    }
+
+    @Throws(XPathExpressionException::class)
+    fun bad2(doc: Document?): NodeList {
+        val xpath: XPath = XPathFactory.newInstance().newXPath()
+        val xPathQuery = "//book[author='Isaac Asimov']/title/text()"
+        return xpath.evaluate(xPathQuery, doc, XPathConstants.NODESET) as NodeList // bad
+    }
+}
+// TODO Good example
+            ]]>
+        </example>
+    </rule>
+
 </ruleset>
