@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>violation: Avoid DecimalFormat and ChoiceFormat as field</description>
+        <expected-problems>3</expected-problems>
+        <expected-linenumbers>8,11,15</expected-linenumbers>
+        <code><![CDATA[
+import java.text.ChoiceFormat
+import java.text.DecimalFormat
+import java.text.NumberFormat
+
+class Foo {
+
+    companion object {
+        val NUMBER_FORMAT: DecimalFormat = DecimalFormat("###.###") // bad
+    }
+
+    private val numFormat: NumberFormat = DecimalFormat("###.###") //bad
+
+    private val limits = doubleArrayOf(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0)
+    private val dayOfWeekNames = arrayOf("Sun", "Mon", "Tue", "Wed", "Thur", "Fri", "Sat")
+    private val form = ChoiceFormat(limits, dayOfWeekNames) // bad
+
+    fun shouldNotMatchInsideMethod() {
+        val format: NumberFormat = DecimalFormat("##.##")
+        val choiceFormat = ChoiceFormat(limits, dayOfWeekNames)
+    }
+}
+     ]]></code>
+    </test-code>
+</test-data>

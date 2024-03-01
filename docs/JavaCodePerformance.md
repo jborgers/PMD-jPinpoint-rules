@@ -829,36 +829,47 @@ See for the example good2: [custom-thread-pool-in-parallel-stream](https://stack
 
 #### IA12
 **Observation: Project Reactor Flux.parallel().runOn() is used.**  
-**Problem:** The data is divided on a number of 'rails' matching the number of CPU cores.
-This is only useful in case much CPU processing is performed: if the sequential form takes more than 0,1 ms of CPU time.
+**Problem:** The data is divided on a number of 'rails' matching the number of CPU cores (by default).
+This is only the proper solution in case much CPU processing is performed: if the sequential form of the CPU work takes more than 0,1 ms of CPU time.
 With remote calls this is usually not the case. In addition, it introduces more complexity with risk of failures.   
-**Solution:** Remove parallel().runOn. For pure CPU processing: use ordinary sequential streaming unless the work takes more than about 0,1 ms in sequential form and proves to be faster with parallelization.
+**Solution:** Remove parallel().runOn. For pure CPU processing: only use parallel().runOn() when the work takes more than about 0,1 ms in sequential form and proves to be faster with parallelization.
 So only for large collections and much processing.   
 **Rule name:** AvoidParallelFlux   
 **Note:** If the call you do is a blocking (remote) call, you are not fully reactive. Then you still need a thread pool for threads waiting for the response. 
-This can be achieved by [subscribeOn](https://projectreactor.io/docs/core/release/reference/#_the_subscribeon_method) or publishOn.   
-**See:** 
+This can be achieved by wrapping the blocking call, using flatMap and [subscribeOn](https://projectreactor.io/docs/core/release/reference/#_the_subscribeon_method) or publishOn.   
+**See:**   
 1. [Project Reactor Schedulers](https://projectreactor.io/docs/core/release/reference/#schedulers) 
 1. [ParallelFlux for CPU work](https://projectreactor.io/docs/core/release/reference/#advanced-parallelizing-parralelflux) 
-1. [How to wrap a blocking call](https://projectreactor.io/docs/core/release/reference/#advanced-parallelizing-parralelflux)    
+1. [How to wrap a blocking call](https://projectreactor.io/docs/core/release/reference/#advanced-parallelizing-parralelflux)
+2. [ParallelFlux vs flatMap() for a Blocking I/O task](https://stackoverflow.com/questions/43269275/parallelflux-vs-flatmap-for-a-blocking-i-o-task/43273991#43273991)
+   
 ```java
 import reactor.core.publisher.*;
 
 class FooBad {
     public Flux<Account> getResponseAccounts(List<AccountKey> accountKeys, List<FieldName> requestedFields) {
         return Flux.fromIterable(accountKeys)
-                .parallel(schedulerProperties.getParallelism()) //bad
+                .parallel(schedulerProps.getParallelism()) //bad
                 .runOn(scheduler)
                 .flatMap(accountKey -> constructAccountDetails(accountKey, requestedFields))
                 .sequential();
     }
 }
 
-class FooGood {
+class FooGood_NonBlocking {
     public Flux<Account> getResponseAccounts(List<AccountKey> accountKeys, List<FieldName> requestedFields) {
         return Flux.fromIterable(accountKeys)
                 .flatMap(accountKey -> constructAccountDetails(accountKey, requestedFields)); 
-                // assumed a non-blocking/async call, with blocking you need e.g. subscribeOn(Schedulers.boundedElastic())
+                // for a non-blocking/async call, fully reactive
+    }
+}
+
+class FooGood_Blocking {
+    public Flux<Account> getResponseAccounts(List<AccountKey> accountKeys, List<FieldName> requestedFields) {
+        return Flux.fromIterable(accountKeys)
+                .flatMap(accountKey -> Mono.fromCallable(() -> {constructAccountDetails(accountKey, requestedFields); return accountKey;})
+			.subscribeOn(Schedulers.boundedElastic()), schedulerProps.getParallelism());
+		// for a blocking (I/O) call you still need a thread pool                
     }
 }
 ```
