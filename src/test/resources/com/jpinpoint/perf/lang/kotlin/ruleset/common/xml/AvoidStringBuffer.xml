@@ -5,7 +5,7 @@
         xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
     <test-code>
         <description>AvoidStringBuffer</description>
-        <expected-problems>2</expected-problems> <!-- should be 2, bug in pmd-test? -->
+        <expected-problems>2</expected-problems>
         <expected-linenumbers>2,4</expected-linenumbers>
         <code><![CDATA[
 class AvoidStringBuffer {
