@@ -25,20 +25,22 @@ class AvoidInMemoryStreamingDefaultConstructor {
     </test-code>
 
     <test-code>
-        <description>AvoidInMemoryStreamingDefaultConstructor - capacity not larger than default - TODO</description>
-        <expected-problems>1</expected-problems>
-        <expected-linenumbers>6</expected-linenumbers>
+        <description>AvoidInMemoryStreamingDefaultConstructor - capacity not larger than default </description>
+        <expected-problems>2</expected-problems>
+        <expected-linenumbers>6,7</expected-linenumbers>
         <code><![CDATA[
 import java.io.ByteArrayOutputStream
 import java.io.StringWriter
 
 class AvoidInMemoryStreamingDefaultConstructor {
     fun bad() {
-        baos = ByteArrayOutputStream(32) //bad - not larger than default
+        val baos = ByteArrayOutputStream(32) //bad - not larger than default
+        val sw = StringWriter(16) //bad - not larger than default
     }
     fun good() {
         val baos = ByteArrayOutputStream(8192) // 8 kiB
         val sw = StringWriter(2048)
+        val sw2 = StringWriter(17)
     }
 }
 ]]></code>

@@ -300,9 +300,10 @@ VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/Literal[string-le
         </properties>
     </rule>
 
-    <rule name="AvoidInMemoryStreamingDefaultConstructor" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" message="Default capacity or smaller is used for ByteArrayOutputStream or StringWriter, it usually needs expensive expansions." typeResolution="true"
+    <rule name="AvoidInMemoryStreamingDefaultConstructor" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java"
+          message="The default capacity or smaller is used for ByteArrayOutputStream or StringWriter, it usually needs expensive expansions." typeResolution="true"
           externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#isio01">
-        <description>The default constructor of ByteArrayOutputStream creates a 32 bytes initial capacity and for StringWriter 16 chars. Problem: Such a small buffer as capacity usually needs several expensive expansions.&#13;
+        <description>Problem: The default constructor of ByteArrayOutputStream creates a 32 bytes initial capacity and for StringWriter 16 chars. Problem: Such a small buffer as capacity usually needs several expensive expansions.&#13;
             Solution: Presize the ByteArrayOutputStream or StringWriter with an initial capacity such that an expansion is not needed in most cases, typically much larger than 32, for instance 4096.
             (jpinpoint-rules)</description>
         <priority>2</priority>
@@ -721,12 +722,12 @@ ancestor::MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter/Va
 
     <rule name="AvoidRecreatingSecurityProviders"
           language="java"
-          message="Avoid re-creating security providers."
+          message="Avoid re-creating security providers, this is expensive."
           class="net.sourceforge.pmd.lang.rule.XPathRule"
           typeResolution="true"
           externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#iuosf01">
         <description>Problem: Creating a security provider is expensive because of loading of algorithms and other classes. Additionally, it uses synchronized which leads to lock contention when used with multiple threads.
-            Solution: This only needs to happen once in the JVM lifetime, because once loaded, the provider is available from the Security class. Create the security provider only once: only in case it is nog available from the Security class, yet.
+            Solution: This only needs to happen once in the JVM lifetime, because once loaded, the provider is typically available from the Security class. Create the security provider only once: only in case it is nog available from the Security class, yet.
         (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
