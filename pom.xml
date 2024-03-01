@@ -213,8 +213,8 @@
         <profile>
             <id>kotlin-pmd7</id>
             <properties>
-                <pmd.version>7.0.0-rc4</pmd.version>
                 <pmd.kotlin.version>7.0.0-rc4</pmd.kotlin.version>
+                <pmd.version>7.0.0-rc4</pmd.version>
             </properties>
             <dependencies>
                 <dependency>
