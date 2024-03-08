@@ -153,7 +153,7 @@ class Foo {
 //ImportHeader[.//T-Identifier[@Text='java'] and .//T-Identifier[@Text='text']][1]/../..
 
 (: if used in setDateFormat function, allow if jackson ObjectMapper or XmlMapper is used :)
-//SimpleIdentifier//T-Identifier[(@Text="SimpleDateFormat") and ancestor::ClassMemberDeclaration
+//ClassMemberDeclaration//SimpleIdentifier//T-Identifier[(@Text="SimpleDateFormat")
   and not (ancestor::ClassMemberDeclaration//T-Identifier[@Text="setDateFormat"]
               and //ImportHeader[.//T-Identifier[@Text='fasterxml'] and .//T-Identifier[@Text='jackson']]
           )
