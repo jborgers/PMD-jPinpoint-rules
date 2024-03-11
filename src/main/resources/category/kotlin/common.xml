@@ -140,7 +140,7 @@ class Foo {
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#ux02">
         <description>XPathExpression is created and compiled on every method call, compiled possibly implicitly by XPath::evaluate.
             Problem: Creation of XPath and compilation of XPathExpression takes time. It may slow down your application. &#13;
-            Solution: 1. Avoid XPath usage. 2. Compile the xpath expression as String into a XPathExpression. However, since XPath and XPathExpression classes are thread-unsafe, they are not easily cached. Caching it in a ThreadLocal may be a solution (sure? - TODO) .
+            Solution: 1. Avoid XPath usage. 2. Compile the xpath expression as String into a XPathExpression. However, since XPath and XPathExpression classes are thread-unsafe, they are not easily cached. Caching it in a ThreadLocal may be a solution.
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
@@ -176,7 +176,26 @@ class AvoidRecompilingXPathExpressionKotlin {
         return xpath.evaluate(xPathQuery, doc, XPathConstants.NODESET) as NodeList // bad
     }
 }
-// TODO Good example
+
+object GoodAvoidRecompilingXPathExpressionKt {
+    private val tlFac = ThreadLocal.withInitial { XPathFactory.newInstance() }
+    private val tlExpr: ThreadLocal<XPathExpression>
+
+    init {
+        val xpath = tlFac.get().newXPath()
+        val expr: XPathExpression = try {
+            xpath.compile("//book[author='Isaac Asimov']/title/text()")
+        } catch (e: XPathExpressionException) {
+            throw RuntimeException(e)
+        }
+        tlExpr = ThreadLocal.withInitial { expr } // good
+    }
+
+    @Throws(XPathExpressionException::class)
+    fun good(doc: Document?): NodeList {
+        return tlExpr!!.get().evaluate(doc, XPathConstants.NODESET) as NodeList // good
+    }
+}
             ]]>
         </example>
     </rule>

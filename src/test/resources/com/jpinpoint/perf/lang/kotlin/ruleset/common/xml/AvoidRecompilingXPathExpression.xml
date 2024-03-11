@@ -26,7 +26,26 @@ class AvoidRecompilingXPathExpressionKotlin {
         return xpath.evaluate(xPathQuery, doc, XPathConstants.NODESET) as NodeList // bad
     }
 }
-// TODO Good example
+
+object GoodAvoidRecompilingXPathExpressionKt {
+    private val tlFac = ThreadLocal.withInitial { XPathFactory.newInstance() }
+    private val tlExpr: ThreadLocal<XPathExpression>
+
+    init {
+        val xpath = tlFac.get().newXPath()
+        val expr: XPathExpression = try {
+            xpath.compile("//book[author='Isaac Asimov']/title/text()")
+        } catch (e: XPathExpressionException) {
+            throw RuntimeException(e)
+        }
+        tlExpr = ThreadLocal.withInitial { expr } // good
+    }
+
+    @Throws(XPathExpressionException::class)
+    fun good(doc: Document?): NodeList {
+        return tlExpr!!.get().evaluate(doc, XPathConstants.NODESET) as NodeList // good
+    }
+}
 ]]></code>
     </test-code>
 
