@@ -151,7 +151,7 @@ class Foo {
 //ImportHeader[.//T-Identifier[@Text='javax'] and .//T-Identifier[@Text='xml'] and .//T-Identifier[@Text='xpath']]/ancestor::KotlinFile
 //FunctionBody//T-Identifier[@Text='newXPath']
 /ancestor::FunctionBody//T-Identifier[@Text='compile'
-or @Text='evaluate' and ancestor::PostfixUnarySuffix/..//ValueArguments[count(./ValueArgument) = 3]]
+or (@Text='evaluate' and ancestor::PostfixUnarySuffix/..//ValueArguments[count(./ValueArgument) = 3])]
 (: note on limitation, the 2-argument version is not found, difficult to do the typeIs checking like in Java :)
 ]]></value>
             </property>
