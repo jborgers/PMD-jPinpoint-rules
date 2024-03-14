@@ -17,7 +17,6 @@
         <priority>2</priority>
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="version" value="3.1"/>
             <property name="xpath">
                 <value><![CDATA[
 //ImportHeader[.//T-Identifier[@Text='java'] and .//T-Identifier[@Text='io']][1]/ancestor::KotlinFile
@@ -59,7 +58,6 @@ class AvoidInMemoryStreamingDefaultConstructor {
         <priority>3</priority>
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="version" value="3.1"/>
             <property name="xpath">
                 <value><![CDATA[
 //VariableDeclaration/Type//T-Identifier[@Text='StringBuffer'],
@@ -96,7 +94,6 @@ class AvoidStringBuffer {
         <priority>1</priority>
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="version" value="3.1"/>
             <property name="xpath">
                 <value><![CDATA[
 (: check if at least one java.text imports exists as filter for same named classes in other packages :)
