@@ -1729,16 +1729,20 @@ class Bad {
 }
 
 class Good {
-    private static final ThreadLocal<XPathFactory> tlFac = ThreadLocal.withInitial(XPathFactory::newInstance);
-    private static final ThreadLocal<XPathExpression> tlExpr;
-    static {
-        XPath xpath = tlFac.get().newXPath();
-        XPathExpression expr = xpath.compile("//book[author='Isaac Asimov']/title/text()"); // good
-        tlExpr = ThreadLocal.withInitial(expr); 
+  private static final ThreadLocal<XPathFactory> tlFac = ThreadLocal.withInitial(XPathFactory::newInstance);
+  private static final ThreadLocal<XPathExpression> tlExpr;
+  static {
+    XPath xpath = tlFac.get().newXPath();
+    try {
+      XPathExpression expr = xpath.compile("//book[author='Isaac Asimov']/title/text()");
+      tlExpr = ThreadLocal.withInitial(() -> expr); // good
+    } catch (XPathExpressionException e) {
+      throw new RuntimeException(e);
     }
-    public static NodeList good(Document doc) {
-        return (NodeList) tlExpr.get().evaluate(doc, XPathConstants.NODESET); // good
-    }
+  }
+  public static NodeList good(Document doc) throws XPathExpressionException {
+    return (NodeList) tlExpr.get().evaluate(doc, XPathConstants.NODESET); // good
+  }
 }
 ```
 
