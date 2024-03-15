@@ -78,7 +78,6 @@ class Foo {
         <priority>2</priority>
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="version" value="3.1"/>
             <property name="xpath">
                 <value><![CDATA[
 //ImportHeader[.//T-Identifier[@Text='java'] and .//T-Identifier[@Text='io']][1]/ancestor::KotlinFile
@@ -168,7 +167,6 @@ class AvoidRecompilingXPathExpressionKotlin {
         <priority>3</priority>
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="version" value="3.1"/>
             <property name="xpath">
                 <value><![CDATA[
 //VariableDeclaration/Type//T-Identifier[@Text='StringBuffer'],
@@ -205,7 +203,6 @@ class AvoidStringBuffer {
         <priority>3</priority>
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="version" value="3.1"/>
             <property name="xpath">
                 <value><![CDATA[
 //ImportHeader[starts-with(@joinTokenText, 'importcom.netflix.hystrix')]
@@ -232,7 +229,6 @@ class AvoidStringBuffer {
         <priority>2</priority>
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="version" value="3.1"/>
             <property name="xpath">
                 <value><![CDATA[
 (:locally created http client builder without disableConnectionState :)
