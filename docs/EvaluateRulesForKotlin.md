@@ -21,4 +21,5 @@ Evaluation of Java PMD rules for use as Kotlin rules
 | 15. | PP-5        | AvoidWideScopeXPathExpression            | Yes    | Low        | Yes              | Medium      | Not found         |                                                                                                                         | 
 | 16. | JB-6        | AvoidXPathAPIUsage                       | Yes    | Low        | Yes              | Medium      | Not found         | remove VTD reference?, seems old, better alternatives?                                                                  |
 | 17. | JB-4-PR-WIP | Kotlin function hasImport                |        |            |                  |             |                   | source to review, not tested, to build+test (how?)                                                                      |
+| 18. | PP          | Kotlin function?                         |        |            |                  |             |                   |                                                                                                                         |
 
