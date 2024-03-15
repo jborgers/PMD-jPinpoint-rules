@@ -102,7 +102,7 @@ class AvoidStringBuffer {
 (: filter matches in functions :)
 //ClassDeclaration//PrimaryExpression//SimpleIdentifier//T-Identifier[
  (@Text="DecimalFormat" or @Text="ChoiceFormat")
- and not(ancestor::FunctionDeclaration)
+ and not(ancestor::FunctionBody)
 ]
 ]]>
                 </value>
@@ -127,6 +127,60 @@ class Foo {
     }
 }
 ]]>
+        </example>
+    </rule>
+
+    <rule name="AvoidRecompilingPatterns"
+          class="net.sourceforge.pmd.lang.rule.XPathRule"
+          dfa="false"
+          language="kotlin"
+          message="Pattern.compile is used in a method. Compiling a regex pattern can be expensive, make it a constant or instance field."
+          typeResolution="true"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ireu02">
+        <description>A regular expression is compiled on every invocation. Problem: this can be expensive, depending on the length of the regular expression.&#13;
+            Solution: Usually a pattern is a literal, not dynamic and can be compiled only once. Assign it to a private constant or instance field.
+            java.util.Pattern objects are thread-safe so they can be shared among threads. (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <property name="xpath">
+                <value><![CDATA[
+(: check if java.util.regex imports exists as filter for same named classes in other packages :)
+//ImportHeader[.//T-Identifier[@Text='java'] and .//T-Identifier[@Text='util'] and .//T-Identifier[@Text='regex']][1]/ancestor::KotlinFile
+
+//FunctionBody//T-Identifier[@Text='Pattern' and ../../../PostfixUnarySuffix//T-Identifier[@Text='compile']
+    (: check for variables $action or ${action} in String of compile() call (first in possible call chain): allow dynamic input :)
+    and not(((../../..//ValueArgument)[1]//PostfixUnaryExpression//T-Identifier|(../../..//ValueArgument)[1]//T-LineStrRef)[
+       @Text=ancestor::FunctionDeclaration//FunctionValueParameter/Parameter/SimpleIdentifier/T-Identifier/@Text
+       or @Text=concat('$', ancestor::FunctionDeclaration//FunctionValueParameter/Parameter/SimpleIdentifier/T-Identifier/@Text)])
+]
+]]>
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+import java.util.regex.Pattern
+
+internal object Bad {
+    const val STR_PAT1: String = "[A-Z][a-z]+"
+
+    fun bad() {
+        val p1: Pattern = Pattern.compile(STR_PAT1) // bad
+        val p2: Pattern = Pattern.compile("(?=\\p{Lu})") // bad
+        val b: Boolean = p1.matcher("Start ").matches()
+    }
+}
+
+internal object Good {
+    val PAT1: Pattern = Pattern.compile("[A-Z][a-z]+")
+    val PAT2: Pattern = Pattern.compile("(?=\\p{Lu})")
+
+    fun good() {
+        val b: Boolean = PAT1.matcher("Start ").matches()
+    }
+}
+            ]]>
         </example>
     </rule>
 
