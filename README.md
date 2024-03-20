@@ -50,13 +50,16 @@ After installing the tool you can run `pmd.sh` or `pmd.bat` similar to the follo
 
       Settings/Preferences > Plugins > Browse Repositories > Search 'PMD' > Select 'PMD' > Install > Close > OK > Restart
 
-- Configure (add) the ruleset from this repo: *rulesets/java/jpinpoint-rules.xml*:
+- Next, configure (add) the ruleset from this repo by URL to always be up-to-date: 
 
-      Settings/Preferences > Other Settings > PMD > RuleSets 
-- To be up-to-date instead of a local copy, use the URL: 
+      Settings/Preferences > Other Settings > PMD > RuleSets
+  
+- Add:
 
-    https://raw.githubusercontent.com/jborgers/PMD-jPinpoint-rules/master/rulesets/java/jpinpoint-rules.xml
+    *https://raw.githubusercontent.com/jborgers/PMD-jPinpoint-rules/master/rulesets/java/jpinpoint-rules.xml*
 
+- Alternatively, download and add: *rulesets/java/jpinpoint-rules.xml*
+  
 - Options tab: check 'Skip Test Sources' and set your Java version 
 
 - You can now perform the code checks using [right-click] on a folder or a file and choose:
