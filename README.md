@@ -31,10 +31,10 @@ PMD-jPinpoint-rules is licensed under the [Apache License, Version 2.0](https://
 
 To use the ruleset you can install: 
 
-- the PMD tool from [PMD project at github](https://pmd.github.io/) and/or
+- the PMD command line tool from [PMD project at github](https://pmd.github.io/) and/or
 - the PMDPlugin in you development environment. 
 
-## PMD tool
+## PMD command line tool
 
 After installing the tool you can run `pmd.sh` or `pmd.bat` similar to the following
 
@@ -43,7 +43,7 @@ After installing the tool you can run `pmd.sh` or `pmd.bat` similar to the follo
         -d $your-project-src \
         -f text
 
-## IntelliJ IDEA
+## IntelliJ IDEA with PMD Plugin
 
 - You need a recent version of IntelliJ. The Community Edition is fine.
 - Install PMDPlugin: 
@@ -67,14 +67,14 @@ After installing the tool you can run `pmd.sh` or `pmd.bat` similar to the follo
 
 - If you want more details on a violation: right click and choose 'Details' to get to the documentation page with problem and solution details.
 
-## Eclipse
+## Eclipse with PMD Plugin
 
 The Acanda PMD plugin seems to be the best one to use. 
 - [Import it into eclipse](http://www.acanda.ch/eclipse-pmd/release/latest).
 - enable PMD through the properties of the project
 - add the ruleset from this project *rulesets/java/jpinpoint-rules.xml*
 
-## SonarQube
+## SonarQube with Plugins
 In SonarQube, you need to install [sonar-pmd plugin](https://github.com/jborgers/sonar-pmd) from the market place, and [sonar-pmd-custom plugin](https://github.com/jborgers/sonar-pmd-custom) for these custom rules.
 
 # Development
