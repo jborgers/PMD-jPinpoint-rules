@@ -56,9 +56,9 @@ After installing the tool you can run `pmd.sh` or `pmd.bat` similar to the follo
   
 - Add:
 
-    *https://raw.githubusercontent.com/jborgers/PMD-jPinpoint-rules/master/rulesets/java/jpinpoint-rules.xml*
+      https://raw.githubusercontent.com/jborgers/PMD-jPinpoint-rules/master/rulesets/java/jpinpoint-rules.xml
 
-- Alternatively, download and add: *rulesets/java/jpinpoint-rules.xml*
+- Alternatively, download and add your local copy: *rulesets/java/jpinpoint-rules.xml*
   
 - Options tab: check 'Skip Test Sources' and set your Java version 
 
