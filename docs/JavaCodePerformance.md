@@ -1355,7 +1355,7 @@ response.setRenderParameter("page", "initiatePayment");
 **Solution:**
 
 *   Remove collections dynamic growth overhead.
-*   For instance, an ArrayList has the default initial capacity of 10 elements. This memory overhead can be avoided with use of the [constructor with capacity argument](http://docs.oracle.com/javase/6/docs/api/java/util/ArrayList.html#ArrayList%28int%29) or removed with [trimToSize()](http://docs.oracle.com/javase/6/docs/api/java/util/ArrayList.html#trimToSize%28%29).
+*   For instance, an ArrayList has the default initial capacity of 10 elements. This memory overhead can be avoided with use of the [constructor with capacity argument](https://docs.oracle.com/en%2Fjava%2Fjavase%2F11%2Fdocs%2Fapi%2F%2F/java.base/java/util/ArrayList.html#%3Cinit%3E(int)) or removed with [trimToSize()](https://docs.oracle.com/en%2Fjava%2Fjavase%2F11%2Fdocs%2Fapi%2F%2F/java.base/java/util/ArrayList.html#trimToSize()).
 *   A HashMap can be pre-sized with initial capacity and load factor, however it has more space overhead than ArrayList. For not too many elements (<50) consider to use an ArrayList instead. Operations like contains() looping over 50 elements is usually fast enough.
 *   Use an array instead of an ArrayList, it has less space overhead.
 *   Use primitives instead of wrappers, e.g. a long instead of a Long.
@@ -1367,10 +1367,10 @@ response.setRenderParameter("page", "initiatePayment");
 
 Note that for StringBuilder.substring this is not needed, since it does make a copy of the sub part of the char array. Also note we use a JVM option (\-Djava.lang.string.create.unique=true see [IBM APAR](http://www-01.ibm.com/support/docview.wss?uid=swg1IZ92080)) to achieve this, to remove waste by stringBuilder.toString(). This removes most String waste seen before on the IBM JVM. Defensively making Strings lean before putting them in a session or memory cache is therefore no longer needed. It actually introduces extra time overhead, therefore it is discouraged now.
 
-*   For empty lists or other collections, use references to predefined (singleton) empty collections, like [Collections.emptyList()](http://docs.oracle.com/javase/6/docs/api/java/util/Collections.html#emptyList()).
-*   Use [String.intern()](http://docs.oracle.com/javase/6/docs/api/java/lang/String.html#intern%28%29) to put frequently occurring strings in the single String pool in the JVM, like country, countryCode.
+*   For empty lists or other collections, use references to predefined (singleton) empty collections, like [Collections.emptyList()](https://docs.oracle.com/en%2Fjava%2Fjavase%2F11%2Fdocs%2Fapi%2F%2F/java.base/java/util/Collections.html#emptyList()).
+*   Use [String.intern()](https://docs.oracle.com/en%2Fjava%2Fjavase%2F11%2Fdocs%2Fapi%2F%2F/java.base/java/lang/String.html#intern()) to put frequently occurring strings in the single String pool in the JVM, like country, countryCode.
 *   Use normalization: e.g. NaturalPerson references BranchImpl and only about 300 BranchImpls exist, these can be put in a Map in application scope.
-*   Calendar is a large object containing about 540 bytes, this can usually be replaced by a Date, [java.time.\[Local/Zoned\]DateTime](https://docs.oracle.com/javase/8/docs/api/index.html?java/time/LocalDateTime.html) or a even most compact: a long.
+*   Calendar is a large object containing about 540 bytes, this can usually be replaced by a Date, [java.time.\[Local/Zoned\]DateTime](https://docs.oracle.com/en%2Fjava%2Fjavase%2F11%2Fdocs%2Fapi%2F%2F/java.base/java/time/LocalDateTime.html) or a even most compact: a long.
 *   For a HashMap with Enum keys, use EnumMap. EnumMaps are represented internally as arrays. This representation is extremely compact and efficient.
 
 ### Spring ModelMaps
@@ -1488,7 +1488,7 @@ static {
 
 **Observation: `XMLGregorianCalendar` and `GregorianCalendar` are used with JAXB for dates.**  
 **Problem:** `XMLGregorianCalendar` and `GregorianCalendar` are large objects on the heap, involving substantial processing. To create a new `XMLGregorianCalendar`, the [poorly performing DatatypeFactory](http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6466177) is used. A `DatatypeFactory.newInstance()` is executed, which goes through the complete service look up mechanism, involving class loading.  
-**Solution:** Add a converter for alternative date handling with [java.time.LocalDateTime](https://docs.oracle.com/javase/8/docs/api/index.html?java/time/LocalDateTime.html) instead of default `XMLGregorianCalendar`.  
+**Solution:** Add a converter for alternative date handling with [java.time.LocalDateTime](https://docs.oracle.com/en%2Fjava%2Fjavase%2F11%2Fdocs%2Fapi%2F%2F/java.base/java/time/LocalDateTime.html) instead of default `XMLGregorianCalendar`.  
 Example:
 
 ```java
@@ -1900,8 +1900,8 @@ Logging of the allocation stack traces will be in native_stderr.log.
 **Observation: ByteArrayOutputStream or StringWriter default constructor is used for large strings/streams, or a capacity smaller or equal to the default.**  
 **Problem:** By default an initial buffer of 32 bytes or 16 characters is created, respectively. If this is not enough, a new byte/char array will be allocated and contents will be copied into the new array. The old array becomes garbage to be collected and copying takes processing time. 
 If you know what the minimum or typical size will be, this garbage and processing time are wasted.  
-**Solution:** Presize the ByteArrayOutputStream or StringWriter with an initial capacity such that a resize is not needed in most cases. By using the [ByteArrayOutputStream](http://docs.oracle.com/javase/6/docs/api/java/io/ByteArrayOutputStream.html#ByteArrayOutputStream%28int%29) or 
-[StringWriter](http://docs.oracle.com/javase/6/docs/api/java/io/StringWriter.html#StringWriter%28int%29) alternative constructor.  
+**Solution:** Presize the ByteArrayOutputStream or StringWriter with an initial capacity such that a resize is not needed in most cases. By using the [ByteArrayOutputStream](https://docs.oracle.com/en%2Fjava%2Fjavase%2F11%2Fdocs%2Fapi%2F%2F/java.base/java/io/ByteArrayOutputStream.html#%3Cinit%3E(int)) or 
+[StringWriter](https://docs.oracle.com/en%2Fjava%2Fjavase%2F11%2Fdocs%2Fapi%2F%2F/java.base/java/io/StringWriter.html#%3Cinit%3E(int)) alternative constructor.  
 If the buffer is send/received through I/O, then the size should be 8192 bytes or a multiple of it, 8 KiB being the default TCP buffer size on most systems. This value of 8 [KiB (kibibyte)](http://en.wikipedia.org/wiki/Kibibyte) is used as default buffer size in all I/O buffering classes in the Java libraries. 
 If the buffer contents is not send or receiceved from I/O, than take 4 kiB or a multiple of it, 4 KiB being the default memory page size.   
 **Rule name**: AvoidInMemoryStreamingDefaultConstructor   
@@ -2204,19 +2204,18 @@ For all three solutions holds that the data structure itself does not need to be
   
 ```java
 @Immutable
-public class String { 
-...
+public class String {}
 
 @NotThreadSafe
-public class StringBuilder { 
-...
+public class StringBuilder{}
+
 
  @ThreadSafe
  class Example {
     private final Object lock = new Object();
     
     @GuardedBy("lock")
-    private Stuff internal = ...;
+    private Stuff internal = new Stuff();
     
     public void work() {
         synchronized(lock) {
@@ -2264,17 +2263,33 @@ public class ReportController extends AbstractController {
     private Report data;
     private boolean contacted;
     private RestTemplate restTemplateOk;
-	private String name; 
+    private String name;
 
-	public ReportController() { name = "LaundryReport"; } // unsafe
-	public void createData() { data = ...; } // unsafe	
-	public Report getData() { return data; }  // unsafe 
-	public boolean getContacted() { return contacted; } // unsafe
-	public void setContacted(boolean contacted) { this.contacted = contacted; } // unsafe
-        @Autowired
-	public void setRestTemplate(final RestTemplate restTemplate) { // autowiring is safe
-    	this.restTemplateOk = restTemplate;
-	}
+    public ReportController() {
+        name = "LaundryReport";
+    } // unsafe
+
+    public void createData() {
+        data = something();
+    } // unsafe	
+
+    public Report getData() {
+        return data;
+    }  // unsafe 
+
+    public boolean getContacted() {
+        return contacted;
+    } // unsafe
+
+    public void setContacted(boolean contacted) {
+        this.contacted = contacted;
+    } // unsafe
+
+    @Autowired
+    public void setRestTemplate(final RestTemplate restTemplate) { // autowiring is safe
+        this.restTemplateOk = restTemplate;
+    }
+}
 ```
 
 **Example with issues solved**
@@ -2293,15 +2308,11 @@ public class ReportController extends AbstractController {
         name = "LaundryReport";
     } // safe because of final
 
-    public void
-
-    synchronized createData() {
-        data = ...;
+    public synchronized void createData() {
+        data = something();
     } // safe because synchonized (@GuardedBy)	
 
-    public Report
-
-    synchronized getData() {
+    public synchronized Report getData() {
         return data;
     }  // safe like previous if data is immutable, or if a copy is retured
 
@@ -2491,7 +2502,7 @@ or
 long time = System.currentTimeMillis();
 ```
 
-Or better yet instead of Date, use a [java.time.LocalDateTime](https://docs.oracle.com/javase/8/docs/api/index.html?java/time/LocalDateTime.html), which also has the advantage over java.util.Date that it is immutable.  
+Or better yet instead of Date, use a [java.time.LocalDateTime](https://docs.oracle.com/en%2Fjava%2Fjavase%2F11%2Fdocs%2Fapi%2F%2F/java.base/java/time/LocalDateTime.html), which also has the advantage over java.util.Date that it is immutable.  
 **Rule name**: prototype ready, hit on Calendar.getInstance().getTime() usage and on two steps in same block.
 
 #### UE02
@@ -2531,7 +2542,7 @@ Inefficient memory usage
 
 **Observation: A Calendar field is used in an object with many instances.**  
 **Problem:** A Calendar field is typically only used for representing a date and time. A java.util.Calender object wastes heap space: it occupies about 540 bytes of heaps space.  
-**Solution:** Use a [java.time.LocalDateTime](https://docs.oracle.com/javase/8/docs/api/index.html?java/time/LocalDateTime.html), which also has the advantage over java.util.Date that it is immutable. Also even a primitive long type for "milliseconds since epoch" could be used instead, for the most space-efficient solution.
+**Solution:** Use a [java.time.LocalDateTime](https://docs.oracle.com/en%2Fjava%2Fjavase%2F11%2Fdocs%2Fapi%2F%2F/java.base/java/time/LocalDateTime.html), which also has the advantage over java.util.Date that it is immutable. Also even a primitive long type for "milliseconds since epoch" could be used instead, for the most space-efficient solution.
 
 Improper use of collections
 ---------------------------
@@ -2581,9 +2592,9 @@ Set<YourEnumType> set = EnumSet.allOf(YourEnumType.class);
 **Problem:** There is only one lock used for accessing the collection by all threads, which may result in lock contention.  
 **Solution:** Use a collection which is optimized for access by multiple threads:
 
-*   CopyOnWriteXxx collections of [java.util.concurrent](https://docs.oracle.com/javase/7/docs/api/java/util/concurrent/package-summary.html) for mostly read access
-*   ConcurrentXxx collections of [java.util.concurrent](https://docs.oracle.com/javase/7/docs/api/java/util/concurrent/package-summary.html) for non-mostly read. These utilizes non-blocking/wait-free algorithms or lock striping (see [thinking in parallel](http://www.thinkingparallel.com/2007/07/31/10-ways-to-reduce-lock-contention-in-threaded-programs/)), for instance ConcurrentHashMap. Or use NonBlockingHashMap of [high-scale-lib](https://sourceforge.net/projects/high-scale-lib/).
-*   Add lock striping to your collection with [guava's Striped](https://google.github.io/guava/releases/19.0/api/docs/com/google/common/util/concurrent/Striped.html)<ReadWriteLock>.
+*   CopyOnWriteXxx collections of [java.util.concurrent](https://docs.oracle.com/en%2Fjava%2Fjavase%2F11%2Fdocs%2Fapi%2F%2F/java.base/java/util/concurrent/package-summary.html) for mostly read access
+*   ConcurrentXxx collections of [java.util.concurrent](https://docs.oracle.com/en%2Fjava%2Fjavase%2F11%2Fdocs%2Fapi%2F%2F/java.base/java/util/concurrent/package-summary.html) for non-mostly read. These utilizes non-blocking/wait-free algorithms or lock striping (see [thinking in parallel](http://www.thinkingparallel.com/2007/07/31/10-ways-to-reduce-lock-contention-in-threaded-programs/)), for instance ConcurrentHashMap. Or use NonBlockingHashMap of [high-scale-lib](https://sourceforge.net/projects/high-scale-lib/).
+*   Add lock striping to your collection with [guava's Striped](https://guava.dev/releases/23.0/api/docs/com/google/common/util/concurrent/Striped.html)<ReadWriteLock>.
 
 #### IUOC07
 
@@ -2813,7 +2824,7 @@ Inefficient date time formatting
 
 **Observation: A SimpleDateFormat is used.**  
 **Problem:** java.util.SimpleDateFormat is thread-unsafe. The usual solution is to create a new one when needed in a method. Creating SimpleDateFormat is relatively expensive.  
-**Solution:** Use [java.time.DateTimeFormatter](https://docs.oracle.com/javase/8/docs/api/index.html?java/time/format/DateTimeFormatter.html). It is immutable, thus thread-safe and can be made static final. Example:
+**Solution:** Use [java.time.DateTimeFormatter](https://docs.oracle.com/en%2Fjava%2Fjavase%2F11%2Fdocs%2Fapi%2F%2F/java.base/java/time/format/DateTimeFormatter.html). It is immutable, thus thread-safe and can be made static final. Example:
 
 ```java
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
@@ -2825,14 +2836,14 @@ Note: sometimes the use of SimpleDateFormat is forced by an API of a library. Fo
 the rule allows the usage here. Beware there might be some contention when you use objectMapper.setDateFormat(SimpleDateFormat), if so, better create your own thread safe date serializers
 or use jackson-datatype-jsr310.
  
-Like SimpleDateFormat, java.util.Date and -Calendar are mutable and flawed in other ways. Use Java 8+ [java.time](https://docs.oracle.com/javase/8/docs/api/index.html?java/time/package-summary.html) is the way to go .  
+Like SimpleDateFormat, java.util.Date and -Calendar are mutable and flawed in other ways. Use Java 8+ [java.time](https://docs.oracle.com/en%2Fjava%2Fjavase%2F11%2Fdocs%2Fapi%2F%2F/java.base/java/time/package-summary.html) is the way to go.  
 **Rule name:** AvoidSimpleDateFormat.
 
 #### IDTF02
 
 **Observation: A DateTimeFormatter is created from a pattern on every parse or print.**  
 **Problem:** Recreating a DateTimeFormatter is relatively expensive.  
-**Solution:** [java.time.DateTimeFormatter](https://docs.oracle.com/javase/8/docs/api/index.html?java/time/format/DateTimeFormatter.html) is thread-safe and can be shared among threads. Create the formatter from a pattern only once, to initialize a static field. See previous example.  
+**Solution:** [java.time.DateTimeFormatter](https://docs.oracle.com/en%2Fjava%2Fjavase%2F11%2Fdocs%2Fapi%2F%2F/java.base/java/time/format/DateTimeFormatter.html) is thread-safe and can be shared among threads. Create the formatter from a pattern only once, to initialize a static field. See previous example.  
 **Rule name:** AvoidRecreatingDateTimeFormatter
 
 #### IDTF03
@@ -2840,7 +2851,7 @@ Like SimpleDateFormat, java.util.Date and -Calendar are mutable and flawed in ot
 **Observation: Joda-time parseDateTime or printDateTime is used.**  
 **Problem:** These methods consider timezone information which is expensive and usually unnecessary. There is a [performance issue](http://java-performance.info/joda-time-performance/) with time zones in joda time library 2.1-2.3  
 **Solution:** Use DateTimeFormatter.parseLocalDateTime(String) and DateTimeFormatter.print(LocalDateTime). In my benchmarks, the parse local is 2-3 times faster, and the print local is ~10% faster. Make sure the functionality is still correct. Note that LocalDateTime besides times zones [does not support daylight saving time (DST)](http://blog.smartbear.com/programming/date-and-time-manipulation-in-java-using-jodatime/).  
-Upgrade to version >= 2.4 or preferably, move to [java.time](https://docs.oracle.com/javase/8/docs/api/index.html?java/time/package-summary.html).
+Upgrade to version >= 2.4 or preferably, move to [java.time](https://docs.oracle.com/en%2Fjava%2Fjavase%2F11%2Fdocs%2Fapi%2F%2F/java.base/java/time/package-summary.html).
 
 Inefficient regular expression usage
 ------------------------------------
@@ -3020,7 +3031,7 @@ Violation of Encapsulation, DRY or SRP
 
 **Observation: Object exposes internal mutable state**, a field like an ArrayList or a java.util.Date.  
 **Problem:** The state can be modified outside of the object, e.g. in case of a list it can be modified, added to, removed from or cleared, outside of object. No encapsulation.  
-**Solution:** If not really needed, remove the exposing method. Use proper encapsulation. Apply the object oriented: [Tell, don’t ask](http://pragprog.com/articles/tell-dont-ask) principle: tell the object to do something with the state it owns, instead of asking for the internal state and do something with it outside of the object. If you think you have to expose the object, think again. If you then still have to expose, expose the object only unmodifyable using e.g. java.util.Collections.unmodifyableList() or create a copy in case of a mutable object like java.util.Date (or replace by an immutable type [[java.time.LocalDateTime](https://docs.oracle.com/javase/8/docs/api/index.html?java/time/LocalDateTime.html))
+**Solution:** If not really needed, remove the exposing method. Use proper encapsulation. Apply the object oriented: [Tell, don’t ask](http://pragprog.com/articles/tell-dont-ask) principle: tell the object to do something with the state it owns, instead of asking for the internal state and do something with it outside of the object. If you think you have to expose the object, think again. If you then still have to expose, expose the object only unmodifyable using e.g. java.util.Collections.unmodifyableList() or create a copy in case of a mutable object like java.util.Date (or replace by an immutable type [[java.time.LocalDateTime](https://docs.oracle.com/en%2Fjava%2Fjavase%2F11%2Fdocs%2Fapi%2F%2F/java.base/java/time/LocalDateTime.html))
 
 #### VOEDOS02
 
@@ -3032,7 +3043,7 @@ Violation of Encapsulation, DRY or SRP
 
 **Observation: A mutable static field is used.** This can be a static non-final reference or a static final mutable object.  
 **Problem:** Violates encapsulation, the state can be modified outside of the object/class. If modified and used by multiple threads, it is thread-unsafe, may cause corruption of data or not viewing changes done by other threads.  
-**Solution:** Make it a final reference, possibly a blank final; and/or an immutable object or unmodifiable via a wrapper like [Collections.unmodifiableList](http://docs.oracle.com/javase/6/docs/api/java/util/Collections.html#unmodifiableList%28java.util.List%29).
+**Solution:** Make it a final reference, possibly a blank final; and/or an immutable object or unmodifiable via a wrapper like [Collections.unmodifiableList](https://docs.oracle.com/en%2Fjava%2Fjavase%2F11%2Fdocs%2Fapi%2F%2F/java.base/java/util/Collections.html#unmodifiableList(java.util.List)).
 
 #### VOEDOS04
 
