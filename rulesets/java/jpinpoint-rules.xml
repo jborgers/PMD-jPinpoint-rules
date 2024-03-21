@@ -75,7 +75,7 @@ public class CDIStuff {
           typeResolution="true"
           externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#imu01">
         <description>Problem: A Calendar is a heavyweight object and expensive to create. &#13;
-            Solution: Use Date, Java 8+ java.time.[Local/Zoned]DateTime or joda time [Local]DateTime.
+            Solution: Use Date, Java 8+ java.time.[Local/Zoned]DateTime.
         (jpinpoint-rules)</description>
         <priority>3</priority>
         <properties>
@@ -137,8 +137,9 @@ public interface Foo {
           message="Avoid using DecimalFormat or ChoiceFormat as field since it is thread-unsafe."
           typeResolution="true"
           externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#idtf01">
-        <description>Problem: java.text.DecimalFormat and java.text.ChoiceFormat are thread-unsafe. The usual solution
-            is to create a new local one when needed in a method.
+        <description>Problem: java.text.DecimalFormat and java.text.ChoiceFormat are thread-unsafe.&#13;
+            Solution: usual solution is to create a new local one when needed in a method.
+            (jpinpoint-rules)
         (jpinpoint-rules)</description>
         <priority>1</priority>
         <properties>
@@ -671,13 +672,16 @@ class Good {
     private static final ThreadLocal<XPathExpression> tlExpr;
     static {
         XPath xpath = tlFac.get().newXPath();
-        XPathExpression expr = xpath.compile("//book[author='Isaac Asimov']/title/text()"); // good
-        tlExpr = ThreadLocal.withInitial(expr); // good
+        try {
+            XPathExpression expr = xpath.compile("//book[author='Isaac Asimov']/title/text()");
+            tlExpr = ThreadLocal.withInitial(() -> expr); // good
+        } catch (XPathExpressionException e) {
+            throw new RuntimeException(e);
+        }
     }
-    public static NodeList good(Document doc) {
-        return tlExpr.get().evaluate(doc, XPathConstants.NODESET); // good
+    public static NodeList good(Document doc) throws XPathExpressionException {
+        return (NodeList) tlExpr.get().evaluate(doc, XPathConstants.NODESET); // good
     }
-}
             ]]>
         </example>
 
@@ -690,7 +694,7 @@ class Good {
           typeResolution="true" externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#idtf02">
         <description>
             Problem: Recreating a DateTimeFormatter is relatively expensive.&#13;
-            Solution: org.joda.time.format.DateTimeFormatter or Java 8 java.time.DateTimeFormatter is thread-safe and can be shared among threads. Create the
+            Solution: Java 8+ java.time.DateTimeFormatter is thread-safe and can be shared among threads. Create the
             formatter from a pattern only once, to initialize a static final field.
             (jpinpoint-rules)</description>
         <priority>2</priority>
@@ -2209,7 +2213,7 @@ public class FileStuff {
           typeResolution="true"
           externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#ue01">
         <description>Problem: A Calendar is a heavyweight object and expensive to create. &#13;
-            Solution: Use 'new Date()', Java 8+ java.time.[Local/Zoned]DateTime.now() or joda time '[Local]DateTime.now()'.
+            Solution: Use 'new Date()', Java 8+ java.time.[Local/Zoned]DateTime.now().
         (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
@@ -4552,7 +4556,7 @@ class Foo {
     <rule name="AvoidXMLGregorianCalendar" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" message="XMLGregorianCalendar is used. It is slow in JAXB." typeResolution="true"
           externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#iuoxar05">
         <description>Problem: XMLGregorianCalendar is a large object, involving substantial processing. It is created with the poorly performing DatatypeFactory.
-            Solution: Add a converter for alternative date handling with joda-time or Java 8 java.time.
+            Solution: Add a converter for alternative date handling with Java 8+ java.time.
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>

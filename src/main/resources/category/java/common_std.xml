@@ -64,7 +64,7 @@ public class FileStuff {
           typeResolution="true"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#ue01">
         <description>Problem: A Calendar is a heavyweight object and expensive to create. &#13;
-            Solution: Use 'new Date()', Java 8+ java.time.[Local/Zoned]DateTime.now() or joda time '[Local]DateTime.now()'.
+            Solution: Use 'new Date()', Java 8+ java.time.[Local/Zoned]DateTime.now().
         </description>
         <priority>2</priority>
         <properties>

@@ -400,7 +400,7 @@ class Good {
           typeResolution="true" externalInfoUrl="${doc_root}/JavaCodePerformance.md#idtf02">
         <description>
             Problem: Recreating a DateTimeFormatter is relatively expensive.&#13;
-            Solution: org.joda.time.format.DateTimeFormatter or Java 8 java.time.DateTimeFormatter is thread-safe and can be shared among threads. Create the
+            Solution: Java 8+ java.time.DateTimeFormatter is thread-safe and can be shared among threads. Create the
             formatter from a pattern only once, to initialize a static final field.
             (jpinpoint-rules)</description>
         <priority>2</priority>
@@ -1310,7 +1310,7 @@ class Bad {
           typeResolution="true"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#imu01">
         <description>Problem: A Calendar is a heavyweight object and expensive to create. &#13;
-            Solution: Use Date, Java 8+ java.time.[Local/Zoned]DateTime or joda time [Local]DateTime.
+            Solution: Use Date, Java 8+ java.time.[Local/Zoned]DateTime.
         </description>
         <priority>3</priority>
         <properties>

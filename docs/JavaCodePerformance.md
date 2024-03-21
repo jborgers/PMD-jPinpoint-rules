@@ -551,7 +551,7 @@ class Good {
 ```
 **See:** [IUOXAR09: XML related `XXXFactory.newInstance()` is called repeatedly.](JavaCodePerformance.md#IUOXAR09)   
 
-Improper asynchrony 
+Improper asynchrony
 -------------------
 
 This categry could be seen as a subcategory of the previous category. However, above mostly deals with remote connections, asynchony mostly deals with threading and parallelism.
@@ -966,7 +966,7 @@ class Foo {
   }
 }
 ```
-Improper caching  
+Improper caching
 -------------------
 
 See our [presentation on Java Performance Pitfall: improper caching.](https://youtu.be/IOWz67wSAIQ?list=PL9rzqHHCiIVQr27ZsP0_r8eOgQMTbhJfF)
@@ -1370,7 +1370,7 @@ Note that for StringBuilder.substring this is not needed, since it does make a c
 *   For empty lists or other collections, use references to predefined (singleton) empty collections, like [Collections.emptyList()](http://docs.oracle.com/javase/6/docs/api/java/util/Collections.html#emptyList()).
 *   Use [String.intern()](http://docs.oracle.com/javase/6/docs/api/java/lang/String.html#intern%28%29) to put frequently occurring strings in the single String pool in the JVM, like country, countryCode.
 *   Use normalization: e.g. NaturalPerson references BranchImpl and only about 300 BranchImpls exist, these can be put in a Map in application scope.
-*   Calendar is a large object containing about 540 bytes, this can usually be replaced by a Date, [org.joda.time.\[Local\]DateTime](http://joda-time.sourceforge.net/apidocs/org/joda/time/LocalDateTime.html), [java.time.\[Local/Zoned\]DateTime](https://docs.oracle.com/javase/8/docs/api/index.html?java/time/LocalDateTime.html) or a even most compact: a long.
+*   Calendar is a large object containing about 540 bytes, this can usually be replaced by a Date, [java.time.\[Local/Zoned\]DateTime](https://docs.oracle.com/javase/8/docs/api/index.html?java/time/LocalDateTime.html) or a even most compact: a long.
 *   For a HashMap with Enum keys, use EnumMap. EnumMaps are represented internally as arrays. This representation is extremely compact and efficient.
 
 ### Spring ModelMaps
@@ -1488,34 +1488,32 @@ static {
 
 **Observation: `XMLGregorianCalendar` and `GregorianCalendar` are used with JAXB for dates.**  
 **Problem:** `XMLGregorianCalendar` and `GregorianCalendar` are large objects on the heap, involving substantial processing. To create a new `XMLGregorianCalendar`, the [poorly performing DatatypeFactory](http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6466177) is used. A `DatatypeFactory.newInstance()` is executed, which goes through the complete service look up mechanism, involving class loading.  
-**Solution:** Add a converter for alternative date handling with joda-time `LocalDateTime` or [java.time.LocalDateTime](https://docs.oracle.com/javase/8/docs/api/index.html?java/time/LocalDateTime.html) instead of default `XMLGregorianCalendar`.  
+**Solution:** Add a converter for alternative date handling with [java.time.LocalDateTime](https://docs.oracle.com/javase/8/docs/api/index.html?java/time/LocalDateTime.html) instead of default `XMLGregorianCalendar`.  
 Example:
 
 ```java
- import org.joda.time.LocalDateTime;
- import org.joda.time.format.DateTimeFormatter;
- import org.joda.time.format.ISODateTimeFormat;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
- public class DateConverter {
-    private static final DateTimeFormatter DATE_FORMATTER = ISODateTimeFormat.date();
-
-    public static LocalDateTime parseDate(final String date) {
-        return DATE_FORMATTER.parseLocalDateTime(date);
-    }
-
-    public static String printDate(final LocalDateTime date) {
-        return DATE_FORMATTER.print(date);
-    }
- }
+public class DateConverter {
+  private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ISO_LOCAL_DATE;
+  
+  public static LocalDate parseDate(final String date) {
+    return LocalDate.from(DATE_FORMATTER.parse(date));
+  }
+  public static String formatDate(final LocalDate date) {
+    return DATE_FORMATTER.format(date);
+  }
+}
 ```
 
 corresponding JAXB binding configuration:
 
 ```xml
 <jxb:globalBindings>
-   <jxb:javaType name="org.joda.time.LocalDateTime" xmlType="xs:date"
+   <jxb:javaType name="java.time.LocalDate" xmlType="xs:date"
          parseMethod="com.company.package.DateConverter.parseDate"
-         printMethod="com.company.package.DateConverter.printDate" />
+         printMethod="com.company.package.DateConverter.formatDate" />
 </jxb:globalBindings>
 ```
 
@@ -2285,21 +2283,41 @@ public class ReportController extends AbstractController {
 @Component
 @Scope(WebApplicationContext.SCOPE_SESSION) // similar for e.g. default SCOPE_APPLICATION
 public class ReportController extends AbstractController {
-	@GuardedBy("this") // needed to remove pmd/Sonar violation, enables extra checks
+    @GuardedBy("this") // needed to remove pmd/Sonar violation, enables extra checks
     private Report data;
     private volatile boolean contacted; // assignment-safe
     private RestTemplate restTemplateOk;
-	private final String name; // assignment-safe
+    private final String name; // assignment-safe
 
-	public ReportController() { name = "LaundryReport"; } // safe because of final
-	public void synchronized createData() { data = ...; } // safe because synchonized (@GuardedBy)	
-	public Report synchronized getData() { return data; }  // safe like previous if data is immutable, or if a copy is retured
-	public boolean getContacted() { return contacted; } // safe because volatile
-	public void setContacted(boolean contacted) { this.contacted = contacted; } // safe because volatile
-        @Autowired
-	public void setRestTemplate(final RestTemplate restTemplate) { // autowiring is safe
-    	this.restTemplateOk = restTemplate;
-	}
+    public ReportController() {
+        name = "LaundryReport";
+    } // safe because of final
+
+    public void
+
+    synchronized createData() {
+        data = ...;
+    } // safe because synchonized (@GuardedBy)	
+
+    public Report
+
+    synchronized getData() {
+        return data;
+    }  // safe like previous if data is immutable, or if a copy is retured
+
+    public boolean getContacted() {
+        return contacted;
+    } // safe because volatile
+
+    public void setContacted(boolean contacted) {
+        this.contacted = contacted;
+    } // safe because volatile
+
+    @Autowired
+    public void setRestTemplate(final RestTemplate restTemplate) { // autowiring is safe
+        this.restTemplateOk = restTemplate;
+    }
+}
 ```
 
 **Rule names:** AvoidUnguardedMutableFieldsInSharedObjects, AvoidUnguardedAssignmentToNonFinalFieldsInSharedObjects, AvoidUnguardedMutableInheritedFieldsInSharedObjects, AvoidUnguardedAssignmentToNonFinalFieldsInObjectsUsingSynchronized, AvoidUnguardedMutableFieldsInObjectsUsingSynchronized
@@ -2473,7 +2491,7 @@ or
 long time = System.currentTimeMillis();
 ```
 
-Or better yet instead of Date, use a [org.joda.time.LocalDateTime](http://joda-time.sourceforge.net/apidocs/org/joda/time/LocalDateTime.html) or [java.time.LocalDateTime](https://docs.oracle.com/javase/8/docs/api/index.html?java/time/LocalDateTime.html), which also has the advantage over java.util.Date that it is immutable.  
+Or better yet instead of Date, use a [java.time.LocalDateTime](https://docs.oracle.com/javase/8/docs/api/index.html?java/time/LocalDateTime.html), which also has the advantage over java.util.Date that it is immutable.  
 **Rule name**: prototype ready, hit on Calendar.getInstance().getTime() usage and on two steps in same block.
 
 #### UE02
@@ -2513,7 +2531,7 @@ Inefficient memory usage
 
 **Observation: A Calendar field is used in an object with many instances.**  
 **Problem:** A Calendar field is typically only used for representing a date and time. A java.util.Calender object wastes heap space: it occupies about 540 bytes of heaps space.  
-**Solution:** Use a [org.joda.time.LocalDateTime](http://joda-time.sourceforge.net/apidocs/org/joda/time/DateTime.html) or [java.time.LocalDateTime](https://docs.oracle.com/javase/8/docs/api/index.html?java/time/LocalDateTime.html), which also has the advantage over java.util.Date that it is immutable. Also even a primitive long type for "milliseconds since epoch" could be used instead, for the most space-efficient solution.
+**Solution:** Use a [java.time.LocalDateTime](https://docs.oracle.com/javase/8/docs/api/index.html?java/time/LocalDateTime.html), which also has the advantage over java.util.Date that it is immutable. Also even a primitive long type for "milliseconds since epoch" could be used instead, for the most space-efficient solution.
 
 Improper use of collections
 ---------------------------
@@ -2795,26 +2813,26 @@ Inefficient date time formatting
 
 **Observation: A SimpleDateFormat is used.**  
 **Problem:** java.util.SimpleDateFormat is thread-unsafe. The usual solution is to create a new one when needed in a method. Creating SimpleDateFormat is relatively expensive.  
-**Solution:** Use a [Joda-Time](http://joda-time.sourceforge.net/index.html) [DateTimeFormat](http://joda-time.sourceforge.net/api-release/org/joda/time/format/DateTimeFormat.html) to create a specific [DateTimeFormatter](http://joda-time.sourceforge.net/api-release/org/joda/time/format/DateTimeFormatter.html) or use [java.time.DateTimeFormatter](https://docs.oracle.com/javase/8/docs/api/index.html?java/time/format/DateTimeFormatter.html). These classes are immutable, thus thread-safe and can be made static final. Example:
+**Solution:** Use [java.time.DateTimeFormatter](https://docs.oracle.com/javase/8/docs/api/index.html?java/time/format/DateTimeFormatter.html). It is immutable, thus thread-safe and can be made static final. Example:
 
 ```java
-private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormat.forPattern("yyyy-MM-dd");
-[...]
-LocalDateTime lastDate = DATE_FORMATTER.parseLocalDateTime(lastDateString);
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    // ...
+    LocalDateTime lastDate = DATE_FORMATTER.parse(lastDateString);
 ```
 
 Note: sometimes the use of SimpleDateFormat is forced by an API of a library. For instance, Jackson's ObjectMapper uses SimpleDateFormat. Because Jackson prevents threading issues,
 the rule allows the usage here. Beware there might be some contention when you use objectMapper.setDateFormat(SimpleDateFormat), if so, better create your own thread safe date serializers
 or use jackson-datatype-jsr310.
  
-Like SimpleDateFormat, java.util.Date and -Calendar are mutable and flawed in other ways. Joda-Time is the better alternative and when Java 8 is available, [java.time](https://docs.oracle.com/javase/8/docs/api/index.html?java/time/package-summary.html) is the way to go .  
+Like SimpleDateFormat, java.util.Date and -Calendar are mutable and flawed in other ways. Use Java 8+ [java.time](https://docs.oracle.com/javase/8/docs/api/index.html?java/time/package-summary.html) is the way to go .  
 **Rule name:** AvoidSimpleDateFormat.
 
 #### IDTF02
 
 **Observation: A DateTimeFormatter is created from a pattern on every parse or print.**  
 **Problem:** Recreating a DateTimeFormatter is relatively expensive.  
-**Solution:** org.joda.time.format.DateTimeFormatter or [java.time.DateTimeFormatter](https://docs.oracle.com/javase/8/docs/api/index.html?java/time/format/DateTimeFormatter.html) is thread-safe and can be shared among threads. Create the formatter from a pattern only once, to initialize a static field. See previous example.  
+**Solution:** [java.time.DateTimeFormatter](https://docs.oracle.com/javase/8/docs/api/index.html?java/time/format/DateTimeFormatter.html) is thread-safe and can be shared among threads. Create the formatter from a pattern only once, to initialize a static field. See previous example.  
 **Rule name:** AvoidRecreatingDateTimeFormatter
 
 #### IDTF03
@@ -2822,7 +2840,7 @@ Like SimpleDateFormat, java.util.Date and -Calendar are mutable and flawed in ot
 **Observation: Joda-time parseDateTime or printDateTime is used.**  
 **Problem:** These methods consider timezone information which is expensive and usually unnecessary. There is a [performance issue](http://java-performance.info/joda-time-performance/) with time zones in joda time library 2.1-2.3  
 **Solution:** Use DateTimeFormatter.parseLocalDateTime(String) and DateTimeFormatter.print(LocalDateTime). In my benchmarks, the parse local is 2-3 times faster, and the print local is ~10% faster. Make sure the functionality is still correct. Note that LocalDateTime besides times zones [does not support daylight saving time (DST)](http://blog.smartbear.com/programming/date-and-time-manipulation-in-java-using-jodatime/).  
-Upgrade to version >= 2.4 or when Java 8 is available, move to [java.time](https://docs.oracle.com/javase/8/docs/api/index.html?java/time/package-summary.html).
+Upgrade to version >= 2.4 or preferably, move to [java.time](https://docs.oracle.com/javase/8/docs/api/index.html?java/time/package-summary.html).
 
 Inefficient regular expression usage
 ------------------------------------
@@ -3002,7 +3020,7 @@ Violation of Encapsulation, DRY or SRP
 
 **Observation: Object exposes internal mutable state**, a field like an ArrayList or a java.util.Date.  
 **Problem:** The state can be modified outside of the object, e.g. in case of a list it can be modified, added to, removed from or cleared, outside of object. No encapsulation.  
-**Solution:** If not really needed, remove the exposing method. Use proper encapsulation. Apply the object oriented: [Tell, don’t ask](http://pragprog.com/articles/tell-dont-ask) principle: tell the object to do something with the state it owns, instead of asking for the internal state and do something with it outside of the object. If you think you have to expose the object, think again. If you then still have to expose, expose the object only unmodifyable using e.g. java.util.Collections.unmodifyableList() or create a copy in case of a mutable object like java.util.Date (or replace by an immutable type [org.joda.time.LocalDateTime](http://joda-time.sourceforge.net/apidocs/org/joda/time/LocalDateTime.html) or [java.time.LocalDateTime](https://docs.oracle.com/javase/8/docs/api/index.html?java/time/LocalDateTime.html))
+**Solution:** If not really needed, remove the exposing method. Use proper encapsulation. Apply the object oriented: [Tell, don’t ask](http://pragprog.com/articles/tell-dont-ask) principle: tell the object to do something with the state it owns, instead of asking for the internal state and do something with it outside of the object. If you think you have to expose the object, think again. If you then still have to expose, expose the object only unmodifyable using e.g. java.util.Collections.unmodifyableList() or create a copy in case of a mutable object like java.util.Date (or replace by an immutable type [[java.time.LocalDateTime](https://docs.oracle.com/javase/8/docs/api/index.html?java/time/LocalDateTime.html))
 
 #### VOEDOS02
 

@@ -139,7 +139,7 @@ public static JsonMapper createMapper() {
     <rule name="AvoidXMLGregorianCalendar" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" message="XMLGregorianCalendar is used. It is slow in JAXB." typeResolution="true"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#iuoxar05">
         <description>Problem: XMLGregorianCalendar is a large object, involving substantial processing. It is created with the poorly performing DatatypeFactory.
-            Solution: Add a converter for alternative date handling with joda-time or Java 8 java.time.
+            Solution: Add a converter for alternative date handling with Java 8+ java.time.
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
