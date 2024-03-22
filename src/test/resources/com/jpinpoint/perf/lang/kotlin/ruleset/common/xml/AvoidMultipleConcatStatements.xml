@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>AvoidMultipleConcatStatements</description>
+        <expected-problems>5</expected-problems>
+        <expected-linenumbers>8,22,29,63,70</expected-linenumbers>
+        <code><![CDATA[
+import java.util.Arrays
+
+class AvoidMultipleConcatStatementsKt {
+    fun testMultipleConcatDefect() {
+        var logStatement = ""
+        val values = Arrays.asList(*arrayOf("tic", "tac", "toe"))
+        logStatement += values[0]
+        logStatement += values[1] // bad 8
+    }
+
+    fun testMultipleConcatCorrect() {
+        var log = 0
+        val values = listOf(1, 2, 3)
+        log += values[0]
+        log += values[1]
+    }
+
+    fun testMultipleConcatDefect2() {
+        var logStatement = ""
+        val values = listOf("tic", "tac", "toe")
+        logStatement = logStatement + values[0]
+        logStatement = logStatement + values[1] // bad 22
+    }
+
+    fun testMultipleConcatDefect3() {
+        var logStatement = ""
+        val values = listOf("tic", "tac", "toe")
+        logStatement += values[0]
+        logStatement += values[1] // bad 29
+    }
+
+    fun testMultipleConcatCorrect2() {
+        var log = 0
+        val values = arrayOf(1, 2, 3)
+        log = log + values[0]
+        log = log + values[1]
+    }
+
+    fun testMultipleConcatCorrect3() {
+        var log = 0
+        var i = 0
+        while (i++ < 3) {
+            val values = Arrays.asList(*arrayOf(1, 2, 3))
+            log = log + values[0]
+            log = log + values[1]
+        }
+    }
+
+    fun testMultipleConcatCorrect4() {
+        var log = someIntValue("");
+        var i = 0
+        while (i++ < 3) {
+            val values = listOf(1, 2, 3)
+            log = log + values[0]
+            log = log + values[1]
+        }
+    }
+
+    fun testMultipleConcatDefect4() {
+        var logStatement = ""
+        val values = listOf("tic", "tac", "toe")
+        logStatement = logStatement + values[0]
+        logStatement += values[1] // bad 63
+    }
+
+    fun testMultipleConcatDefect5() {
+        var logStatement: String = someString();
+        val values = listOf("tic", "tac", "toe")
+        logStatement += values[0]
+        logStatement += values[1] // bad 70
+    }
+
+    private fun someString() : String {
+        return "";
+    }
+
+    private fun someInt(str: String) : Int {
+        return 0;
+    }
+}
+
+        ]]></code>
+    </test-code>
+
+</test-data>

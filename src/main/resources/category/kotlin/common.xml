@@ -292,5 +292,26 @@ class Foo {
         </example>
     </rule>
 
+    <rule name="AvoidMultipleConcatStatements" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="kotlin" message="Multiple statements concatenate to the same String. Use StringBuilder append." typeResolution="true"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#isu02">
+        <description>Multiple statements concatenate to the same String. Problem: Each statement with one or more +-operators creates a hidden temporary StringBuilder, a char[] and a new String object, which all have to be garbage collected.&#13;
+            Solution: Use StringBuilder.append.
+            (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <property name="xpath">
+                <value><![CDATA[
+//FunctionBody[count(.//Assignment[.//(AssignmentAndOperator/T-ADD_ASSIGNMENT|AdditiveOperator/T-ADD)]/(AssignableExpression|DirectlyAssignableExpression)//T-Identifier[@Text=
+    ancestor::FunctionBody//PropertyDeclaration[(Expression[not(.//Expression)][.//StringLiteral] or
+        VariableDeclaration/Type//T-Identifier[@Text='String'])]/VariableDeclaration//T-Identifier/@Text]) > 1]
+    //Statement[Assignment//(T-ADD_ASSIGNMENT|T-ADD)][position()=last()]
+	]]></value>
+            </property>
+        </properties>
+        <example>
+
+        </example>
+    </rule>
 
 </ruleset>
