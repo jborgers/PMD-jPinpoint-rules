@@ -303,9 +303,19 @@ class Foo {
             <property name="xpath">
                 <value><![CDATA[
 //FunctionBody[count(.//Assignment[.//(AssignmentAndOperator/T-ADD_ASSIGNMENT|AdditiveOperator/T-ADD)]/(AssignableExpression|DirectlyAssignableExpression)//T-Identifier[@Text=
-    ancestor::FunctionBody//PropertyDeclaration[(Expression[not(.//Expression)][.//StringLiteral] or
-        VariableDeclaration/Type//T-Identifier[@Text='String'])]/VariableDeclaration//T-Identifier/@Text]) > 1]
-    //Statement[Assignment//(T-ADD_ASSIGNMENT|T-ADD)][position()=last()]
+(: property a string literal :)
+ancestor::FunctionBody//PropertyDeclaration[(
+    Expression[not(.//Expression)]//StringLiteral or
+    (: or explicit type String:)
+    VariableDeclaration/Type//T-Identifier[@Text='String'] or
+    (: or assigned parameter of type String :)
+    Expression[.//T-Identifier[@Text = ancestor::FunctionDeclaration/FunctionValueParameters/FunctionValueParameter[Parameter/Type//T-Identifier[@Text='String']]//T-Identifier/@Text]] or
+    (: or assigned non-nested function of explicit type String :) (: limitation: ignores parameters, may give false positives with overloaded methods :)
+    Expression[.//T-Identifier[not(ancestor::CallSuffix)][@Text = ancestor::ClassMemberDeclarations//FunctionDeclaration[Type//T-Identifier[@Text='String']]//T-Identifier/@Text]]
+)]
+/VariableDeclaration//T-Identifier/@Text]) > 1]
+//Statement[Assignment//(T-ADD_ASSIGNMENT|T-ADD)][position()=last()]
+
 	]]></value>
             </property>
         </properties>

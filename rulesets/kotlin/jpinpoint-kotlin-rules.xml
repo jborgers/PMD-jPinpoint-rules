@@ -26,16 +26,15 @@
         <priority>1</priority>
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="version" value="3.1"/>
             <property name="xpath">
                 <value><![CDATA[
-(: check if java.text imports exists as filter for same named classes in other packages :)
-//ImportHeader[.//T-Identifier[@Text='java'] and .//T-Identifier[@Text='text']]/ancestor::KotlinFile
+(: check if at least one java.text imports exists as filter for same named classes in other packages :)
+//ImportHeader[.//T-Identifier[@Text='java'] and .//T-Identifier[@Text='text']][1]/ancestor::KotlinFile
 (: PrimaryExpression finds the constructors instead of type declarations :)
 (: filter matches in functions :)
 //ClassDeclaration//PrimaryExpression//SimpleIdentifier//T-Identifier[
  (@Text="DecimalFormat" or @Text="ChoiceFormat")
- and not(ancestor::FunctionDeclaration)
+ and not(ancestor::FunctionBody)
 ]
 ]]>
                 </value>
@@ -108,6 +107,92 @@ class AvoidInMemoryStreamingDefaultConstructor {
         </example>
     </rule>
 
+    <rule name="AvoidMultipleConcatStatements" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="kotlin" message="Multiple statements concatenate to the same String. Use StringBuilder append." typeResolution="true"
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#isu02">
+        <description>Multiple statements concatenate to the same String. Problem: Each statement with one or more +-operators creates a hidden temporary StringBuilder, a char[] and a new String object, which all have to be garbage collected.&#13;
+            Solution: Use StringBuilder.append.
+            (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <property name="xpath">
+                <value><![CDATA[
+//FunctionBody[count(.//Assignment[.//(AssignmentAndOperator/T-ADD_ASSIGNMENT|AdditiveOperator/T-ADD)]/(AssignableExpression|DirectlyAssignableExpression)//T-Identifier[@Text=
+(: property a string literal :)
+ancestor::FunctionBody//PropertyDeclaration[(
+    Expression[not(.//Expression)]//StringLiteral or
+    (: or explicit type String:)
+    VariableDeclaration/Type//T-Identifier[@Text='String'] or
+    (: or assigned parameter of type String :)
+    Expression[.//T-Identifier[@Text = ancestor::FunctionDeclaration/FunctionValueParameters/FunctionValueParameter[Parameter/Type//T-Identifier[@Text='String']]//T-Identifier/@Text]] or
+    (: or assigned non-nested function of explicit type String :) (: limitation: ignores parameters, may give false positives with overloaded methods :)
+    Expression[.//T-Identifier[not(ancestor::CallSuffix)][@Text = ancestor::ClassMemberDeclarations//FunctionDeclaration[Type//T-Identifier[@Text='String']]//T-Identifier/@Text]]
+)]
+/VariableDeclaration//T-Identifier/@Text]) > 1]
+//Statement[Assignment//(T-ADD_ASSIGNMENT|T-ADD)][position()=last()]
+
+	]]></value>
+            </property>
+        </properties>
+        <example>
+
+        </example>
+    </rule>
+
+    <rule name="AvoidRecompilingPatterns"
+          class="net.sourceforge.pmd.lang.rule.XPathRule"
+          dfa="false"
+          language="kotlin"
+          message="Pattern.compile is used in a method. Compiling a regex pattern can be expensive, make it a constant or instance field."
+          typeResolution="true"
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#ireu02">
+        <description>A regular expression is compiled on every invocation. Problem: this can be expensive, depending on the length of the regular expression.&#13;
+            Solution: Usually a pattern is a literal, not dynamic and can be compiled only once. Assign it to a private constant or instance field.
+            java.util.Pattern objects are thread-safe so they can be shared among threads. (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <property name="xpath">
+                <value><![CDATA[
+(: check if java.util.regex imports exists as filter for same named classes in other packages :)
+//ImportHeader[.//T-Identifier[@Text='java'] and .//T-Identifier[@Text='util'] and .//T-Identifier[@Text='regex']][1]/ancestor::KotlinFile
+
+//FunctionBody//T-Identifier[@Text='Pattern' and ../../../PostfixUnarySuffix//T-Identifier[@Text='compile']
+    (: check for variables $action or ${action} in String of compile() call (first in possible call chain): allow dynamic input :)
+    and not(((../../..//ValueArgument)[1]//PostfixUnaryExpression//T-Identifier|(../../..//ValueArgument)[1]//T-LineStrRef)[
+       @Text=ancestor::FunctionDeclaration//FunctionValueParameter/Parameter/SimpleIdentifier/T-Identifier/@Text
+       or @Text=concat('$', ancestor::FunctionDeclaration//FunctionValueParameter/Parameter/SimpleIdentifier/T-Identifier/@Text)])
+]
+]]>
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+import java.util.regex.Pattern
+
+internal object Bad {
+    const val STR_PAT1: String = "[A-Z][a-z]+"
+
+    fun bad() {
+        val p1: Pattern = Pattern.compile(STR_PAT1) // bad
+        val p2: Pattern = Pattern.compile("(?=\\p{Lu})") // bad
+        val b: Boolean = p1.matcher("Start ").matches()
+    }
+}
+
+internal object Good {
+    val PAT1: Pattern = Pattern.compile("[A-Z][a-z]+")
+    val PAT2: Pattern = Pattern.compile("(?=\\p{Lu})")
+
+    fun good() {
+        val b: Boolean = PAT1.matcher("Start ").matches()
+    }
+}
+            ]]>
+        </example>
+    </rule>
+
     <rule name="AvoidRecompilingXPathExpression" class="net.sourceforge.pmd.lang.rule.XPathRule"
           language="kotlin"
           message="XPathExpression is created and compiled every time. Beware it is thread-unsafe."
@@ -115,18 +200,17 @@ class AvoidInMemoryStreamingDefaultConstructor {
           externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#ux02">
         <description>XPathExpression is created and compiled on every method call, compiled possibly implicitly by XPath::evaluate.
             Problem: Creation of XPath and compilation of XPathExpression takes time. It may slow down your application. &#13;
-            Solution: 1. Avoid XPath usage. 2. Compile the xpath expression as String into a XPathExpression. However, since XPath and XPathExpression classes are thread-unsafe, they are not easily cached. Caching it in a ThreadLocal may be a solution (sure? - TODO) .
+            Solution: 1. Avoid XPath usage. 2. Compile the xpath expression as String into a XPathExpression. However, since XPath and XPathExpression classes are thread-unsafe, they are not easily cached. Caching it in a ThreadLocal may be a solution.
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
 //ImportHeader[.//T-Identifier[@Text='javax'] and .//T-Identifier[@Text='xml'] and .//T-Identifier[@Text='xpath']]/ancestor::KotlinFile
 //FunctionBody//T-Identifier[@Text='newXPath']
 /ancestor::FunctionBody//T-Identifier[@Text='compile'
-or @Text='evaluate' and ancestor::PostfixUnarySuffix/..//ValueArguments[count(./ValueArgument) = 3]]
+or (@Text='evaluate' and ancestor::PostfixUnarySuffix/..//ValueArguments[count(./ValueArgument) = 3])]
 (: note on limitation, the 2-argument version is not found, difficult to do the typeIs checking like in Java :)
 ]]></value>
             </property>
@@ -151,8 +235,69 @@ class AvoidRecompilingXPathExpressionKotlin {
         return xpath.evaluate(xPathQuery, doc, XPathConstants.NODESET) as NodeList // bad
     }
 }
-// TODO Good example
+
+object GoodAvoidRecompilingXPathExpressionKt {
+    private val tlFac = ThreadLocal.withInitial { XPathFactory.newInstance() }
+    private val tlExpr: ThreadLocal<XPathExpression>
+
+    init {
+        val xpath = tlFac.get().newXPath()
+        val expr: XPathExpression = try {
+            xpath.compile("//book[author='Isaac Asimov']/title/text()")
+        } catch (e: XPathExpressionException) {
+            throw RuntimeException(e)
+        }
+        tlExpr = ThreadLocal.withInitial { expr } // good
+    }
+
+    @Throws(XPathExpressionException::class)
+    fun good(doc: Document?): NodeList {
+        return tlExpr!!.get().evaluate(doc, XPathConstants.NODESET) as NodeList // good
+    }
+}
             ]]>
+        </example>
+    </rule>
+
+    <rule name="AvoidSimpleDateFormat"
+          class="net.sourceforge.pmd.lang.rule.XPathRule"
+          dfa="false"
+          language="kotlin"
+          message="SimpleDateFormat is used. Since it is thread-unsafe, it needs expensive recreation."
+          typeResolution="true"
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#idtf01">
+        <description>Problem: java.util.SimpleDateFormat is thread-unsafe. The usual solution is to create a new one when needed in a method. Creating SimpleDateFormat is relatively expensive. &#13;
+            Solution: Use java.time.DateTimeFormatter. These classes are immutable, thus thread-safe and can be made static.
+            (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <property name="version" value="3.1"/>
+            <property name="xpath">
+                <value><![CDATA[
+(: check if java.text imports exists as filter for same named classes in other packages :)
+//ImportHeader[.//T-Identifier[@Text='java'] and .//T-Identifier[@Text='text']][1]/../..
+
+(: if used in setDateFormat function, allow if jackson ObjectMapper or XmlMapper is used :)
+//ClassMemberDeclaration//SimpleIdentifier//T-Identifier[(@Text="SimpleDateFormat")
+  and not (ancestor::ClassMemberDeclaration//T-Identifier[@Text="setDateFormat"]
+              and //ImportHeader[.//T-Identifier[@Text='fasterxml'] and .//T-Identifier[@Text='jackson']]
+          )
+]
+                ]]></value>
+            </property>
+        </properties>
+        <example><![CDATA[
+import java.text.SimpleDateFormat
+import java.util.*
+
+class Foo {
+    private fun toKey(calcDate: Date): String {
+        val formatter = SimpleDateFormat("yyyy-MM-dd") //bad
+        return formatter.format(calcDate)
+    }
+}
+]]>
         </example>
     </rule>
 
@@ -203,6 +348,7 @@ class AvoidStringBuffer {
         <priority>3</priority>
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <property name="version" value="3.1"/>
             <property name="xpath">
                 <value><![CDATA[
 //ImportHeader[starts-with(@joinTokenText, 'importcom.netflix.hystrix')]
@@ -229,6 +375,7 @@ class AvoidStringBuffer {
         <priority>2</priority>
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <property name="version" value="3.1"/>
             <property name="xpath">
                 <value><![CDATA[
 (:locally created http client builder without disableConnectionState :)
