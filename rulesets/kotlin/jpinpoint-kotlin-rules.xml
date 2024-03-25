@@ -125,7 +125,7 @@ ancestor::FunctionBody//PropertyDeclaration[(
     VariableDeclaration/Type//T-Identifier[@Text='String'] or
     (: or assigned parameter of type String :)
     Expression[.//T-Identifier[@Text = ancestor::FunctionDeclaration/FunctionValueParameters/FunctionValueParameter[Parameter/Type//T-Identifier[@Text='String']]//T-Identifier/@Text]] or
-    (: or assigned non-nested function of explicit type String :) (: limitation: ignores parameters, may give false positives with overloaded methods :)
+    (: or assigned non-nested function of explicit type String :) (: known issue: ignores parameters, may give false positives with overloaded methods :)
     Expression[.//T-Identifier[not(ancestor::CallSuffix)][@Text = ancestor::ClassMemberDeclarations//FunctionDeclaration[Type//T-Identifier[@Text='String']]//T-Identifier/@Text]]
 )]
 /VariableDeclaration//T-Identifier/@Text]) > 1]
