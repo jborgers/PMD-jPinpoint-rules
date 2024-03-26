@@ -23,6 +23,7 @@ Documentation of the rules are here:
 PMD-jPinpoint-rules is licensed under the [Apache License, Version 2.0](https://github.com/jborgers/pmd-jpinpoint-rules/blob/master/LICENSE.md).
 
 ## See also
+- How Bol uses the jPinpoint rules: [How to prevent common performance defects with the jPinpoint PMD rules](https://techlab.bol.com/en/blog/how-to-prevent-common-performance-defects-with-the-jpinpoint-pmd-rules/)
 - Jeroen Borgers presented at J-Fall Virtual 2020: [Fixing your performance and concurrency bugs before they bite you](https://youtu.be/Z_sT38KTRNk)
 - Jeroen Borgers presented at Amsterdam JUG about the why, what and how of these code checking rules: [Performance problem prevention](https://www.meetup.com/nl-NL/Amsterdam-Java-User-Group/events/256497068/)
 | [slides](http://jpinpoint.com/resources/Automated-and-learning-performance-problem-prevention-AMS-JUG.pdf)
