@@ -215,4 +215,24 @@ public class Tryout {
 }
      ]]></code>
     </test-code>
+
+    <test-code>
+        <description>violation: Avoid sql in expressions with multiple params, no processing error, issue #302</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>6</expected-linenumbers>
+        <code><![CDATA[
+import javax.persistence.TypedQuery;
+
+public class PmdProcessingError {
+    void example() {
+        String number = "", kinds = "";
+        String queryStr = "SELECT M FROM MessageEntity m WHERE m.kind IN :kinds"; // bad
+        final TypedQuery<Object> query = null;
+        query.setParameter("num", number);
+        query.setParameter("kinds", kinds);
+    }
+}
+     ]]></code>
+    </test-code>
+
 </test-data>
