@@ -5857,17 +5857,14 @@ count(.//PrimaryExpression/PrimaryPrefix/Name[ends-with(@Image, '.getSingleResul
 /../MemberValue//PrimaryExpression/PrimaryPrefix/Literal[contains(@Image, 'WHERE') and
 (contains(@Image, ' IN(:') or contains(@Image, ' IN (:') or contains(@Image, ' IN :') or contains(@Image, ' IN ( :')) ]
 |
-//LocalVariableDeclaration/VariableDeclarator/VariableInitializer//PrimaryPrefix[Literal[contains(@Image, ' IN') and contains(@Image, ':')]
-and starts-with(Literal[(contains(@Image, ' IN') and contains(@Image, ':'))]/
-substring-after(substring-after(@Image, ' IN'), ':')
-,
+//LocalVariableDeclaration/VariableDeclarator/VariableInitializer//PrimaryPrefix/Literal[
+contains(@Image, ' IN') and contains(@Image, ':')]
+[replace(@Image, '^.+\s+(IN|in)[\s\(]*:([A-z0-9_]+).*$', '"$2"')
+=
 ancestor::MethodDeclaration//BlockStatement//PrimaryPrefix/Name[ends-with(@Image, '.setParameter')]
-/../../PrimarySuffix/Arguments/ArgumentList[Expression/PrimaryExpression/PrimaryPrefix/Name[@Image != 'Arrays.asList']]/Expression/PrimaryExpression/PrimaryPrefix/Literal/substring-before(substring-after(@Image, '"'),'"'))
-and
-ancestor::MethodDeclaration//BlockStatement//PrimaryPrefix/Name[ends-with(@Image, '.setParameter')]
-/../../PrimarySuffix/Arguments/ArgumentList/Expression/PrimaryExpression/PrimaryPrefix/Name[@Image != 'Arrays.asList']
-]
-,
+(: Arrays.asList is typically used with just a few parameter values, so no problem :)
+/../../PrimarySuffix/Arguments/ArgumentList[Expression/PrimaryExpression/PrimaryPrefix/Name[@Image != 'Arrays.asList']]
+/Expression/PrimaryExpression/PrimaryPrefix/Literal/@Image],
 (: Criteria API: cust.get("postalCode").in(codes) :)
 //PrimaryExpression/PrimaryPrefix[pmd-java:typeIs('javax.persistence.criteria.Root')]/..//PrimarySuffix//ArgumentList/ancestor::Expression//PrimarySuffix[@Image='in']
 ,
