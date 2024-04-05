@@ -263,7 +263,6 @@ object GoodAvoidRecompilingXPathExpressionKt {
         <priority>2</priority>
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="version" value="3.1"/>
             <property name="xpath">
                 <value><![CDATA[
 (: check if java.text imports exists as filter for same named classes in other packages :)
@@ -304,7 +303,6 @@ class Foo {
         <priority>2</priority>
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="version" value="3.1"/>
             <property name="xpath">
                 <value>
                     <![CDATA[
@@ -324,24 +322,6 @@ class Foo {
 ]
 ]]>
                 </value>
-<!--                <value>-->
-<!--                    <![CDATA[-->
-<!--    //FieldDeclaration[@Final=false()]//ReferenceType/ClassOrInterfaceType[pmd-java:typeIs('org.joda.time.format.DateTimeFormatter') or pmd-java:typeIs('org.threeten.bp.format.DateTimeFormatter') or pmd-java:typeIs('java.time.format.DateTimeFormatter')],-->
-<!--    //FieldDeclaration[@Final=true() and @Static=false()]//ReferenceType/ClassOrInterfaceType[pmd-java:typeIs('org.joda.time.format.DateTimeFormatter') or pmd-java:typeIs('org.threeten.bp.format.DateTimeFormatter') or pmd-java:typeIs('java.time.format.DateTimeFormatter')](: has assignment, otherwise check in constructor :)[ancestor::ClassOrInterfaceBodyDeclaration//VariableInitializer],-->
-<!--    //ConstructorDeclaration/BlockStatement//Expression/PrimaryExpression/PrimaryPrefix/Name[ends-with(@Image, 'DateTimeFormat.forPattern')]-->
-<!--(: check if parameter is argument of constructor call :)[not(ancestor::BlockStatement//Expression/PrimaryExpression/PrimarySuffix/Arguments/ArgumentList/Expression/PrimaryExpression/PrimaryPrefix/Name/@Image=ancestor::ConstructorDeclaration//PrimarySuffix/Arguments/ArgumentList/Expression/PrimaryExpression/PrimaryPrefix/Name/@Image)],-->
-<!--    //MethodDeclaration/Block/BlockStatement//Expression//AllocationExpression/ClassOrInterfaceType[pmd-java:typeIs('org.joda.time.format.DateTimeFormatter') or pmd-java:typeIs('org.threeten.bp.format.DateTimeFormatter') or pmd-java:typeIs('java.time.format.DateTimeFormatter')],-->
-<!--    //MethodDeclaration/Block/BlockStatement//VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/Name[ends-with(@Image, 'DateTimeFormatter.ofPattern')]-->
-<!--(: check if parameter is argument of method call :)[not(ancestor::LocalVariableDeclaration//PrimarySuffix/Arguments/ArgumentList/Expression/PrimaryExpression/PrimaryPrefix/Name/@Image=-->
-<!--ancestor::MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter/VariableDeclaratorId/@Name)],-->
-<!--    //MethodDeclaration/Block/BlockStatement//Expression/PrimaryExpression/PrimaryPrefix/Name[contains(@Image, 'ISODateTimeFormat.')],-->
-<!--    //MethodDeclaration/Block/BlockStatement//Expression/PrimaryExpression/PrimaryPrefix/Name[contains(@Image, 'DateTimeFormat.fullDateTime')],-->
-<!--    //MethodDeclaration/Block/BlockStatement//Expression/PrimaryExpression/PrimaryPrefix/Name[ends-with(@Image, 'DateTimeFormat.forPattern')]-->
-<!--(: check if parameter is argument of method call :)[not(ancestor::LocalVariableDeclaration//PrimarySuffix/Arguments/ArgumentList/Expression/PrimaryExpression/PrimaryPrefix/Name/@Image=-->
-<!--ancestor::MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter/VariableDeclaratorId/@Name)],-->
-<!--    //MethodDeclaration/Block/BlockStatement//Expression//AllocationExpression/ClassOrInterfaceType[pmd-java:typeIs('org.joda.time.format.DateTimeFormatterBuilder')][ancestor::PrimaryExpression/PrimarySuffix[@Image="toFormatter"]]-->
-<!--                   ]]>-->
-<!--                </value>-->
             </property>
         </properties>
     </rule>
