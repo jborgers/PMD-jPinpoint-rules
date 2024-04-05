@@ -311,8 +311,18 @@ class Foo {
 (: check if java.text imports exists as filter for same named classes in other packages :)
 //ImportHeader[.//T-Identifier[@Text='org'] and .//T-Identifier[@Text='joda'] and .//T-Identifier[@Text='time'] and .//T-Identifier[@Text='format']][1]/ancestor::KotlinFile
 
-/TopLevelObject//T-Identifier[@Text='DateTimeFormatter' and (not(ancestor::PropertyDeclaration/T-VAL) or (ancestor::PropertyDeclaration/T-VAL and not(ancestor::CompanionObject))) and not(ancestor::Statement//T-NullLiteral) and not (ancestor::FunctionDeclartion/Type)]
-                    ]]>
+/TopLevelObject//Expression//T-Identifier[
+    (@Text='DateTimeFormatter' or @Text='DateTimeFormat' or @Text='DateTimeFormatterBuilder' or @Text='ISODateTimeFormat')
+     (: val is "final" and is allowed in CompanionObject :)
+     and (not(ancestor::PropertyDeclaration/T-VAL) or (ancestor::PropertyDeclaration/T-VAL and not(ancestor::CompanionObject)))
+     (: do not match explicit type declarations :)
+     and not(ancestor::TypeReference)
+     (: variable params are allowed, e.g. when it is an incoming function param :)
+     and not(ancestor::PrefixUnaryExpression//ValueArgument[.//T-Identifier[@Text = ancestor::FunctionDeclaration/FunctionValueParameters/FunctionValueParameter[Parameter/Type//T-Identifier[@Text='String']]//T-Identifier/@Text]])
+     (: variable params are allowed in field init in constructors if val :)
+     and (not(ancestor::PrefixUnaryExpression//ValueArgument[.//T-Identifier[@Text = ancestor::Declaration//ClassParameter[Type//T-Identifier[@Text='String']]//T-Identifier/@Text] and (ancestor::ClassMemberDeclaration//PropertyDeclaration/T-VAL)]))
+]
+]]>
                 </value>
 <!--                <value>-->
 <!--                    <![CDATA[-->

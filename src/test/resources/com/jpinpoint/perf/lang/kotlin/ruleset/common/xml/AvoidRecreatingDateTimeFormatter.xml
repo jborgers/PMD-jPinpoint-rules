@@ -81,19 +81,25 @@ class Foo {
 ]]></code>
     </test-code>
     <test-code>
-        <description>Avoid recreation of DateTimeFormatter object. But allow in constructor if member variable is final.</description>
+        <description>Avoid recreation of DateTimeFormatter object. But allow in constructor if member variable is val.</description>
         <expected-problems>3</expected-problems>
-        <expected-linenumbers>7,8,9</expected-linenumbers>
+        <expected-linenumbers>13,14,15</expected-linenumbers>
         <code><![CDATA[
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.format.DateTimeFormatter
+import org.joda.time.format.DateTimeFormatterBuilder
 
 class Foo(pattern: String?) {
+
+    companion object {
+        private val ok2 = DateTimeFormat.forPattern("YY-MM-hh")
+    }
+
     private val ok: DateTimeFormatter = DateTimeFormat.forPattern(pattern)
     private val notok: DateTimeFormatter =
         DateTimeFormat.forPattern("YY-MM-hh") // bad
-    private val notok2: DateTimeFormatter = DateTimeFormat.forPattern("YY-MM-hh") // bad (should be static)
-    private val notok3: DateTimeFormatter? = null
+    private val notok2: DateTimeFormatter = DateTimeFormat.forPattern("YY-MM-hh") // bad (should be in companion object)
+    private var notok3 = DateTimeFormatterBuilder().appendPattern(pattern).toFormatter() // bad (should be val)
 }
      ]]></code>
     </test-code>
