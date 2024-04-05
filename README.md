@@ -8,7 +8,7 @@ To get apps which are faster, use less resources, have a smaller ecological foot
 We have distilled these code checks from what we learned in several years of analyzing performance problems and failures found in code, tests and production situations. And the ruleset is growing every month.
 
 We didn't find these checks in other places, like the standard PMD, FindBugs/Spotbugs, Checkstyle or Sonar rules.
-We are are working with the PMD-team to move some of the jpinpoint rules in the standard rule set, as well as make PMD suitable for Kotlin.
+We are working with the PMD-team to move some of the jpinpoint rules in the standard rule set, as well as make PMD suitable for Kotlin.
 
 Run the jPinpoint rules from the command-line using the PMD tool, from your favorite development
 environment with a PMD-plugin, or in SonarQube after packaging them as [Sonar custom plugin](https://github.com/jborgers/sonar-pmd-custom) 
