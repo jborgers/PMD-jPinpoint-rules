@@ -2,7 +2,7 @@
 Java Data Access Performance - performance pitfalls and best practices
 ===================================================================
 
-By Jeroen Borgers ([jPinpoint](www.jpinpoint.com)) and Peter Paul Bakker ([Stokpop](www.stokpop.com)), sponsored by Rabobank
+By Jeroen Borgers ([jPinpoint](https://www.jpinpoint.com)) and Peter Paul Bakker ([Stokpop](https://www.stokpop.com)), sponsored by Rabobank
 
 # Table of contents
 
@@ -275,7 +275,7 @@ You can set the value for a whole persistence unit to a new default value with O
 
 #### JDBC details
 
-See [Javadoc](http://docs.oracle.com/javase/7/docs/api/java/sql/Statement.html#setMaxRows(int)). Example:
+See [Javadoc](https://docs.oracle.com/en%2Fjava%2Fjavase%2F11%2Fdocs%2Fapi%2F%2F/java.sql/java/sql/Statement.html#setMaxRows(int)). Example:
 ````java
  prepStmt.setMaxRows(25);
 ````

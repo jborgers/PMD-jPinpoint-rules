@@ -8,7 +8,7 @@ To get apps which are faster, use less resources, have a smaller ecological foot
 We have distilled these code checks from what we learned in several years of analyzing performance problems and failures found in code, tests and production situations. And the ruleset is growing every month.
 
 We didn't find these checks in other places, like the standard PMD, FindBugs/Spotbugs, Checkstyle or Sonar rules.
-We are are working with the PMD-team to move some of the jpinpoint rules in the standard rule set, as well as make PMD suitable for Kotlin.
+We are working with the PMD-team to move some of the jpinpoint rules in the standard rule set, as well as make PMD suitable for Kotlin.
 
 Run the jPinpoint rules from the command-line using the PMD tool, from your favorite development
 environment with a PMD-plugin, or in SonarQube after packaging them as [Sonar custom plugin](https://github.com/jborgers/sonar-pmd-custom) 
@@ -23,6 +23,7 @@ Documentation of the rules are here:
 PMD-jPinpoint-rules is licensed under the [Apache License, Version 2.0](https://github.com/jborgers/pmd-jpinpoint-rules/blob/master/LICENSE.md).
 
 ## See also
+- How Bol uses the jPinpoint rules: [How to prevent common performance defects with the jPinpoint PMD rules](https://techlab.bol.com/en/blog/how-to-prevent-common-performance-defects-with-the-jpinpoint-pmd-rules/)
 - Jeroen Borgers presented at J-Fall Virtual 2020: [Fixing your performance and concurrency bugs before they bite you](https://youtu.be/Z_sT38KTRNk)
 - Jeroen Borgers presented at Amsterdam JUG about the why, what and how of these code checking rules: [Performance problem prevention](https://www.meetup.com/nl-NL/Amsterdam-Java-User-Group/events/256497068/)
 | [slides](http://jpinpoint.com/resources/Automated-and-learning-performance-problem-prevention-AMS-JUG.pdf)
@@ -31,10 +32,10 @@ PMD-jPinpoint-rules is licensed under the [Apache License, Version 2.0](https://
 
 To use the ruleset you can install: 
 
-- the PMD tool from [PMD project at github](https://pmd.github.io/) and/or
+- the PMD command line tool from [PMD project at github](https://pmd.github.io/) and/or
 - the PMDPlugin in you development environment. 
 
-## PMD tool
+## PMD command line tool
 
 After installing the tool you can run `pmd.sh` or `pmd.bat` similar to the following
 
@@ -43,20 +44,23 @@ After installing the tool you can run `pmd.sh` or `pmd.bat` similar to the follo
         -d $your-project-src \
         -f text
 
-## IntelliJ IDEA
+## IntelliJ IDEA with PMD Plugin
 
 - You need a recent version of IntelliJ. The Community Edition is fine.
 - Install PMDPlugin: 
 
       Settings/Preferences > Plugins > Browse Repositories > Search 'PMD' > Select 'PMD' > Install > Close > OK > Restart
 
-- Configure (add) the ruleset from this repo: *rulesets/java/jpinpoint-rules.xml*:
+- Next, configure (add) the ruleset from this repo by URL to always be up-to-date: 
 
-      Settings/Preferences > Other Settings > PMD > RuleSets 
-- To be up-to-date instead of a local copy, use the URL: 
+      Settings/Preferences > Other Settings > PMD > RuleSets
+  
+- Add:
 
-    https://raw.githubusercontent.com/jborgers/PMD-jPinpoint-rules/master/rulesets/java/jpinpoint-rules.xml
+      https://raw.githubusercontent.com/jborgers/PMD-jPinpoint-rules/master/rulesets/java/jpinpoint-rules.xml
 
+- Alternatively, download and add your local copy: *rulesets/java/jpinpoint-rules.xml*
+  
 - Options tab: check 'Skip Test Sources' and set your Java version 
 
 - You can now perform the code checks using [right-click] on a folder or a file and choose:
@@ -67,14 +71,14 @@ After installing the tool you can run `pmd.sh` or `pmd.bat` similar to the follo
 
 - If you want more details on a violation: right click and choose 'Details' to get to the documentation page with problem and solution details.
 
-## Eclipse
+## Eclipse with PMD Plugin
 
 The Acanda PMD plugin seems to be the best one to use. 
 - [Import it into eclipse](http://www.acanda.ch/eclipse-pmd/release/latest).
 - enable PMD through the properties of the project
 - add the ruleset from this project *rulesets/java/jpinpoint-rules.xml*
 
-## SonarQube
+## SonarQube with Plugins
 In SonarQube, you need to install [sonar-pmd plugin](https://github.com/jborgers/sonar-pmd) from the market place, and [sonar-pmd-custom plugin](https://github.com/jborgers/sonar-pmd-custom) for these custom rules.
 
 # Development

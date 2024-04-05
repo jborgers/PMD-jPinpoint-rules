@@ -378,13 +378,16 @@ class Good {
     private static final ThreadLocal<XPathExpression> tlExpr;
     static {
         XPath xpath = tlFac.get().newXPath();
-        XPathExpression expr = xpath.compile("//book[author='Isaac Asimov']/title/text()"); // good
-        tlExpr = ThreadLocal.withInitial(expr); // good
+        try {
+            XPathExpression expr = xpath.compile("//book[author='Isaac Asimov']/title/text()");
+            tlExpr = ThreadLocal.withInitial(() -> expr); // good
+        } catch (XPathExpressionException e) {
+            throw new RuntimeException(e);
+        }
     }
-    public static NodeList good(Document doc) {
-        return tlExpr.get().evaluate(doc, XPathConstants.NODESET); // good
+    public static NodeList good(Document doc) throws XPathExpressionException {
+        return (NodeList) tlExpr.get().evaluate(doc, XPathConstants.NODESET); // good
     }
-}
             ]]>
         </example>
 
@@ -397,7 +400,7 @@ class Good {
           typeResolution="true" externalInfoUrl="${doc_root}/JavaCodePerformance.md#idtf02">
         <description>
             Problem: Recreating a DateTimeFormatter is relatively expensive.&#13;
-            Solution: org.joda.time.format.DateTimeFormatter or Java 8 java.time.DateTimeFormatter is thread-safe and can be shared among threads. Create the
+            Solution: Java 8+ java.time.DateTimeFormatter is thread-safe and can be shared among threads. Create the
             formatter from a pattern only once, to initialize a static final field.
             (jpinpoint-rules)</description>
         <priority>2</priority>
@@ -1307,7 +1310,7 @@ class Bad {
           typeResolution="true"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#imu01">
         <description>Problem: A Calendar is a heavyweight object and expensive to create. &#13;
-            Solution: Use Date, Java 8+ java.time.[Local/Zoned]DateTime or joda time [Local]DateTime.
+            Solution: Use Date, Java 8+ java.time.[Local/Zoned]DateTime.
         </description>
         <priority>3</priority>
         <properties>

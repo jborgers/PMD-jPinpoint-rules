@@ -6,10 +6,9 @@
     <test-code>
         <description>EnsureProperCacheableParams</description>
         <expected-problems>2</expected-problems>
-        <expected-linenumbers>13, 17</expected-linenumbers>
+        <expected-linenumbers>12, 16</expected-linenumbers>
         <code><![CDATA[
 import org.springframework.cache.annotation.Cacheable;
-//import org.joda.time.*;
 import java.time.*;
 import java.lang.*;
 import java.util.*;
@@ -40,7 +39,7 @@ class Foo {
         return service.getData();
     }
     @Cacheable(value = "myCache", keyGenerator = "myGenerator")
-    public String getDataGood5(org.joda.time.LocalDate date) {
+    public String getDataGood5(LocalDate date) {
         return service.getData();
     }
 }

@@ -1,7 +1,7 @@
 
 Java code quality - pitfalls and best practices
 =============================================
-By Jeroen Borgers ([jPinpoint](http://www.jpinpoint.com)) and Peter Paul Bakker ([Stokpop](http://www.stokpop.com)), sponsored by Rabobank
+By Jeroen Borgers ([jPinpoint](https://www.jpinpoint.com)) and Peter Paul Bakker ([Stokpop](https://www.stokpop.com)), sponsored by Rabobank
 
 # Table of contents
 
@@ -15,7 +15,7 @@ By Jeroen Borgers ([jPinpoint](http://www.jpinpoint.com)) and Peter Paul Bakker 
 - [Maintainability](#maintainability)
 - [Improved Sonar rules](#improved-sonar-rules)
 
-Introduction 
+Introduction
 ------------
 We categorized many performance and quality issues based on performance code reviews, load tests, heap analyses, profiling and production problems of various applications. Several of these items are automated into PMD-jPinpoint-rules code checks.
 The next items do have performance implications. However, they are actually more concerning general software quality or security.   
@@ -26,7 +26,7 @@ Improper use of BigDecimal
 
 #### IUOB01
 
-**Observation: the constructor BigDecimal(double) is used.** [This constructor (javadoc)](http://docs.oracle.com/javase/6/docs/api/java/math/BigDecimal.html#BigDecimal%28double%29) 
+**Observation: the constructor BigDecimal(double) is used.** [This constructor (javadoc)](https://docs.oracle.com/en%2Fjava%2Fjavase%2F11%2Fdocs%2Fapi%2F%2F/java.base/java/math/BigDecimal.html#%3Cinit%3E(double)) 
 
 ```
 translates a double into a BigDecimal which is the exact decimal representation of the double's binary floating-point value.  

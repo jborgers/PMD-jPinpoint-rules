@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>AvoidRecompilingXPathExpression</description>
+        <expected-problems>2</expected-problems>
+        <expected-linenumbers>8, 16</expected-linenumbers>
+        <code><![CDATA[
+import org.w3c.dom.Document
+import org.w3c.dom.NodeList
+import javax.xml.xpath.*
+
+class AvoidRecompilingXPathExpressionKotlin {
+    fun bad1(doc: Document?): NodeList {
+        val xpath: XPath = XPathFactory.newInstance().newXPath()
+        val expr: XPathExpression = xpath.compile("//book[author='Isaac Asimov']/title/text()") // bad
+        return expr.evaluate(doc, XPathConstants.NODESET) as NodeList
+    }
+
+    @Throws(XPathExpressionException::class)
+    fun bad2(doc: Document?): NodeList {
+        val xpath: XPath = XPathFactory.newInstance().newXPath()
+        val xPathQuery = "//book[author='Isaac Asimov']/title/text()"
+        return xpath.evaluate(xPathQuery, doc, XPathConstants.NODESET) as NodeList // bad
+    }
+}
+
+object GoodAvoidRecompilingXPathExpressionKt {
+    private val tlFac = ThreadLocal.withInitial { XPathFactory.newInstance() }
+    private val tlExpr: ThreadLocal<XPathExpression>
+
+    init {
+        val xpath = tlFac.get().newXPath()
+        val expr: XPathExpression = try {
+            xpath.compile("//book[author='Isaac Asimov']/title/text()")
+        } catch (e: XPathExpressionException) {
+            throw RuntimeException(e)
+        }
+        tlExpr = ThreadLocal.withInitial { expr } // good
+    }
+
+    @Throws(XPathExpressionException::class)
+    fun good(doc: Document?): NodeList {
+        return tlExpr!!.get().evaluate(doc, XPathConstants.NODESET) as NodeList // good
+    }
+}
+]]></code>
+    </test-code>
+
+</test-data>

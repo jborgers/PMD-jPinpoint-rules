@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>violation: Avoid recompiling patterns</description>
+        <expected-problems>3</expected-problems>
+        <expected-linenumbers>5,12,13</expected-linenumbers>
+        <code><![CDATA[
+import java.util.regex.Pattern
+
+class Foo {
+    fun createNameFromAction(action: String?) {
+        val p = Pattern.compile("(?=\\p{Lu})") // bad
+    }
+
+    companion object {
+        const val PATTERN: String = "^\\s*%s=(.*)"
+
+        fun methodBad(action: String?) {
+            val p = Pattern.compile("(?=\\p{Lu})") // bad: violation, should not be inside method, make static final
+            val s = Pattern.compile(PATTERN) // bad: violation
+        }
+    }
+}
+    ]]></code>
+    </test-code>
+    <test-code>
+        <description>no violation: Avoid recompiling patterns</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Pattern;
+
+object Bar {
+    const val PATTERN: String = "^\\s*%s=(.*)"
+
+    fun createEventNameFromAction(action: String): List<*> {
+        val q1 = Pattern.compile("($action?=\\p{Lu})") // ok, dynamic -- TODO make function for this?
+        val q2 = Pattern.compile("(" + action + "?=\\p{Lu})") // ok, dynamic
+        val q3 = Pattern.compile("(${action}?=\\p{Lu})") // ok, dynamic
+        val r = Pattern.compile(String.format(PATTERN, action)) // ok, dynamic
+        val t = Pattern.compile(action) // dynamic, so ok (fix for JPCC-63)
+
+        val actionSplit = q.split(action) // ok
+        val list: MutableList<Array<String>> = ArrayList()
+        list.add(actionSplit)
+        return list
+    }
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>no violation: Avoid recompiling patterns, other compile</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+class GoodHere {
+    fun otherCompile() {
+        MyCompiler.compile("stuff")
+    }
+}
+
+internal object MyCompiler {
+    fun compile(s: String?) {
+    }
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>violation: Avoid recompiling patterns, with chained operations, issue #180</description>
+        <expected-problems>2</expected-problems>
+        <expected-linenumbers>5,10</expected-linenumbers>
+        <code><![CDATA[
+import java.util.regex.Pattern;
+
+class Foo {
+    private fun isAmountAllowed(amount: String): Boolean {
+        return LIMIT > Pattern.compile(SEP).matcher(amount).replaceAll("").length() // bad
+    }
+
+    private val isAmountAllowed2: Boolean
+        get() {
+            val bla: String = Pattern.compile("[.|,]").matcher("5.000,00").replaceAll("") // bad
+            val b = (11 > bla.length)
+            return b
+        }
+
+    companion object {
+        private const val LIMIT = 11
+        private const val SEP = "[.|,]"
+    }
+}
+     ]]></code>
+    </test-code>
+
+</test-data>
