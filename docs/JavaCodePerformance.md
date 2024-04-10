@@ -1884,6 +1884,14 @@ MDC.remove("UserId");
 **Solution:** Create the log argument conditionally on the log level, within an if statement. For just 'obj.toString()', just pass 'obj' to the log method and leave it to SLF4J to call toString() only if needed. See IL02 for a nice solution using a lambda.   
 **Rule name:** UnconditionalCreatedLogArguments   
 
+#### IL07
+
+**Observation: Logging configuration uses location information (%L or %line, %M or %method, %C or %class, %F or %file, %l or %location).**   
+**Problem:** Getting location information of a log statement requires taking a snapshot of the stack and walking the stack trace, which is expensive.
+Note: It is especially expensive for asynchronous loggers.   
+**Solution:** Only use location information in debug or error logging.   
+**See:** [logback.layouts#method](https://logback.qos.ch/manual/layouts.html#method) and [log4j2 Layouts](https://logging.apache.org/log4j/2.x/manual/layouts.html#LocationInformation)   
+
 Improper Streaming I/O
 ----------------------
 
