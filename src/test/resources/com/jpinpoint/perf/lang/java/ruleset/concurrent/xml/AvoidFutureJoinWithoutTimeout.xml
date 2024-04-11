@@ -139,4 +139,46 @@ public class Bar {
 }
 ]]></code>
     </test-code>
+
+    <test-code>
+        <description>Avoid Future Join Without Timeout, missed case get after join #300</description>
+        <expected-problems>2</expected-problems>
+        <expected-linenumbers>8, 29</expected-linenumbers>
+        <code><![CDATA[
+import java.util.*;
+import java.util.concurrent.*;
+class Issue300 {
+    public void getUserDetail1Bad(String userId) {
+        CompletableFuture<Optional<String>> firstCompletableFuture = firstService.getFirst(userId);
+        CompletableFuture<Optional<String>> secondCompletableFuture = secondService.getSecond(userId);
+
+        CompletableFuture.allOf(firstCompletableFuture, secondCompletableFuture).join(); // bad 8
+
+        Optional<String> userProfile = firstCompletableFuture.get(COMPLETABLE_FUTURE_TIMEOUT_IN_MS, TimeUnit.MILLISECONDS);
+        Optional<String> userAccounts = secondCompletableFuture.get(COMPLETABLE_FUTURE_TIMEOUT_IN_MS, TimeUnit.MILLISECONDS);
+    }
+    public void getUserDetail2Ok(String userId) {
+        CompletableFuture<Optional<String>> firstCompletableFuture = firstService.getFirst(userId);
+        CompletableFuture<Optional<String>> secondCompletableFuture = secondService.getSecond(userId);
+
+        Optional<String> userProfile = firstCompletableFuture.get(COMPLETABLE_FUTURE_TIMEOUT_IN_MS, TimeUnit.MILLISECONDS);
+        Optional<String> userAccounts = secondCompletableFuture.get(COMPLETABLE_FUTURE_TIMEOUT_IN_MS, TimeUnit.MILLISECONDS);
+
+       CompletableFuture.allOf(firstCompletableFuture, secondCompletableFuture).join(); //  ok
+    }
+    public void getUserDetail3Bad(String userId) {
+        CompletableFuture<Optional<String>> firstCompletableFuture = firstService.getFirst(userId);
+        CompletableFuture<Optional<String>> secondCompletableFuture = secondService.getSecond(userId);
+
+        Optional<String> userProfile = firstCompletableFuture.get();
+        Optional<String> userAccounts = secondCompletableFuture.get();
+
+       CompletableFuture.allOf(firstCompletableFuture, secondCompletableFuture).join(); //  bad 29
+    }
+}
+
+
+]]></code>
+    </test-code>
+
 </test-data>
