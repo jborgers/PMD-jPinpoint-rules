@@ -469,4 +469,89 @@ class FooGood {
         </example>
     </rule>
 
+    <rule name="AvoidImplicitlyRecompilingRegex"
+          class="net.sourceforge.pmd.lang.rule.XPathRule"
+          dfa="false"
+          language="kotlin"
+          message="String regex method, Pattern.matches or FileSystem.getPathMatcher is used. Implicitly compiles a regex pattern, can be expensive."
+          typeResolution="true"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ireu01">
+        <description>A regular expression is compiled implicitly on every invocation. Problem: this can be expensive, depending on the length of the regular expression.&#13;
+            Solution: Compile the regex pattern only once and assign it to a private static final Pattern field. java.util.Pattern objects are thread-safe so they can be shared among threads.
+            (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <property name="xpath">
+                <value><![CDATA[
+(//MethodDeclaration//(PrimaryPrefix/Name[ends-with(@Image, '.replaceAll') or ends-with(@Image, '.replaceFirst') or @Image='Pattern.matches']
+|PrimarySuffix[@Image = 'replaceAll' or ends-with(@Image, '.replaceFirst')])
+/following::PrimarySuffix[1]/Arguments[ArgumentList/@Size=2]//Expression[1]//PrimaryPrefix[
+Literal[string-length(@Image) > 5 and
+(matches(@Image, '[\.\$\|\(\)\[\]\{\}\^\?\*\+\\]+'))] or Name
+and not(../PrimarySuffix)
+and not (
+Name/@Image=ancestor::MethodDeclaration//VariableDeclaratorId/@Name)
+and not (
+Name[@Image=ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration/VariableDeclarator[
+VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/Literal[string-length(@Image) < 6 or not
+(matches(@Image, '[\.\$\|\(\)\[\]\{\}\^\?\*\+\\]+'))]
+]/VariableDeclaratorId/@Name])
+]
+,
+//MethodDeclaration//PrimaryPrefix/Name[ends-with(@Image, '.split') or ends-with(@Image, 'getPathMatcher')]/../../PrimarySuffix/Arguments[ArgumentList/@Size=1]//Expression[1]//PrimaryPrefix[
+Literal[string-length(@Image) > 5 and
+matches(@Image, '[\.\$\|\(\)\[\]\{\}\^\?\*\+\\]+')] or Name
+and not(../PrimarySuffix)
+and not (
+Name/@Image=ancestor::MethodDeclaration//VariableDeclaratorId/@Name)
+and not (
+(:--- not (if foreign field (with .), or field with short String or without regex char) ---:)
+Name[contains(@Image, '.') or @Image=ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration/VariableDeclarator[
+VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/Literal[string-length(@Image) < 6 or not
+(matches(@Image, '[\.\$\|\(\)\[\]\{\}\^\?\*\+\\]+'))]
+]/VariableDeclaratorId/@Name])
+]
+,
+//MethodDeclaration//PrimarySuffix[@Image='getPathMatcher']/../PrimarySuffix/Arguments[ArgumentList/@Size=1]/ArgumentList/Expression[1]/PrimaryExpression/PrimaryPrefix[
+Literal[string-length(@Image) > 5] or Name
+and not(../PrimarySuffix)
+and not (
+Name/@Image=ancestor::MethodDeclaration//VariableDeclaratorId/@Name)
+and not (
+Name[@Image=ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration/VariableDeclarator[
+VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/Literal[string-length(@Image) < 6]]/VariableDeclaratorId/@Name])
+]
+,
+(: --- String.matches called on formalparams, locals and fields --- :)
+//MethodDeclaration//PrimaryPrefix/Name[ends-with(@Image, '.matches')]
+[
+(exists(index-of((ancestor::MethodDeclaration//FormalParameter[pmd-java:typeIs('java.lang.String')]/VariableDeclaratorId/@Name), substring-before(@Image,'.')))
+or
+exists(index-of((ancestor::MethodDeclaration//LocalVariableDeclaration/Type[pmd-java:typeIs('java.lang.String')]/../VariableDeclarator/VariableDeclaratorId/@Name), substring-before(@Image,'.')))
+or
+exists(index-of((ancestor::ClassOrInterfaceBody//FieldDeclaration[pmd-java:typeIs('java.lang.String')]/VariableDeclarator/VariableDeclaratorId/@Name), substring-before(@Image,'.'))))
+and
+(: for matches param is >5 literal or something named :)
+../../PrimarySuffix/Arguments[ArgumentList/@Size=1]//Expression[1]//PrimaryPrefix[
+Literal[string-length(@Image) > 5] or Name
+(: exclude method calls :)
+and not(../PrimarySuffix)
+(: exclude for param is method arg or local :)
+and not (
+Name/@Image=ancestor::MethodDeclaration//VariableDeclaratorId/@Name)
+(: exclude for param is short fields :)
+and not (
+Name[@Image=ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration/VariableDeclarator[
+VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/Literal[string-length(@Image) < 6]
+]/VariableDeclaratorId/@Name])
+]])
+]]></value>
+            </property>
+        </properties>
+        <example>
+
+        </example>
+    </rule>
+
 </ruleset>

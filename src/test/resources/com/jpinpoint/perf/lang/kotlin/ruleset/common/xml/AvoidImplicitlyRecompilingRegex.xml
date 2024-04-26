@@ -1,0 +1,330 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>violation: Avoid implicit recompiling of regular expressions</description>
+        <expected-problems>27</expected-problems>
+        <expected-linenumbers>18,19,20, 24,25,27, 31,32,33, 39,40,41,43,45, 52,53,54, 59,60,61,61,64, 70, 76, 82,83,84</expected-linenumbers>
+        <code><![CDATA[
+import java.io.File
+import java.nio.file.FileSystems
+import java.nio.file.Path
+import java.util.regex.Pattern
+
+
+class Foo {
+    private lateinit var action: Any
+    private lateinit var arg: String
+    private val dynPatString: String = "test" // field should be transformed to Pattern
+    private val context1: String? = null
+    private val context2: String? = null
+
+    // line 16
+    fun violatingSplit3x(action: String) {
+        val splitString = action.split("(?=\\p{Lu})".toRegex()) // bad: should precompile and use separate Regex
+        val splitString2 = action.split(PAT_STRING.toRegex()) // bad: should precompile and use separate Regex
+        val splitStringDynamic = action.split(dynPatString.toRegex()) // bad: violation, field should be transformed to Regex
+    }
+
+    fun violatingReplaceAll3x(action: String) {
+        action.replace("(?=\\p{Lu})".toRegex(), "-") // bad: should precompile and use Regex
+        action.replace(PAT_STRING.toRegex(), "-") // bad: should precompile and Regex
+        action.replace(PAT_STRING_SHORT.toRegex(), "-") // bad: should be Regex
+        action.replace(dynPatString.toRegex(), ";") // bad: field should be Regex
+    }
+
+    // line 29
+    fun violatingReplaceFirst3x(action: String) {
+        action.replaceFirst("(?=\\p{Lu})".toRegex(), "-") // bad: should precompile and use separate Regex
+        action.replaceFirst(PAT_STRING.toRegex(), "-") // bad: should precompile and use separate Regex
+        action.replaceFirst(dynPatString!!.toRegex(), ";") // bad: field should be Regex
+    }
+
+    // .matches on a String
+    // line 37
+    fun violatingMatchesParamAndLocal5x(param1: String, param2: String) {
+        val b =
+            param1.matches("(?=\\p{Lu})".toRegex()) // bad: should precompile and use separate Regex
+        val c = param2.matches(PAT_STRING.toRegex()) // bad: should precompile and use separate Regex
+        val d = param1.matches(dynPatString!!.toRegex()) // bad: field should be Regex
+        val local1 = param1
+        val e = local1.matches(PAT_STRING.toRegex()) // bad: should precompile and use separate Regex
+        val local2 = param1
+        val f = local2.matches(PAT_STRING.toRegex()) // bad: should precompile and use separate Regex
+        val g = local2.matches(PAT_STRING_SHORT.toRegex()) // bad: should precompile and use separate Regex
+    }
+
+    // Pattern.matches
+    // line 50
+    fun violatingPatternMatches3x(action: String?) {
+        val b =
+            Pattern.matches("(?=\\p{Lu})", action) // bad: use Kotlin String matches with precompiled Regex
+        val c = Pattern.matches(PAT_STRING, action) // bad: use Kotlin String matches with precompiled Regex
+        val d = Pattern.matches(context1, action) // bad: use Kotlin String matches with toRegex()
+    }
+
+    // line 57
+    fun violatingPathMatcher4x(action: String?) {
+        var p = FileSystems.getDefault()
+            .getPathMatcher("(?=\\p{Lu})") // bad: violation, should not be inside method, make static final
+        FileSystems.getDefault().getPathMatcher(PAT_STRING) // bad: violation
+        FileSystems.getDefault().getPathMatcher(dynPatString).matches(path) // bad (2x):  field should be PathMatcher
+
+        val fs = FileSystems.getDefault()
+        p = fs.getPathMatcher(PAT_STRING) // bad: violation
+    }
+
+    // .matches on a String field
+    // line 74
+    fun violatingMatchesOnFieldInIf(): String {
+        if (action == null || !context1!!.matches(PAT_STRING.toRegex())) { // bad
+            return "no match"
+        } else { return "match" }
+    }
+
+    // line 80
+    fun violatingMatchesOnField3x(arg: String) {
+        val b =
+            context1!!.matches("(?=\\p{Lu})".toRegex()) // bad: should precompile and use separate pattern, for str len > 1
+        val c = context2!!.matches(PAT_STRING.toRegex()) // bad: should precompile and use separate pattern
+        val d = context2.matches(dynPatString!!.toRegex()) // bad: field should be Pattern
+        val e = context1.matches(arg.toRegex()) // good, dynamic
+        val f = context1.matches("\\w".toRegex()) // bad, no matter it is short
+        val local = arg
+        val g = context1.matches(method(arg).toRegex()) // good, dynamic
+        val h = context1.matches(method2().toRegex()) // good, dynamic
+        val i = context1.matches(local.toRegex()) // good, dynamic
+    }
+
+    fun method(arg: String): String {
+        return arg
+    }
+
+    fun method2(): String {
+        return arg
+    }
+
+    companion object {
+        private const val PAT_STRING = "(?=\\p{Lu})"
+        private const val PAT_STRING_SHORT = "/$1"
+        private val path: Path = File("fileName").toPath()
+        private const val FREE_TEXT_PATTERN = "[A-Z\\s]+"
+
+        fun isValid_violate1x(text: String): Boolean {
+            return text.length > 0 && !Pattern.matches(FREE_TEXT_PATTERN, text.trim { it <= ' ' }) // bad line 109, use Kotlin String matches
+        }
+    }
+}
+     ]]></code>
+    </test-code>
+    <test-code>
+        <description>no violation: Avoid implicit recompiling of regular expressions</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import java.io.File
+import java.nio.file.FileSystems
+import java.nio.file.Path
+import java.nio.file.PathMatcher
+import java.util.regex.Matcher
+import java.util.regex.Pattern
+
+
+class Bar {
+    private val dynPatString: String? = null // field should be transformed to Pattern
+    private val context: String? = null
+
+    fun correctSplit(action: String, dyn: String) {
+        val splitStringShort = action.split(",".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray() // ok, short
+        val splitStringDynamic = action.split(dyn.toRegex()).dropLastWhile { it.isEmpty() }
+            .toTypedArray() // ok, dynamic, cannot precompile
+        PATTERN.split(action) // ok
+    }
+
+
+    fun violatingReplaceAll3x(action: String) {
+        action.replace(PAT_STRING_SHORT.toRegex(), "-") // good: regex short, OK
+    }
+
+    fun correctReplaceAll(action: String, dyn: String) {
+        val dyn2 = dyn
+        action.replace(",".toRegex(), ";") // ok, regex short
+        action.replace(",".toRegex(), ";----;") // ok, regex short
+        action.replace(dyn.toRegex(), ";") // ok, dynamic, cannot precompile
+        action.replace(dyn2, ";") // ok, dynamic, cannot precompile
+        MATCHER.replaceAll("------") // ok, on Matcher, not on String
+        val m = PATTERN.matcher(action) // matcher creation is ok
+        m.replaceAll("------") // ok, on Matcher, not on String
+    }
+
+    fun correctReplaceFirst(action: String, dyn: String) {
+        action.replaceFirst(",".toRegex(), ";") // ok, regex short
+        action.replaceFirst(",".toRegex(), ";----;") // ok, regex short
+        action.replaceFirst(dyn.toRegex(), ";") // ok, dynamic, cannot precompile
+    }
+
+    // .matches on a String
+    fun correctMatches(action: String, dyn: String) {
+        val b = action.matches(",".toRegex()) // ok, short
+        val c = action.matches(dyn.toRegex()) // ok, dynamic, cannot precompile
+        val e = MATCHER.matches() // ok, on Matcher, not on String
+        val m = PATTERN.matcher(action) // matcher creation is ok
+        val f = m.matches() // ok, on Matcher, not on String
+    }
+
+    // Pattern.matches
+    fun correctPatternMatches(action: String?, dyn: String?) {
+        val b = Pattern.matches(",", action) // ok, short
+        val c = Pattern.matches(dyn, action) // ok, dynamic, cannot precompile
+    }
+
+    fun correctMatcher3x() {
+        PATTERN.matcher("input").replaceAll("-") //  Matcher created every time, pattern already compiled
+        val m = PATTERN.matcher("input") //  Matcher created every time, pattern already compiled
+        PATTERN.matcher(dynPatString).replaceAll("-") //  could be Matcher field
+    }
+
+    fun correctMatcher(dyn: String?) {
+        MATCHER.replaceAll("-") //  Matcher created before,
+        val b = MATCHER.matches()
+        val m = PATTERN.matcher(",") //  Matcher created every time, yet short pattern
+        PATTERN.matcher(dyn).replaceAll("-") //  Matcher created every time, yet dynamic
+    }
+
+    fun correctPathMatcher(fileName: String?, dyn: String, pm: PathMatcher) {
+        val p = File(fileName).toPath()
+        PATH_MATCHER.matches(p) //  Matcher created before,
+        PATH_MATCHER.matches(path) //  Matcher created before,
+        pm.matches(p) // PathMatcher dynamic
+        FileSystems.getDefault().getPathMatcher(dyn).matches(p) //  Matcher created every time, yet dynamic
+        val q = FileSystems.getDefault().getPathMatcher("($dyn?=\\p{Lu})") // ok, dynamic
+        val r = FileSystems.getDefault().getPathMatcher(String.format(PAT_STRING, dyn)) // ok, dynamic
+        val t = FileSystems.getDefault().getPathMatcher(dyn) // violation?
+        val fs = FileSystems.getDefault()
+        fs.getPathMatcher(dyn).matches(p) //  Matcher created every time, yet dynamic
+    }
+
+    fun testFromMCenterOk() {
+        val oldContext = TRAILING_SLASH_OR_BACKSLASH.matcher(context).replaceAll("")
+    }
+
+    fun testFromAutoOk(nameOne: String) {
+        val serverOne = nameOne.split(RUN_ID_SERVER_SEPARATOR.toRegex()).dropLastWhile { it.isEmpty() }
+            .toTypedArray()[1] // good
+    }
+
+    private fun getLastTenDigitsOfNumberOk(number: String): String {
+        val numberDigits = DIGITS_ONLY_REGEX.matcher(number).replaceAll(EMPTY_STRING)
+        if (numberDigits.length > TEN) {
+            return numberDigits.substring(numberDigits.length - TEN)
+        } else if (numberDigits.length == ZERO) {
+            return ZERO.toString()
+        }
+        return numberDigits
+    }
+
+    private val LINE_BREAK_PATTERN: Pattern = Pattern.compile(">\\s+<")
+    private fun fromRLOk(inputMessage: String): String {
+        var inputMessage = inputMessage
+        inputMessage = LINE_BREAK_PATTERN.matcher(inputMessage).replaceAll(LINE_BREAK_REPLACEMENT)
+        return inputMessage
+    }
+
+    private fun stringSplitNonRegexOK() {
+        val string = "Blah Error Message Blah2 Error Message Blah3"
+        val parts = string.split("Error Message".toRegex()).dropLastWhile { it.isEmpty() }
+            .toTypedArray()
+        val partsField = string.split(ERROR_MSG.toRegex()).dropLastWhile { it.isEmpty() }
+            .toTypedArray()
+    }
+
+    private fun stringReplaceAllNonRegexOK(): String {
+        var result = "some xml data with [PAYLOADDATA]"
+        val payloadData = StringBuilder("some payload")
+        result = result.replace(PAYLOADDATA.toRegex(), payloadData.toString())
+        return result
+    }
+
+    companion object {
+        private const val PAT_STRING = "(?=\\p{Lu})"
+        private const val PAT_STRING_SHORT = "/$1"
+        private val PATTERN: Pattern = Pattern.compile(PAT_STRING) // ok
+        private val MATCHER: Matcher = PATTERN.matcher("input") // ok
+        private val PATH_MATCHER: PathMatcher = FileSystems.getDefault().getPathMatcher("*.java)")
+        private val path: Path = File("fileName").toPath()
+        private val TRAILING_SLASH_OR_BACKSLASH: Pattern = Pattern.compile("(/|\\\\)$")
+        private const val ERROR_MSG = "Error Message"
+        fun countOccurrences_correct(haystack: String?, needle: String?): Int {
+            var needle = needle
+            if (haystack == null) return 0
+            if (needle == null) return 0
+
+            if (needle.contains("\\")) {
+                needle = needle.replace("\\", "\\\\")
+            }
+            val p = Pattern.compile(needle) // used to violate
+            val m = p.matcher(haystack)
+            var count = 0
+            while (m.find()) {
+                count += 1
+            }
+            return count
+        }
+
+        private const val FREE_TEXT_PATTERN = "[A-Z\\s]+"
+
+        private const val RUN_ID_SERVER_SEPARATOR = "--"
+
+        private const val TEN = 10
+        private const val ZERO = 0
+        private val DIGITS_ONLY_REGEX: Pattern = Pattern.compile("[^0-9]")
+        private const val EMPTY_STRING = ""
+
+        private const val LINE_BREAK_REPLACEMENT = "><"
+
+        private const val PAYLOADDATA = "PAYLOADDATA"
+    }
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>violation: Avoid implicit recompiling of regular expressions, assume external fields as good</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>7</expected-linenumbers>
+        <code><![CDATA[
+object Try {
+    private const val SMALL = "-."
+    private const val LARGE = "------.-"
+    fun foo(query: String) {
+        query.split(Constants.SEP.toRegex()) //assumed good, external
+            .dropLastWhile { it.isEmpty() }.toTypedArray()
+        query.split(SMALL.toRegex()) //good
+            .dropLastWhile { it.isEmpty() }.toTypedArray()
+        query.split(LARGE.toRegex()) //bad
+            .dropLastWhile { it.isEmpty() }.toTypedArray()
+    }
+}
+            ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>violation: missing case in AvoidImplicitlyRecompilingRegex #237</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>9</expected-linenumbers>
+        <code><![CDATA[
+import java.util.*;
+internal object Foo {
+    fun bar(): String {
+        val list: List<*> = ArrayList<Any?>()
+        return list
+            .stream()
+            .findFirst()
+            .toString()
+            .replace("\\s+".toRegex(), "-") // missing violation
+    }
+}
+            ]]></code>
+    </test-code>
+</test-data>
