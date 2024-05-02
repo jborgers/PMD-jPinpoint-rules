@@ -220,6 +220,21 @@ VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/Literal[string-le
 ]]></value>
             </property>
         </properties>
+        <example>
+            <![CDATA[
+//bad
+String bad_replaceInnerLineBreakBySpace() {
+    return text.replaceAll("([^\\.\\n])\\n", "$1 "); // bad
+}
+
+// good
+private static final Pattern INNER_LINE_BREAK_PATTERN = Pattern.compile("([^\\.\\n])\\n");
+
+String good_replaceInnerLineBreakBySpace() {
+    return INNER_LINE_BREAK_PATTERN.matcher(text).replaceAll("$1 "); // good
+}
+            ]]>
+        </example>
     </rule>
 
     <rule name="AvoidInMemoryStreamingDefaultConstructor" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java"
