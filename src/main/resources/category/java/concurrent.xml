@@ -199,7 +199,7 @@ ancestor::StatementExpression/PrimaryExpression/PrimaryPrefix/Name/@Image = ance
           class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java"
           typeResolution="true" externalInfoUrl="${doc_root}/JavaCodePerformance.md#tutc07">
         <description>
-            Problem: Multiple threads typically access fields of a singleton or may access fields in session scoped objects. Unguarded assignment to a non-final field is thread-unsafe and may cause corruption or visibility problems. It may also unintentionally mixup session data. &#13;
+            Problem: Multiple threads typically access fields of a singleton or may access fields in session scoped objects. Unguarded assignment to a non-final field is thread-unsafe and may cause corruption or visibility problems. It may also unintentionally mix-up session data. &#13;
             Solution: Make the fields final and unmodifiable.  If they really need to be mutable, make access thread-safe: use synchronized and jcip @GuardedBy or use volatile.&#13;
             Notes&#13;
             1. For autowiring/injection, the assignment of the reference is thread safe, so final is not required. The unmodifiable/thread-safe requirement for that field still holds. Also make sure no other thread-unsafe assignment is made to that field.&#13;
@@ -211,6 +211,7 @@ ancestor::StatementExpression/PrimaryExpression/PrimaryPrefix/Name/@Image = ance
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
+            <property name="tag" value="data-mix-up" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value>
@@ -299,7 +300,7 @@ and not (ancestor::ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='Auto
           class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java"
           typeResolution="true" externalInfoUrl="${doc_root}/JavaCodePerformance.md#tutc07">
         <description>
-            Problem: Multiple threads typically access fields of a singleton or may access fields in session scoped objects. If a field or its reference is mutable, access is thread-unsafe and may cause corruption or visibility problems. It may also unintentionally mixup session data.&#13;
+            Problem: Multiple threads typically access fields of a singleton or may access fields in session scoped objects. If a field or its reference is mutable, access is thread-unsafe and may cause corruption or visibility problems. It may also unintentionally mix-up session data.&#13;
             Solution: Make the fields final and unmodifiable. If they really need to be mutable, make access thread-safe: use synchronized and jcip @GuardedBy or use volatile.&#13;
             Notes&#13;
             1. Instances of Date, StringBuilder, URL and File are examples of mutable objects and should be avoided (or else guarded) as fields of shared objects. In case mutable fields are final and not modified after initialization (read-only) they are thread safe, however any modification to it is thread-unsafe. Since field modification is easily coded, avoid this situation.
@@ -312,6 +313,7 @@ and not (ancestor::ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='Auto
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
+            <property name="tag" value="data-mix-up" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value>
@@ -358,7 +360,7 @@ and not (../Annotation//Name[@Image='GuardedBy'])
           class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java"
           typeResolution="true" externalInfoUrl="${doc_root}/JavaCodePerformance.md#tutc07">
         <description>
-            Problem: Multiple threads typically access fields of a singleton or may access fields in session scoped objects. If a (inherited) field or its reference is mutable, access is thread-unsafe and may cause corruption or visibility problems. It may also unintentionally mixup session data. &#13;
+            Problem: Multiple threads typically access fields of a singleton or may access fields in session scoped objects. If a (inherited) field or its reference is mutable, access is thread-unsafe and may cause corruption or visibility problems. It may also unintentionally mix-up session data. &#13;
             Solution: Make the fields final and unmodifiable. If they really need to be mutable, make access thread-safe: use synchronized and jcip @GuardedBy or use volatile.&#13;
             Notes&#13;
             1. Instances of Date, StringBuilder, URL and File are examples of mutable objects and should be avoided (or else guarded) as fields of shared objects. In case mutable fields are final and not modified after initialization (read-only) they are thread safe, however any modification to it is thread-unsafe. Since field modification is easily coded, avoid this situation.
@@ -371,6 +373,7 @@ and not (../Annotation//Name[@Image='GuardedBy'])
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
+            <property name="tag" value="data-mix-up" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value>
@@ -1006,7 +1009,8 @@ public class Foo {
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
             <property name="tag" value="correctness" type="String" description="for-sonar"/>
-	    <property name="tag" value="suspicious" type="String" description="for-sonar"/>
+	        <property name="tag" value="suspicious" type="String" description="for-sonar"/>
+            <property name="tag" value="data-mix-up" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
