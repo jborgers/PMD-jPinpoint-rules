@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>violation: Avoid wide scope (//) xpath expressions</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>11</expected-linenumbers>
+        <code><![CDATA[
+import org.w3c.dom.Node
+import javax.xml.xpath.XPath
+import javax.xml.xpath.XPathFactory
+
+class Foo {
+
+    var xpath: XPath = XPathFactory.newInstance().newXPath()
+
+    fun parseSomething(books: Node) {
+        val expr = xpath
+            .compile("//book[author='Isaac Asimov']/title/text()") // bad
+        val result = expr.evaluate(books)
+    }
+}
+     ]]></code>
+    </test-code>
+    <test-code>
+        <description>no violation: Avoid wide scope (//) xpath expressions</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import org.apache.xpath.XPathAPI
+import org.w3c.dom.Node
+import javax.xml.transform.TransformerException
+
+class Bar {
+    val action: String?
+        get() {
+            try {
+                val doc: Node? = null
+                return XPathAPI.eval(doc, "/Envelope/Header/Action").toString()
+            } catch (e: TransformerException) {
+                //logger.debug("", e);
+                return null
+            }
+        }
+}
+     ]]></code>
+    </test-code>
+</test-data>

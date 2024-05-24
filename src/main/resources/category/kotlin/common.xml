@@ -323,5 +323,48 @@ ancestor::FunctionBody//PropertyDeclaration[(
 
         </example>
     </rule>
+    <rule name="AvoidWideScopeXPathExpression"
+          class="net.sourceforge.pmd.lang.rule.XPathRule"
+          dfa="false"
+          language="kotlin"
+          message="XPathExpression targets a wide scope, this is potentially slow."
+          typeResolution="true"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ux01">
+        <description>The XPathExpression targets a wide scope since it starts with '//'. Problem: XPath has to search in a wide scope for occurrences, this may take a while. &#13;
+            Solution: 1. Avoid XPath usage. 2. Make the scope as narrow as possible, do not start with '//'.
+            (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <property name="xpath">
+                <value><![CDATA[
+(: check if javax.xml.xpath imports exists as filter for same named classes in other packages :)
+//ImportHeader[.//T-Identifier[@Text='javax'] and .//T-Identifier[@Text='xml'] and .//T-Identifier[@Text='xpath']][1]/../..
+
+(: if 'compile' method exists with one parameter of String literal with first chars '//' :)
+//ClassMemberDeclaration//SimpleIdentifier//T-Identifier[(@Text="compile")
+  and ancestor::Expression//ValueArguments[count(./ValueArgument) = 1]/ValueArgument//PrimaryExpression/StringLiteral//T-LineStrText[starts-with(@Text, '//')]
+]
+	]]></value>
+            </property>
+        </properties>
+        <example><![CDATA[
+import org.w3c.dom.Node
+import javax.xml.xpath.XPath
+import javax.xml.xpath.XPathFactory
+
+class Foo {
+
+    var xpath: XPath = XPathFactory.newInstance().newXPath()
+
+    fun parseSomething(books: Node) {
+        val expr = xpath
+            .compile("//book[author='Isaac Asimov']/title/text()") // bad
+        val result = expr.evaluate(books)
+    }
+}
+]]>
+        </example>
+    </rule>
 
 </ruleset>
