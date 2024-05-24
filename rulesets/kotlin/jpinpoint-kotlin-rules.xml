@@ -334,6 +334,99 @@ class AvoidStringBuffer {
         </example>
     </rule>
 
+    <rule name="AvoidWideScopeXPathExpression"
+          class="net.sourceforge.pmd.lang.rule.XPathRule"
+          dfa="false"
+          language="kotlin"
+          message="XPathExpression targets a wide scope, this is potentially slow."
+          typeResolution="true"
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#ux01">
+        <description>The XPathExpression targets a wide scope since it starts with '//'. Problem: XPath has to search in a wide scope for occurrences, this may take a while. &#13;
+            Solution: 1. Avoid XPath usage. 2. Make the scope as narrow as possible, do not start with '//'.
+            (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <property name="xpath">
+                <value><![CDATA[
+(: check if javax.xml.xpath imports exists as filter for same named classes in other packages :)
+//ImportHeader[.//T-Identifier[@Text='javax'] and .//T-Identifier[@Text='xml'] and .//T-Identifier[@Text='xpath']][1]/../..
+
+(: if 'compile' method exists with one parameter of String literal with first chars '//' :)
+//ClassMemberDeclaration//SimpleIdentifier//T-Identifier[(@Text="compile")
+  and ancestor::Expression//ValueArguments[count(./ValueArgument) = 1]/ValueArgument//PrimaryExpression/StringLiteral//T-LineStrText[starts-with(@Text, '//')]
+]
+	]]></value>
+            </property>
+        </properties>
+        <example><![CDATA[
+import org.w3c.dom.Node
+import javax.xml.xpath.XPath
+import javax.xml.xpath.XPathFactory
+
+class Foo {
+
+    var xpath: XPath = XPathFactory.newInstance().newXPath()
+
+    fun parseSomething(books: Node) {
+        val expr = xpath
+            .compile("//book[author='Isaac Asimov']/title/text()") // bad
+        val result = expr.evaluate(books)
+    }
+}
+]]>
+        </example>
+    </rule>
+
+    <rule name="AvoidXPathAPIUsage"
+          class="net.sourceforge.pmd.lang.rule.XPathRule"
+          dfa="false"
+          language="kotlin"
+          message="XPathAPI is used. XPathAPI implementation has bad performance."
+          typeResolution="true"
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#ux01">
+        <description>XPathAPI is used. Problem: XPathAPI implementation is slow.&#13;
+            Solution: 1. try to avoid using XPathAPI. 2. improve performance by using jvm parameters and possibly CachedXPathAPI.
+            (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <!--property name="tag" value="performance" type="String" description="for-sonar"/-->
+            <property name="xpath">
+                <value><![CDATA[
+//ImportHeader[.//T-Identifier[@Text='org'] and .//T-Identifier[@Text='apache'] and .//T-Identifier[@Text='xpath']][1]/ancestor::KotlinFile
+//ClassBody//SimpleIdentifier/T-Identifier[@Text='XPathAPI']
+	]]></value>
+            </property>
+        </properties>
+        <example><![CDATA[
+import org.w3c.dom.Node
+import org.apache.xpath.XPathAPI
+import org.apache.xpath.CachedXPathAPI
+
+class FooBad {
+    fun getAction(doc: Node?): String? {
+        return try {
+            XPathAPI.eval(doc, "/Envelope/Header/Action").toString() // bad
+        } catch (e: TransformerException) {
+            null
+        }
+    }
+}
+
+class FooGood {
+    fun getAction(doc: Node?): String? {
+        return try {
+            CachedXPathAPI.eval(doc, "/Envelope/Header/Action").toString()
+        } catch (e: TransformerException) {
+            null
+        }
+    }
+}
+]]>
+        </example>
+    </rule>
+
 <!-- END Included file 'common.xml' -->
 <!-- BEGIN Included file 'remoting.xml' -->
     <rule name="AvoidDeprecatedHystrix"
