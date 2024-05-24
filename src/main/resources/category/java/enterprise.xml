@@ -13,6 +13,9 @@
     <priority>3</priority>
     <properties>
         <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+        <property name="tag" value="confusing" type="String" description="for-sonar"/>
+        <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
+        <property name="tag" value="performance" type="String" description="for-sonar"/>
         <property name="version" value="2.0"/>
         <property name="xpath">
             <value>

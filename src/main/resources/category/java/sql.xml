@@ -13,6 +13,7 @@
         <priority>2</priority>
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <property name="tag" value="performance" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value>
@@ -41,6 +42,7 @@ ancestor::ClassOrInterfaceBody//VariableDeclarator/VariableDeclaratorId/@Name
         <priority>2</priority>
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <property name="tag" value="performance" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value>
@@ -68,6 +70,7 @@ count(.//PrimaryExpression/PrimaryPrefix/Name[ends-with(@Image, '.getSingleResul
         <priority>2</priority>
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <property name="tag" value="performance" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value>
@@ -122,6 +125,7 @@ ancestor::BlockStatement//PrimaryExpression/PrimaryPrefix/Name[ends-with(@Image,
         <priority>2</priority>
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <property name="tag" value="performance" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value>

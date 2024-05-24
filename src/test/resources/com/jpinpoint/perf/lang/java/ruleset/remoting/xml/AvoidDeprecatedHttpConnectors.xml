@@ -24,7 +24,7 @@ Deprecated:
   - PoolingClientConnectionManager
   - MultiThreadedHttpConnectionManager
 
-Risk of session data mixup:
+Risk of session data mix-up:
 
   - SimpleHttpConnectionManager
 

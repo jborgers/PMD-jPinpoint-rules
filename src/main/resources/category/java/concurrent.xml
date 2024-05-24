@@ -13,6 +13,8 @@
         <priority>2</priority>
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
+            <property name="tag" value="performance" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value>
@@ -49,6 +51,8 @@
         <priority>1</priority>
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
+            <property name="tag" value="performance" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value>
@@ -115,6 +119,7 @@
         <priority>3</priority>
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value>
@@ -176,6 +181,7 @@ ancestor::StatementExpression/PrimaryExpression/PrimaryPrefix/Name/@Image = ance
         <priority>1</priority>
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
@@ -193,7 +199,7 @@ ancestor::StatementExpression/PrimaryExpression/PrimaryPrefix/Name/@Image = ance
           class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java"
           typeResolution="true" externalInfoUrl="${doc_root}/JavaCodePerformance.md#tutc07">
         <description>
-            Problem: Multiple threads typically access fields of a singleton or may access fields in session scoped objects. Unguarded assignment to a non-final field is thread-unsafe and may cause corruption or visibility problems. It may also unintentionally mixup session data. &#13;
+            Problem: Multiple threads typically access fields of a singleton or may access fields in session scoped objects. Unguarded assignment to a non-final field is thread-unsafe and may cause corruption or visibility problems. It may also unintentionally mix-up session data. &#13;
             Solution: Make the fields final and unmodifiable.  If they really need to be mutable, make access thread-safe: use synchronized and jcip @GuardedBy or use volatile.&#13;
             Notes&#13;
             1. For autowiring/injection, the assignment of the reference is thread safe, so final is not required. The unmodifiable/thread-safe requirement for that field still holds. Also make sure no other thread-unsafe assignment is made to that field.&#13;
@@ -204,6 +210,8 @@ ancestor::StatementExpression/PrimaryExpression/PrimaryPrefix/Name/@Image = ance
         <priority>1</priority>
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
+            <property name="tag" value="data-mix-up" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value>
@@ -256,6 +264,7 @@ or ancestor::MethodDeclaration[@Name='afterPropertiesSet']
         <priority>1</priority>
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value>
@@ -291,7 +300,7 @@ and not (ancestor::ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='Auto
           class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java"
           typeResolution="true" externalInfoUrl="${doc_root}/JavaCodePerformance.md#tutc07">
         <description>
-            Problem: Multiple threads typically access fields of a singleton or may access fields in session scoped objects. If a field or its reference is mutable, access is thread-unsafe and may cause corruption or visibility problems. It may also unintentionally mixup session data.&#13;
+            Problem: Multiple threads typically access fields of a singleton or may access fields in session scoped objects. If a field or its reference is mutable, access is thread-unsafe and may cause corruption or visibility problems. It may also unintentionally mix-up session data.&#13;
             Solution: Make the fields final and unmodifiable. If they really need to be mutable, make access thread-safe: use synchronized and jcip @GuardedBy or use volatile.&#13;
             Notes&#13;
             1. Instances of Date, StringBuilder, URL and File are examples of mutable objects and should be avoided (or else guarded) as fields of shared objects. In case mutable fields are final and not modified after initialization (read-only) they are thread safe, however any modification to it is thread-unsafe. Since field modification is easily coded, avoid this situation.
@@ -303,6 +312,8 @@ and not (ancestor::ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='Auto
         <priority>1</priority>
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
+            <property name="tag" value="data-mix-up" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value>
@@ -349,7 +360,7 @@ and not (../Annotation//Name[@Image='GuardedBy'])
           class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java"
           typeResolution="true" externalInfoUrl="${doc_root}/JavaCodePerformance.md#tutc07">
         <description>
-            Problem: Multiple threads typically access fields of a singleton or may access fields in session scoped objects. If a (inherited) field or its reference is mutable, access is thread-unsafe and may cause corruption or visibility problems. It may also unintentionally mixup session data. &#13;
+            Problem: Multiple threads typically access fields of a singleton or may access fields in session scoped objects. If a (inherited) field or its reference is mutable, access is thread-unsafe and may cause corruption or visibility problems. It may also unintentionally mix-up session data. &#13;
             Solution: Make the fields final and unmodifiable. If they really need to be mutable, make access thread-safe: use synchronized and jcip @GuardedBy or use volatile.&#13;
             Notes&#13;
             1. Instances of Date, StringBuilder, URL and File are examples of mutable objects and should be avoided (or else guarded) as fields of shared objects. In case mutable fields are final and not modified after initialization (read-only) they are thread safe, however any modification to it is thread-unsafe. Since field modification is easily coded, avoid this situation.
@@ -361,6 +372,8 @@ and not (../Annotation//Name[@Image='GuardedBy'])
         <priority>1</priority>
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
+            <property name="tag" value="data-mix-up" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value>
@@ -412,6 +425,7 @@ or (ancestor::ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='VisibleFo
         <priority>1</priority>
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value>
@@ -451,6 +465,7 @@ or (ancestor::ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='VisibleFo
         <priority>3</priority>
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value>
@@ -495,6 +510,7 @@ or (VariableDeclarator/VariableDeclaratorId/@Name = ancestor::ClassOrInterfaceBo
         <priority>2</priority>
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value>
@@ -544,6 +560,7 @@ or ancestor::SynchronizedStatement/Expression//Name)]
         <priority>2</priority>
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value>
@@ -616,6 +633,8 @@ or ancestor::SynchronizedStatement/Expression//Name)]
         <priority>1</priority>
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
+            <property name="tag" value="performance" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
@@ -657,6 +676,7 @@ or ancestor::SynchronizedStatement/Expression//Name)]
         <priority>1</priority>
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
@@ -696,6 +716,8 @@ or ancestor::SynchronizedStatement/Expression//Name)]
         <priority>2</priority>
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
+            <property name="tag" value="confusing" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
@@ -737,6 +759,9 @@ class Good {
         <priority>3</priority>
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
+            <property name="tag" value="performance" type="String" description="for-sonar"/>
+	    <property name="tag" value="confusing" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
@@ -795,20 +820,24 @@ public class Foo {
         <priority>1</priority>
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
+            <property name="tag" value="performance" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value>
                     <![CDATA[
 (: future.join method reference without timeout in method :)
 //PrimaryExpression/PrimaryPrefix[pmd-java:typeIs('java.util.concurrent.Future')
-and not(ancestor::MethodDeclaration//PrimaryPrefix/Name[ends-with(@Image, '.get') or ends-with(@Image, 'Timeout')][../../PrimarySuffix//ArgumentList])
+and not(ancestor::BlockStatement/preceding-sibling::BlockStatement//PrimaryPrefix/Name[ends-with(@Image, '.get') or ends-with(@Image, 'Timeout')][../../PrimarySuffix//ArgumentList])
+and not (ancestor::BlockStatement/preceding-sibling::BlockStatement//PrimarySuffix[ends-with(@Image, 'Timeout')])
 ]
 /../PrimarySuffix//MethodReference[@Image='join']
 ,
 (: future.join in lambda without timeout in method :)
 //PrimaryExpression/PrimaryPrefix/LambdaExpression//Name[ends-with(@Image, '.join')
-and not(ancestor::MethodDeclaration//PrimaryPrefix[pmd-java:typeIs('java.util.concurrent.Future')]/Name[ends-with(@Image, '.get') or ends-with(@Image, 'Timeout')]
-[../../PrimarySuffix//ArgumentList])
+and not(ancestor::BlockStatement/preceding-sibling::BlockStatement//PrimaryPrefix[pmd-java:typeIs('java.util.concurrent.Future')]
+/Name[ends-with(@Image, '.get') or ends-with(@Image, 'Timeout')][../../PrimarySuffix//ArgumentList])
+and not (ancestor::BlockStatement/preceding-sibling::BlockStatement//PrimarySuffix[ends-with(@Image, 'Timeout')])
 ]
 (: join has no arguments, #198 :)
 [../../PrimarySuffix/Arguments[@Size=0]]
@@ -817,7 +846,8 @@ and not(ancestor::MethodDeclaration//PrimaryPrefix[pmd-java:typeIs('java.util.co
 //PrimaryExpression/PrimaryPrefix[pmd-java:typeIs('java.util.concurrent.Future')]/../PrimarySuffix[@Image='join'
 (: not bad if has a future.get with (timeout) arguments before the future.join, #300 :)
 and not(ancestor::BlockStatement/preceding-sibling::BlockStatement//PrimaryExpression[PrimarySuffix/Arguments/ArgumentList]
-/PrimaryPrefix[pmd-java:typeIs('java.util.concurrent.Future')]/Name[ends-with(@Image, '.get') or ends-with(@Image, 'Timeout')])]
+/PrimaryPrefix[pmd-java:typeIs('java.util.concurrent.Future')]/Name[ends-with(@Image, '.get') or ends-with(@Image, 'Timeout')])
+and not (../PrimarySuffix[ends-with(@Image, 'Timeout')])]
 (: join has no arguments, #198 :)
 [../PrimarySuffix/Arguments[@Size=0]]
 ]]>
@@ -866,6 +896,9 @@ and not(ancestor::BlockStatement/preceding-sibling::BlockStatement//PrimaryExpre
         <priority>1</priority>
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
+            <property name="tag" value="performance" type="String" description="for-sonar"/>
+	    <property name="tag" value="unpredictable" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value>
@@ -910,6 +943,9 @@ public class Foo {
         <priority>1</priority>
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
+            <property name="tag" value="performance" type="String" description="for-sonar"/>
+	    <property name="tag" value="unpredictable" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
@@ -971,6 +1007,10 @@ public class Foo {
         <priority>1</priority>
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
+            <property name="tag" value="correctness" type="String" description="for-sonar"/>
+	        <property name="tag" value="suspicious" type="String" description="for-sonar"/>
+            <property name="tag" value="data-mix-up" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
@@ -1041,6 +1081,9 @@ public class VMRData {
         <priority>2</priority>
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
+            <property name="tag" value="performance" type="String" description="for-sonar"/>
+            <property name="tag" value="unpredictable" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
@@ -1117,6 +1160,9 @@ public class Foo {
         <priority>2</priority>
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
+            <property name="tag" value="performance" type="String" description="for-sonar"/>
+            <property name="tag" value="bad-practice" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
@@ -1164,6 +1210,8 @@ class FooGood {
         <priority>2</priority>
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
+            <property name="tag" value="performance" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
@@ -1216,6 +1264,7 @@ class FooGood {
         <priority>2</priority>
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <property name="tag" value="performance" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
@@ -1253,6 +1302,8 @@ public class FooBad {
         <priority>2</priority>
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
+            <property name="tag" value="performance" type="String" description="for-sonar"/>
             <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
