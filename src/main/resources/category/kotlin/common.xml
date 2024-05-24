@@ -291,6 +291,80 @@ class Foo {
         </example>
     </rule>
 
+    <rule name="AvoidMultipleConcatStatements" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="kotlin" message="Multiple statements concatenate to the same String. Use StringBuilder append." typeResolution="true"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#isu02">
+        <description>Multiple statements concatenate to the same String. Problem: Each statement with one or more +-operators creates a hidden temporary StringBuilder, a char[] and a new String object, which all have to be garbage collected.&#13;
+            Solution: Use StringBuilder.append.
+            (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <property name="xpath">
+                <value><![CDATA[
+//FunctionBody[count(.//Assignment[.//(AssignmentAndOperator/T-ADD_ASSIGNMENT|AdditiveOperator/T-ADD)]/(AssignableExpression|DirectlyAssignableExpression)//T-Identifier[@Text=
+(: property a string literal :)
+ancestor::FunctionBody//PropertyDeclaration[(
+    Expression[not(.//Expression)]//StringLiteral or
+    (: or explicit type String:)
+    VariableDeclaration/Type//T-Identifier[@Text='String'] or
+    (: or assigned parameter of type String :)
+    Expression[.//T-Identifier[@Text = ancestor::FunctionDeclaration/FunctionValueParameters/FunctionValueParameter[Parameter/Type//T-Identifier[@Text='String']]//T-Identifier/@Text]] or
+    (: or assigned non-nested function of explicit type String :) (: known issue: ignores parameters, may give false positives with overloaded methods :)
+    Expression[.//T-Identifier[not(ancestor::CallSuffix)][@Text = ancestor::ClassMemberDeclarations//FunctionDeclaration[Type//T-Identifier[@Text='String']]//T-Identifier/@Text]]
+)]
+/VariableDeclaration//T-Identifier/@Text]) > 1]
+//Statement[Assignment//(T-ADD_ASSIGNMENT|T-ADD)][position()=last()]
+
+	]]></value>
+            </property>
+        </properties>
+        <example>
+
+        </example>
+    </rule>
+    <rule name="AvoidWideScopeXPathExpression"
+          class="net.sourceforge.pmd.lang.rule.XPathRule"
+          dfa="false"
+          language="kotlin"
+          message="XPathExpression targets a wide scope, this is potentially slow."
+          typeResolution="true"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ux01">
+        <description>The XPathExpression targets a wide scope since it starts with '//'. Problem: XPath has to search in a wide scope for occurrences, this may take a while. &#13;
+            Solution: 1. Avoid XPath usage. 2. Make the scope as narrow as possible, do not start with '//'.
+            (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <property name="xpath">
+                <value><![CDATA[
+(: check if javax.xml.xpath imports exists as filter for same named classes in other packages :)
+//ImportHeader[.//T-Identifier[@Text='javax'] and .//T-Identifier[@Text='xml'] and .//T-Identifier[@Text='xpath']][1]/../..
+
+(: if 'compile' method exists with one parameter of String literal with first chars '//' :)
+//ClassMemberDeclaration//SimpleIdentifier//T-Identifier[(@Text="compile")
+  and ancestor::Expression//ValueArguments[count(./ValueArgument) = 1]/ValueArgument//PrimaryExpression/StringLiteral//T-LineStrText[starts-with(@Text, '//')]
+]
+	]]></value>
+            </property>
+        </properties>
+        <example><![CDATA[
+import org.w3c.dom.Node
+import javax.xml.xpath.XPath
+import javax.xml.xpath.XPathFactory
+
+class Foo {
+
+    var xpath: XPath = XPathFactory.newInstance().newXPath()
+
+    fun parseSomething(books: Node) {
+        val expr = xpath
+            .compile("//book[author='Isaac Asimov']/title/text()") // bad
+        val result = expr.evaluate(books)
+    }
+}
+]]>
+        </example>
+    </rule>
     <rule name="AvoidRecreatingDateTimeFormatter"
           message="Avoid recreating DateTimeFormatter, it is relatively expensive."
           class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="kotlin"

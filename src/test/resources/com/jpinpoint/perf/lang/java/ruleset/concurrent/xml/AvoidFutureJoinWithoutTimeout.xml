@@ -139,4 +139,95 @@ public class Bar {
 }
 ]]></code>
     </test-code>
+
+    <test-code>
+        <description>Avoid Future Join Without Timeout, missed case get after join #300</description>
+        <expected-problems>2</expected-problems>
+        <expected-linenumbers>8, 29</expected-linenumbers>
+        <code><![CDATA[
+import java.util.*;
+import java.util.concurrent.*;
+class Issue300 {
+    public void getUserDetail1Bad(String userId) {
+        CompletableFuture<Optional<String>> firstCompletableFuture = firstService.getFirst(userId);
+        CompletableFuture<Optional<String>> secondCompletableFuture = secondService.getSecond(userId);
+
+        CompletableFuture.allOf(firstCompletableFuture, secondCompletableFuture).join(); // bad 8
+
+        Optional<String> userProfile = firstCompletableFuture.get(TIMEOUT_IN_MS, TimeUnit.MILLISECONDS);
+        Optional<String> userAccounts = secondCompletableFuture.get(TIMEOUT_IN_MS, TimeUnit.MILLISECONDS);
+    }
+    public void getUserDetail2Ok(String userId) {
+        CompletableFuture<Optional<String>> firstCompletableFuture = firstService.getFirst(userId);
+        CompletableFuture<Optional<String>> secondCompletableFuture = secondService.getSecond(userId);
+
+        Optional<String> userProfile = firstCompletableFuture.get(TIMEOUT_IN_MS, TimeUnit.MILLISECONDS);
+        Optional<String> userAccounts = secondCompletableFuture.get(TIMEOUT_IN_MS, TimeUnit.MILLISECONDS);
+
+       CompletableFuture.allOf(firstCompletableFuture, secondCompletableFuture).join(); //  ok
+    }
+    public void getUserDetail3Bad(String userId) {
+        CompletableFuture<Optional<String>> firstCompletableFuture = firstService.getFirst(userId);
+        CompletableFuture<Optional<String>> secondCompletableFuture = secondService.getSecond(userId);
+
+        Optional<String> userProfile = firstCompletableFuture.get();
+        Optional<String> userAccounts = secondCompletableFuture.get();
+
+       CompletableFuture.allOf(firstCompletableFuture, secondCompletableFuture).join(); //  bad 29
+    }
+}
+]]></code>
+    </test-code>
+
+    <test-code>
+        <description>Avoid Future Join Without Timeout, chained orTimout before join #307</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>21</expected-linenumbers>
+        <code><![CDATA[
+import java.util.*;
+import java.util.concurrent.*;
+class Issue3XX {
+    public void getUserDetail4_OK(String userId) {
+        CompletableFuture<Optional<String>> firstCompletableFuture = firstService.getFirst(userId);
+        CompletableFuture<Optional<String>> secondCompletableFuture = secondService.getSecond(userId);
+
+        CompletableFuture.allOf(firstCompletableFuture, secondCompletableFuture)
+                .orTimeout(TIMEOUT_IN_MS, TimeUnit.MILLISECONDS)
+                .join(); // good, was FALSE POSITIVE
+    }
+
+    private Orders getOrders_Bad(OrderSearchOptions searchOptions, List<IGetOrdersService> getOrdersServices) {
+        List<CompletableFuture<Object>> completableFutures = getOrdersServices.stream()
+                .map(orderManager -> {
+                    return CompletableFuture.supplyAsync(() -> i, executor);
+                })
+                .collect(Collectors.toList());
+        List<Object> orderSearchResults = completableFutures.stream()
+                .filter(future -> future.isDone() && !future.isCompletedExceptionally()) // keep only the ones completed -- added to deal with timeout
+                .map(CompletableFuture::join) // bad since NO timeout used above in method 21
+                //.map(future -> future.join())
+                .collect(Collectors.toList());
+        return new Orders(orderSearchResults);
+    }
+
+    private Orders getOrders_OK(OrderSearchOptions searchOptions, List<IGetOrdersService> getOrdersServices) {
+
+        List<CompletableFuture<Object>> completableFutures = getOrdersServices.stream()
+                .map(orderManager -> {
+                    return CompletableFuture.supplyAsync(() -> i, executor).orTimeout(TIMEOUT_IN_MS, TimeUnit.MILLISECONDS);
+                })
+                .collect(Collectors.toList());
+
+        List<Object> orderSearchResults = completableFutures.stream()
+                .filter(future -> future.isDone() && !future.isCompletedExceptionally()) // keep only the ones completed -- added to deal with timeout
+                .map(CompletableFuture::join) // good since timeout used above in method, was FALSE POSITIVE
+                //.map(future -> future.join()) // alternative
+                .collect(Collectors.toList());
+
+        return new Orders(orderSearchResults);
+    }
+}
+]]></code>
+    </test-code>
+
 </test-data>
