@@ -380,8 +380,11 @@ class Foo {
             <property name="xpath">
                 <value>
                     <![CDATA[
-(: check if java.text imports exists as filter for same named classes in other packages :)
-//ImportHeader[.//T-Identifier[@Text='org'] and .//T-Identifier[@Text='joda'] and .//T-Identifier[@Text='time'] and .//T-Identifier[@Text='format']][1]/ancestor::KotlinFile
+(: check if java.time.format or org.joda.time.format imports exists as filter for same named classes in other packages :)
+//ImportHeader[
+    (.//T-Identifier[@Text='org'] and .//T-Identifier[@Text='joda'] and .//T-Identifier[@Text='time'] and .//T-Identifier[@Text='format'])
+    or (.//T-Identifier[@Text='java'] and .//T-Identifier[@Text='time'] and .//T-Identifier[@Text='format'])
+  ][1]/ancestor::KotlinFile
 
 /TopLevelObject//Expression//T-Identifier[
     (@Text='DateTimeFormatter' or @Text='DateTimeFormat' or @Text='DateTimeFormatterBuilder' or @Text='ISODateTimeFormat')
@@ -390,9 +393,26 @@ class Foo {
      (: do not match explicit type declarations :)
      and not(ancestor::TypeReference)
      (: variable params are allowed, e.g. when it is an incoming function param :)
-     and not(ancestor::PrefixUnaryExpression//ValueArgument[.//T-Identifier[@Text = ancestor::FunctionDeclaration/FunctionValueParameters/FunctionValueParameter[Parameter/Type//T-Identifier[@Text='String']]//T-Identifier/@Text]])
-     (: variable params are allowed in field init in constructors if val :)
-     and (not(ancestor::PrefixUnaryExpression//ValueArgument[.//T-Identifier[@Text = ancestor::Declaration//ClassParameter[Type//T-Identifier[@Text='String']]//T-Identifier/@Text] and (ancestor::ClassMemberDeclaration//PropertyDeclaration/T-VAL)]))
+     and not(ancestor::PrefixUnaryExpression//ValueArgument[.//T-Identifier[@Text = ancestor::FunctionDeclaration/FunctionValueParameters/FunctionValueParameter/Parameter/SimpleIdentifier/T-Identifier/@Text]])
+     (: variable class params are allowed in val fields :)
+     and (not(ancestor::PropertyDeclaration/T-VAL) or not(ancestor::PrefixUnaryExpression//ValueArgument[.//T-Identifier[@Text = ancestor::ClassDeclaration//ClassParameters/ClassParameter/SimpleIdentifier/T-Identifier/@Text]]))
+]
+|
+(: java.time.format.DateTimeFormatter variable params are allowed in field init in constructors if val :)
+//ImportHeader[
+    .//T-Identifier[@Text='java'] and .//T-Identifier[@Text='time'] and .//T-Identifier[@Text='format']
+  ][1]/ancestor::KotlinFile
+
+/TopLevelObject//Expression//T-Identifier[
+    @Text='DateTimeFormatter'
+     (: check if variable function params in init constructor with two params :)
+     and ancestor::PostfixUnaryExpression/PostfixUnarySuffix//ValueArguments[
+           count(ValueArgument) = 2
+           and ./ValueArgument[1]//T-Identifier[@Text = ancestor::FunctionDeclaration/FunctionValueParameters/FunctionValueParameter/Parameter/SimpleIdentifier/T-Identifier/@Text]
+           and ./ValueArgument[2]//T-Identifier[@Text = ancestor::FunctionDeclaration/FunctionValueParameters/FunctionValueParameter/Parameter/SimpleIdentifier/T-Identifier/@Text]
+           (: check if varianis a var :)
+           and ancestor::Statement/Assignment//T-Identifier[@Text = ancestor::ClassBody//VariableDeclaration//T-Identifier[ancestor::PropertyDeclaration/T-VAR]/@Text]
+     ]
 ]
 ]]>
                 </value>
