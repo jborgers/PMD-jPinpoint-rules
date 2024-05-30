@@ -410,7 +410,7 @@ class Foo {
            count(ValueArgument) = 2
            and ./ValueArgument[1]//T-Identifier[@Text = ancestor::FunctionDeclaration/FunctionValueParameters/FunctionValueParameter/Parameter/SimpleIdentifier/T-Identifier/@Text]
            and ./ValueArgument[2]//T-Identifier[@Text = ancestor::FunctionDeclaration/FunctionValueParameters/FunctionValueParameter/Parameter/SimpleIdentifier/T-Identifier/@Text]
-           (: check if varianis a var :)
+           (: check if variable is a var :)
            and ancestor::Statement/Assignment//T-Identifier[@Text = ancestor::ClassBody//VariableDeclaration//T-Identifier[ancestor::PropertyDeclaration/T-VAR]/@Text]
      ]
 ]

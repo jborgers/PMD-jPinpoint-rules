@@ -169,4 +169,36 @@ object Foo {
 }
      ]]></code>
     </test-code>
+    <test-code>
+        <description>Ignore custom DateTimeFormatter</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import com.any.DateTimeFormatter
+
+object Foo {
+    private const val DEFAULT_DATETIME_FORMAT = "yyyy-MM-dd"
+    fun format(timestamp: Instant): String {
+        val formatter = DateTimeFormatter.ofPattern(DEFAULT_DATETIME_FORMAT)
+        return formatter.format(timestamp)
+    }
+}
+     ]]></code>
+    </test-code>
+    <test-code>
+        <description>Flag joda DateTimeFormatter</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>6</expected-linenumbers>
+        <code><![CDATA[
+import org.joda.time.format.DateTimeFormatter
+
+object Foo {
+    private const val DEFAULT_DATETIME_FORMAT = "yyyy-MM-dd"
+    fun format(timestamp: Instant): String {
+        val formatter = DateTimeFormatter.ofPattern(DEFAULT_DATETIME_FORMAT) // bad
+        return formatter.format(timestamp)
+    }
+}
+     ]]></code>
+    </test-code>
+
 </test-data>
