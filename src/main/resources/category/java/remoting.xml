@@ -12,7 +12,6 @@
         <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
         <property name="tag" value="deprecated" type="String" description="for-sonar"/>
         <property name="tag" value="data-mix-up" type="String" description="for-sonar"/>
-        <property name="version" value="2.0"/>
         <property name="xpath">
             <value><![CDATA[
 //ImportDeclaration/Name[@Image='org.apache.commons.httpclient.SimpleHttpConnectionManager'
@@ -66,7 +65,8 @@ class Good {
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
+            <property name="tag" value="sustainability-high" type="String" description="for-sonar"/>
+            <property name="tag" value="cpu" type="String" description="for-sonar"/>
             <property name="xpath">
                 <value><![CDATA[
 //ClassOrInterfaceBodyDeclaration[not (Annotation//Name[@Image='PostConstruct'])]
@@ -85,7 +85,8 @@ class Good {
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
+            <property name="tag" value="sustainability-high" type="String" description="for-sonar"/>
+            <property name="tag" value="cpu" type="String" description="for-sonar"/>
             <property name="xpath">
                 <value><![CDATA[
 //MethodDeclaration//Expression/PrimaryExpression/PrimaryPrefix/AllocationExpression/ClassOrInterfaceType[
@@ -125,7 +126,8 @@ public static JsonMapper createMapper() {
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
+            <property name="tag" value="sustainability-high" type="String" description="for-sonar"/>
+            <property name="tag" value="cpu" type="String" description="for-sonar"/>
             <property name="xpath">
                 <value><![CDATA[
 //MethodDeclaration//Expression/PrimaryExpression/PrimaryPrefix/AllocationExpression/ClassOrInterfaceType[
@@ -151,8 +153,8 @@ public static JsonMapper createMapper() {
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="tag" value="performance" type="String" description="for-sonar"/>
-
-            <property name="version" value="2.0"/>
+            <property name="tag" value="sustainability-medium" type="String" description="for-sonar"/>
+            <property name="tag" value="cpu" type="String" description="for-sonar"/>
             <property name="xpath">
                 <value><![CDATA[
 //TypeDeclaration/ClassOrInterfaceDeclaration/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/
@@ -174,7 +176,8 @@ MethodDeclaration//LocalVariableDeclaration/Type/ReferenceType/ClassOrInterfaceT
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
+            <property name="tag" value="sustainability-high" type="String" description="for-sonar"/>
+            <property name="tag" value="cpu" type="String" description="for-sonar"/>
             <property name="xpath">
                 <value><![CDATA[
 (:locally created http client builder without disableConnectionState :)
@@ -202,7 +205,6 @@ ancestor::MethodDeclaration//PrimarySuffix/@Image="disableConnectionState")]
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
 (: locally created http client builder without setMaxConnTotal/setMaxConnPerRoute :)
@@ -272,7 +274,6 @@ ancestor::MethodDeclaration//PrimarySuffix/@Image="disableConnectionState")]
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="tag" value="correctness" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
 (: locally created http client builder with setConnectionManager and at least one of setMaxConnTotal/setMaxConnPerRoute :)
@@ -327,7 +328,8 @@ ancestor::MethodDeclaration//PrimarySuffix/@Image="disableConnectionState")]
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="tag" value="performance" type="String" description="for-sonar"/>
             <property name="tag" value="suspicious" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
+            <property name="tag" value="sustainability-low" type="String" description="for-sonar"/>
+            <property name="tag" value="io" type="String" description="for-sonar"/>
             <property name="xpath">
                 <value><![CDATA[
 (: only for Apache http client 4 :)
@@ -415,7 +417,8 @@ ancestor::MethodDeclaration//PrimarySuffix/@Image="disableConnectionState")]
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
+            <property name="tag" value="sustainability-high" type="String" description="for-sonar"/>
+            <property name="tag" value="cpu" type="String" description="for-sonar"/>
             <property name="xpath">
                 <value><![CDATA[
 (: default client constructor with sslSocketFactory :)
@@ -455,14 +458,15 @@ public class MyFeignClient {
           class="net.sourceforge.pmd.lang.rule.XPathRule"
           typeResolution="true"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#iuoxar04">
-        <description>Problem: JAXB utility methods do not reuse JAXBContext when more that one context is used. &#13;
+        <description>Problem: JAXB utility methods do not reuse JAXBContext when more than one context is used. &#13;
             Solution: use JAXB API directly for marshalling and unmarshalling to gain all the performance benefits as described in IUOXAR04 and IUOXAR06.
         </description>
         <priority>2</priority>
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
+            <property name="tag" value="sustainability-high" type="String" description="for-sonar"/>
+            <property name="tag" value="cpu" type="String" description="for-sonar"/>
             <property name="xpath">
                 <value><![CDATA[
 //PrimaryExpression/PrimaryPrefix[pmd-java:typeIs('javax.xml.bind.JAXB')]
@@ -492,7 +496,6 @@ public class XMLConversion {
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
 (: bad: HttpClient without HttpComponentsClientHttpRequestFactory :)
@@ -538,7 +541,6 @@ public class XMLConversion {
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
 (: exclude method annotated with PostConstruct :)
@@ -602,7 +604,6 @@ or ancestor::ClassOrInterfaceBody[count(.//MethodDeclaration/ResultType/Type[pmd
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="tag" value="deprecated" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
 //ImportDeclaration/Name[starts-with(@Image, "com.netflix.hystrix")]
@@ -623,7 +624,8 @@ or ancestor::ClassOrInterfaceBody[count(.//MethodDeclaration/ResultType/Type[pmd
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
+            <property name="tag" value="sustainability-high" type="String" description="for-sonar"/>
+            <property name="tag" value="cpu" type="String" description="for-sonar"/>
             <property name="xpath">
                 <value><![CDATA[
    //TypeDeclaration/ClassOrInterfaceDeclaration[count(.//Annotation//Name[@Image='Configuration']) = 0]
@@ -660,7 +662,8 @@ class Foo {
             <property name="tag" value="performance" type="String" description="for-sonar"/>
             <property name="tag" value="resilience" type="String" description="for-sonar"/>
             <property name="tag" value="suspicious" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
+            <property name="tag" value="sustainability-low" type="String" description="for-sonar"/>
+            <property name="tag" value="cpu" type="String" description="for-sonar"/>
             <property name="xpath">
                 <value><![CDATA[
 //Annotation//Name[@Image='Retry']
@@ -696,7 +699,8 @@ public class Foo {
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
+            <property name="tag" value="sustainability-high" type="String" description="for-sonar"/>
+            <property name="tag" value="cpu" type="String" description="for-sonar"/>
             <property name="xpath">
                 <value><![CDATA[
 //StatementExpression/PrimaryExpression/PrimaryPrefix[pmd-java:typeIs('reactor.core.publisher.Hooks')]//Name[ends-with(@Image, 'Hooks.onOperatorDebug')]
@@ -728,7 +732,6 @@ public class Foo {
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="tag" value="confusing" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
 //Statement[StatementExpression[//ArgumentList]/PrimaryExpression/PrimaryPrefix/Name/@Image =
@@ -777,7 +780,6 @@ class Good {
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="tag" value="confusing" type="String" description="for-sonar"/>
             <property name="tag" value="suspicious" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
 //AllocationExpression[pmd-java:typeIs("org.apache.http.HttpHost")]/Arguments/ArgumentList[count(./Expression) = 1]/../..
@@ -817,7 +819,6 @@ class Foo {
             <property name="tag" value="performance" type="String" description="for-sonar"/>
             <property name="tag" value="confusing" type="String" description="for-sonar"/>
             <property name="tag" value="suspicious" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
 //AllocationExpression/ClassOrInterfaceType[@Image='ClientHttpRequestFactorySupplier']
@@ -876,8 +877,9 @@ and use it to replace the bad line in Bad example:
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="tag" value="performance" type="String" description="for-sonar"/>
+            <property name="tag" value="sustainability-medium" type="String" description="for-sonar"/>
+            <property name="tag" value="memory" type="String" description="for-sonar"/>
             <property name="tag" value="bad-practice" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
 //LocalVariableDeclaration//AllocationExpression/ClassOrInterfaceType[@Image='ThreadPoolTaskExecutor']
@@ -920,7 +922,8 @@ and use it to replace the bad line in Bad example:
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
+            <property name="tag" value="sustainability-medium" type="String" description="for-sonar"/>
+            <property name="tag" value="cpu" type="String" description="for-sonar"/>
             <property name="xpath">
                 <value><![CDATA[
 (: somehow typeIs does not work with spring-web-6.0, do it old school way :)
@@ -963,7 +966,8 @@ public class Foo {
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
+            <property name="tag" value="sustainability-low" type="String" description="for-sonar"/>
+            <property name="tag" value="io" type="String" description="for-sonar"/>
             <property name="xpath">
                 <value><![CDATA[
 (: use of field, local var and return statement :)
@@ -1025,7 +1029,6 @@ public class HttpClientStuff {
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
 (for $node in (//FieldDeclaration[pmd-java:typeIs('com.fasterxml.jackson.databind.ObjectMapper')
@@ -1072,7 +1075,8 @@ and not($node/@Name = ancestor::ClassOrInterfaceDeclaration//PrimaryExpression[P
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
+            <property name="tag" value="sustainability-high" type="String" description="for-sonar"/>
+            <property name="tag" value="cpu" type="String" description="for-sonar"/>
             <property name="xpath">
                 <value><![CDATA[
 //MethodDeclaration//VariableDeclarator[pmd-java:typeIs('io.axual.client.producer.Producer')]
@@ -1121,7 +1125,8 @@ class AxualProducerGood2{
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
+            <property name="tag" value="sustainability-high" type="String" description="for-sonar"/>
+            <property name="tag" value="memory" type="String" description="for-sonar"/>
             <property name="xpath">
                 <value><![CDATA[
 //MethodDeclaration//PrimaryPrefix/Name[pmd-java:typeIs('io.github.resilience4j.retry.Retry') and ends-with(@Image, '.getEventPublisher')]
@@ -1176,7 +1181,6 @@ public class Foo {
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="tag" value="performance" type="String" description="for-sonar"/>
             <property name="tag" value="bad-practice" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
 //FieldDeclaration[Type/@TypeImage='int']/VariableDeclarator[VariableDeclaratorId[@Final = true()][contains(upper-case(@Name), 'TIMEOUT') or contains(upper-case(@Name), 'DURATIONOUT')
@@ -1226,7 +1230,8 @@ class AvoidHardcodedConnectionConfig {
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
+            <property name="tag" value="sustainability-high" type="String" description="for-sonar"/>
+            <property name="tag" value="cpu" type="String" description="for-sonar"/>
             <property name="xpath">
                 <value><![CDATA[
 //Type//ClassOrInterfaceType[@Image='SaajSoapMessageFactory'

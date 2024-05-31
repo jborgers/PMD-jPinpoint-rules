@@ -16,7 +16,8 @@
         <property name="tag" value="confusing" type="String" description="for-sonar"/>
         <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
         <property name="tag" value="performance" type="String" description="for-sonar"/>
-        <property name="version" value="2.0"/>
+        <property name="tag" value="sustainability-low" type="String" description="for-sonar"/>
+        <property name="tag" value="cpu" type="String" description="for-sonar"/>
         <property name="xpath">
             <value>
                 <![CDATA[

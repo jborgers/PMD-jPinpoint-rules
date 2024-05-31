@@ -19,7 +19,8 @@
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
+            <property name="tag" value="sustainability-medium" type="String" description="for-sonar"/>
+            <property name="tag" value="memory" type="String" description="for-sonar"/>
             <property name="xpath">
                 <value>
                     <![CDATA[
@@ -71,7 +72,9 @@ public class FileStuff {
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
+            <property name="tag" value="sustainability-medium" type="String" description="for-sonar"/>
+            <property name="tag" value="cpu" type="String" description="for-sonar"/>
+            <property name="tag" value="memory" type="String" description="for-sonar"/>
             <property name="xpath">
                 <value><![CDATA[
 //PrimaryPrefix[Name[ends-with(@Image, 'Calendar.getInstance')]] [count(../PrimarySuffix) > 2 and ../PrimarySuffix[last()-1][@Image = 'getTime' or @Image='getTimeInMillis']]
@@ -120,7 +123,8 @@ public class DateStuff {
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
+            <property name="tag" value="sustainability-low" type="String" description="for-sonar"/>
+            <property name="tag" value="cpu" type="String" description="for-sonar"/>
             <property name="xpath">
                 <value><![CDATA[
 //MethodDeclaration/Block/BlockStatement[
@@ -170,7 +174,8 @@ public class StringStuff {
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
+            <property name="tag" value="sustainability-low" type="String" description="for-sonar"/>
+            <property name="tag" value="cpu" type="String" description="for-sonar"/>
             <property name="xpath">
                 <value><![CDATA[
 (//ForStatement | //WhileStatement | //DoStatement)//AssignmentOperator[
@@ -227,7 +232,6 @@ public class StringStuff {
             <property name="tag" value="confusing" type="String" description="for-sonar"/>
             <property name="tag" value="replaces-sonar-rule" type="String" description="for-sonar"/>
             <property name="param-max" value="3" type="String" description="Maximum number of allowed static imports with wildcard"/>
-            <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
 //ImportDeclaration[@Static=true() and @ImportOnDemand=true()][position() > number($param-max)]
@@ -269,7 +273,6 @@ import static com.co.corporate.Constants.GREAT; // good
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="tag" value="pitfall" type="String" description="for-sonar"/>
             <property name="tag" value="replaces-sonar-rule" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
 //ClassOrInterfaceDeclaration[ImplementsList/ClassOrInterfaceType[@Image='Serializable']
@@ -331,7 +334,6 @@ class Baz extends RemoteException {
             <property name="tag" value="brain-overload" type="String" description="for-sonar"/>
             <property name="tag" value="replaces-sonar-rule" type="String" description="for-sonar"/>
             <property name="param-max" value="5" type="String" description="Maximum number of allowed non-setter statements"/>
-            <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
 //LambdaExpression/Block
@@ -390,7 +392,6 @@ class Foo {
             <property name="tag" value="replaces-sonar-rule" type="String" description="for-sonar"/>
             <property name="param-block-max" value="1" type="String" description="Maximum allowed depth of lambda-with-code-block nesting"/>
             <property name="param-single-max" value="4" type="String" description="Maximum allowed depth of lambda-single-expression nesting"/>
-            <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
 //LambdaExpression[Block][count(ancestor::LambdaExpression/Block) > number($param-block-max)]
@@ -441,7 +442,6 @@ class Foo {
             <property name="tag" value="unused" type="String" description="for-sonar"/>
             <property name="tag" value="suspicious" type="String" description="for-sonar"/>
             <property name="tag" value="replaces-sonar-rule" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
 (: for each assignment node :)
@@ -500,7 +500,6 @@ return ($node[
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="tag" value="bad-practice" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
 //StatementExpression/PrimaryExpression[(PrimaryPrefix/Name|PrimarySuffix)[ends-with(@Image, 'forEach')]]
