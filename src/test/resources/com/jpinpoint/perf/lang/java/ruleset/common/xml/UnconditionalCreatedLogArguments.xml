@@ -166,4 +166,29 @@ class Foo {
 }
 ]]></code>
     </test-code>
+
+    <test-code>
+        <description>Fix Request for UnconditionalCreatedLogArgument #312</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+class Foo {
+
+    private void calcYear(Data data) {
+            Long loss = this.fService.filter(data);
+            log.debug("loss for year={}, id={}, loss={}", data.getYear(), data.getId(), loss); // false positive on 'loss'
+            this.lossService.storeLoss(data, loss.intValue());
+    }
+
+    public void handle(final OrderDeleted event) {
+       String group = service.getUserGroup(event.getOwner().getCode());
+       final String key = event.getOwner().getCode()+ "#" + group + "#order";
+
+       log.info("Preparing to remove order with key " + key); // false positive: Avoid unconditional creation of a log argument, it may not be needed.
+
+       this.deleteFromRepository(key);
+       log.info("Deleted order intent from repository: key " + key); // false positive: Avoid unconditional creation of a log argument, it may not be needed.
+    }
+}
+]]></code>
+    </test-code>
 </test-data>
