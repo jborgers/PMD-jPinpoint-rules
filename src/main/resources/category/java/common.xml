@@ -246,7 +246,7 @@ String good_replaceInnerLineBreakBySpace() {
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="tag" value="sustainability-low" type="String" description="for-sonar"/>
+            <property name="tag" value="sustainability-medium" type="String" description="for-sonar"/>
             <property name="tag" value="cpu" type="String" description="for-sonar"/>
             <property name="xpath">
                 <value><![CDATA[
@@ -1409,8 +1409,6 @@ public class CalendarStuff {
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="tag" value="pitfall" type="String" description="for-sonar"/>
-            <property name="tag" value="sustainability-low" type="String" description="for-sonar"/>
-            <property name="tag" value="memory" type="String" description="for-sonar"/>
             <property name="xpath">
                 <value><![CDATA[
     (: a field of type List :)
@@ -1483,8 +1481,6 @@ public class Good {
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="tag" value="bad-practice" type="String" description="for-sonar"/>
-            <property name="tag" value="sustainability-low" type="String" description="for-sonar"/>
-            <property name="tag" value="memory" type="String" description="for-sonar"/>
             <property name="xpath">
                 <value><![CDATA[
 (: append used in one chained statement on allocated StringBuilder and with chained toString :)
@@ -1547,8 +1543,9 @@ class Foo {
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="tag" value="" type="String" description="for-sonar"/>
+            <property name="tag" value="sustainability-medium" type="String" description="for-sonar"/>
             <property name="tag" value="memory" type="String" description="for-sonar"/>
+            <property name="tag" value="cpu" type="String" description="for-sonar"/>
             <property name="xpath">
                 <value><![CDATA[
 //FieldDeclaration[Type/ReferenceType/ClassOrInterfaceType
@@ -1649,7 +1646,7 @@ Set<YourEnumType> set = EnumSet.allOf(YourEnumType.class);
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="tag" value="" type="String" description="for-sonar"/>
+            <property name="tag" value="sustainability-medium" type="String" description="for-sonar"/>
             <property name="tag" value="cpu" type="String" description="for-sonar"/>
             <property name="xpath">
                 <value><![CDATA[
@@ -1794,7 +1791,7 @@ record GoodRecord(String name, List<String> list) {
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="tag" value="sustainability-low" type="String" description="for-sonar"/>
+            <property name="tag" value="sustainability-medium" type="String" description="for-sonar"/>
             <property name="tag" value="cpu" type="String" description="for-sonar"/>
             <property name="xpath">
                 <value><![CDATA[
@@ -1999,6 +1996,7 @@ class Foo {
             <property name="tag" value="performance" type="String" description="for-sonar"/>
             <property name="tag" value="sustainability-high" type="String" description="for-sonar"/>
             <property name="tag" value="cpu" type="String" description="for-sonar"/>
+            <property name="tag" value="io" type="String" description="for-sonar"/>
             <property name="xpath">
                 <value><![CDATA[
 //Resource//AllocationExpression/ClassOrInterfaceType[pmd-java:typeIs('java.io.FileInputStream') or pmd-java:typeIs('java.io.FileOutputStream')]
@@ -2044,6 +2042,7 @@ class BufferFileStreaming {
             <property name="tag" value="performance" type="String" description="for-sonar"/>
             <property name="tag" value="sustainability-high" type="String" description="for-sonar"/>
             <property name="tag" value="cpu" type="String" description="for-sonar"/>
+            <property name="tag" value="io" type="String" description="for-sonar"/>
             <property name="xpath">
                 <value><![CDATA[
 //PrimaryExpression/PrimaryPrefix/Name[pmd-java:typeIs('java.nio.file.Files') and ends-with(@Image,'.newOutputStream')]
@@ -2186,6 +2185,7 @@ class Good {
             <property name="tag" value="performance" type="String" description="for-sonar"/>
             <property name="tag" value="sustainability-high" type="String" description="for-sonar"/>
             <property name="tag" value="cpu" type="String" description="for-sonar"/>
+            <property name="tag" value="io" type="String" description="for-sonar"/>
             <property name="xpath">
                 <value><![CDATA[
 //MethodDeclaration[not((@Name='main' and @Static=true())or ../Annotation//Name/@Image='PostConstruct'

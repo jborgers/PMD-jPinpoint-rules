@@ -1064,8 +1064,10 @@ public class VMRData {
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
-            <property name="tag" value="performance" type="String" description="for-sonar"/>
             <property name="tag" value="unpredictable" type="String" description="for-sonar"/>
+            <property name="tag" value="performance" type="String" description="for-sonar"/>
+            <property name="tag" value="sustainability-low" type="String" description="for-sonar"/>
+            <property name="tag" value="cpu" type="String" description="for-sonar"/>
             <property name="xpath">
                 <value><![CDATA[
 //PrimaryExpression/(PrimarySuffix[@Image='parallelStream' or @Image='parallel']|PrimaryPrefix/Name[ends-with(@Image, '.parallelStream') or ends-with(@Image, '.parallel')])

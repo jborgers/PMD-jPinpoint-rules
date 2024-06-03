@@ -198,7 +198,7 @@ and  (../../ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='Autowired']
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="tag" value="sustainability-low" type="String" description="for-sonar"/>
+            <property name="tag" value="sustainability-medium" type="String" description="for-sonar"/>
             <property name="tag" value="memory" type="String" description="for-sonar"/>
             <property name="xpath">
                 <value><![CDATA[
@@ -421,7 +421,6 @@ class Foo {
         <priority>2</priority>
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="tag" value="performance" type="String" description="for-sonar"/>
             <property name="tag" value="bad-practice" type="String" description="for-sonar"/>
             <property name="tag" value="data-mix-up" type="String" description="for-sonar"/>
             <property name="xpath">

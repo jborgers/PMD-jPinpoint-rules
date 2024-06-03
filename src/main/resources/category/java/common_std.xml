@@ -21,6 +21,7 @@
             <property name="tag" value="performance" type="String" description="for-sonar"/>
             <property name="tag" value="sustainability-medium" type="String" description="for-sonar"/>
             <property name="tag" value="memory" type="String" description="for-sonar"/>
+            <property name="tag" value="io" type="String" description="for-sonar"/>
             <property name="xpath">
                 <value>
                     <![CDATA[
@@ -174,7 +175,7 @@ public class StringStuff {
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="tag" value="sustainability-low" type="String" description="for-sonar"/>
+            <property name="tag" value="sustainability-medium" type="String" description="for-sonar"/>
             <property name="tag" value="cpu" type="String" description="for-sonar"/>
             <property name="xpath">
                 <value><![CDATA[
