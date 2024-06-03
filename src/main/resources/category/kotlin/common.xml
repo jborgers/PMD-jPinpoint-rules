@@ -408,8 +408,7 @@ class Foo {
      (: check if variable function params in init constructor with two params :)
      and ancestor::PostfixUnaryExpression/PostfixUnarySuffix//ValueArguments[
            count(ValueArgument) = 2
-           and ./ValueArgument[1]//T-Identifier[@Text = ancestor::FunctionDeclaration/FunctionValueParameters/FunctionValueParameter/Parameter/SimpleIdentifier/T-Identifier/@Text]
-           and ./ValueArgument[2]//T-Identifier[@Text = ancestor::FunctionDeclaration/FunctionValueParameters/FunctionValueParameter/Parameter/SimpleIdentifier/T-Identifier/@Text]
+           and count(./ValueArgument//T-Identifier[@Text = ancestor::FunctionDeclaration/FunctionValueParameters/FunctionValueParameter/Parameter/SimpleIdentifier/T-Identifier/@Text]) = 2
            (: check if variable is a var :)
            and ancestor::Statement/Assignment//T-Identifier[@Text = ancestor::ClassBody//VariableDeclaration//T-Identifier[ancestor::PropertyDeclaration/T-VAR]/@Text]
      ]
