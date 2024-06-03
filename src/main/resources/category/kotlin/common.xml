@@ -263,7 +263,6 @@ object GoodAvoidRecompilingXPathExpressionKt {
         <priority>2</priority>
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="version" value="3.1"/>
             <property name="xpath">
                 <value><![CDATA[
 (: check if java.text imports exists as filter for same named classes in other packages :)
@@ -365,6 +364,59 @@ class Foo {
 }
 ]]>
         </example>
+    </rule>
+    <rule name="AvoidRecreatingDateTimeFormatter"
+          message="Avoid recreating DateTimeFormatter, it is relatively expensive."
+          class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="kotlin"
+          typeResolution="true" externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#idtf02">
+        <description>
+            Problem: Recreating a DateTimeFormatter is relatively expensive.&#13;
+            Solution: org.joda.time.format.DateTimeFormatter or Java 8 java.time.DateTimeFormatter is thread-safe and can be shared among threads. Create the
+            formatter from a pattern only once, to initialize a constant or instance field.
+            (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <property name="xpath">
+                <value>
+                    <![CDATA[
+(: check if java.time.format or org.joda.time.format imports exists as filter for same named classes in other packages :)
+//ImportHeader[
+    (.//T-Identifier[@Text='org'] and .//T-Identifier[@Text='joda'] and .//T-Identifier[@Text='time'] and .//T-Identifier[@Text='format'])
+    or (.//T-Identifier[@Text='java'] and .//T-Identifier[@Text='time'] and .//T-Identifier[@Text='format'])
+  ][1]/ancestor::KotlinFile
+
+/TopLevelObject//Expression//T-Identifier[
+    (@Text='DateTimeFormatter' or @Text='DateTimeFormat' or @Text='DateTimeFormatterBuilder' or @Text='ISODateTimeFormat')
+     (: val is "final" and is allowed in CompanionObject :)
+     and (not(ancestor::PropertyDeclaration/T-VAL) or (ancestor::PropertyDeclaration/T-VAL and not(ancestor::CompanionObject)))
+     (: do not match explicit type declarations :)
+     and not(ancestor::TypeReference)
+     (: variable params are allowed, e.g. when it is an incoming function param :)
+     and not(ancestor::PrefixUnaryExpression//ValueArgument[.//T-Identifier[@Text = ancestor::FunctionDeclaration/FunctionValueParameters/FunctionValueParameter/Parameter/SimpleIdentifier/T-Identifier/@Text]])
+     (: variable class params are allowed in val fields :)
+     and (not(ancestor::PropertyDeclaration/T-VAL) or not(ancestor::PrefixUnaryExpression//ValueArgument[.//T-Identifier[@Text = ancestor::ClassDeclaration//ClassParameters/ClassParameter/SimpleIdentifier/T-Identifier/@Text]]))
+]
+|
+(: java.time.format.DateTimeFormatter variable params are allowed in field init in constructors if val :)
+//ImportHeader[
+    .//T-Identifier[@Text='java'] and .//T-Identifier[@Text='time'] and .//T-Identifier[@Text='format']
+  ][1]/ancestor::KotlinFile
+
+/TopLevelObject//Expression//T-Identifier[
+    @Text='DateTimeFormatter'
+     (: check if variable function params in init constructor with two params :)
+     and ancestor::PostfixUnaryExpression/PostfixUnarySuffix//ValueArguments[
+           count(ValueArgument) = 2
+           and count(./ValueArgument//T-Identifier[@Text = ancestor::FunctionDeclaration/FunctionValueParameters/FunctionValueParameter/Parameter/SimpleIdentifier/T-Identifier/@Text]) = 2
+           (: check if variable is a var :)
+           and ancestor::Statement/Assignment//T-Identifier[@Text = ancestor::ClassBody//VariableDeclaration//T-Identifier[ancestor::PropertyDeclaration/T-VAR]/@Text]
+     ]
+]
+]]>
+                </value>
+            </property>
+        </properties>
     </rule>
 
 </ruleset>

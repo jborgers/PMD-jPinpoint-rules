@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>Avoid recreation of DateTimeFormatter object.</description>
+        <expected-problems>13</expected-problems>
+        <expected-linenumbers>8,14,15,18,22,26,30,34,38,43,55,64,68</expected-linenumbers>
+        <code><![CDATA[
+import org.joda.time.format.*
+import org.springframework.format.annotation.DateTimeFormat
+import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeFormatterBuilder
+
+class Foo {
+    companion object {
+        var wrongAgain: DateTimeFormatter = ISODateTimeFormat.basicDate() // bad, not final
+        val ok1: DateTimeFormatter = DateTimeFormat.forPattern("xxx")
+        private val ok2: DateTimeFormatter = DateTimeFormat.forPattern("xxx")
+        val YMD_FORMATTER: DateTimeFormatter = org.threeten.bp.format.DateTimeFormatter.ofPattern("yyyy-MM-dd")
+    }
+
+    val wrong: DateTimeFormatter = ISODateTimeFormat.basicDate() // bad, not static
+    var stillWrong: DateTimeFormatter = ISODateTimeFormat.basicDate() // bad, not final, not static
+    fun testViolation1(printer: DateTimePrinter?, parser: DateTimeParser?) {
+        var dtf: DateTimeFormatter? = null
+        dtf = DateTimeFormatter(printer, parser) // bad
+    }
+
+    fun testViolation2() {
+        val dtf = DateTimeFormatterBuilder().toFormatter() // bad
+    }
+
+    fun testViolation3() {
+        val dtf: DateTimeFormatter = ISODateTimeFormat.date() // bad
+    }
+
+    fun testViolation4() {
+        stillWrong = DateTimeFormat.fullDateTime() // bad
+    }
+
+    fun testViolation5() {
+        stillWrong = DateTimeFormat.forPattern("") // bad
+    }
+
+    fun testViolation6(printer: DateTimePrinter?, parser: DateTimeParser?) {
+        stillWrong = DateTimeFormatter(printer, parser) // bad
+    }
+
+    fun testViolation7_PCC_171() {
+        val dt = 1L
+        val s: String = DateTimeFormat.forPattern("yyDDD").print(dt) // bad
+    }
+
+    fun testNoViolation(): DateTimeFormatter? {
+        return null
+    }
+
+    fun testNoViolation_JPCC_16(dateFormat: String) {
+        val dateTimeFormatter = getDateTimeFormatterFromCacheViolation(dateFormat)
+    }
+
+    private fun getDateTimeFormatterFromCacheViolation(dateFormat: String): DateTimeFormatter {
+        return DateTimeFormatterBuilder().toFormatter() // bad
+    }
+
+    fun testNoViolation_2(dateFormat: String?) {
+        val dateTimeFormatter: DateTimeFormatter =
+            DateTimeFormat.forPattern(dateFormat) // good: possible different dataFormat params
+    }
+
+    fun testViolationThreeten() {
+        val ftor: DateTimeFormatter = org.threeten.bp.format.DateTimeFormatter.ofPattern("yyMMdd") // bad
+    }
+
+    fun testViolationJava8() {
+        val ftor = DateTimeFormatter.ofPattern("yyMMdd") // bad
+    }
+}
+]]></code>
+    </test-code>
+    <test-code>
+        <description>Avoid recreation of joda DateTimeFormatter object. But allow in constructor if member variable is val.</description>
+        <expected-problems>3</expected-problems>
+        <expected-linenumbers>13,14,15</expected-linenumbers>
+        <code><![CDATA[
+import org.joda.time.format.DateTimeFormat
+import org.joda.time.format.DateTimeFormatter
+import org.joda.time.format.DateTimeFormatterBuilder
+
+class Foo(pattern: String?) {
+
+    companion object {
+        private val ok2 = DateTimeFormat.forPattern("YY-MM-hh")
+    }
+
+    private val ok: DateTimeFormatter = DateTimeFormat.forPattern(pattern)
+    private val notok: DateTimeFormatter =
+        DateTimeFormat.forPattern("YY-MM-hh") // bad
+    private val notok2: DateTimeFormatter = DateTimeFormat.forPattern("YY-MM-hh") // bad (should be in companion object)
+    private var notok3 = DateTimeFormatterBuilder().appendPattern(pattern).toFormatter() // bad (should be val)
+}
+     ]]></code>
+    </test-code>
+    <test-code>
+        <description>Avoid recreation of java time DateTimeFormatter object. But allow in constructor if member variable is val.</description>
+        <expected-problems>3</expected-problems>
+        <expected-linenumbers>12,13,14</expected-linenumbers>
+        <code><![CDATA[
+import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeFormatterBuilder
+
+class Foo(pattern: String?) {
+
+    companion object {
+        private val ok2 = DateTimeFormatter.ofPattern("YY-MM-hh")
+    }
+
+    private val ok: DateTimeFormatter = DateTimeFormatter.ofPattern(pattern)
+    private val notok: DateTimeFormatter =
+        DateTimeFormatter.ofPattern("YY-MM-hh") // bad
+    private val notok2: DateTimeFormatter = DateTimeFormatter.ofPattern("YY-MM-hh") // bad (should be in companion object)
+    private var notok3 = DateTimeFormatterBuilder().appendPattern(pattern).toFormatter() // bad (should be val)
+}
+     ]]></code>
+    </test-code>
+    <test-code>
+        <description>Avoid recreation of joda DateTimeFormatter object. But allow if there is a parameter from method call involved.</description>
+        <expected-problems>3</expected-problems>
+        <expected-linenumbers>8,9,10</expected-linenumbers>
+        <code><![CDATA[
+import org.joda.time.format.DateTimeFormat
+import java.time.ZoneId
+
+object Foo {
+    private const val DEFAULT_DATETIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
+    fun format(milliseconds: Long, myFormat: String?, myTimeZone: String?): String {
+        val formatter1 = DateTimeFormat.forPattern(myFormat) // good: has variable parameter
+        val formatter2 = DateTimeFormat.forPattern(DEFAULT_DATETIME_FORMAT) // bad
+        val formatter3 = DateTimeFormat.forPattern(DEFAULT_DATETIME_FORMAT).withZoneUTC() // bad
+        val formatter4 = DateTimeFormat.forPattern(DEFAULT_DATETIME_FORMAT).withZone(ZoneId.of("UTC")) // bad
+        val formatter5 =
+            DateTimeFormat.forPattern(DEFAULT_DATETIME_FORMAT).withZone(myTimeZone) // good: has variable parameter
+        return formatter1.print(milliseconds)
+    }
+}
+     ]]></code>
+    </test-code>
+    <test-code>
+        <description>Avoid recreation of java time DateTimeFormatter object. But allow if there is a parameter from method call involved.</description>
+        <expected-problems>2</expected-problems>
+        <expected-linenumbers>9,10</expected-linenumbers>
+        <code><![CDATA[
+import java.time.Instant
+import java.time.format.DateTimeFormatter
+import java.time.ZoneId
+
+object Foo {
+    private const val DEFAULT_DATETIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
+    fun format(timestamp: Instant, myFormat: String?, myTimeZone: ZoneId?): String {
+        val formatter1 = DateTimeFormatter.ofPattern(myFormat) // good: has variable parameter
+        val formatter2 = DateTimeFormatter.ofPattern(DEFAULT_DATETIME_FORMAT) // bad
+        val formatter4 = DateTimeFormatter.ofPattern(DEFAULT_DATETIME_FORMAT).withZone(ZoneId.of("UTC")) // bad
+        val formatter5 =
+            DateTimeFormatter.ofPattern(DEFAULT_DATETIME_FORMAT).withZone(myTimeZone) // good: has variable parameter
+        return formatter1.format(timestamp)
+    }
+}
+     ]]></code>
+    </test-code>
+    <test-code>
+        <description>Ignore custom DateTimeFormatter</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import com.any.DateTimeFormatter
+
+object Foo {
+    private const val DEFAULT_DATETIME_FORMAT = "yyyy-MM-dd"
+    fun format(timestamp: Instant): String {
+        val formatter = DateTimeFormatter.ofPattern(DEFAULT_DATETIME_FORMAT)
+        return formatter.format(timestamp)
+    }
+}
+     ]]></code>
+    </test-code>
+    <test-code>
+        <description>Flag joda DateTimeFormatter</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>6</expected-linenumbers>
+        <code><![CDATA[
+import org.joda.time.format.DateTimeFormatter
+
+object Foo {
+    private const val DEFAULT_DATETIME_FORMAT = "yyyy-MM-dd"
+    fun format(timestamp: Instant): String {
+        val formatter = DateTimeFormatter.ofPattern(DEFAULT_DATETIME_FORMAT) // bad
+        return formatter.format(timestamp)
+    }
+}
+     ]]></code>
+    </test-code>
+
+</test-data>
