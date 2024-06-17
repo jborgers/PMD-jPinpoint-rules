@@ -1676,8 +1676,8 @@ Set<YourEnumType> set = EnumSet.allOf(YourEnumType.class);
     (: and it is not used in a constructor of a local var :)
     and (not(@Image = ancestor::Block//AllocationExpression//Name/@Image))
     (: and it is not used as an argument in another method call than log :)
-    and (not(@Image = ancestor::Block//PrimaryExpression[PrimaryPrefix/Name
-        [not(ends-with(@Image, 'trace') or ends-with(@Image, 'debug') or ends-with(@Image, 'info'))]]/PrimarySuffix/Arguments//Name/@Image))
+    and (not(contains(concat(string-join(ancestor::Block//PrimaryExpression[(PrimaryPrefix/Name|PrimarySuffix)
+        [@Image > '' and not(ends-with(@Image, 'trace') or ends-with(@Image, 'debug') or ends-with(@Image, 'info'))]]/PrimarySuffix/Arguments//Name/@Image, '.'), '.'), concat(@Image,'.'))))
     (: and it is not used in the method in a blockstatement before a '.', like logObj.toString() other than method call argument.
        It is a contains, so a violation is missed when the log arg/declared var e.g. is 'log' and a 'obj.log()' is used :)
     and (not(contains(string-join(ancestor::MethodDeclaration//Name[ancestor::BlockStatement/(Statement|LocalVariableDeclaration)[count(./StatementExpression//PrimarySuffix//ArgumentList//Name/@Image) = 0]]/@Image, '.'), concat(@Image, '.')) ))
