@@ -484,73 +484,38 @@ class FooGood {
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="xpath">
                 <value><![CDATA[
-(//MethodDeclaration//(PrimaryPrefix/Name[ends-with(@Image, '.replaceAll') or ends-with(@Image, '.replaceFirst') or @Image='Pattern.matches']
-|PrimarySuffix[@Image = 'replaceAll' or ends-with(@Image, '.replaceFirst')])
-/following::PrimarySuffix[1]/Arguments[ArgumentList/@Size=2]//Expression[1]//PrimaryPrefix[
-Literal[string-length(@Image) > 5 and
-(matches(@Image, '[\.\$\|\(\)\[\]\{\}\^\?\*\+\\]+'))] or Name
-and not(../PrimarySuffix)
-and not (
-Name/@Image=ancestor::MethodDeclaration//VariableDeclaratorId/@Name)
-and not (
-Name[@Image=ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration/VariableDeclarator[
-VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/Literal[string-length(@Image) < 6 or not
-(matches(@Image, '[\.\$\|\(\)\[\]\{\}\^\?\*\+\\]+'))]
-]/VariableDeclaratorId/@Name])
+//PostfixUnaryExpression/PostfixUnarySuffix/NavigationSuffix/SimpleIdentifier/T-Identifier[
+    @Text='toRegex'
+    (: not called on function parameter :)
+    and not(../../../../PrimaryExpression//T-Identifier[@Text = ancestor::FunctionDeclaration//FunctionValueParameter//Parameter/SimpleIdentifier/T-Identifier/@Text])
+    (: not called on 'dynamic' function call :)
+    and not(../../../../../PostfixUnaryExpression/PostfixUnarySuffix[1]/CallSuffix)
+    (: not if based on local variable initialized by parameter :)
+    and not(../../../../../PostfixUnaryExpression/PrimaryExpression/SimpleIdentifier/T-Identifier[@Text = ancestor::FunctionBody//PropertyDeclaration/VariableDeclaration/SimpleIdentifier/T-Identifier/@Text])
 ]
-,
-//MethodDeclaration//PrimaryPrefix/Name[ends-with(@Image, '.split') or ends-with(@Image, 'getPathMatcher')]/../../PrimarySuffix/Arguments[ArgumentList/@Size=1]//Expression[1]//PrimaryPrefix[
-Literal[string-length(@Image) > 5 and
-matches(@Image, '[\.\$\|\(\)\[\]\{\}\^\?\*\+\\]+')] or Name
-and not(../PrimarySuffix)
-and not (
-Name/@Image=ancestor::MethodDeclaration//VariableDeclaratorId/@Name)
-and not (
-(:--- not (if foreign field (with .), or field with short String or without regex char) ---:)
-Name[contains(@Image, '.') or @Image=ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration/VariableDeclarator[
-VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/Literal[string-length(@Image) < 6 or not
-(matches(@Image, '[\.\$\|\(\)\[\]\{\}\^\?\*\+\\]+'))]
-]/VariableDeclaratorId/@Name])
-]
-,
-//MethodDeclaration//PrimarySuffix[@Image='getPathMatcher']/../PrimarySuffix/Arguments[ArgumentList/@Size=1]/ArgumentList/Expression[1]/PrimaryExpression/PrimaryPrefix[
-Literal[string-length(@Image) > 5] or Name
-and not(../PrimarySuffix)
-and not (
-Name/@Image=ancestor::MethodDeclaration//VariableDeclaratorId/@Name)
-and not (
-Name[@Image=ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration/VariableDeclarator[
-VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/Literal[string-length(@Image) < 6]]/VariableDeclaratorId/@Name])
-]
-,
-(: --- String.matches called on formalparams, locals and fields --- :)
-//MethodDeclaration//PrimaryPrefix/Name[ends-with(@Image, '.matches')]
-[
-(exists(index-of((ancestor::MethodDeclaration//FormalParameter[pmd-java:typeIs('java.lang.String')]/VariableDeclaratorId/@Name), substring-before(@Image,'.')))
-or
-exists(index-of((ancestor::MethodDeclaration//LocalVariableDeclaration/Type[pmd-java:typeIs('java.lang.String')]/../VariableDeclarator/VariableDeclaratorId/@Name), substring-before(@Image,'.')))
-or
-exists(index-of((ancestor::ClassOrInterfaceBody//FieldDeclaration[pmd-java:typeIs('java.lang.String')]/VariableDeclarator/VariableDeclaratorId/@Name), substring-before(@Image,'.'))))
-and
-(: for matches param is >5 literal or something named :)
-../../PrimarySuffix/Arguments[ArgumentList/@Size=1]//Expression[1]//PrimaryPrefix[
-Literal[string-length(@Image) > 5] or Name
-(: exclude method calls :)
-and not(../PrimarySuffix)
-(: exclude for param is method arg or local :)
-and not (
-Name/@Image=ancestor::MethodDeclaration//VariableDeclaratorId/@Name)
-(: exclude for param is short fields :)
-and not (
-Name[@Image=ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration/VariableDeclarator[
-VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/Literal[string-length(@Image) < 6]
-]/VariableDeclaratorId/@Name])
-]])
 ]]></value>
             </property>
         </properties>
         <example>
+class Foo {
 
+    companion object {
+        val INNER_LINE_BREAK_REGEX = """([^.\n])\n""".toRegex()
+        val INNER_LINE_BREAK_PATTERN = """([^.\n])\n""".toPattern()
+    }
+
+    fun bad_replaceInnerLineBreakBySpace(text: String): String {
+        return text.replace("""([^.\n])\n""".toRegex(), "$1 ") // bad
+    }
+
+    fun good_replaceInnerLineBreakBySpace1(text: String): String {
+        return text.replace(INNER_LINE_BREAK_REGEX, "$1 ") // good
+    }
+
+    fun good_replaceInnerLineBreakBySpace2(text: String): String {
+        return INNER_LINE_BREAK_PATTERN.matcher(text).replaceAll("$1 ") // good
+    }
+}
         </example>
     </rule>
 
