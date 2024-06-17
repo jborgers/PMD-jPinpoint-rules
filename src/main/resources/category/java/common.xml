@@ -15,7 +15,7 @@
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
+            <!--property name="version" value="2.0"/-->
             <property name="xpath">
                 <value><![CDATA[
 //Expression/PrimaryExpression/PrimaryPrefix/Name[@Image='CDI.current']/../../
