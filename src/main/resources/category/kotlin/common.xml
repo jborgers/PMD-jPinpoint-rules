@@ -483,17 +483,51 @@ class FooGood {
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="xpath">
-                <value><![CDATA[
-//PostfixUnaryExpression/PostfixUnarySuffix/NavigationSuffix/SimpleIdentifier/T-Identifier[
+                <value>
+                    //FunctionDeclaration//PostfixUnaryExpression/PostfixUnarySuffix/NavigationSuffix/SimpleIdentifier/T-Identifier[
     @Text='toRegex'
     (: not called on function parameter :)
-    and not(../../../../PrimaryExpression//T-Identifier[@Text = ancestor::FunctionDeclaration//FunctionValueParameter//Parameter/SimpleIdentifier/T-Identifier/@Text])
+    and not(../../../../PrimaryExpression//T-Identifier[
+        @Text = ancestor::FunctionDeclaration//FunctionValueParameter//Parameter/SimpleIdentifier/T-Identifier/@Text])
     (: not called on 'dynamic' function call :)
     and not(../../../../../PostfixUnaryExpression/PostfixUnarySuffix[1]/CallSuffix)
     (: not if based on local variable initialized by parameter :)
-    and not(../../../../../PostfixUnaryExpression/PrimaryExpression/SimpleIdentifier/T-Identifier[@Text = ancestor::FunctionBody//PropertyDeclaration/VariableDeclaration/SimpleIdentifier/T-Identifier/@Text])
+    and not(../../../../../PostfixUnaryExpression/PrimaryExpression/SimpleIdentifier/T-Identifier[
+        @Text = ancestor::FunctionBody//PropertyDeclaration/VariableDeclaration/SimpleIdentifier/T-Identifier/@Text])
 ]
-]]></value>
+
+|
+
+(: check if java.util.regex.Pattern import exists as filter for same named classes in other packages :)
+//ImportHeader[
+    (.//T-Identifier[@Text='java'] and .//T-Identifier[@Text='util'] and .//T-Identifier[@Text='regex'] and .//T-Identifier[@Text='Pattern'] or .//T-MULT)
+  ][1]/ancestor::KotlinFile
+//SimpleIdentifier/T-Identifier[@Text='Pattern'
+    and ../../../PostfixUnarySuffix//T-Identifier[@Text='matches']
+    (: not if first param is function parameter :)
+    and not(../../../PostfixUnarySuffix/CallSuffix/ValueArguments/ValueArgument[1]//SimpleIdentifier/T-Identifier[
+        @Text = ancestor::FunctionDeclaration//Parameter/SimpleIdentifier/T-Identifier/@Text])
+]
+
+|
+
+(: check if java.nio.file.FileSystems or java.nio.file.Path imports exists as filter for same named classes in other packages :)
+(: TODO is this a bug: having to use T-FILE for 'file' :)
+//ImportHeader[
+    (.//T-Identifier[@Text='java']
+        and .//T-Identifier[@Text='nio'] and .//T-FILE[@Text='file'] and .//T-Identifier[@Text='FileSystems' or @Text='Path'] or .//T-MULT)
+  ][1]/ancestor::KotlinFile
+//FunctionDeclaration//PostfixUnarySuffix//T-Identifier[(@Text='getPathMatcher' or @Text='matches')
+    and (ancestor::PostfixUnaryExpression/PrimaryExpression/SimpleIdentifier/T-Identifier[@Text='FileSystems'])
+    (: not if first param is function parameter :)
+    and not(ancestor::PrefixUnaryExpression//CallSuffix/ValueArguments/ValueArgument//SimpleIdentifier/T-Identifier[
+       @Text = ancestor::FunctionDeclaration//Parameter/SimpleIdentifier/T-Identifier/@Text])
+    (: not param in String template in function param :)
+    and not(ancestor::PrefixUnaryExpression//CallSuffix/ValueArguments/ValueArgument//LineStringContent/T-LineStrRef[
+       @Text = ancestor::FunctionDeclaration//Parameter/SimpleIdentifier/T-Identifier/concat('$', @Text)])
+]
+
+                </value>
             </property>
         </properties>
         <example>
