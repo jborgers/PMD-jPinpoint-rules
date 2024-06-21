@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ruleset name="jpinpoint-sql-rules" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 https://pmd.sourceforge.io/ruleset_2_0_0.xsd" xmlns="http://pmd.sourceforge.net/ruleset/2.0.0">
+    <description>jPinpoint rule set for performance aware Java coding, sponsored by Rabobank.</description>
+<!--
+    <rule name="AvoidHugeQueryFetchSize"
+          message="Avoid a huge query fetch size, it consumes much memory."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
+          typeResolution="true" externalInfoUrl="${doc_root}/JavaDataAccessPerformance.md#ida-trm03">
+        <description>
+            Problem: if huge numbers of result rows are fetched these are all stored in memory and this may introduce long gc times and out of memory risk.&#13;
+            Solution: Set fetch size to 100 maximally. Only set it higher than 100 yet still max 500, if you are sure there is only little data returned per row, like 3 rather short columns.
+            (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <property name="tag" value="performance" type="String" description="for-sonar"/>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value>
+                    <![CDATA[
+//MethodDeclaration//PrimaryExpression[PrimaryPrefix/Name[ends-with(@Image, '.setFetchSize')]
+[../..//ArgumentList//Literal[number(@Image) > 500]]]
+|
+//MethodDeclaration//PrimaryExpression[PrimaryPrefix/Name[ends-with(@Image, '.setFetchSize')]]
+[PrimarySuffix//ArgumentList//Name[@Image =
+ancestor::ClassOrInterfaceBody//VariableDeclarator/VariableDeclaratorId/@Name
+[../../VariableInitializer//Literal[number(@Image) > 500]]]]
+]]>
+                </value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="AvoidMultipleRoundtripsForQuery"
+          message="Avoid multiple roundtrips for the same query"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
+          typeResolution="true" externalInfoUrl="${doc_root}/JavaDataAccessPerformance.md#ida-trr05">
+        <description>
+            Problem: Time is taken by the unnecessary roundtrip(s). Unnecessary work is performed.&#13;
+            Solution: Execute the query only once.
+            (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <property name="tag" value="performance" type="String" description="for-sonar"/>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value>
+                    <![CDATA[
+//MethodDeclaration/Block//PrimaryExpression/PrimaryPrefix/Name[ends-with(@Image, '.getSingleResult')]
+[ancestor::MethodDeclaration[count(.//VariableInitializer/Expression/PrimaryExpression/PrimarySuffix[@Image='createQuery']) = 1
+and
+count(.//PrimaryExpression/PrimaryPrefix/Name[ends-with(@Image, '.getResultList')]) +
+count(.//PrimaryExpression/PrimaryPrefix/Name[ends-with(@Image, '.getSingleResult')])
+> 1]]
+]]>
+                </value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="AvoidSqlInExpression"
+          message="Avoid a SQL IN-Expression, it fails for > 1000 arguments and pollutes the query plan cache / statement cache"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
+          typeResolution="true" externalInfoUrl="${doc_root}/JavaDataAccessPerformance.md#ida-ino01">
+        <description>
+            Problem: The number of values for the IN-argument list is limited, in Oracle to 1000. An error occurs when exceeding this limit. Additionally, a large IN list takes much time to transport to the database and be parsed. Moreover, each number of IN values used in a query results in a separate cache entry in e.g. the Prepared Statement Cache of the application server and in the Hibernate Query Plan Cache, resulting in higher memory usage and/or low cache hit ratio.&#13;
+            Solution: Rewrite the query by replacing the IN-argument list by a sub query using the criteria used to fetch the IN arguments. Or often even better performing, an inner join using these criteria (depending on indexes etc. - recommended to test to be sure.) This way, the select and update are combined into one, which will also save one roundtrip.
+            (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <property name="tag" value="performance" type="String" description="for-sonar"/>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value>
+                    <![CDATA[
+//ClassOrInterfaceDeclaration/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDeclaration/Block
+//Expression/PrimaryExpression/PrimaryPrefix/Name[@Image='InExpression.in']
+|
+//TypeDeclaration/Annotation/SingleMemberAnnotation/Name[@Image='NamedQueries']
+/../MemberValue//PrimaryExpression/PrimaryPrefix/Literal[contains(@Image, 'WHERE') and
+(contains(@Image, ' IN(:') or contains(@Image, ' IN (:') or contains(@Image, ' IN :') or contains(@Image, ' IN ( :')) ]
+|
+//LocalVariableDeclaration/VariableDeclarator/VariableInitializer//PrimaryPrefix/Literal[
+contains(@Image, ' IN') and contains(@Image, ':')]
+[replace(@Image, '^.+\s+(IN|in)[\s\(]*:([A-z0-9_]+).*$', '"$2"')
+=
+ancestor::MethodDeclaration//BlockStatement//PrimaryPrefix/Name[ends-with(@Image, '.setParameter')]
+(: Arrays.asList is typically used with just a few parameter values, so no problem :)
+/../../PrimarySuffix/Arguments/ArgumentList[Expression/PrimaryExpression/PrimaryPrefix/Name[@Image != 'Arrays.asList']]
+/Expression/PrimaryExpression/PrimaryPrefix/Literal/@Image],
+(: Criteria API: cust.get("postalCode").in(codes) :)
+//PrimaryExpression/PrimaryPrefix[pmd-java:typeIs('javax.persistence.criteria.Root')]/..//PrimarySuffix//ArgumentList/ancestor::Expression//PrimarySuffix[@Image='in']
+,
+(: criteria API: builder.in(cust.get("postalCode") :)
+//Expression//PrimarySuffix//Expression//PrimaryPrefix[pmd-java:typeIs('javax.persistence.criteria.Root')]/..//PrimarySuffix//ArgumentList/
+ancestor::BlockStatement//PrimaryExpression/PrimaryPrefix/Name[ends-with(@Image, '.in') and
+(: good: builder.in(cust.get("postalCode")).value(subquery) :)
+(not(exists(ancestor::PrimaryExpression/PrimarySuffix/Arguments//Expression[pmd-java:typeIs('javax.persistence.criteria.Subquery')])))]
+]]>
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+    private void bad(CriteriaQuery cq, Root<Customer> cust) {
+        cq.select(cust).where(cust.get("postalCode").in(codes)); // bad
+    }
+    private void good(CriteriaBuilder builder, CriteriaQuery cq, Root<Customer> cust, SubQuery<PostalCode> subquery) {
+        cq.select(cust).where(builder.in(cust.get("postalCode")).value(subquery));
+    }
+            ]]>
+        </example>
+    </rule>
+
+    <rule name="AvoidFetchingWholeList"
+          message="Avoid fetching the whole list of entities for the query, while only one entity is used"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
+          typeResolution="true" externalInfoUrl="${doc_root}/JavaDataAccessPerformance.md#ida-trr04">
+        <description>
+            Problem: Unused rows are fetched and transported, and unused jdbc buffer is allocated.&#13;
+            Solution: Use query.getSingleResult() in stead of query.getResultList().
+            (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <property name="tag" value="performance" type="String" description="for-sonar"/>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value>
+                    <![CDATA[
+(: if getResultList is used to fetsch entities and entities(0) is returned :)
+//ReturnStatement//PrimaryExpression[./PrimarySuffix/Arguments//Literal[@Image='0']][./PrimaryPrefix/Name/@Image=
+concat(ancestor::MethodDeclaration//VariableDeclarator[./VariableInitializer//Name[ends-with(@Image,'.getResultList')]]/VariableDeclaratorId/@Name,'.get')
+(: not when also the whole list of entities is returnd :)
+and not(ancestor::MethodDeclaration//ReturnStatement//PrimaryExpression[./PrimaryPrefix/Name/@Image=
+ancestor::MethodDeclaration//VariableDeclarator[./VariableInitializer//Name[ends-with(@Image,'.getResultList')]]/VariableDeclaratorId/@Name])
+(: not when also another elem of entities is returned :)
+and not (ancestor::MethodDeclaration//ReturnStatement//PrimaryExpression[./PrimarySuffix/Arguments//Literal[@Image!='0']][./PrimaryPrefix/Name/@Image=
+concat(ancestor::MethodDeclaration//VariableDeclarator[./VariableInitializer//Name[ends-with(@Image,'.getResultList')]]/VariableDeclaratorId/@Name,'.get')])
+]/ancestor::MethodDeclaration//VariableDeclarator[./VariableInitializer//Name[ends-with(@Image,'.getResultList')]]
+]]>
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+    public SomeEntity findByQueryBad(TypedQuery<Object> query) {
+        final List<SomeEntity> entities = query.getResultList();
+        return !entities.isEmpty() ? entities.get(0) : null;
+    }
+    public SomeEntity findByQueryGood(TypedQuery<Object> query) throws NoResultException {
+        return query.getSingleResult();
+    }
+            ]]>
+        </example>
+    </rule>
+    -->
+</ruleset>

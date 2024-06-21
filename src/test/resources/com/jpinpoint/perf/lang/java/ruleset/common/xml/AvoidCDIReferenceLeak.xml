@@ -84,7 +84,7 @@ public class CDIStuff {
         <code><![CDATA[
 import javax.enterprise.inject.spi.CDI;
 public class CDIStuff {
-	private void bad4() {
+	private void good2() {
 		MyClass o = CDI.current().select(MyClass.class).get();
 		try {
 			doStuffMyself();
@@ -102,7 +102,7 @@ public class CDIStuff {
         <code><![CDATA[
 import javax.enterprise.inject.spi.CDI;
 public class CDIStuff {
-	private void bad4() {
+	private void good3() {
 		MyClass o;
 		o = CDI.current().select(MyClass.class).get();
 		try {

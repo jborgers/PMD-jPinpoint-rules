@@ -15,7 +15,7 @@
           since="7.0"
           language="kotlin"
           message="Avoid using NumberFormat, DecimalFormat or ChoiceFormat as field since it is thread-unsafe."
-          class="net.sourceforge.pmd.lang.rule.XPathRule"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           typeResolution="true"
           externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#isio01">
         <description>
@@ -66,7 +66,7 @@ class Foo {
           since="7.0"
           language="kotlin"
           message="The default capacity or smaller is used for ByteArrayOutputStream or StringWriter, it usually needs expensive expansions."
-          class="net.sourceforge.pmd.lang.rule.XPathRule"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           typeResolution="true"
           externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#isio01">
         <description>
@@ -107,7 +107,7 @@ class AvoidInMemoryStreamingDefaultConstructor {
         </example>
     </rule>
 
-    <rule name="AvoidMultipleConcatStatements" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="kotlin" message="Multiple statements concatenate to the same String. Use StringBuilder append." typeResolution="true"
+    <rule name="AvoidMultipleConcatStatements" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="kotlin" message="Multiple statements concatenate to the same String. Use StringBuilder append." typeResolution="true"
           externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#isu02">
         <description>Multiple statements concatenate to the same String. Problem: Each statement with one or more +-operators creates a hidden temporary StringBuilder, a char[] and a new String object, which all have to be garbage collected.&#13;
             Solution: Use StringBuilder.append.
@@ -140,7 +140,7 @@ ancestor::FunctionBody//PropertyDeclaration[(
     </rule>
 
     <rule name="AvoidRecompilingPatterns"
-          class="net.sourceforge.pmd.lang.rule.XPathRule"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           dfa="false"
           language="kotlin"
           message="Pattern.compile is used in a method. Compiling a regex pattern can be expensive, make it a constant or instance field."
@@ -193,7 +193,7 @@ internal object Good {
         </example>
     </rule>
 
-    <rule name="AvoidRecompilingXPathExpression" class="net.sourceforge.pmd.lang.rule.XPathRule"
+    <rule name="AvoidRecompilingXPathExpression" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           language="kotlin"
           message="XPathExpression is created and compiled every time. Beware it is thread-unsafe."
           typeResolution="true"
@@ -261,7 +261,7 @@ object GoodAvoidRecompilingXPathExpressionKt {
 
     <rule name="AvoidRecreatingDateTimeFormatter"
           message="Avoid recreating DateTimeFormatter, it is relatively expensive."
-          class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="kotlin"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="kotlin"
           typeResolution="true" externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#idtf02">
         <description>
             Problem: Recreating a DateTimeFormatter is relatively expensive.&#13;
@@ -314,7 +314,7 @@ object GoodAvoidRecompilingXPathExpressionKt {
     </rule>
 
     <rule name="AvoidSimpleDateFormat"
-          class="net.sourceforge.pmd.lang.rule.XPathRule"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           dfa="false"
           language="kotlin"
           message="SimpleDateFormat is used. Since it is thread-unsafe, it needs expensive recreation."
@@ -354,7 +354,7 @@ class Foo {
         </example>
     </rule>
 
-    <rule name="AvoidStringBuffer" class="net.sourceforge.pmd.lang.rule.XPathRule"
+    <rule name="AvoidStringBuffer" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           since="7.0"
           language="kotlin"
           message="StringBuffer is used. It introduces locking overhead, use StringBuilder."
@@ -388,7 +388,7 @@ class AvoidStringBuffer {
     </rule>
 
     <rule name="AvoidWideScopeXPathExpression"
-          class="net.sourceforge.pmd.lang.rule.XPathRule"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           dfa="false"
           language="kotlin"
           message="XPathExpression targets a wide scope, this is potentially slow."
@@ -432,7 +432,7 @@ class Foo {
     </rule>
 
     <rule name="AvoidXPathAPIUsage"
-          class="net.sourceforge.pmd.lang.rule.XPathRule"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           dfa="false"
           language="kotlin"
           message="XPathAPI is used. XPathAPI implementation has bad performance."
@@ -485,7 +485,7 @@ class FooGood {
     <rule name="AvoidDeprecatedHystrix"
           since="7.0"
           language="kotlin"
-          class="net.sourceforge.pmd.lang.rule.XPathRule"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           message="Netflix Hystrix is deprecated. Use an alternative like resilience4j"
           typeResolution="true"
           externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#ibi11">
@@ -510,7 +510,7 @@ class FooGood {
           since="7.0"
           language="kotlin"
           message="A HttpClient builder is used and disableConnectionState is not called. HTTP client tracks connection state while using TLS."
-          class="net.sourceforge.pmd.lang.rule.XPathRule"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           typeResolution="true"
           externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#ibi07">
         <description>
