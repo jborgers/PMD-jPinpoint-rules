@@ -15,7 +15,8 @@
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
+            <property name="tag" value="sustainability-low" type="String" description="for-sonar"/>
+            <property name="tag" value="memory" type="String" description="for-sonar"/>
             <property name="xpath">
                 <value><![CDATA[
 //Expression/PrimaryExpression/PrimaryPrefix/Name[@Image='CDI.current']/../../
@@ -69,7 +70,6 @@ public class CDIStuff {
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="tag" value="bad-practice" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
  //ClassOrInterfaceDeclaration[@Interface=true()]/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration
@@ -98,7 +98,6 @@ public interface Foo {
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
 //FieldDeclaration/VariableDeclarator/VariableInitializer/Expression[pmd-java:typeIs('java.text.DecimalFormat') or pmd-java:typeIs('java.text.ChoiceFormat')]
@@ -119,7 +118,6 @@ public interface Foo {
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="tag" value="suspicious" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
             <property name="xpath">
                 <value>
                     <![CDATA[
@@ -152,7 +150,8 @@ or preceding-sibling::SwitchLabel[@Default=true()])
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
+            <property name="tag" value="sustainability-medium" type="String" description="for-sonar"/>
+            <property name="tag" value="cpu" type="String" description="for-sonar"/>
             <property name="xpath">
                 <value><![CDATA[
 (//MethodDeclaration//(PrimaryPrefix/Name[ends-with(@Image, '.replaceAll') or ends-with(@Image, '.replaceFirst') or @Image='Pattern.matches']
@@ -247,7 +246,8 @@ String good_replaceInnerLineBreakBySpace() {
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
+            <property name="tag" value="sustainability-medium" type="String" description="for-sonar"/>
+            <property name="tag" value="cpu" type="String" description="for-sonar"/>
             <property name="xpath">
                 <value><![CDATA[
 //PrimaryExpression/PrimaryPrefix/AllocationExpression/ClassOrInterfaceType[pmd-java:typeIs('java.io.ByteArrayOutputStream') or pmd-java:typeIs('java.io.StringWriter')]
@@ -289,7 +289,8 @@ class Good {
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
+            <property name="tag" value="sustainability-low" type="String" description="for-sonar"/>
+            <property name="tag" value="cpu" type="String" description="for-sonar"/>
             <property name="xpath">
                 <value><![CDATA[
 //MethodDeclaration/Block[
@@ -325,7 +326,8 @@ and
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
+            <property name="tag" value="sustainability-medium" type="String" description="for-sonar"/>
+            <property name="tag" value="cpu" type="String" description="for-sonar"/>
             <property name="xpath">
                 <value><![CDATA[
 //TypeDeclaration/ClassOrInterfaceDeclaration/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDeclaration
@@ -371,7 +373,8 @@ class Good {
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
+            <property name="tag" value="sustainability-medium" type="String" description="for-sonar"/>
+            <property name="tag" value="cpu" type="String" description="for-sonar"/>
             <property name="xpath">
                 <value><![CDATA[
 //TypeDeclaration//ClassOrInterfaceBodyDeclaration/MethodDeclaration
@@ -431,7 +434,8 @@ class Good {
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
+            <property name="tag" value="sustainability-medium" type="String" description="for-sonar"/>
+            <property name="tag" value="cpu" type="String" description="for-sonar"/>
             <property name="xpath">
                 <value>
                     <![CDATA[
@@ -464,7 +468,8 @@ ancestor::MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter/Va
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
+            <property name="tag" value="sustainability-high" type="String" description="for-sonar"/>
+            <property name="tag" value="cpu" type="String" description="for-sonar"/>
             <property name="xpath">
                 <value><![CDATA[
 //PrimaryPrefix/AllocationExpression/ClassOrInterfaceType
@@ -497,7 +502,8 @@ ancestor::MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter/Va
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
+            <property name="tag" value="sustainability-medium" type="String" description="for-sonar"/>
+            <property name="tag" value="cpu" type="String" description="for-sonar"/>
             <property name="xpath">
                 <value><![CDATA[
 //AllocationExpression/ClassOrInterfaceType[
@@ -521,7 +527,8 @@ ancestor::MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter/Va
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
+            <property name="tag" value="sustainability-low" type="String" description="for-sonar"/>
+            <property name="tag" value="cpu" type="String" description="for-sonar"/>
             <property name="xpath">
                 <value><![CDATA[
                     //VariableDeclarator[../Type/ReferenceType/ClassOrInterfaceType[pmd-java:typeIs('java.lang.StringBuffer')]]
@@ -539,7 +546,8 @@ ancestor::MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter/Va
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
+            <property name="tag" value="sustainability-low" type="String" description="for-sonar"/>
+            <property name="tag" value="cpu" type="String" description="for-sonar"/>
             <property name="xpath">
                 <value><![CDATA[
 //MethodDeclaration/Block/BlockStatement/Statement//StatementExpression/PrimaryExpression/PrimaryPrefix/Name[
@@ -573,7 +581,8 @@ substring-after(@Image, '.') != 'append')]) = 0
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
+            <property name="tag" value="sustainability-medium" type="String" description="for-sonar"/>
+            <property name="tag" value="cpu" type="String" description="for-sonar"/>
             <property name="xpath">
                 <value><![CDATA[
 //TypeDeclaration/ClassOrInterfaceDeclaration/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDeclaration
@@ -597,7 +606,8 @@ and
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
+            <property name="tag" value="sustainability-medium" type="String" description="for-sonar"/>
+            <property name="tag" value="cpu" type="String" description="for-sonar"/>
             <property name="xpath">
                 <value><![CDATA[
 //TypeDeclaration/ClassOrInterfaceDeclaration/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration
@@ -616,7 +626,8 @@ and
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
+            <property name="tag" value="sustainability-medium" type="String" description="for-sonar"/>
+            <property name="tag" value="cpu" type="String" description="for-sonar"/>
             <property name="xpath">
                 <value><![CDATA[
 //TypeDeclaration/ClassOrInterfaceDeclaration/ClassOrInterfaceBody/
@@ -641,7 +652,6 @@ ClassOrInterfaceBodyDeclaration
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="tag" value="unpredictable" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
             <property name="xpath">
                 <value>
                     <![CDATA[
@@ -760,7 +770,6 @@ class LombokGetterGood {
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="tag" value="performance" type="String" description="for-sonar"/>
             <property name="tag" value="correctness" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
             <property name="xpath">
                 <value>
                     <![CDATA[
@@ -810,7 +819,8 @@ class Good {
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
+            <property name="tag" value="sustainability-medium" type="String" description="for-sonar"/>
+            <property name="tag" value="memory" type="String" description="for-sonar"/>
             <property name="xpath">
                 <value><![CDATA[
 //ClassOrInterfaceBodyDeclaration/MethodDeclaration[../..//(VariableDeclaratorId |ReturnStatement/Expression)[pmd-java:typeIs('javax.portlet.PortletSession') or pmd-java:typeIs('javax.servlet.http.HttpSession')]]
@@ -865,7 +875,8 @@ class Good {
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
+            <property name="tag" value="sustainability-low" type="String" description="for-sonar"/>
+            <property name="tag" value="cpu" type="String" description="for-sonar"/>
             <property name="xpath">
                 <value><![CDATA[
 //PrimaryPrefix/Name[ends-with(@Image,'.trace') or ends-with(@Image,'.debug') or
@@ -903,7 +914,8 @@ class Foo {
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
+            <property name="tag" value="sustainability-low" type="String" description="for-sonar"/>
+            <property name="tag" value="cpu" type="String" description="for-sonar"/>
             <property name="xpath">
                 <value><![CDATA[
           //PrimaryPrefix/Name
@@ -972,7 +984,6 @@ class Foo {
                       description="Regex for inclusion of high risk rules"/>
             <property name="ruleIdNotMatches" type="String" value="^$"
                       description="Regex for exclusion of high risk rules"/>
-            <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
 //Annotation//Name[@Image="SuppressWarnings" or @Image="SuppressFBWarnings"]/..//Literal[(matches(@Image, $ruleIdMatches)) and not (matches(@Image, $ruleIdNotMatches))]
@@ -994,7 +1005,6 @@ class Foo {
                       description="Regex for inclusion of rules"/>
             <property name="ruleIdNotMatches" type="String" value="^$"
                       description="Regex for exclusion of rules"/>
-            <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
 //Annotation//Name[@Image="SuppressWarnings" or @Image="SuppressFBWarnings"]/..//Literal[(matches(@Image, $ruleIdMatches)) and not (matches(@Image, $ruleIdNotMatches))]
@@ -1013,7 +1023,6 @@ class Foo {
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="tag" value="confusing" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
 (: for fields, formal parameters and local variables :)
@@ -1051,7 +1060,6 @@ public RetrieveCache(final @Value("${cache.expiryTimeMillis}") long timeToLiveMi
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="tag" value="confusing" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
 (: for fields, formal parameters and local variables :)
@@ -1088,7 +1096,6 @@ public RetrieveCache(final @Value("${cache.expiryTimeMillis}") long timeToLiveMi
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="tag" value="correctness" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
 //FieldDeclaration//VariableDeclaratorId[
@@ -1145,7 +1152,6 @@ class Bad {
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="tag" value="correctness" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
 //FieldDeclaration//VariableDeclaratorId[
@@ -1243,7 +1249,6 @@ class Good {
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="tag" value="suspicious" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
     //ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Static=false()]//VariableDeclaratorId[
@@ -1300,7 +1305,6 @@ class Bad1 {
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
 //FieldDeclaration//VariableDeclaratorId[
@@ -1363,7 +1367,8 @@ class Bad {
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
+            <property name="tag" value="sustainability-medium" type="String" description="for-sonar"/>
+            <property name="tag" value="memory" type="String" description="for-sonar"/>
             <property name="xpath">
                 <value><![CDATA[
 //(Type)[pmd-java:typeIs('java.util.Calendar')]
@@ -1404,7 +1409,6 @@ public class CalendarStuff {
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="tag" value="pitfall" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
     (: a field of type List :)
@@ -1477,7 +1481,6 @@ public class Good {
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="tag" value="bad-practice" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
 (: append used in one chained statement on allocated StringBuilder and with chained toString :)
@@ -1540,7 +1543,9 @@ class Foo {
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
+            <property name="tag" value="sustainability-medium" type="String" description="for-sonar"/>
+            <property name="tag" value="memory" type="String" description="for-sonar"/>
+            <property name="tag" value="cpu" type="String" description="for-sonar"/>
             <property name="xpath">
                 <value><![CDATA[
 //FieldDeclaration[Type/ReferenceType/ClassOrInterfaceType
@@ -1610,7 +1615,6 @@ Set<YourEnumType> set = EnumSet.allOf(YourEnumType.class);
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="tag" value="unused" type="String" description="for-sonar"/>
             <property name="tag" value="confusing" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
 //(TypeDeclaration|ClassOrInterfaceBodyDeclaration/ClassOrInterfaceDeclaration/..)/Annotation
@@ -1642,7 +1646,8 @@ Set<YourEnumType> set = EnumSet.allOf(YourEnumType.class);
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
+            <property name="tag" value="sustainability-medium" type="String" description="for-sonar"/>
+            <property name="tag" value="cpu" type="String" description="for-sonar"/>
             <property name="xpath">
                 <value><![CDATA[
 //PrimaryPrefix/Name
@@ -1713,7 +1718,6 @@ class Foo {
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="tag" value="bad-practice" type="String" description="for-sonar"/>
             <property name="tag" value="confusing" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
 //VariableDeclaratorId[matches(@Name, 'ZERO|ONE|TWO|THREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|TEN', 'i')
@@ -1751,7 +1755,6 @@ class Foo {
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
 //RecordDeclaration//RecordComponent/Type[(pmd-java:typeIs('java.util.Collection') or pmd-java:typeIs('java.util.Map'))
@@ -1788,7 +1791,8 @@ record GoodRecord(String name, List<String> list) {
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
+            <property name="tag" value="sustainability-medium" type="String" description="for-sonar"/>
+            <property name="tag" value="cpu" type="String" description="for-sonar"/>
             <property name="xpath">
                 <value><![CDATA[
     //EnumDeclaration/EnumBody[count(EnumConstant) > 3]//MethodDeclaration/Block//PrimaryExpression
@@ -1855,7 +1859,8 @@ public enum Fruit {
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
+            <property name="tag" value="sustainability-low" type="String" description="for-sonar"/>
+            <property name="tag" value="cpu" type="String" description="for-sonar"/>
             <property name="xpath">
                 <value><![CDATA[
 (: check key/elem type in declaration :)
@@ -1917,7 +1922,8 @@ and (pmd-java:typeIs('java.lang.Object'))
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
+            <property name="tag" value="sustainability-low" type="String" description="for-sonar"/>
+            <property name="tag" value="cpu" type="String" description="for-sonar"/>
             <property name="xpath">
                 <value><![CDATA[
 //FieldDeclaration/Type[pmd-java:typeIs('java.util.Set') and ReferenceType//TypeArgument[1][not(pmd-java:typeIs('java.lang.Comparable'))
@@ -1988,7 +1994,9 @@ class Foo {
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
+            <property name="tag" value="sustainability-high" type="String" description="for-sonar"/>
+            <property name="tag" value="cpu" type="String" description="for-sonar"/>
+            <property name="tag" value="io" type="String" description="for-sonar"/>
             <property name="xpath">
                 <value><![CDATA[
 //Resource//AllocationExpression/ClassOrInterfaceType[pmd-java:typeIs('java.io.FileInputStream') or pmd-java:typeIs('java.io.FileOutputStream')]
@@ -2032,7 +2040,9 @@ class BufferFileStreaming {
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
+            <property name="tag" value="sustainability-high" type="String" description="for-sonar"/>
+            <property name="tag" value="cpu" type="String" description="for-sonar"/>
+            <property name="tag" value="io" type="String" description="for-sonar"/>
             <property name="xpath">
                 <value><![CDATA[
 //PrimaryExpression/PrimaryPrefix/Name[pmd-java:typeIs('java.nio.file.Files') and ends-with(@Image,'.newOutputStream')]
@@ -2075,7 +2085,8 @@ class Foo {
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
+            <property name="tag" value="sustainability-medium" type="String" description="for-sonar"/>
+            <property name="tag" value="memory" type="String" description="for-sonar"/>
             <property name="xpath">
                 <value><![CDATA[
 //MethodDeclaration//PrimaryPrefix/Name[@Image='Files.readAllBytes' or @Image='Files.readAllLines']
@@ -2118,7 +2129,6 @@ class Good {
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="tag" value="correctness" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
 //MethodDeclaration[@Name='equals' and MethodDeclarator/FormalParameters/@Size=1 and @Public=true() and @Static=false()]
@@ -2173,7 +2183,9 @@ class Good {
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
+            <property name="tag" value="sustainability-high" type="String" description="for-sonar"/>
+            <property name="tag" value="cpu" type="String" description="for-sonar"/>
+            <property name="tag" value="io" type="String" description="for-sonar"/>
             <property name="xpath">
                 <value><![CDATA[
 //MethodDeclaration[not((@Name='main' and @Static=true())or ../Annotation//Name/@Image='PostConstruct'
