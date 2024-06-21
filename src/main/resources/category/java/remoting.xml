@@ -327,8 +327,7 @@ ancestor::MethodDeclaration//PrimarySuffix/@Image="disableConnectionState")]
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="tag" value="suspicious" type="String" description="for-sonar"/>
-            <property name="tag" value="sustainability-low" type="String" description="for-sonar"/>
+            <property name="tag" value="pitfall" type="String" description="for-sonar"/>
             <property name="tag" value="io" type="String" description="for-sonar"/>
             <property name="xpath">
                 <value><![CDATA[
@@ -877,7 +876,7 @@ and use it to replace the bad line in Bad example:
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="tag" value="sustainability-medium" type="String" description="for-sonar"/>
+            <property name="tag" value="sustainability-low" type="String" description="for-sonar"/>
             <property name="tag" value="memory" type="String" description="for-sonar"/>
             <property name="tag" value="bad-practice" type="String" description="for-sonar"/>
             <property name="xpath">

@@ -15,6 +15,7 @@
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
             <property name="tag" value="performance" type="String" description="for-sonar"/>
+            <property name="tag" value="pitfall" type="String" description="for-sonar"/>
             <property name="xpath">
                 <value>
                     <![CDATA[
@@ -617,12 +618,12 @@ or ancestor::SynchronizedStatement/Expression//Name)]
     <rule name="AvoidStaticXmlFactories" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" message="Avoid static XML Factories" typeResolution="true"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#IUOXAR09">
         <description>An XML Factory like DocumentBuilderFactory, TransformerFactory, MessageFactory is used as static field. Problem: These factory objects are typically not thread-safe and rather expensive to create because of class loading. &#13;
-            Solution: Create the Factories as local variables and use command line arguments to specify the implementation class. (jpinpoint-rules)</description>
+            Solution: Use thread locals or create the Factories as local variables and anyway use properties to specify the implementation class. (jpinpoint-rules)</description>
         <priority>1</priority>
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
-            <property name="tag" value="performance" type="String" description="for-sonar"/>
+            <property name="tag" value="pitfall" type="String" description="for-sonar"/>
             <property name="xpath">
                 <value><![CDATA[
     //ClassOrInterfaceBodyDeclaration//FieldDeclaration[@Static=true() and (
@@ -808,6 +809,7 @@ public class Foo {
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
             <property name="tag" value="performance" type="String" description="for-sonar"/>
+            <property name="tag" value="pitfall" type="String" description="for-sonar"/>
             <property name="xpath">
                 <value>
                     <![CDATA[
@@ -884,6 +886,7 @@ and not (../PrimarySuffix[ends-with(@Image, 'Timeout')])]
             <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
             <property name="tag" value="performance" type="String" description="for-sonar"/>
 	        <property name="tag" value="unpredictable" type="String" description="for-sonar"/>
+	        <property name="tag" value="pitfall" type="String" description="for-sonar"/>
             <property name="xpath">
                 <value>
                     <![CDATA[
@@ -1146,6 +1149,8 @@ public class Foo {
             <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
             <property name="tag" value="performance" type="String" description="for-sonar"/>
             <property name="tag" value="bad-practice" type="String" description="for-sonar"/>
+            <property name="tag" value="cpu" type="String" description="for-sonar"/>
+            <property name="tag" value="sustainability-low" type="String" description="for-sonar"/>
             <property name="xpath">
                 <value><![CDATA[
 //PrimaryExpression/PrimarySuffix[@Image='parallel' and ../PrimaryPrefix/Name[@Image = 'Flux.fromIterable']
@@ -1288,6 +1293,7 @@ public class FooBad {
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
             <property name="tag" value="performance" type="String" description="for-sonar"/>
+            <property name="tag" value="pitfall" type="String" description="for-sonar"/>
             <property name="xpath">
                 <value><![CDATA[
 //PrimaryExpression[PrimarySuffix[@ArgumentCount=1]]/PrimaryPrefix
