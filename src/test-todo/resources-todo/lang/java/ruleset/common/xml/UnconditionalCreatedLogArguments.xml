@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>UnconditionalCreatedLogArguments - Avoid unconditional creation of log arguments</description>
+        <expected-problems>6</expected-problems>
+        <expected-linenumbers>11,28,34,40,91,105</expected-linenumbers>
+        <code><![CDATA[
+class Foo {
+   void bar1(Object obj) {
+        if (log.isDebugEnabled()) {
+          String logObj1 = obj.toString();
+          log.debug("object to String: {}", logObj1);
+        }
+    }
+
+    void bar2(Object obj) {
+      String logObj2 = obj.toString();
+      log.debug("object to String: {}", logObj2); //bad
+    }
+
+    String bar3(Object obj) {
+      String logObj3 = obj.toString();
+      log.debug("object to String: {}", logObj3);
+      return logObj3;
+    }
+
+    String bar4(Object obj) {
+      String logObj4 = obj.toString();
+      log.debug("object to String: {}", logObj4);
+      bar2(logObj4);
+    }
+
+    Object bar5(Object obj) {
+      String logObj5 = obj.toString();
+      log.debug("object to String: {}", logObj5); //bad
+      return obj;
+    }
+
+    void bar6(Object obj) {
+      String logObj6 = obj.toString();
+      log.debug("object to String: {}", logObj6); //bad
+      bar2(obj);
+    }
+
+    String bar7(Object obj) {
+      String logObj7 = obj.toString();
+      log.debug("object to String: {}", logObj7); //bad
+      String result = obj.toString();
+      return result;
+    }
+
+    String bar8(Object obj) {
+      String logObj8 = obj8.toString();
+      log.debug("object to String: {}", logObj8);
+      String result = logObj8;
+      return result;
+    }
+
+    String bar9(Object obj) {
+      String logObj9 = obj.toString();
+      log.debug("object to String: {}", logObj9);
+      if (logObj9 != null) {
+          return obj;
+      }
+      return null;
+    }
+
+    String bar10(Object obj) {
+      String logObj10 = obj.toString();
+      log.debug("object to String: {}", logObj10);
+      if (logObj10.toString() != "") {
+          return obj;
+      }
+      return null;
+    }
+
+    void bar11(Object obj) {
+      String logObj11 = obj.toString();
+      log.debug("object to String: {}", logObj11);
+      boolean b = logObj11.equals("foo");
+    }
+
+    void logBar12(Object obj) {
+      String logObj12 = obj.toString();
+      log.debug("object to String: {}", logObj12); // good, method starts with log assumes called conditionally
+    }
+
+    void bar13(Object obj) {
+      String logObj13 = obj.getId();
+      log.debug("object to String: {}", logObj13); //good, method starts with 'get' is assumed quick
+    }
+
+    /** from #140 */
+    void bar14(Enumeration<String> headerNames, HttpRequest httpRequest) {
+        while (headerNames.hasMoreElements()) {
+            String headerName = headerNames.nextElement();
+            String header = httpRequest.getHeader(headerName);
+            LOG.debug("DoFilter, headerName{}: value{}", headerName, header); // bad: simple getter but in a loop
+        }
+    }
+
+    void bar15(Object obj1) {
+            String name = obj1.toString();
+            byte[] bar15 = name.getBytes();
+            LOG.debug("name {}: bytes {}", name, bar15); // good: simple getter is cheap
+    }
+
+   void bar16(Object obj1) {
+        while (true) {
+            String name = obj1.toString();
+            byte[] bar16 = name.getBytes();
+            LOG.debug("name {}: bytes {}", name, bar16); // bad: getter but in a loop
+        }
+    }
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>Avoid unconditional creation of log arguments, issue #176</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+class Klass {
+
+    Logger log = new Logger("Klass");
+    Map map = new HashMap();
+
+    void foo() {
+        String val = calcVal();
+        log.info("value is=" + val); // false positive, it is used in the next line in a constructor
+        Wrapper wrapper = new Wrapper(val);
+        map.put("wrap", wrapper);
+    }
+
+    String calcVal() {
+        // calculate val work
+        return calculatedVal;
+    }
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>Fix Request: false positive and missed case in UnconditionalCreatedLogArguments #209</description>
+        <expected-problems>2</expected-problems>
+        <expected-linenumbers>8,9</expected-linenumbers>
+        <code><![CDATA[
+class Foo {
+    Bar field1;
+    Bar field2;
+
+    void bad(Bar param) {
+      String log = param.baz(field1.get());
+      String logThis = param.baz(this.field1.get());
+      log.debug("field: {}", log); //bad, missed
+      log.debug("field: {}", logThis); //bad
+
+      String fieldGet = field1.getClass();
+      String fieldGetThis = this.field2.getClass();
+      log.debug("field getter: {}", fieldGet); // good
+      log.debug("field this.getter: {}", fieldGetThis); // good, false positive
+    }
+}
+]]></code>
+    </test-code>
+
+    <test-code>
+        <description>Fix Request for UnconditionalCreatedLogArgument #312</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+class Foo {
+
+    private void calcYear(Data data) {
+            Long loss = this.fService.filter(data);
+            log.debug("loss for year={}, id={}, loss={}", data.getYear(), data.getId(), loss); // false positive on 'loss'
+            this.lossService.storeLoss(data, loss.intValue());
+    }
+
+    public void handle(final OrderDeleted event) {
+       String group = service.getUserGroup(event.getOwner().getCode());
+       final String key = event.getOwner().getCode()+ "#" + group + "#order";
+
+       log.info("Preparing to remove order with key " + key); // false positive: Avoid unconditional creation of a log argument, it may not be needed.
+
+       this.deleteFromRepository(key);
+       log.info("Deleted order intent from repository: key " + key); // false positive: Avoid unconditional creation of a log argument, it may not be needed.
+    }
+}
+]]></code>
+    </test-code>
+</test-data>

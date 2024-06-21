@@ -6,7 +6,7 @@
           since="7.0"
           language="kotlin"
           message="A HttpClient builder is used and disableConnectionState is not called. HTTP client tracks connection state while using TLS."
-          class="net.sourceforge.pmd.lang.rule.XPathRule"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           typeResolution="true"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi07">
         <description>
@@ -17,7 +17,6 @@
         <priority>2</priority>
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="version" value="3.1"/>
             <property name="xpath">
                 <value><![CDATA[
 (:locally created http client builder without disableConnectionState :)
@@ -49,7 +48,7 @@
     <rule name="AvoidDeprecatedHystrix"
           since="7.0"
           language="kotlin"
-          class="net.sourceforge.pmd.lang.rule.XPathRule"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           message="Netflix Hystrix is deprecated. Use an alternative like resilience4j"
           typeResolution="true"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi11">
@@ -58,10 +57,10 @@
         <priority>3</priority>
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="version" value="3.1"/>
             <property name="xpath">
                 <value><![CDATA[
-//ImportHeader[starts-with(@joinTokenText, 'importcom.netflix.hystrix')]
+(: check if javax.xml.xpath imports exists as filter for same named classes in other packages :)
+//ImportHeader[.//T-Identifier[@Text='com'] and .//T-Identifier[@Text='netflix'] and .//T-Identifier[@Text='hystrix']][1]/../..
 ]]>
                 </value>
             </property>

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>violation: only 1 high risk suppress warnings</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>6</expected-linenumbers>
+        <code><![CDATA[
+@SuppressWarnings("PMD.SingularField")
+@SuppressWarnings("pmd:ImplementEqualsHashCodeOnValueObjects")
+@SuppressFBWarnings("ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD")
+@Component
+class Bad1 {
+    @SuppressWarnings({"PMD.SignatureDeclareThrowsException", "PMD.ReplaceHashtableWithMap", "PMD.AvoidUnguardedMutableFieldsInSharedObjects"}) // 1x bad
+    public void bad1()  {
+    }
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>violation: 6 high risk suppressed warnings</description>
+        <expected-problems>6</expected-problems>
+        <expected-linenumbers>3,4,6,9,9,10</expected-linenumbers>
+        <code><![CDATA[
+@Component
+@Provider
+@SuppressFBWarnings("ALL") //bad
+@SuppressWarnings("pmd")   //bad
+//@SuppressWarnings("PMD")   //bad, we cannot detect nor test this :-(
+@SuppressWarnings("ALL")   //bad
+//@SuppressWarnings("all")   //bad, we cannot detect nor test this :-(
+class Bad {
+    @SuppressWarnings({"PMD.AvoidUnguardedMutableFieldsInSharedObjects", "pmd:AvoidUnguardedAssignmentToNonFinalFieldsInSharedObjects"}) // 2x bad
+    @SuppressWarnings("PMD.AvoidMutableStaticFields")  // bad
+    @SuppressWarnings("pmd:ObjectMapperCreatedForEachMethodCall")
+    @SuppressWarnings("pmd:MDCPutWithoutRemove")
+    public void bad() {}
+}
+     ]]></code>
+    </test-code>
+
+</test-data>

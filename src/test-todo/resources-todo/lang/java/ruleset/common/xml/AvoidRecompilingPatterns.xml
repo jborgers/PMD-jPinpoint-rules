@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>violation: Avoid recompiling patterns</description>
+        <expected-problems>3</expected-problems>
+        <expected-linenumbers>8,9,13</expected-linenumbers>
+        <code><![CDATA[
+import java.util.regex.Pattern;
+
+public class Foo {
+
+    public static final String PATTERN = "^\\s*%s=(.*)";
+
+    public static void methodBad(String action) {
+        Pattern p = Pattern.compile("(?=\\p{Lu})"); // bad: violation, should not be inside method, make static final
+        Pattern s = Pattern.compile(PATTERN); // bad: violation
+    }
+
+    public void createNameFromAction(String action) {
+        Pattern p = Pattern.compile("(?=\\p{Lu})"); // bad
+    }
+}
+     ]]></code>
+    </test-code>
+    <test-code>
+        <description>no violation: Avoid recompiling patterns</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Pattern;
+
+public class Bar {
+    public static final String PATTERN = "^\\s*%s=(.*)";
+
+    public static List createEventNameFromAction(String action) {
+        Pattern q = Pattern.compile("(" + action + "?=\\p{Lu})"); // ok, dynamic
+        Pattern r = Pattern.compile(String.format(PATTERN, action)); // ok, dynamic
+        Pattern t = Pattern.compile(action); // dynamic, so ok (fix for JPCC-63)
+
+        String[] actionSplit = q.split(action); // ok
+        List<String[]> list = new ArrayList<String[]>();
+        list.add(actionSplit);
+        return list;
+    }
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>no violation: Avoid recompiling patterns, other compile</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+public class GoodHere {
+    void otherCompile() {
+        MyCompiler.compile("stuff");
+    }
+}
+
+class MyCompiler {
+    static void compile(String s) {
+    }
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>violation: Avoid recompiling patterns, with chained operations, issue #180</description>
+        <expected-problems>2</expected-problems>
+        <expected-linenumbers>8,11</expected-linenumbers>
+        <code><![CDATA[
+import java.util.regex.Pattern;
+
+public class Foo {
+    private static final Integer LIMIT = 11;
+    private static final String SEP = "[.|,]";
+
+    private boolean isAmountAllowed(String amount) {
+        return LIMIT > Pattern.compile(SEP).matcher(amount).replaceAll("").length(); // bad
+    }
+    private boolean isAmountAllowed2() {
+        String bla = Pattern.compile("[.|,]").matcher("5.000,00").replaceAll(""); // bad
+        boolean b = (11 > bla.length());
+        return b;
+    }
+}
+     ]]></code>
+    </test-code>
+
+</test-data>

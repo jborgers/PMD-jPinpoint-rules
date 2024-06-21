@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>Avoid recreation of DateTimeFormatter object.</description>
+        <expected-problems>13</expected-problems>
+        <expected-linenumbers>4,5,6,14,17,20,23,27,30,34,46,53,57</expected-linenumbers>
+        <code><![CDATA[
+import org.joda.time.format.*;
+
+public class Foo {
+    final org.joda.time.format.DateTimeFormatter wrong = ISODateTimeFormat.basicDate(); // bad, not static
+    static DateTimeFormatter wrongAgain = ISODateTimeFormat.basicDate(); // bad, not final
+    DateTimeFormatter stillWrong = ISODateTimeFormat.basicDate(); // bad, not final, not static
+    static final DateTimeFormatter ok1 = DateTimeFormat.forPattern("xxx");
+    private static final DateTimeFormatter ok2 = DateTimeFormat.forPattern("xxx");
+    public static final org.threeten.bp.format.DateTimeFormatter YMD_FORMATTER = org.threeten.bp.format.DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+
+    public void testViolation1(DateTimePrinter printer, DateTimeParser parser)  {
+        DateTimeFormatter dtf = null;
+        dtf = new DateTimeFormatter(printer, parser); // bad
+    }
+    public void testViolation2()  {
+        DateTimeFormatter dtf =  new DateTimeFormatterBuilder().toFormatter(); // bad
+    }
+    public void testViolation3()  {
+        DateTimeFormatter dtf = ISODateTimeFormat.date(); // bad
+    }
+    public void testViolation4()  {
+        stillWrong = DateTimeFormat.fullDateTime(); // bad
+    }
+
+    public void testViolation5()  {
+        stillWrong = DateTimeFormat.forPattern(""); // bad
+    }
+    public void testViolation6(DateTimePrinter printer,DateTimeParser parser)  {
+        stillWrong =  new DateTimeFormatter(printer, parser); // bad
+    }
+    public void testViolation7_PCC_171() {
+        long dt = 1L;
+        String s = DateTimeFormat.forPattern("yyDDD").print(dt); // bad
+    }
+
+    public DateTimeFormatter testNoViolation(){
+        return null;
+    }
+
+    public void testNoViolation_JPCC_16(String dateFormat) {
+        DateTimeFormatter dateTimeFormatter = getDateTimeFormatterFromCacheViolation(dateFormat);
+    }
+
+    private DateTimeFormatter getDateTimeFormatterFromCacheViolation(String dateFormat) {
+        return new DateTimeFormatterBuilder().toFormatter(); // bad
+    }
+    public void testNoViolation_2(String dateFormat) {
+        DateTimeFormatter dateTimeFormatter = DateTimeFormat.forPattern(dateFormat); // good: possible different dataFormat params
+    }
+
+    public void testViolationThreeten() {
+        org.threeten.bp.format.DateTimeFormatter ftor = org.threeten.bp.format.DateTimeFormatter.ofPattern("yyMMdd"); // bad
+    }
+
+    public void testViolationJava8() {
+        java.time.format.DateTimeFormatter ftor = java.time.format.DateTimeFormatter.ofPattern("yyMMdd"); // bad
+    }
+}
+     ]]></code>
+    </test-code>
+    <test-code>
+        <description>Avoid recreation of DateTimeFormatter object. But allow in constructor if member variable is final.</description>
+        <expected-problems>3</expected-problems>
+        <expected-linenumbers>5,6,9</expected-linenumbers>
+        <code><![CDATA[
+import org.joda.time.format.*;
+public class Foo {
+    private final DateTimeFormatter ok;
+    private final DateTimeFormatter notok;
+    private final DateTimeFormatter notok2 = DateTimeFormat.forPattern("YY-MM-hh"); // bad (should be static)
+    private DateTimeFormatter notok3;
+    public Foo(String pattern) {
+        ok = DateTimeFormat.forPattern(pattern);
+        notok = DateTimeFormat.forPattern("YY-MM-hh"); // bad
+    }
+}
+     ]]></code>
+    </test-code>
+    <test-code>
+        <description>Avoid recreation of DateTimeFormatter object. But allow if there is a parameter from method call involved.</description>
+        <expected-problems>3</expected-problems>
+        <expected-linenumbers>7,8,9</expected-linenumbers>
+        <code><![CDATA[
+import org.joda.time.format.*;
+
+public class Foo {
+    private static final String DEFAULT_DATETIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
+    public static String format(final long milliseconds, String myFormat, String myTimeZone) {
+        final DateTimeFormatter formatter1 = DateTimeFormat.forPattern(myFormat); // good: has variable parameter
+        final DateTimeFormatter formatter2 = DateTimeFormat.forPattern(DEFAULT_DATETIME_FORMAT); // bad
+        final DateTimeFormatter formatter3 = DateTimeFormat.forPattern(DEFAULT_DATETIME_FORMAT).withZoneUTC(); // bad
+        final DateTimeFormatter formatter4 = DateTimeFormat.forPattern(DEFAULT_DATETIME_FORMAT).withZone(ZoneId.of("UTC")); // bad
+        final DateTimeFormatter formatter5 = DateTimeFormat.forPattern(DEFAULT_DATETIME_FORMAT).withZone(myTimeZone); // good: has variable parameter
+        return formatter1.print(milliseconds);
+    }
+}
+     ]]></code>
+    </test-code>
+</test-data>

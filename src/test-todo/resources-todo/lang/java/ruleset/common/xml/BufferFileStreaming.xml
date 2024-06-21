@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>violation: BufferFileStreaming</description>
+        <expected-problems>2</expected-problems>
+        <expected-linenumbers>5, 8</expected-linenumbers>
+        <code><![CDATA[
+import java.io.*;
+
+class BufferFileStreaming {
+     void bad1(String inputFilename, String outputFilename) {
+        try (FileInputStream fis = new FileInputStream(inputFilename)) { // bad
+            //use fis
+        }
+        try (FileOutputStream fos = new FileOutputStream(outputFilename)) { // bad
+            //use fos
+        }
+    }
+    void good1(String inputFilename, String outputFilename) {
+        try (InputStream bfis = new BufferedInputStream(new FileInputStream(inputFilename))) { // good
+            //use bfis
+        }
+
+        try (OutputStream bfos = new BufferedOutputStream(new FileOutputStream(outputFilename))) { // good
+            //use bfos
+        }
+    }
+    void good2(String inputFilename, String outputFilename) {
+       try (FileInputStream fis = new FileInputStream(inputFilename)) { // good
+            InputStream bfis = new BufferedInputStream(fis);
+            //use bfis
+        }
+
+        try (FileOutputStream fos = new FileOutputStream(outputFilename)) { // good
+            OutputStream bfos = new BufferedOutputStream(fos);
+            //use bfos
+        }
+    }
+}
+     ]]></code>
+    </test-code>
+
+ <test-code>
+        <description>violation: BufferFileStreaming Issue272</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import java.io.*;
+class Issue272 {
+
+    void bar() {
+        Properties props = new Properties();
+        try(InputStream fis = new FileInputStream(fileName);      // false violation on fis
+	        InputStream bis = new BufferedInputStream(fis)) {
+	        props.load(bis);
+        }
+    }
+}
+     ]]></code>
+    </test-code>
+
+</test-data>

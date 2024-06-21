@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>violation: Avoid the use of SimpleDateFormat</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>7</expected-linenumbers>
+        <code><![CDATA[
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+public class Foo {
+
+    private String toKey(final Date rekenDatum) {
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd"); //bad
+        return formatter.format(rekenDatum);
+    }
+}
+     ]]></code>
+    </test-code>
+    <test-code>
+        <description>no violation: SimpleDateFormat is allowed in Jackon's ObjectMapper</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>26</expected-linenumbers>
+        <code><![CDATA[
+import java.text.SimpleDateFormat;
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Date;
+
+public class Foo {
+
+    private static final ObjectMapper OBJECT_MAPPER = createObjectMapper();
+    private static final XmlMapper XML_MAPPER;
+    private static final Unknown unknown = createUnknownObject();
+
+    static {
+        XML_MAPPER = new XmlMapper();
+        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss"); // good, used in XmlMapper
+        XML_MAPPER.setDateFormat(df);
+    }
+
+    private static ObjectMapper createObjectMapper() {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.setDateFormat(new SimpleDateFormat("yyyy-MM-dd")); // good, used in ObjectMapper
+        return mapper;
+    }
+
+    private static Unknown createUnknownObject() {
+        Unknown unknown = new Unknown();
+        unknown.setDateFormat(new SimpleDateFormat("yyyy-MM-dd")); // bad, used in unknown object
+        return unknown;
+    }
+
+}
+        ]]></code>
+    </test-code>
+</test-data>

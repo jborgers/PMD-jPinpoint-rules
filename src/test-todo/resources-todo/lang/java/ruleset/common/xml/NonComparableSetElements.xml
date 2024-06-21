@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>violation: NonComparableSetElements</description>
+        <expected-problems>4</expected-problems>
+        <expected-linenumbers>6, 12, 17, 20</expected-linenumbers>
+        <code><![CDATA[
+import java.util.*;
+import org.apache.hc.client5.http.HttpRoute; // does implement equals/hashCode yet not compareTo
+// Thread does not implement equals/hashCode nor compareTo
+class Foo {
+    Set<String> strSet = new HashSet<>();
+    Set<Thread> threadFieldSet = new HashSet<>(); // bad
+    Thread t = new Thread();
+    List<String> strList = new ArrayList<>();
+    List<Thread> tList = new ArrayList<>();
+    Set<HttpRoute> routeSet = new HashSet<>();
+
+    void byElemBad(Set<Thread> threadParamSet) { // bad
+        threadParamSet.retainAll(tList);
+
+        threadFieldSet.contains(t);
+
+        Set<Thread> threadLocalSet = new HashSet<>(); // bad
+        threadLocalSet.containsAll(tList);
+
+        Set<HttpRoute> routeLocalSet = new HashSet<>(); // bad
+        routeLocalSet.removeAll(tList);
+    }
+
+    void otherCasesGood(Set<Thread> threadParamSet) {
+        strSet.contains("bla");
+        strSet.containsAll(strList);
+        strSet.retainAll(strList);
+        strSet.removeAll(strList);
+        strSet.remove(t);
+        threadParamSet.iterator().next();
+        routeSet.iterator().next();
+    }
+}
+     ]]></code>
+    </test-code>
+
+</test-data>

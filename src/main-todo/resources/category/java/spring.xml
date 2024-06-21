@@ -1,0 +1,557 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ruleset name="jpinpoint-spring-rules" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 https://pmd.sourceforge.io/ruleset_2_0_0.xsd" xmlns="http://pmd.sourceforge.net/ruleset/2.0.0">
+    <description>jPinpoint rule set for performance aware Java coding, sponsored by Rabobank.</description>
+<!--
+    <rule name="AvoidImproperAnnotationCombinations"
+          language="java"
+          message="Don't combine these annotations"
+          externalInfoUrl="${doc_root}/JavaCodeQuality.md#ssc02"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule">
+        <description>
+            Improper combination of annotations. Problem: these annotations are not meant to be combined and may cause unexpected and unwanted behavior, e.g. data mix-up.&#13;
+            Solution: remove the inappropriate annotation. &#13;
+            Don't combine 2+ of [@Component, @Service, @Configuration, @Controller, @RestController, @Repository, @Entity] (Spring/JPA)
+            Don't combine @Aspect with one of [@Service, @Configuration, @Controller, @RestController, @Repository, @Entity] (Spring/AspectJ)
+            Don't combine [@Data with @Value] and [@Data or @Value] with any of [@ToString, @EqualsHashCode, @Getter, @Setter, @RequiredArgsConstructor] (Lombok)
+            Don't combine @Data with any of [@Component, @Service, @Controller, @RestController, @Repository], it may cause user data mix-up.
+            (jpinpoint-rules)</description>
+        <priority>3</priority>
+        <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <property name="tag" value="confusing" type="String" description="for-sonar"/>
+            <property name="tag" value="suspicious" type="String" description="for-sonar"/>
+            <property name="tag" value="data-mix-up" type="String" description="for-sonar"/>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value>
+                    <![CDATA[
+//(TypeDeclaration|ClassOrInterfaceBodyDeclaration/ClassOrInterfaceDeclaration/..)[count(./Annotation//Name[@Image='Component' or @Image='Service' or @Image='Configuration' or @Image='Controller' or @Image='RestController' or @Image='Repository' or @Image='Entity']) > 1]/Annotation[2]
+,
+//(TypeDeclaration|ClassOrInterfaceBodyDeclaration/ClassOrInterfaceDeclaration/..)[./Annotation//Name[@Image='Aspect'] and count(./Annotation//Name[@Image='Service' or @Image='Configuration' or @Image='Controller' or @Image='RestController' or @Image='Repository' or @Image='Entity']) > 0]/Annotation[2]
+,
+//(TypeDeclaration|ClassOrInterfaceBodyDeclaration/ClassOrInterfaceDeclaration/..)[count(./Annotation//Name[@Image='Data' or @Image='Value']) > 1]/Annotation[2]
+,
+//(TypeDeclaration|ClassOrInterfaceBodyDeclaration/ClassOrInterfaceDeclaration/..)[./Annotation//Name[@Image='Data' or @Image='Value'] and ./Annotation/MarkerAnnotation/Name[@Image='ToString' or @Image='EqualsAndHashCode' or @Image='Getter' or @Image='Setter' or @Image='RequiredArgsConstructor']]/Annotation[2]
+,
+//(TypeDeclaration|ClassOrInterfaceBodyDeclaration/ClassOrInterfaceDeclaration/..)[./Annotation//Name[@Image='Data'] and
+exists(./Annotation//Name[@Image='Component' or @Image='Service' or @Image='Controller' or @Image='RestController' or @Image='Repository'])]/Annotation[not(.//Name/@Image='Data')][1]
+                    ]]>
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+@Component
+@Entity // bad
+class Bad {
+}
+
+@Component
+class Good {
+}
+            ]]>
+        </example>
+    </rule>
+
+    <rule name="AvoidModelMapAsRenderParameter" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java" message="A ModelMap or @ModelAttribute is used as parameter of a portlet render method and implicitly put in the session." typeResolution="true"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#tmsu11">
+        <description>Problem: ModelMaps are rather large objects containing explicitly added data and administrative data from Spring. They are added to the Portlet session implicitly. They stay in the session for some time: during session activity and 30 minutes (HTTP timeout) after it, in case the user does not exit explicitly. They occupy heap space during that time, for every user.&#13;
+            Solution: Remove the ModelMap from the render method parameter list and create a new local ModelMap to use in the render request scope.
+            (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <property name="tag" value="performance" type="String" description="for-sonar"/>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+//ClassOrInterfaceBodyDeclaration
+[MethodDeclaration[@Public=true()] and
+(MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter/Type/ReferenceType/ClassOrInterfaceType[pmd-java:typeIs('org.springframework.ui.ModelMap')] or
+MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter/Annotation/MarkerAnnotation/Name[@Image='ModelAttribute']) and
+(MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter/Type/ReferenceType/ClassOrInterfaceType[pmd-java:typeIs('javax.portlet.RenderRequest') or pmd-java:typeIs('javax.portlet.PortletRequest')] or
+Annotation//Name[@Image='RenderMapping'])]
+	]]></value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="AvoidSpringApplicationContextRecreation"
+          message="Avoid re-creation of Spring application context"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
+          typeResolution="true" externalInfoUrl="${doc_root}/JavaCodePerformance.md#euocs01">
+        <description>
+            Problem: When a XXXApplicationContext is created, all Spring beans are initialized, wired and component scanning may take place. Component scanning involves extensive class path scanning which is expensive.&#13;
+            Solution: Create the ApplicationContext only once in the application deployed/live time.
+            (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <property name="tag" value="performance" type="String" description="for-sonar"/>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value>
+                    <![CDATA[
+   //TypeDeclaration/ClassOrInterfaceDeclaration/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration
+/MethodDeclaration//PrimaryExpression/PrimaryPrefix/AllocationExpression/ClassOrInterfaceType[ends-with(@Image, 'ApplicationContext')
+and (
+//ImportDeclaration/Name[starts-with(@Image, 'org.springframework.context')]
+)]
+]]>
+                </value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="AvoidSpringMVCMemoryLeaks" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
+          message="Spring Controller returns an additive expression or a ModelAndView object which may cause a MemoryLeak" typeResolution="true"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md">
+        <description>Avoid to return an additive expression for a Spring Controller because it may cause a MemoryLeak.
+            Each new value returned will create a new entry in the View Cache.
+            Also avoid to return a ModelAndView object created using non-static and non-final methods because it may
+            cause a MemoryLeak.
+            Solution: Although multiple solutions exist you can make use of model attributes icw a redirectUrl like
+            redirect:/redirectUrl?someAttribute={someAttribute}.</description>
+        <priority>1</priority>
+        <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <property name="tag" value="performance" type="String" description="for-sonar"/>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+(
+    //Statement/ReturnStatement
+    [Expression/AdditiveExpression]
+    [ancestor::ClassOrInterfaceBodyDeclaration/Annotation/NormalAnnotation/Name[starts-with(@Image,'RequestMapping')]]
+    [ancestor::CompilationUnit/ImportDeclaration/Name[starts-with(@Image,'org.springframework')]]
+    [ancestor::MethodDeclaration/MethodDeclarator//Annotation//Name[@Image='RequestParam']]
+) | (
+    //Block//PrimaryExpression
+    [
+        PrimaryPrefix/Name[ends-with(@Image,'.setViewName')]
+        or (PrimaryPrefix/AllocationExpression/ClassOrInterfaceType[pmd-java:typeIs('org.springframework.web.servlet.ModelAndView')])
+    ]
+    [
+        PrimarySuffix/Arguments/ArgumentList//PrimaryPrefix/Name[
+            (@Image = ancestor::MethodDeclaration//VariableDeclaratorId/@Name)
+            or (@Image = ancestor::ClassOrInterfaceBody//FieldDeclaration[@Final=false()]//VariableDeclaratorId/@Name)]
+    |
+            PrimaryPrefix/AllocationExpression/Arguments/ArgumentList/Expression[1]/PrimaryExpression/PrimaryPrefix/Name[
+            (@Image = ancestor::MethodDeclaration//VariableDeclaratorId/@Name)
+            or (@Image = ancestor::ClassOrInterfaceBody//FieldDeclaration[@Final=false()]//VariableDeclaratorId/@Name)]
+    |
+            PrimaryPrefix/AllocationExpression/Arguments/ArgumentList/Expression//Arguments//PrimaryExpression/PrimaryPrefix/Name[
+            (@Image = ancestor::MethodDeclaration//VariableDeclaratorId/@Name)
+            or (@Image = ancestor::ClassOrInterfaceBody//FieldDeclaration[@Final=false()]//VariableDeclaratorId/@Name)]
+    ]
+)
+            ]]></value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="MakeAutoWiredConstructedFieldFinal"
+          message="Make autowired, constructed field final in objects shared among threads."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
+          typeResolution="true" externalInfoUrl="${doc_root}/JavaCodePerformance.md#tutc07">
+        <description>
+            Problem: Multiple threads typically access fields of a singleton or may access fields in session scoped objects. If a field or its reference is mutable, non-autowired access is thread-unsafe and may cause corruption or visibility problems. To make this thread-safe, that is, guard the field e.g. with synchronized methods, may cause contention. &#13;
+            Solution: Make the fields final and unmodifiable to defend against mutation. If they really need to be mutable (which is strange for autowired fields), make access thread-safe. Thread-safety can be achieved e.g. by proper synchronization and use the @GuardedBy annotation or use of volatile.&#13;
+            Notes&#13;
+            1. Autowiring/injection is thread safe, yet make sure no other thread-unsafe assignment is made to that field.&#13;
+            2. In case you are sure the Component is used in single threaded context only (e.g. a Tasklet), annotate the class with @NotThreadSafe to make this explicit. &#13;
+            3. Use package-private and @VisibleForTesting for methods (e.g. setters) used for JUnit only.
+            (jpinpoint-rules)</description>
+        <priority>3</priority>
+        <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value>
+                    <![CDATA[
+	//TypeDeclaration/Annotation//Name[(@Image='Component' or @Image='Service' or @Image='Controller' or @Image='RestController' or @Image='Repository' or
+(@Image='Singleton' and ancestor::TypeDeclaration/Annotation/NormalAnnotation/MemberValuePairs//Name[@Image='ConcurrencyManagementType.BEAN']))
+and not (ancestor::TypeDeclaration/Annotation/NormalAnnotation/Name[@Image='Scope']/..//Literal[@Image='"request"' or @Image='"prototype"'])
+and not (ancestor::TypeDeclaration/Annotation/MarkerAnnotation/Name[@Image='NotThreadSafe'])
+and not ((ancestor::TypeDeclaration/Annotation/NormalAnnotation/Name[@Image='ConfigurationProperties'])
+             and not (ancestor::TypeDeclaration/Annotation/MarkerAnnotation/Name[@Image='Setter']))]
+/../../..//ClassOrInterfaceDeclaration[@Static=false()]/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Final=false() and @Volatile=false()
+and not (../Annotation//Name[@Image='Autowired' or @Image='PersistenceContext' or @Image='EJB' or @Image='Resource' or @Image='Inject' or @Image='Value' or @Image='GuardedBy'])
+and  (../../ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='Autowired']
+/../../../ConstructorDeclaration//BlockStatement/Statement//StatementExpression/AssignmentOperator/../PrimaryExpression//@Image=
+./VariableDeclarator/VariableDeclaratorId/@Name)
+]
+]]>
+                </value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="MinimizeActionModelMapInSession" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java" message="ModelMap in action method is not cleared. This may bloat the session." typeResolution="true"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#tmsu12">
+        <description>A ModelMap is used in an action method typically for form validation and not cleared. Problem: the ModelMap is put in the session by Spring. This is typically a large object which may bloat the session.&#13;
+            Solution: clear the ModelMap right after the validation in the happy flow.
+            (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <property name="tag" value="performance" type="String" description="for-sonar"/>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+//ClassOrInterfaceBodyDeclaration
+[MethodDeclaration[@Public=true()] and
+MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter/Type/ReferenceType/ClassOrInterfaceType[pmd-java:typeIs('org.springframework.ui.ModelMap')] and
+(MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter/Type/ReferenceType/ClassOrInterfaceType[pmd-java:typeIs('javax.portlet.ActionRequest')] or
+Annotation//Name[@Image='ActionMapping']) and
+count(.//PrimaryExpression/PrimaryPrefix/Name[ends-with(@Image,'.clear')])=0]
+	]]></value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="AvoidExpressionsInCacheable" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java" message="Avoid SpEL-expression for computing Cacheable key" typeResolution="true"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#improper-caching">
+        <description>Spring Expression Language (SpEL) expression is used for computing the key dynamically. Problem: evaluating the expression language is expensive, on every call.&#13;
+            Solution: use a custom KeyGenerator: keyGenerator=... instead of key=...
+            (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <property name="tag" value="performance" type="String" description="for-sonar"/>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+//ClassOrInterfaceBodyDeclaration//Annotation/NormalAnnotation[Name/@Image='Cacheable']/MemberValuePairs/MemberValuePair[@MemberName='key']
+	]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+class Bad1 {
+    @Cacheable(value = "Cache1", key = "#key1") // bad
+    public String bad1(final String key1) {
+        return getRemote(key1);
+    }
+}
+            ]]>
+        </example>
+    </rule>
+
+    <rule name="SynchronizeForKeyInCacheable" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java" message="Synchronize access for each key in @Cacheable" typeResolution="true"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#improper-caching">
+        <description>The cache by default allows multiple threads accessing by the same key. Problem: if the value of the key is not available from the cache, it will be fetched/computed by multiple threads while only one time is needed.&#13;
+            Solution: Let only the first accessing thread fetch/compute the value and block others until the value is in the cache. Add attribute sync = "true" to achieve this. (Assuming the cache implementation supports it.)
+            (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
+            <property name="tag" value="performance" type="String" description="for-sonar"/>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+(//ClassOrInterfaceBodyDeclaration//Annotation/NormalAnnotation[Name/@Image='Cacheable']
+,
+//ClassOrInterfaceBodyDeclaration//Annotation/MarkerAnnotation[Name/@Image='Cacheable'])[count(MemberValuePairs/MemberValuePair[@MemberName='sync']) = 0]
+	]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+public class Bad1 {
+    @Cacheable(value = "Cache1") // bad
+    public String bad1() {
+    }
+}
+class Good1 {
+    @Cacheable(value = "Cache1", sync = "true")
+    public String good1() {
+    }
+}
+            ]]>
+        </example>
+    </rule>
+
+    <rule name="AvoidSimpleCaches" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java" message="Avoid simple caching in production" typeResolution="true"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ic08">
+        <description>Simple caches are used. Problem: Simple caching is meant for testing and prototyping and it lacks manageability and monitorability.&#13;
+            Solution: Use a proper cache implementation like ehcache or a cloud cache.
+            (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <property name="tag" value="bad-practice" type="String" description="for-sonar"/>
+            <property name="tag" value="performance" type="String" description="for-sonar"/>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+    //AllocationExpression/ClassOrInterfaceType[pmd-java:typeIs('org.springframework.cache.support.SimpleCacheManager') or pmd-java:typeIs('org.springframework.cache.concurrent.ConcurrentMapCache')]
+	]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+@EnableCaching
+@Configuration
+class Bad {
+    @Bean public CacheManager cacheManager() {
+        return new SimpleCacheManager().setCaches(Arrays.asList(new ConcurrentMapCache("ourCache")));
+    }
+}
+
+@EnableCaching
+@Configuration
+class Good {
+    @Bean public CacheManager cacheManager() {
+		return new EhCacheCacheManager(ehCacheCacheManagerFactory().getObject());
+	}
+}
+            ]]>
+        </example>
+    </rule>
+
+    <rule name="AvoidIdentityCacheKeys" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
+          message="Avoid identity cache keys by casting the generate method parameters" typeResolution="true"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ic13">
+        <description>A non-overridden Object.toString may be called on a spring KeyGenerator.generate method parameter. Problem: The non-overridden Object.toString returns a String representing the identity of the object.
+            Because this is different for two objects with the same value, cache keys will be different and the cache will only have misses and no hits.&#13;
+            Solution: Cast the parameters each to the type used at call site and also check the expected number of params. Or better: return a SimpleKey composed typically of class and method name and the params.
+            (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <property name="tag" value="performance" type="String" description="for-sonar"/>
+            <property name="tag" value="bad-practice" type="String" description="for-sonar"/>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+//ImplementsList/ClassOrInterfaceType[pmd-java:typeIs("org.springframework.cache.interceptor.KeyGenerator")]
+/../..//MethodDeclaration[@Name='generate']
+/Block//BlockStatement//(
+(ReturnStatement|LocalVariableDeclaration//VariableInitializer)
+(:-- exclude if in an if-block checking params.length to do error logging or so --:)
+[count(ancestor::IfStatement//Name[ends-with(@Image, '.length')]) = 0]
+/Expression[count(.//CastExpression)=0 and count(.//AllocationExpression/ClassOrInterfaceType[@Image='SimpleKey'])=0]
+//PrimaryExpression[PrimaryPrefix/Name/@Image
+= ancestor::MethodDeclaration//FormalParameter[3]/VariableDeclaratorId/@Name]
+|
+ForStatement[./Expression//Name[@Image = ancestor::MethodDeclaration//FormalParameter[3]/VariableDeclaratorId/@Name]]
+//Arguments//Name[@Image = concat(ancestor::ForStatement/LocalVariableDeclaration//VariableDeclaratorId/@Name, '.toString')]
+)
+	]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+import org.springframework.cache.interceptor.KeyGenerator;
+import org.springframework.util.StringUtils;
+
+public class Bad implements KeyGenerator {
+    public Object generate(Object target, Method method, Object... params) {
+        List<Object> objArray = Arrays.asList(params);
+        return target.getClass().getName() + "_" + method.getName() + "_"
+                + StringUtils.arrayToDelimitedString(params, "_");  // bad, do not concatenate without casting
+    }
+}
+
+public class Good implements KeyGenerator {
+    public Object generate(Object target, Method method, Object... params) {
+        if (params.length != 1) {
+            throw new IllegalArgumentException("KeyGenerator for GetProfileCache assumes 1 parameter 'profileId', found: " + params);
+        }
+        String profileId = (String)params[0];
+        return profileId;
+    }
+}
+            ]]>
+        </example>
+    </rule>
+
+    <rule name="UseExplicitKeyGeneratorForCacheable" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
+          message="Use a KeyGenerator to generate a correct and unique key per cached value, do not rely on the implicit default key generation." typeResolution="true"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ic14">
+        <description>
+            Problem: With default key generation, an object of Spring's SimpleKey class is used and its value is composed of just the method parameter(s). It does not include the method, which is unclear and risky.&#13;
+            Solution: Create a KeyGenerator and make it generate a unique key for the cache per cached value, by use of SimpleKey composed of method object and the parameters.
+            (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <property name="tag" value="performance" type="String" description="for-sonar"/>
+            <property name="tag" value="bad-practice" type="String" description="for-sonar"/>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+//Annotation//Name[@Image='Cacheable']
+/../MemberValuePairs[count(MemberValuePair[@Image='keyGenerator']) = 0]
+	]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+import org.springframework.cache.annotation.Cacheable;
+class Foo {
+
+    @Cacheable(cacheNames = {"DATA"}, sync = true, keyGenerator = "cacheKeyGenerator")
+    public Object getDataGood(String id) {
+        return fetchFromBackend(id);
+    }
+
+    @Cacheable(value="DATA", sync = true) // bad, keyGenerator missing
+    public Object getDataBad(String id) {
+        return fetchFromBackend(id);
+    }
+}
+            ]]>
+        </example>
+    </rule>
+
+    <rule name="AvoidSimpleKeyCollisions" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
+          message="Generate a unique SimpleKey by using both method and parameters as composites." typeResolution="true"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ic15">
+        <description>
+            Problem: Spring's SimpleKey creation lacks either the method or the method parameters, which may cause cache data mix-up.&#13;
+            Solution: Create a SimpleKey composed of both the method object and the params Object[]. Make sure the params properly implement equals and hashCode.
+            (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <property name="tag" value="performance" type="String" description="for-sonar"/>
+            <property name="tag" value="bad-practice" type="String" description="for-sonar"/>
+            <property name="tag" value="data-mix-up" type="String" description="for-sonar"/>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+//ClassOrInterfaceDeclaration[ImplementsList/ClassOrInterfaceType[pmd-java:typeIs('org.springframework.cache.interceptor.KeyGenerator')]]
+//MethodDeclaration[@Name='generate']//ClassOrInterfaceType[pmd-java:typeIs('org.springframework.cache.interceptor.SimpleKey')]
+[not
+  ( (: a method object as 1 arg (preferred) :)
+    exists(..//Expression[pmd-java:typeIs('java.lang.reflect.Method')])
+    (: or (method.getName and target.getClass) :)
+    or(
+      exists(..//PrimaryExpression[PrimaryPrefix[pmd-java:typeIs('java.lang.Object')]][PrimarySuffix[pmd-java:typeIs('java.lang.Class')]])
+      and
+      exists(..//PrimaryExpression[PrimaryPrefix[pmd-java:typeIs('java.lang.reflect.Method')]])
+    )
+  )
+  (: params included :)
+  or not(exists(..//Expression[pmd-java:typeIs('java.lang.Object[]')]))
+]/../Arguments
+	]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+import org.springframework.cache.interceptor.KeyGenerator;
+import org.springframework.cache.interceptor.SimpleKey;
+import java.lang.reflect.Method;
+
+class BadCacheKeyGenerator implements KeyGenerator {
+    @Override
+    public Object generate(Object target, Method method, Object... params) {
+        return new SimpleKey(params); // bad
+    }
+}
+
+class GoodCacheKeyGenerator implements KeyGenerator {
+    @Override
+    public Object generate(Object target, Method method, Object... params) {
+        return new SimpleKey(method, params); // good
+    }
+}
+            ]]>
+        </example>
+    </rule>
+
+    <rule name="EnsureProperCacheableParams" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
+          message="Info: Make sure that the parameters that make up the cache key implement the required methods properly." typeResolution="true"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ic16">
+        <description>
+            Problem: When (1) concatenating or joining parameters in a KeyGenerator: they need to properly implement toString().
+            (2) using SimpleKey (recommended): the parameters need to properly implement equals() and hashCode(). Failing to do so may lead to caching data mix-up.&#13;
+            Solution: Create a SimpleKey composed of both the method object and the params Object[] and make sure the params properly implement equals and hashCode.
+            Note: This rule is just informational, because it cannot actually check if it is implemented correctly or not.
+            (jpinpoint-rules)</description>
+        <priority>5</priority>
+        <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <property name="tag" value="performance" type="String" description="for-sonar"/>
+            <property name="tag" value="suspicious" type="String" description="for-sonar"/>
+            <property name="tag" value="data-mix-up" type="String" description="for-sonar"/>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+//ClassOrInterfaceBodyDeclaration[.//NormalAnnotation/Name[@Image='Cacheable']]
+/MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter/Type/ReferenceType
+  [(: common safe reference types:)
+    not (pmd-java:typeIs('java.lang.String')
+        or pmd-java:typeIs('java.lang.Integer')
+        or pmd-java:typeIs('java.time.LocalDate')
+        or pmd-java:typeIs('org.joda.time.LocalDate')
+    )
+  ]
+	]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+import org.springframework.cache.annotation.Cacheable;
+import java.time.*;
+import java.lang.*;
+
+class Foo {
+    @Cacheable(value = "myCache", keyGenerator = "myGenerator")
+    public String getDataGood(String str, LocalDate date) {
+        return service.getData(input);
+    }
+    @Cacheable(value = "myCache", keyGenerator = "myGenerator")
+    public String getDataInform(MyObject input, String str, LocalDate date) { // inform
+        return service.getData(input);
+    }
+}
+class MyObject {
+    String field;
+    // equals, hashCode, toString missing
+}
+            ]]>
+        </example>
+    </rule>
+
+    <rule name="UseClearKeyGeneratorName" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
+          message="Use a specific name for this KeyGenerator class which makes clear where to use it." typeResolution="true"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ic17">
+        <description>This class implementing Spring's KeyGenerator uses a generic name, CacheKeyGenerator.
+            Problem: It is unclear where this KeyGenerator should be used, for which cache and/or for which methods.
+            If used on the wrong caches or methods, it may lead to cache key mix-up and user data mix-up.
+            Solution: Make the name specific so that it is clear where to apply this KeyGenerator in @Cacheable.
+            (jpinpoint-rules)</description>
+        <priority>3</priority>
+        <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <property name="tag" value="confusing" type="String" description="for-sonar"/>
+            <property name="tag" value="bad-practice" type="String" description="for-sonar"/>
+            <property name="tag" value="data-mix-up" type="String" description="for-sonar"/>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+//ClassOrInterfaceDeclaration[@SimpleName = 'CacheKeyGenerator' and @Interface = false() and @Abstract = false()]
+/ImplementsList/ClassOrInterfaceType[@Image='KeyGenerator']
+	]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+import org.springframework.cache.interceptor.KeyGenerator;
+
+public class CacheKeyGenerator implements KeyGenerator { // bad, unclear name
+   public Object generate(Object target, Method method, Object... params) {
+        // build key and return it
+   }
+}
+            ]]>
+        </example>
+    </rule>
+    -->
+</ruleset>
