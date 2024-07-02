@@ -17,11 +17,6 @@
         </description>
         <priority>2</priority>
         <properties>
-            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="tag" value="sustainability-medium" type="String" description="for-sonar"/>
-            <property name="tag" value="memory" type="String" description="for-sonar"/>
-            <property name="tag" value="io" type="String" description="for-sonar"/>
             <property name="xpath">
                 <value>
                     <![CDATA[
@@ -44,6 +39,8 @@
 ]]>
                 </value>
             </property>
+            <property name="version" value="2.0"/>
+            <property name="tags" value="io,jpinpoint-rule,memory,performance,sustainability-medium" type="String" description="classification"/>
         </properties>
         <example>
             <![CDATA[
@@ -71,11 +68,6 @@ public class FileStuff {
         </description>
         <priority>2</priority>
         <properties>
-            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="tag" value="sustainability-medium" type="String" description="for-sonar"/>
-            <property name="tag" value="cpu" type="String" description="for-sonar"/>
-            <property name="tag" value="memory" type="String" description="for-sonar"/>
             <property name="xpath">
                 <value><![CDATA[
 //PrimaryPrefix[Name[ends-with(@Image, 'Calendar.getInstance')]] [count(../PrimarySuffix) > 2 and ../PrimarySuffix[last()-1][@Image = 'getTime' or @Image='getTimeInMillis']]
@@ -86,6 +78,8 @@ PrimaryPrefix/Name[pmd-java:typeIs('java.util.Calendar') and (ends-with(@Image,'
 //ClassOrInterfaceType[pmd-java:typeIs('org.joda.time.DateTime') or pmd-java:typeIs('org.joda.time.LocalDateTime')][../Arguments/ArgumentList/Expression/PrimaryExpression/PrimaryPrefix/Name[ends-with(@Image, 'Calendar.getInstance')]]
 	         ]]></value>
             </property>
+            <property name="version" value="2.0"/>
+            <property name="tags" value="cpu,jpinpoint-rule,memory,performance,sustainability-medium" type="String" description="classification"/>
         </properties>
         <example>
             <![CDATA[
@@ -122,10 +116,6 @@ public class DateStuff {
             </description>
         <priority>2</priority>
         <properties>
-            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="tag" value="sustainability-low" type="String" description="for-sonar"/>
-            <property name="tag" value="cpu" type="String" description="for-sonar"/>
             <property name="xpath">
                 <value><![CDATA[
 //MethodDeclaration/Block/BlockStatement[
@@ -142,6 +132,8 @@ ancestor::Block//LocalVariableDeclaration[@Final=true()]//VariableDeclaratorId/@
 ]]
 	]]></value>
             </property>
+            <property name="version" value="2.0"/>
+            <property name="tags" value="cpu,jpinpoint-rule,performance,sustainability-low" type="String" description="classification"/>
         </properties>
         <example>
             <![CDATA[
@@ -173,10 +165,6 @@ public class StringStuff {
         </description>
         <priority>2</priority>
         <properties>
-            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="tag" value="sustainability-medium" type="String" description="for-sonar"/>
-            <property name="tag" value="cpu" type="String" description="for-sonar"/>
             <property name="xpath">
                 <value><![CDATA[
 (//ForStatement | //WhileStatement | //DoStatement)//AssignmentOperator[
@@ -191,6 +179,8 @@ public class StringStuff {
 	]]>
                 </value>
             </property>
+            <property name="version" value="2.0"/>
+            <property name="tags" value="cpu,jpinpoint-rule,performance,sustainability-medium" type="String" description="classification"/>
         </properties>
         <example>
             <![CDATA[
@@ -228,10 +218,6 @@ public class StringStuff {
         </description>
         <priority>2</priority>
         <properties>
-            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="tag" value="pitfall" type="String" description="for-sonar"/>
-            <property name="tag" value="confusing" type="String" description="for-sonar"/>
-            <property name="tag" value="replaces-sonar-rule" type="String" description="for-sonar"/>
             <property name="param-max" value="3" type="String" description="Maximum number of allowed static imports with wildcard"/>
             <property name="xpath">
                 <value><![CDATA[
@@ -239,6 +225,8 @@ public class StringStuff {
 	]]>
                 </value>
             </property>
+            <property name="version" value="2.0"/>
+            <property name="tags" value="confusing,jpinpoint-rule,pitfall,replaces-sonar-rule" type="String" description="classification"/>
         </properties>
         <example>
             <![CDATA[
@@ -271,9 +259,6 @@ import static com.co.corporate.Constants.GREAT; // good
         </description>
         <priority>2</priority>
         <properties>
-            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="tag" value="pitfall" type="String" description="for-sonar"/>
-            <property name="tag" value="replaces-sonar-rule" type="String" description="for-sonar"/>
             <property name="xpath">
                 <value><![CDATA[
 //ClassOrInterfaceDeclaration[ImplementsList/ClassOrInterfaceType[@Image='Serializable']
@@ -293,6 +278,8 @@ and (pmd-java:typeIs('java.lang.Object'))]))
 ]
                 ]]></value>
             </property>
+            <property name="version" value="2.0"/>
+            <property name="tags" value="jpinpoint-rule,pitfall,replaces-sonar-rule" type="String" description="classification"/>
         </properties>
         <example>
             <![CDATA[
@@ -331,9 +318,6 @@ class Baz extends RemoteException {
         </description>
         <priority>3</priority>
         <properties>
-            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="tag" value="brain-overload" type="String" description="for-sonar"/>
-            <property name="tag" value="replaces-sonar-rule" type="String" description="for-sonar"/>
             <property name="param-max" value="5" type="String" description="Maximum number of allowed non-setter statements"/>
             <property name="xpath">
                 <value><![CDATA[
@@ -343,6 +327,8 @@ class Baz extends RemoteException {
 ]
                 ]]></value>
             </property>
+            <property name="version" value="2.0"/>
+            <property name="tags" value="brain-overload,jpinpoint-rule,replaces-sonar-rule" type="String" description="classification"/>
         </properties>
         <example>
             <![CDATA[
@@ -388,9 +374,6 @@ class Foo {
         </description>
         <priority>3</priority>
         <properties>
-            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="tag" value="brain-overload" type="String" description="for-sonar"/>
-            <property name="tag" value="replaces-sonar-rule" type="String" description="for-sonar"/>
             <property name="param-block-max" value="1" type="String" description="Maximum allowed depth of lambda-with-code-block nesting"/>
             <property name="param-single-max" value="4" type="String" description="Maximum allowed depth of lambda-single-expression nesting"/>
             <property name="xpath">
@@ -400,6 +383,8 @@ class Foo {
 //LambdaExpression[Expression][count(ancestor::LambdaExpression) > number($param-single-max)]
                 ]]></value>
             </property>
+            <property name="version" value="2.0"/>
+            <property name="tags" value="brain-overload,jpinpoint-rule,replaces-sonar-rule" type="String" description="classification"/>
         </properties>
         <example>
             <![CDATA[
@@ -439,10 +424,6 @@ class Foo {
         </description>
         <priority>3</priority>
         <properties>
-            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="tag" value="unused" type="String" description="for-sonar"/>
-            <property name="tag" value="suspicious" type="String" description="for-sonar"/>
-            <property name="tag" value="replaces-sonar-rule" type="String" description="for-sonar"/>
             <property name="xpath">
                 <value><![CDATA[
 (: for each assignment node :)
@@ -480,6 +461,8 @@ return ($node[
 )
                 ]]></value>
             </property>
+            <property name="version" value="2.0"/>
+            <property name="tags" value="jpinpoint-rule,replaces-sonar-rule,suspicious,unused" type="String" description="classification"/>
         </properties>
         <example>
             <![CDATA[
@@ -499,8 +482,6 @@ return ($node[
         </description>
         <priority>4</priority>
         <properties>
-            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="tag" value="bad-practice" type="String" description="for-sonar"/>
             <property name="xpath">
                 <value><![CDATA[
 //StatementExpression/PrimaryExpression[(PrimaryPrefix/Name|PrimarySuffix)[ends-with(@Image, 'forEach')]]
@@ -510,6 +491,8 @@ return ($node[
 )]
                 ]]></value>
             </property>
+            <property name="version" value="2.0"/>
+            <property name="tags" value="bad-practice,jpinpoint-rule" type="String" description="classification"/>
         </properties>
         <example>
             <![CDATA[

@@ -22,7 +22,6 @@ public class RulesetMerger {
     public static final String JPINPOINT_RULES = "jpinpoint-rules";
 
     public static final String JPINPOINT_KOTLIN_RULES = "jpinpoint-kotlin-rules";
-    public static final Pattern VALUE_PATTERN = Pattern.compile("value=\"(.*?)\"");
 
     private enum Language {
         JAVA("Java", "java"), KOTLIN("Kotlin", "kotlin");
@@ -280,9 +279,7 @@ public class RulesetMerger {
     private static List<List<String>> parseSortIntoRuleLinesList(List<String> fileLines) {
         Map<String, List<String>> nameToLines = new TreeMap<>();
         boolean ruleStarted = false;
-        boolean propertiesStarted = false;
         List<String> currentRuleLines = new ArrayList<>();
-        List<String> currentPropertiesLines = new ArrayList<>();
         String currentRuleName = "<none>";
         for(String line : fileLines) {
             if (line.contains("<rule name")) {
@@ -297,55 +294,10 @@ public class RulesetMerger {
                 ruleStarted = false;
             }
             else if (ruleStarted) {
-                if (line.contains("<properties")) { // collect all lines between the <properties> tags
-                    currentPropertiesLines = new ArrayList<>();
-                    currentRuleLines.add(line);
-                    propertiesStarted = true;
-                }
-                else if (line.contains("</properties")) {
-                    currentRuleLines.addAll(processProperties(currentPropertiesLines));
-                    currentRuleLines.add(line);
-                    propertiesStarted = false;
-                }
-                else if (propertiesStarted) {
-                    currentPropertiesLines.add(line);
-                }
-                else {
-                    currentRuleLines.add(line);
-                }
+                currentRuleLines.add(line);
             }
         }
         return new ArrayList<>(nameToLines.values());
-    }
-
-    /**
-     * <p>All lines between the <pre><properties></properties></pre> tags are expected as input.</p>
-     *
-     * <p>All values of properties with <pre>name="tag"</pre> will be put into one property with <pre>name="tags"</pre>.
-     * The type and description fields of the property lines are ignored, the final tags property has:
-     * <pre>type="String" description="classification"</pre>.</p>
-     */
-    private static List<String> processProperties(List<String> propertiesLines) {
-        List<String> newPropertiesLines = new ArrayList<>();
-        List<String> tags = new ArrayList<>();
-
-        for (String line : propertiesLines) {
-            if (line.contains("<property name=\"tag\"")) { // assumes the property is on one line
-                Matcher matcher = VALUE_PATTERN.matcher(line);
-                if (matcher.find()) {
-                    String tag = matcher.group(1);
-                    tags.add(tag);
-                }
-            }
-            else {
-                newPropertiesLines.add(line);
-            }
-        }
-        if (!tags.isEmpty()) {
-            Collections.sort(tags);
-            newPropertiesLines.add(String.format("            <property name=\"tags\" value=\"%s\" type=\"String\" description=\"classification\" />", StringUtils.join(tags, ",")));
-        }
-        return newPropertiesLines;
     }
 
     private static class MergeWithExternalHelper {
