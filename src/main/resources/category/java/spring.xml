@@ -17,10 +17,6 @@
             (jpinpoint-rules)</description>
         <priority>3</priority>
         <properties>
-            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="tag" value="confusing" type="String" description="for-sonar"/>
-            <property name="tag" value="suspicious" type="String" description="for-sonar"/>
-            <property name="tag" value="data-mix-up" type="String" description="for-sonar"/>
             <property name="xpath">
                 <value>
                     <![CDATA[
@@ -37,6 +33,8 @@ exists(./Annotation//Name[@Image='Component' or @Image='Service' or @Image='Cont
                     ]]>
                 </value>
             </property>
+            <property name="version" value="2.0"/>
+            <property name="tags" value="confusing,data-mix-up,jpinpoint-rule,suspicious" type="String" description="classification"/>
         </properties>
         <example>
             <![CDATA[
@@ -59,10 +57,6 @@ class Good {
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
-            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="tag" value="sustainability-medium" type="String" description="for-sonar"/>
-            <property name="tag" value="memory" type="String" description="for-sonar"/>
             <property name="xpath">
                 <value><![CDATA[
 //ClassOrInterfaceBodyDeclaration
@@ -73,6 +67,8 @@ MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter/Annotation/M
 Annotation//Name[@Image='RenderMapping'])]
 	]]></value>
             </property>
+            <property name="version" value="2.0"/>
+            <property name="tags" value="jpinpoint-rule,memory,performance,sustainability-medium" type="String" description="classification"/>
         </properties>
     </rule>
 
@@ -86,10 +82,6 @@ Annotation//Name[@Image='RenderMapping'])]
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
-            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="tag" value="sustainability-medium" type="String" description="for-sonar"/>
-            <property name="tag" value="cpu" type="String" description="for-sonar"/>
             <property name="xpath">
                 <value>
                     <![CDATA[
@@ -101,6 +93,8 @@ and (
 ]]>
                 </value>
             </property>
+            <property name="version" value="2.0"/>
+            <property name="tags" value="cpu,jpinpoint-rule,performance,sustainability-medium" type="String" description="classification"/>
         </properties>
     </rule>
 
@@ -115,10 +109,6 @@ and (
             redirect:/redirectUrl?someAttribute={someAttribute}.</description>
         <priority>1</priority>
         <properties>
-            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="tag" value="sustainability-low" type="String" description="for-sonar"/>
-            <property name="tag" value="memory" type="String" description="for-sonar"/>
             <property name="xpath">
                 <value><![CDATA[
 (
@@ -149,6 +139,8 @@ and (
 )
             ]]></value>
             </property>
+            <property name="version" value="2.0"/>
+            <property name="tags" value="jpinpoint-rule,memory,performance,sustainability-low" type="String" description="classification"/>
         </properties>
     </rule>
 
@@ -166,8 +158,6 @@ and (
             (jpinpoint-rules)</description>
         <priority>3</priority>
         <properties>
-            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
             <property name="xpath">
                 <value>
                     <![CDATA[
@@ -186,6 +176,8 @@ and  (../../ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='Autowired']
 ]]>
                 </value>
             </property>
+            <property name="version" value="2.0"/>
+            <property name="tags" value="jpinpoint-rule,multi-threading" type="String" description="classification"/>
         </properties>
     </rule>
 
@@ -196,10 +188,6 @@ and  (../../ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='Autowired']
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
-            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="tag" value="sustainability-medium" type="String" description="for-sonar"/>
-            <property name="tag" value="memory" type="String" description="for-sonar"/>
             <property name="xpath">
                 <value><![CDATA[
 //ClassOrInterfaceBodyDeclaration
@@ -210,6 +198,8 @@ Annotation//Name[@Image='ActionMapping']) and
 count(.//PrimaryExpression/PrimaryPrefix/Name[ends-with(@Image,'.clear')])=0]
 	]]></value>
             </property>
+            <property name="version" value="2.0"/>
+            <property name="tags" value="jpinpoint-rule,memory,performance,sustainability-medium" type="String" description="classification"/>
         </properties>
     </rule>
 
@@ -220,15 +210,13 @@ count(.//PrimaryExpression/PrimaryPrefix/Name[ends-with(@Image,'.clear')])=0]
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
-            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="tag" value="sustainability-medium" type="String" description="for-sonar"/>
-            <property name="tag" value="cpu" type="String" description="for-sonar"/>
             <property name="xpath">
                 <value><![CDATA[
 //ClassOrInterfaceBodyDeclaration//Annotation/NormalAnnotation[Name/@Image='Cacheable']/MemberValuePairs/MemberValuePair[@MemberName='key']
 	]]></value>
             </property>
+            <property name="version" value="2.0"/>
+            <property name="tags" value="cpu,jpinpoint-rule,performance,sustainability-medium" type="String" description="classification"/>
         </properties>
         <example>
             <![CDATA[
@@ -249,11 +237,6 @@ class Bad1 {
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
-            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
-            <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="tag" value="sustainability-low" type="String" description="for-sonar"/>
-            <property name="tag" value="cpu" type="String" description="for-sonar"/>
             <property name="xpath">
                 <value><![CDATA[
 (//ClassOrInterfaceBodyDeclaration//Annotation/NormalAnnotation[Name/@Image='Cacheable']
@@ -261,6 +244,8 @@ class Bad1 {
 //ClassOrInterfaceBodyDeclaration//Annotation/MarkerAnnotation[Name/@Image='Cacheable'])[count(MemberValuePairs/MemberValuePair[@MemberName='sync']) = 0]
 	]]></value>
             </property>
+            <property name="version" value="2.0"/>
+            <property name="tags" value="cpu,jpinpoint-rule,multi-threading,performance,sustainability-low" type="String" description="classification"/>
         </properties>
         <example>
             <![CDATA[
@@ -285,14 +270,13 @@ class Good1 {
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
-            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="tag" value="bad-practice" type="String" description="for-sonar"/>
-            <property name="tag" value="performance" type="String" description="for-sonar"/>
             <property name="xpath">
                 <value><![CDATA[
     //AllocationExpression/ClassOrInterfaceType[pmd-java:typeIs('org.springframework.cache.support.SimpleCacheManager') or pmd-java:typeIs('org.springframework.cache.concurrent.ConcurrentMapCache')]
 	]]></value>
             </property>
+            <property name="version" value="2.0"/>
+            <property name="tags" value="bad-practice,jpinpoint-rule,performance" type="String" description="classification"/>
         </properties>
         <example>
             <![CDATA[
@@ -324,11 +308,6 @@ class Good {
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
-            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="tag" value="sustainability-low" type="String" description="for-sonar"/>
-            <property name="tag" value="cpu" type="String" description="for-sonar"/>
-            <property name="tag" value="bad-practice" type="String" description="for-sonar"/>
             <property name="xpath">
                 <value><![CDATA[
 //ImplementsList/ClassOrInterfaceType[pmd-java:typeIs("org.springframework.cache.interceptor.KeyGenerator")]
@@ -346,6 +325,8 @@ ForStatement[./Expression//Name[@Image = ancestor::MethodDeclaration//FormalPara
 )
 	]]></value>
             </property>
+            <property name="version" value="2.0"/>
+            <property name="tags" value="bad-practice,cpu,jpinpoint-rule,performance,sustainability-low" type="String" description="classification"/>
         </properties>
         <example>
             <![CDATA[
@@ -382,15 +363,14 @@ public class Good implements KeyGenerator {
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
-            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="tag" value="bad-practice" type="String" description="for-sonar"/>
             <property name="xpath">
                 <value><![CDATA[
 //Annotation//Name[@Image='Cacheable']
 /../MemberValuePairs[count(MemberValuePair[@Image='keyGenerator']) = 0]
 	]]></value>
             </property>
+            <property name="version" value="2.0"/>
+            <property name="tags" value="bad-practice,jpinpoint-rule,performance" type="String" description="classification"/>
         </properties>
         <example>
             <![CDATA[
@@ -420,9 +400,6 @@ class Foo {
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
-            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="tag" value="bad-practice" type="String" description="for-sonar"/>
-            <property name="tag" value="data-mix-up" type="String" description="for-sonar"/>
             <property name="xpath">
                 <value><![CDATA[
 //ClassOrInterfaceDeclaration[ImplementsList/ClassOrInterfaceType[pmd-java:typeIs('org.springframework.cache.interceptor.KeyGenerator')]]
@@ -442,6 +419,8 @@ class Foo {
 ]/../Arguments
 	]]></value>
             </property>
+            <property name="version" value="2.0"/>
+            <property name="tags" value="bad-practice,data-mix-up,jpinpoint-rule" type="String" description="classification"/>
         </properties>
         <example>
             <![CDATA[
@@ -477,9 +456,6 @@ class GoodCacheKeyGenerator implements KeyGenerator {
             (jpinpoint-rules)</description>
         <priority>5</priority>
         <properties>
-            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="tag" value="suspicious" type="String" description="for-sonar"/>
-            <property name="tag" value="data-mix-up" type="String" description="for-sonar"/>
             <property name="xpath">
                 <value><![CDATA[
 //ClassOrInterfaceBodyDeclaration[.//NormalAnnotation/Name[@Image='Cacheable']]
@@ -493,6 +469,8 @@ class GoodCacheKeyGenerator implements KeyGenerator {
   ]
 	]]></value>
             </property>
+            <property name="version" value="2.0"/>
+            <property name="tags" value="data-mix-up,jpinpoint-rule,suspicious" type="String" description="classification"/>
         </properties>
         <example>
             <![CDATA[
@@ -528,16 +506,14 @@ class MyObject {
             (jpinpoint-rules)</description>
         <priority>3</priority>
         <properties>
-            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="tag" value="confusing" type="String" description="for-sonar"/>
-            <property name="tag" value="bad-practice" type="String" description="for-sonar"/>
-            <property name="tag" value="data-mix-up" type="String" description="for-sonar"/>
             <property name="xpath">
                 <value><![CDATA[
 //ClassOrInterfaceDeclaration[@SimpleName = 'CacheKeyGenerator' and @Interface = false() and @Abstract = false()]
 /ImplementsList/ClassOrInterfaceType[@Image='KeyGenerator']
 	]]></value>
             </property>
+            <property name="version" value="2.0"/>
+            <property name="tags" value="bad-practice,confusing,data-mix-up,jpinpoint-rule" type="String" description="classification"/>
         </properties>
         <example>
             <![CDATA[

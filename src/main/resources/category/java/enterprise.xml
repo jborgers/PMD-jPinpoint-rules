@@ -12,12 +12,6 @@
         (jpinpoint-rules)</description>
     <priority>3</priority>
     <properties>
-        <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-        <property name="tag" value="confusing" type="String" description="for-sonar"/>
-        <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
-        <property name="tag" value="performance" type="String" description="for-sonar"/>
-        <property name="tag" value="sustainability-low" type="String" description="for-sonar"/>
-        <property name="tag" value="cpu" type="String" description="for-sonar"/>
         <property name="xpath">
             <value>
                 <![CDATA[
@@ -29,6 +23,8 @@ and (count(ancestor::TypeDeclaration//MethodDeclaration[@Public=true() and not(e
                 ]]>
             </value>
         </property>
+            <property name="version" value="2.0"/>
+            <property name="tags" value="confusing,cpu,jpinpoint-rule,multi-threading,performance,sustainability-low" type="String" description="classification"/>
     </properties>
     <example>
         <![CDATA[
