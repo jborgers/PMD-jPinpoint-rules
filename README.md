@@ -47,9 +47,10 @@ After installing the tool you can run `pmd.sh` or `pmd.bat` similar to the follo
 ## IntelliJ IDEA with PMD Plugin
 
 - You need a recent version of IntelliJ. The Community Edition is fine.
-- Install PMDPlugin: 
+- PMD Plugin: you need version 1.9.2 (until we migrated fully to PMD7). Install:
 
-      Settings/Preferences > Plugins > Browse Repositories > Search 'PMD' > Select 'PMD' > Install > Close > OK > Restart
+      Settings/Preferences > Plugins > Browse Repositories > Search 'PMD' > Select 'PMD' > Plugin homepage > Plugin Versions
+          > 1.9.2 Download > config wheel > Install Plugin from Disk > choose downloaded zip file > OK > Restart IDE
 
 - Next, configure (add) the ruleset from this repo by URL to always be up-to-date: 
 
