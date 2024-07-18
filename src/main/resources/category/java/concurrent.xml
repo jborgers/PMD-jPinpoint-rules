@@ -1257,9 +1257,9 @@ public class FooBad {
         <properties>
             <property name="xpath">
                 <value><![CDATA[
-//PrimaryExpression[PrimarySuffix[@ArgumentCount=1]]/PrimaryPrefix
+//PrimaryExpression/PrimaryPrefix
 [pmd-java:typeIs('java.util.concurrent.ExecutorService') and ./Name[ends-with(@Image,'.invokeAll') or ends-with(@Image,'.invokeAny')]]
-/../PrimarySuffix//ArgumentList
+/../PrimarySuffix[1][@ArgumentCount=1]/Arguments/ArgumentList
                 ]]></value>
             </property>
             <property name="version" value="2.0"/>
