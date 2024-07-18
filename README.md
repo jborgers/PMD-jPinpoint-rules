@@ -47,17 +47,14 @@ After installing the tool you can run `pmd.sh` or `pmd.bat` similar to the follo
 ## IntelliJ IDEA with PMD Plugin
 
 - You need a recent version of IntelliJ. The Community Edition is fine.
-- Install PMDPlugin: 
+- PMD Plugin: you need version 1.9.2 (until we migrated fully to PMD7). Install:
 
-      Settings/Preferences > Plugins > Browse Repositories > Search 'PMD' > Select 'PMD' > Install > Close > OK > Restart
+      Settings > Plugins > Browse Repositories > Search 'PMD' > Select 'PMD' > Plugin homepage > Plugin Versions
+          > 1.9.2 Download > config wheel > Install Plugin from Disk > choose downloaded zip file > OK > Restart IDE
 
-- Next, configure (add) the ruleset from this repo by URL to always be up-to-date: 
+- Next, add the ruleset from this repo by URL to always be up-to-date: 
 
-      Settings/Preferences > Other Settings > PMD > RuleSets
-  
-- Add:
-
-      https://raw.githubusercontent.com/jborgers/PMD-jPinpoint-rules/master/rulesets/java/jpinpoint-rules.xml
+      Settings > Other Settings > PMD > RuleSets > + > Choose RuleSet > drop down > Choose 'jpinpoint-rules' 
 
 - Alternatively, download and add your local copy: *rulesets/java/jpinpoint-rules.xml*
   
@@ -69,7 +66,7 @@ After installing the tool you can run `pmd.sh` or `pmd.bat` similar to the follo
 
 - If you want a short description on a violation: hover over a violation title to get a popup with a description. 
 
-- If you want more details on a violation: right click and choose 'Details' to get to the documentation page with problem and solution details.
+- Documentation on a violation is shown at the right side after clicking a violation. More details of the problem and solution are shown with right clicking 'Details'.
 
 ## Eclipse with PMD Plugin
 
