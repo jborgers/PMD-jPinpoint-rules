@@ -90,7 +90,11 @@ result = false
 **Solution:** Add proper equals and hashCode methods that meet the general contract to all objects which might anyhow be put in a Map, Set or other collection by someone, e.g. the domain objects. See [Effective Java, Chapter 3](http://www.slideshare.net/ibrahimkurce/effective-java-chapter-3-methods-common-to-all-objects). Options to use are:
 
 Three ways to generate the boilerplate code:
-1. Use [Project Lombok](https://projectlombok.org/features/index.html) annotation @EqualsAndHashCode, @Value or @Data to generate the boilerplate code
+1. Use [Project Lombok](https://projectlombok.org/features/index.html) annotation to generate the boilerplate code:
+   * @EqualsAndHashCode, or better 
+   * @Data, or best 
+   * @Value with @Builder and @Singular for collections, for immutability, 
+
 2. Use [Google AutoValue framework](https://github.com/google/auto/blob/master/value/userguide/why.md) (Promoted by Effective Java)
 3. Use Immutables framework [Article that compares Lombok, AutoValue and Immutables](https://codeburst.io/lombok-autovalue-and-immutables-or-how-to-write-less-and-better-code-returns-2b2e9273f877)
 
@@ -120,6 +124,14 @@ class LombokGetterGood { // good
     private String someState1 = "some1";
     private String someState2 = "some2";
 }
+
+@Builder
+@Value
+class LombokImmutableBetter { // better  
+    private String someState1 = "some1";
+    private String someState2 = "some2";
+}
+
 ````
 More traditional ways:
 1.  [EqualsBuilder](http://commons.apache.org/lang/api-2.4/org/apache/commons/lang/builder/EqualsBuilder.html) and [HashCodeBuilder](http://commons.apache.org/lang/api-2.4/org/apache/commons/lang/builder/HashCodeBuilder.html), without reflection, see [UUOR01](http://wiki.rabobank.nl/wiki/JavaCodePerformance#UUOR01) above.

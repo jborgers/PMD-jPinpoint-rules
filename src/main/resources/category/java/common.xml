@@ -959,7 +959,7 @@ class Foo {
 
     <rule name="UsingSuppressWarnings" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" message="Using SuppressWarnings." typeResolution="true"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md">
-        <description>(Informative - be aware) Problem: This rule detects problems, suppressing them without full knowledge can lead to the problems this rule is trying to prevent. &#13;
+        <description>(Informative - be aware) Problem: This rule is suppressed. The rule detects problems and suppressing it without full knowledge can lead to the problems this rule is trying to prevent. &#13;
             Solution: Suppress warnings judiciously based on full knowledge and report reasons to suppress (false positives) to the rule maintainers so the rule can be fixed. (jpinpoint-rules)</description>
         <priority>5</priority>
         <properties>
@@ -2153,6 +2153,57 @@ class Foo {
         }
         // build a Cipher
     }
+}
+            ]]>
+        </example>
+    </rule>
+
+    <rule name="MissingEqualsAndHashCodeWithGetterSetter"
+          language="java"
+          message="Equals and/or hashCode is missing in a class with lombok @Getter or @Setter."
+          class="net.sourceforge.pmd.lang.rule.XPathRule"
+          typeResolution="true"
+          externalInfoUrl="${doc_root}/JavaCodeQuality.md#ieah01">
+        <description>Problem: If only the @Setter and/or @Getter annotation is used, and equals and hashcode are not defined, this is probably a mistake. The object has fields and if used in a collection or with equality, it will not behave as expected.
+            Solution: include equals and hashCode e.g. by @EqualsAndHashCode or usually better @Data instead of @Setter/@Getter, however, are setters really needed? Prefer immutability, so @Value, combined with @Builder, with @Singular for collection fields.
+        </description>
+        <priority>2</priority>
+        <properties>
+            <property name="xpath">
+                <value><![CDATA[
+//TypeDeclaration[./Annotation[pmd-java:typeIs('lombok.Getter') or pmd-java:typeIs('lombok.Setter')]
+    and not(./Annotation[pmd-java:typeIs('lombok.EqualsAndHashCode')]
+        or (.//MethodDeclaration[@Name='equals']/ResultType/Type[@TypeImage='boolean']
+            and .//MethodDeclaration[@Name='hashCode']/ResultType/Type[@TypeImage='int']))
+]
+/Annotation
+                ]]></value>
+            </property>
+            <property name="version" value="2.0"/>
+            <property name="tags" value="jpinpoint-rule,correctness" type="String" description="classification"/>
+        </properties>
+        <example>
+            <![CDATA[
+import lombok.*;
+
+@Getter @Setter
+// no equals/hashcode annotation
+class MissingEqualsHashCodeWithGetterSetterBad { // bad
+    String field1;
+    String field2;
+    // no equals, no hashCode
+}
+
+@Getter @Setter @EqualsAndHashCode
+class EqualsHashCodeWithGetterSetterOkay {
+    String field1;
+    String field2;
+}
+
+@Builder @Value
+class ValueGood {
+    String field1;
+    String field2;
 }
             ]]>
         </example>
