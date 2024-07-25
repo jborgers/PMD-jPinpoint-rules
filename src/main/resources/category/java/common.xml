@@ -14,8 +14,7 @@
         <priority>1</priority>
         <properties>
             <property name="pmd-version" value="7" type="String" description="for-compatibility"/>
-            <property name="tag1" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="tag2" value="performance" type="String" description="for-sonar"/>
+            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
 //MethodCall[@MethodName='select']/MethodCall[@MethodName='current']/TypeExpression/ClassType[@SimpleName='CDI'
@@ -50,5 +49,199 @@ public class CDIStuff {
             ]]>
         </example>
     </rule>
+
+    <rule name="AvoidConstantsInInterface" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java" message="Interface defines constants. It may expose implementation details." typeResolution="true"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#voedos04">
+        <description>Interface defines constants. Problem: Possibly exposes implementation details.  &#13;
+            Solution: Make it a Class which cannot be instantiated, or an Enum. Use static imports.
+            (jpinpoint-rules)</description>
+        <priority>3</priority>
+        <properties>
+            <property name="pmd-version" value="7" type="String" description="for-compatibility"/>
+            <property name="tags" value="jpinpoint-rule,bad-practice" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+//ClassDeclaration[@Interface=true()]/ClassBody/FieldDeclaration
+	]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+public interface AnimalConsts {
+    public static final Dog DOG = new Dog(); //bad
+}
+public class AnimalUtil {
+    private AnimalUtil() {}
+    public static final Dog DOG = new Dog(); // good
+}
+public enum Animal {
+    DOG // good
+}
+            ]]>
+        </example>
+    </rule>
+
+    <rule name="AvoidDecimalAndChoiceFormatAsField" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          dfa="false" language="java"
+          message="Avoid using DecimalFormat or ChoiceFormat as field since it is thread-unsafe."
+          typeResolution="true"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#idtf01">
+        <description>Problem: java.text.NumberFormat: DecimalFormat and ChoiceFormat are thread-unsafe.&#13;
+            Solution: usual solution is to create a new local one when needed in a method.
+            (jpinpoint-rules)
+        </description>
+        <priority>1</priority>
+        <properties>
+            <property name="pmd-version" value="7" type="String" description="for-compatibility"/>
+            <property name="tags" value="jpinpoint-rule,multi-threading" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+ //FieldDeclaration/ClassType[pmd-java:typeIs('java.text.NumberFormat')]
+        ]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+public class Foo {
+    public static final DecimalFormat NUMBER_FORMAT = new DecimalFormat("###.###"); // bad
+
+    public void bar() {
+        NumberFormat format = new DecimalFormat("###.###"); // good
+    }
+}
+            ]]>
+        </example>
+    </rule>
+
+    <rule name="AvoidDuplicateAssignmentsInCases"
+          message="Avoid duplicate assignments in different switch cases"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
+          typeResolution="true" externalInfoUrl="${doc_root}/JavaCodeQuality.md#SSC01">
+        <description>
+            Problem: Potential bug: expected to have different assignments in different cases.&#13;
+            Solution: assign different values in different cases, common assignments should be taken out of the switch.
+            (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,suspicious" type="String" description="classification"/>
+            <property name="xpath">
+                <value>
+                    <![CDATA[
+(:-- assigned to same var in a previous switch case --:)
+//SwitchStatement//SwitchFallthroughBranch/ExpressionStatement[AssignmentExpression[not(pmd-java:typeIs('boolean'))]/VariableAccess[1]/@Name=
+../preceding-sibling::SwitchFallthroughBranch//preceding-sibling::ExpressionStatement/AssignmentExpression/VariableAccess[1]/@Name
+and (
+(:-- assigning same var --:)
+AssignmentExpression/VariableAccess[2]/@Name=
+../preceding-sibling::SwitchFallthroughBranch//preceding-sibling::ExpressionStatement/AssignmentExpression/VariableAccess[2]/@Name
+or
+(:-- assigning same literal --:)
+AssignmentExpression/(StringLiteral|NumericLiteral)/@Image =
+../preceding-sibling::SwitchFallthroughBranch//preceding-sibling::ExpressionStatement/AssignmentExpression/(StringLiteral|NumericLiteral)/@Image
+or
+(:-- assigning constructor with same argument or same argumentless method  --:)
+AssignmentExpression/(ConstructorCall/ArgumentList[@Size=1]/StringLiteral|MethodCall[ArgumentList[@Size=0]])/@Image =
+../preceding-sibling::SwitchFallthroughBranch//preceding-sibling::ExpressionStatement/AssignmentExpression/(ConstructorCall/ArgumentList[@Size=1]/StringLiteral|MethodCall[ArgumentList[@Size=0]])/@Image
+)
+(:--default case allowed to have duplicates --:)
+and not (preceding-sibling::SwitchLabel[@Default=true()])]
+]]>
+                </value>
+            </property>
+        </properties>
+    </rule>
+
+    <!--rule name="AvoidImplicitlyRecompilingRegex" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java" message="String regex method, Pattern.matches or FileSystem.getPathMatcher is used.
+	   Implicitly compiles a regex pattern, can be expensive." typeResolution="true"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ireu01">
+        <description>A regular expression is compiled implicitly on every invocation. Problem: this can be expensive, depending on the length of the regular expression.&#13;
+            Solution: Compile the regex pattern only once and assign it to a private static final Pattern field. java.util.Pattern objects are thread-safe so they can be shared among threads.
+            (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+(//MethodDeclaration//(PrimaryPrefix/Name[ends-with(@Image, '.replaceAll') or ends-with(@Image, '.replaceFirst') or @Image='Pattern.matches']
+|PrimarySuffix[@Image = 'replaceAll' or ends-with(@Image, '.replaceFirst')])
+/following::PrimarySuffix[1]/Arguments[ArgumentList/@Size=2]//Expression[1]//PrimaryPrefix[
+Literal[string-length(@Image) > 5 and
+(matches(@Image, '[\.\$\|\(\)\[\]\{\}\^\?\*\+\\]+'))] or Name
+and not(../PrimarySuffix)
+and not (
+Name/@Image=ancestor::MethodDeclaration//VariableDeclaratorId/@Name)
+and not (
+Name[@Image=ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration/VariableDeclarator[
+VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/Literal[string-length(@Image) < 6 or not
+(matches(@Image, '[\.\$\|\(\)\[\]\{\}\^\?\*\+\\]+'))]
+]/VariableDeclaratorId/@Name])
+]
+,
+//MethodDeclaration//PrimaryPrefix/Name[ends-with(@Image, '.split') or ends-with(@Image, 'getPathMatcher')]/../../PrimarySuffix/Arguments[ArgumentList/@Size=1]//Expression[1]//PrimaryPrefix[
+Literal[string-length(@Image) > 5 and
+matches(@Image, '[\.\$\|\(\)\[\]\{\}\^\?\*\+\\]+')] or Name
+and not(../PrimarySuffix)
+and not (
+Name/@Image=ancestor::MethodDeclaration//VariableDeclaratorId/@Name)
+and not (
+(:- not (if foreign field (with .), or field with short String or without regex char) -:)
+Name[contains(@Image, '.') or @Image=ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration/VariableDeclarator[
+VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/Literal[string-length(@Image) < 6 or not
+(matches(@Image, '[\.\$\|\(\)\[\]\{\}\^\?\*\+\\]+'))]
+]/VariableDeclaratorId/@Name])
+]
+,
+//MethodDeclaration//PrimarySuffix[@Image='getPathMatcher']/../PrimarySuffix/Arguments[ArgumentList/@Size=1]/ArgumentList/Expression[1]/PrimaryExpression/PrimaryPrefix[
+Literal[string-length(@Image) > 5] or Name
+and not(../PrimarySuffix)
+and not (
+Name/@Image=ancestor::MethodDeclaration//VariableDeclaratorId/@Name)
+and not (
+Name[@Image=ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration/VariableDeclarator[
+VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/Literal[string-length(@Image) < 6]]/VariableDeclaratorId/@Name])
+]
+,
+(: - String.matches called on formalparams, locals and fields - :)
+//MethodDeclaration//PrimaryPrefix/Name[ends-with(@Image, '.matches')]
+[
+(exists(index-of((ancestor::MethodDeclaration//FormalParameter[pmd-java:typeIs('java.lang.String')]/VariableDeclaratorId/@Name), substring-before(@Image,'.')))
+or
+exists(index-of((ancestor::MethodDeclaration//LocalVariableDeclaration/Type[pmd-java:typeIs('java.lang.String')]/../VariableDeclarator/VariableDeclaratorId/@Name), substring-before(@Image,'.')))
+or
+exists(index-of((ancestor::ClassOrInterfaceBody//FieldDeclaration[pmd-java:typeIs('java.lang.String')]/VariableDeclarator/VariableDeclaratorId/@Name), substring-before(@Image,'.'))))
+and
+(: for matches param is >5 literal or something named :)
+../../PrimarySuffix/Arguments[ArgumentList/@Size=1]//Expression[1]//PrimaryPrefix[
+Literal[string-length(@Image) > 5] or Name
+(: exclude method calls :)
+and not(../PrimarySuffix)
+(: exclude for param is method arg or local :)
+and not (
+Name/@Image=ancestor::MethodDeclaration//VariableDeclaratorId/@Name)
+(: exclude for param is short fields :)
+and not (
+Name[@Image=ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration/VariableDeclarator[
+VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/Literal[string-length(@Image) < 6]
+]/VariableDeclaratorId/@Name])
+]])
+]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+//bad
+String bad_replaceInnerLineBreakBySpace() {
+    return text.replaceAll("([^\\.\\n])\\n", "$1 "); // bad
+}
+
+// good
+private static final Pattern INNER_LINE_BREAK_PATTERN = Pattern.compile("([^\\.\\n])\\n");
+
+String good_replaceInnerLineBreakBySpace() {
+    return INNER_LINE_BREAK_PATTERN.matcher(text).replaceAll("$1 "); // good
+}
+            ]]>
+        </example>
+    </rule-->
 
 </ruleset>
