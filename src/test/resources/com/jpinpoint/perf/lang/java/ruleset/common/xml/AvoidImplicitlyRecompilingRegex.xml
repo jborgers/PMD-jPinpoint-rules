@@ -5,8 +5,8 @@
         xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
     <test-code>
         <description>violation: Avoid implicit recompiling of regular expressions</description>
-        <expected-problems>27</expected-problems>
-        <expected-linenumbers>18,19,20, 24,25,27, 31,32,33, 39,40,41,43,45, 52,53,54, 59,60,61,61,64, 70, 76, 82,83,84</expected-linenumbers>
+        <expected-problems>26</expected-problems>
+        <expected-linenumbers>18,19,20, 24,25,27, 31,32,33, 39,40,41,43,45, 52,53,54, 59,60,61,64, 70, 76, 82,83,84</expected-linenumbers>
         <code><![CDATA[
 import java.io.File;
 import java.nio.file.FileSystem;
@@ -68,7 +68,7 @@ public class Foo {
     public void violatingPathMatcher4x(String action) {
         PathMatcher p = FileSystems.getDefault().getPathMatcher("(?=\\p{Lu})"); // bad: violation, should not be inside method, make static final
         FileSystems.getDefault().getPathMatcher(PAT_STRING); // bad: violation
-        FileSystems.getDefault().getPathMatcher(dynPatString).matches(path); // bad (2x):  field should be PathMatcher
+        FileSystems.getDefault().getPathMatcher(dynPatString).matches(path); // bad (2x(*)):  field should be PathMatcher -> why 2x?, just once: The matches to violate is String.matches, not PathMatcher.matches. With pmd7 easy to get right.
 
         FileSystem fs = FileSystems.getDefault();
         p = fs.getPathMatcher(PAT_STRING); // bad: violation
@@ -303,7 +303,7 @@ class Foo {
                 .stream()
                 .findFirst()
                 .toString()
-                .replaceAll("\\s+", "-"); // missing violation
+                .replaceAll("\\s+", "-"); // bad, missing violation
     }
 }
             ]]></code>

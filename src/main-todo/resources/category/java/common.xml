@@ -133,7 +133,7 @@ or preceding-sibling::SwitchLabel[@Default=true()])
         </properties>
     </rule-->
 
-    <rule name="AvoidImplicitlyRecompilingRegex" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java" message="String regex method, Pattern.matches or FileSystem.getPathMatcher is used.
+    <!--rule name="AvoidImplicitlyRecompilingRegex" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java" message="String regex method, Pattern.matches or FileSystem.getPathMatcher is used.
 	   Implicitly compiles a regex pattern, can be expensive." typeResolution="true"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#ireu01">
         <description>A regular expression is compiled implicitly on every invocation. Problem: this can be expensive, depending on the length of the regular expression.&#13;
@@ -224,7 +224,7 @@ String good_replaceInnerLineBreakBySpace() {
 }
             ]]>
         </example>
-    </rule>
+    </rule-->
 
     <rule name="AvoidInMemoryStreamingDefaultConstructor" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
           message="The default capacity or smaller is used for ByteArrayOutputStream or StringWriter, it usually needs expensive expansions." typeResolution="true"
