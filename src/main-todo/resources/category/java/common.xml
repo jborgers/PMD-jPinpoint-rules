@@ -226,7 +226,7 @@ String good_replaceInnerLineBreakBySpace() {
         </example>
     </rule-->
 
-    <rule name="AvoidInMemoryStreamingDefaultConstructor" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
+    <!--rule name="AvoidInMemoryStreamingDefaultConstructor" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
           message="The default capacity or smaller is used for ByteArrayOutputStream or StringWriter, it usually needs expensive expansions." typeResolution="true"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#isio01">
         <description>Problem: The default constructor of ByteArrayOutputStream creates a 32 bytes initial capacity and for StringWriter 16 chars. Problem: Such a small buffer as capacity usually needs several expensive expansions.&#13;
@@ -265,7 +265,7 @@ class Good {
             ]]>
         </example>
 
-    </rule>
+    </rule-->
 
     <rule name="AvoidMultipleConcatStatements" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java" message="Multiple statements concatenate to the same String. Use StringBuilder append." typeResolution="true"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#isu02">
