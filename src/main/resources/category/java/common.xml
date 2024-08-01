@@ -260,6 +260,24 @@ class Good {
 	]]></value>
             </property>
         </properties>
+        <example>
+        <![CDATA[
+class ConcatsExample {
+
+    private String[] values = {"tic", "tac"};
+
+    String bad() {
+        String logStatement = "";
+        logStatement += values[0];
+        return logStatement += values[1]; // bad
+    }
+    String good() {
+        StringBuilder logStmtBuilder = new StringBuilder();
+        return logStmtBuilder.append(values[0]).append(values[1]).toString(); // good
+    }
+}
+            ]]>
+        </example>
     </rule>
 
 </ruleset>
