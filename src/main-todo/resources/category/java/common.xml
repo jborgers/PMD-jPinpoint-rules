@@ -1,52 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ruleset name="jpinpoint-common-rules" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 https://pmd.sourceforge.io/ruleset_2_0_0.xsd" xmlns="http://pmd.sourceforge.net/ruleset/2.0.0">
     <description>jPinpoint rule set for performance aware Java coding, sponsored by Rabobank.</description>
+    
 
-
-    <rule name="AvoidRecompilingPatterns" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java" message="Pattern.compile is used in a method. Compiling a regex pattern can be expensive, make it a static final field." typeResolution="true"
-          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ireu02">
-        <description>A regular expression is compiled on every invocation. Problem: this can be expensive, depending on the length of the regular expression.&#13;
-            Solution: Usually a pattern is a literal, not dynamic and can be compiled only once. Assign it to a private static field. java.util.Pattern objects are thread-safe so they can be shared among threads.
-            (jpinpoint-rules)</description>
-        <priority>2</priority>
-        <properties>
-            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
-            <property name="xpath">
-                <value><![CDATA[
-//TypeDeclaration/ClassOrInterfaceDeclaration/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDeclaration
-//PrimaryExpression/PrimaryPrefix/Name[pmd-java:typeIs('java.util.regex.Pattern') and ends-with(@Image, '.compile') and
-count(../../PrimarySuffix[1]/Arguments/ArgumentList/Expression//PrimaryExpression) = 1
-and not (
-../../PrimarySuffix[1]/Arguments/ArgumentList/Expression/PrimaryExpression/PrimaryPrefix/Name/@Image=
-ancestor::MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter/VariableDeclaratorId/@Name)]
-	]]></value>
-            </property>
-        </properties>
-        <example>
-            <![CDATA[
-class Bad {
-    public static final String STR_PAT1 = "[A-Z][a-z]+";
-
-    public static void bad() {
-        Pattern p1 = Pattern.compile(STR_PAT1); // bad
-        Pattern p2 = Pattern.compile("(?=\\p{Lu})"); // bad
-        boolean b = p1.matcher("Start ").matches();
-    }
-}
-class Good {
-    public static final Pattern PAT1 = Pattern.compile("[A-Z][a-z]+");
-    public static final Pattern PAT2 = Pattern.compile("(?=\\p{Lu})");
-
-    public static void good() {
-        boolean b = PAT1.matcher("Start ").matches();
-    }
-}
-            ]]>
-        </example>
-
-    </rule>
-
-    <rule name="AvoidRecompilingXPathExpression" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java" message="XPathExpression is created and compiled every time. Beware it is thread-unsafe." typeResolution="true"
+    <rule name="AvoidRecompilingXPathExpression" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" language="java" message="XPathExpression is created and compiled every time. Beware it is thread-unsafe." 
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#ux02">
         <description>XPathExpression is created and compiled on every method call, compiled possibly implicitly by XPath::evaluate.
             Problem: Creation of XPath and compilation of XPathExpression takes time. It may slow down your application. &#13;
@@ -103,8 +60,8 @@ class Good {
 
     <rule name="AvoidRecreatingDateTimeFormatter"
           message="Avoid recreating DateTimeFormatter, it is relatively expensive."
-          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
-          typeResolution="true" externalInfoUrl="${doc_root}/JavaCodePerformance.md#idtf02">
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" language="java"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#idtf02">
         <description>
             Problem: Recreating a DateTimeFormatter is relatively expensive.&#13;
             Solution: Java 8+ java.time.DateTimeFormatter is thread-safe and can be shared among threads. Create the
@@ -136,7 +93,7 @@ ancestor::MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter/Va
         </properties>
     </rule>
 
-    <rule name="AvoidReflectionInToStringAndHashCode" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java" message="Reflection is used in toString or hashCode, which is expensive." typeResolution="true"
+    <rule name="AvoidReflectionInToStringAndHashCode" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" language="java" message="Reflection is used in toString or hashCode, which is expensive." 
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#uuor01">
         <description>Problem: Reflection is relatively expensive. &#13;
             Solution: Avoid to use reflection. Use the non-reflective, explicit way, like generation by IDE or Lombok.
@@ -167,7 +124,7 @@ ancestor::MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter/Va
         </properties>
     </rule>
 
-    <rule name="AvoidSimpleDateFormat" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java" message="SimpleDateFormat is used. Since it is thread-unsafe, it needs expensive recreation."  typeResolution="true"
+    <rule name="AvoidSimpleDateFormat" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" language="java" message="SimpleDateFormat is used. Since it is thread-unsafe, it needs expensive recreation."  
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#idtf01">
         <description>Problem: java.util.SimpleDateFormat is thread-unsafe. The usual solution is to create a new one when needed in a method. Creating SimpleDateFormat is relatively expensive. &#13;
             Solution: Use java.time.DateTimeFormatter. These classes are immutable, thus thread-safe and can be made static.
@@ -190,7 +147,7 @@ ancestor::MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter/Va
         </properties>
     </rule>
 
-    <rule name="AvoidStringBuffer" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java" message="StringBuffer is used. It introduces locking overhead, use StringBuilder." typeResolution="true"
+    <rule name="AvoidStringBuffer" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" language="java" message="StringBuffer is used. It introduces locking overhead, use StringBuilder." 
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#isu01" >
         <description>Problem: StringBuffer introduces locking overhead because it is thread safe. Its thread-safety is rarely needed.&#13;
             Solution: Replace StringBuffer by StringBuilder.  (jpinpoint-rules)</description>
@@ -205,7 +162,7 @@ ancestor::MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter/Va
         </properties>
     </rule>
 
-    <rule name="AvoidUnconditionalBuiltLogStrings" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java" message="Log String is built irrespective of log level." typeResolution="true"
+    <rule name="AvoidUnconditionalBuiltLogStrings" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" language="java" message="Log String is built irrespective of log level." 
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#il02">
         <description>A String to be logged is built unconditionally. Problem: String building, concatenation and/or other operations happen before the debug, trace or info method executes, so independent of the need to actually log. Concatenation is relatively expensive. &#13;
             Solution: Build the String conditionally on the log level, within an if statement.
@@ -237,7 +194,7 @@ substring-after(@Image, '.') != 'append')]) = 0
         </properties>
     </rule>
 
-    <rule name="AvoidWideScopeXPathExpression" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java" message="XPathExpression targets a wide scope, this is potentially slow." typeResolution="true"
+    <rule name="AvoidWideScopeXPathExpression" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" language="java" message="XPathExpression targets a wide scope, this is potentially slow." 
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#ux01">
         <description>The XPathExpression targets a wide scope since it starts with '//'. Problem: XPath has to search in a wide scope for occurrences, this may take a while. &#13;
             Solution: 1. Avoid XPath usage. 2. Make the scope as narrow as possible, do not start with '//'.
@@ -259,7 +216,7 @@ and
         </properties>
     </rule>
 
-    <rule name="AvoidXPathAPIUsage" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java" message="XPathAPI is used. XPathAPI implementation has bad performance." typeResolution="true"
+    <rule name="AvoidXPathAPIUsage" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" language="java" message="XPathAPI is used. XPathAPI implementation has bad performance." 
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#ux03">
         <description>XPathAPI is used. Problem: XPathAPI implementation is slow.&#13;
             Solution: 1. try to avoid using XPathAPI. 2. improve performance by using jvm parameters and possibly CachedXPathAPI.
@@ -276,7 +233,7 @@ and
         </properties>
     </rule>
 
-    <rule name="AvoidXPathUsage" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java" message="XPath is used. XPath implementation has bad performance." typeResolution="true"
+    <rule name="AvoidXPathUsage" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" language="java" message="XPath is used. XPath implementation has bad performance." 
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#ux03">
         <description>XPath is used. Problem: XPath implementation is slow.&#13;
             Solution: 1. avoid using XPath. 2. improve performance by using jvm parameters and possibly Cached XPath API.
@@ -297,8 +254,8 @@ ClassOrInterfaceBodyDeclaration
 
     <rule name="ImplementEqualsHashCodeOnValueObjects"
           message="Equals and/or hashCode is missing for a value object."
-          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
-          typeResolution="true" externalInfoUrl="${doc_root}/JavaCodeQuality.md#incorrect-equals-and-hashcode">
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" language="java"
+          externalInfoUrl="${doc_root}/JavaCodeQuality.md#incorrect-equals-and-hashcode">
         <description>
             Problem: If equals and hashCode are not defined, they don't meet the programmer's expectations and the requirements for use with the collections API. It may result in unexpected, undesired behavior.&#13;
             Solution: Add proper equals and hashCode methods that meet the equals-hashCode contract to all objects which might anyhow be put in a Map, Set or other collection. Or use Lombok @EqualsAndHashCode, @Value or @Data. Also holds for inner classes.
@@ -416,7 +373,7 @@ class LombokGetterGood {
         </example>
     </rule>
 
-    <rule name="MDCPutWithoutRemove" message="MDC put is used without finally remove." class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java" typeResolution="true" externalInfoUrl="${doc_root}/JavaCodePerformance.md#IL04">
+    <rule name="MDCPutWithoutRemove" message="MDC put is used without finally remove." class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" language="java" externalInfoUrl="${doc_root}/JavaCodePerformance.md#IL04">
         <description>
             MDC values are added for logging, but not removed. Problem: MDC values can leak to other user transactions (requests) and log incorrect information. Solution: remove the MDC value in a finally clause.
             (jpinpoint-rules)</description>
@@ -464,7 +421,8 @@ class Good {
         </example>
     </rule>
 
-    <rule name="MinimizeAttributesInSession" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java" message="Attribute is set in the session, yet not removed. This may bloat the session." typeResolution="true"
+    <rule name="MinimizeAttributesInSession" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" language="java" 
+          message="Attribute is set in the session, yet not removed. This may bloat the session." 
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#tmsu01">
         <description>An attribute is set in the session and not removed. Problem: This may be a large object and data in the sessions takes heap space and stay in the session until time-out. This may take substantial heap space.&#13;
             Solution: remove the attribute if not really needed in the session, remove it from the session as soon as possible. Alternatively, use render parameters.
@@ -518,7 +476,7 @@ class Good {
         </example>
     </rule>
 
-    <rule name="UnconditionalConcatInLogArgument" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java" message="String concatenation (+) is executed regardless of log level and can be expensive" typeResolution="true"
+    <rule name="UnconditionalConcatInLogArgument" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" language="java" message="String concatenation (+) is executed regardless of log level and can be expensive" 
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#il01">
         <description>Problem: String concatenation (+) is executed regardless of log level and can be expensive. &#13;
             Solution: Use SLF4J formatting with {}-placeholders or log and format conditionally.  (jpinpoint-rules)</description>
@@ -554,7 +512,7 @@ class Foo {
     </example>
     </rule>
 
-    <rule name="UnconditionalOperationOnLogArgument" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java" message="Operation is executed regardless of log level and can be expensive" typeResolution="true"
+    <rule name="UnconditionalOperationOnLogArgument" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" language="java" message="Operation is executed regardless of log level and can be expensive" 
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#il03">
         <description>Problem: An operation is executed regardless of log level. This could be much processing while the result is typically not used. Detected are obj.toString() and operations with one or more arguments except usually cheap obj.getXXX(arg).&#13;
             Solution: Execute the operation only conditionally and utilize SLF4J formatting with {}-placeholders.  (jpinpoint-rules)</description>
@@ -616,7 +574,7 @@ class Foo {
         </example>
     </rule>
 
-    <rule name="UsingSuppressWarningsHighRisk" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java" message="Using SuppressWarnings for a rule that is meant to prevent high risk problems." typeResolution="true"
+    <rule name="UsingSuppressWarningsHighRisk" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" language="java" message="Using SuppressWarnings for a rule that is meant to prevent high risk problems." 
           externalInfoUrl="${doc_root}/JavaCodePerformance.md">
         <description>(Informative - are you sure?) Problem: This rule detects high risk problems, suppressing them without full knowledge can lead to incidents like customer data mix-up, corrupt data, server crashes or very bad performance. &#13;
             Solution: Suppress warnings judiciously based on full knowledge and report reasons to suppress (false positives) to the rule maintainers so the rule can be fixed. (jpinpoint-rules)</description>
@@ -637,7 +595,7 @@ class Foo {
         </properties>
     </rule>
 
-    <rule name="UsingSuppressWarnings" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java" message="Using SuppressWarnings." typeResolution="true"
+    <rule name="UsingSuppressWarnings" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" language="java" message="Using SuppressWarnings." 
           externalInfoUrl="${doc_root}/JavaCodePerformance.md">
         <description>(Informative - be aware) Problem: This rule detects problems, suppressing them without full knowledge can lead to the problems this rule is trying to prevent. &#13;
             Solution: Suppress warnings judiciously based on full knowledge and report reasons to suppress (false positives) to the rule maintainers so the rule can be fixed. (jpinpoint-rules)</description>
@@ -657,7 +615,7 @@ class Foo {
         </properties>
     </rule>
 
-    <rule name="AvoidTimeUnitConfusion" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java" message="A primitive variable identifier or @Value member ends with time, timeout, duration or similar: time unit is missing." typeResolution="true"
+    <rule name="AvoidTimeUnitConfusion" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" language="java" message="A primitive variable identifier or @Value member ends with time, timeout, duration or similar: time unit is missing." 
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#IBI19">
         <description>Problem: Time unit like hours, seconds, milliseconds is not specified and may be assumed differently by readers.
             Different assumptions will lead to errors or hidden problems like ineffective caches.&#13;
@@ -693,7 +651,7 @@ public RetrieveCache(final @Value("${cache.expiryTimeMillis}") long timeToLiveMi
         </example>
     </rule>
 
-    <rule name="AvoidTimeUnitConfusionPMD7" since="7.0" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" language="java" message="A primitive variable identifier or @Value member ends with time, timeout, duration or similar: time unit is missing." typeResolution="true"
+    <rule name="AvoidTimeUnitConfusionPMD7" since="7.0" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" language="java" message="A primitive variable identifier or @Value member ends with time, timeout, duration or similar: time unit is missing." 
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#IBI19">
         <description>Problem: Time unit like hours, seconds, milliseconds is not specified and may be assumed differently by readers.
             Different assumptions will lead to errors or hidden problems like ineffective caches.&#13;
@@ -729,7 +687,7 @@ public RetrieveCache(final @Value("${cache.expiryTimeMillis}") long timeToLiveMi
         </example>
     </rule>
 
-    <rule name="FieldOfHashCodeMissingInEquals" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java" message="Equals does not use all fields used by hashCode." typeResolution="true"
+    <rule name="FieldOfHashCodeMissingInEquals" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" language="java" message="Equals does not use all fields used by hashCode." 
           externalInfoUrl="${doc_root}/JavaCodeQuality.md#ieah03">
         <description>Problem: Equal objects may have different hashCodes and end-up in different buckets of a Map/Set. Strange things can happen like adding an object to a Set and not being able to find it back.&#13;
             Solution: When objects are equal, hashCode needs to be equal, too. Use the same fields in equals and hashCode. (jpinpoint-rules)</description>
@@ -784,7 +742,7 @@ class Bad {
         </example>
     </rule>
 
-    <rule name="EqualsOperationInconsistentWithHashCode" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java" message="Equals uses a conversion inconsistent with hashCode." typeResolution="true"
+    <rule name="EqualsOperationInconsistentWithHashCode" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" language="java" message="Equals uses a conversion inconsistent with hashCode." 
           externalInfoUrl="${doc_root}/JavaCodeQuality.md#ieah03">
         <description>Problem: Equal objects may have different hashCodes and end-up in different buckets of a Map/Set. Strange things can happen like adding an object to a Set and not being able to find it back.&#13;
             Solution: When objects are equal, hashCode needs to be equal, too. Use the same fields in equals and hashCode and use identical conversions like toUpperCase() in both when needed. Don't use equalsIgnoreCase. (jpinpoint-rules)</description>
@@ -879,7 +837,7 @@ class Good {
         </example>
     </rule>
 
-    <rule name="MissingFieldInEquals" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java" message="Field simply assigned to is missing in equals method." typeResolution="true"
+    <rule name="MissingFieldInEquals" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" language="java" message="Field simply assigned to is missing in equals method." 
           externalInfoUrl="${doc_root}/JavaCodeQuality.md#ieah04">
         <description>Problem: If a field which can be assigned separately (independent of other fields) is missing in the equals method, then changing the field in one object has no effect on the equality with another object.
             However, if a field of one of two equal objects is changed, the expectation is that they are no longer equal.&#13;
@@ -935,7 +893,7 @@ class Bad1 {
         </example>
     </rule>
 
-    <rule name="MissingFieldInHashCode" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java" message="Equals uses a field which is missing in hashCode." typeResolution="true"
+    <rule name="MissingFieldInHashCode" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" language="java" message="Equals uses a field which is missing in hashCode." 
           externalInfoUrl="${doc_root}/JavaCodeQuality.md#ieah03">
         <description>Problem: Two unequal objects can have the same hashCode and end up in the same bucket of a Map. This may result in bad performance, O(n) lookup instead of O(1).&#13;
             Solution: Use the same fields in hashCode as are used in equals. (jpinpoint-rules)</description>
@@ -995,7 +953,7 @@ class Bad {
           language="java"
           message="A Calendar is inefficient in memory usage."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-          typeResolution="true"
+          
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#imu01">
         <description>Problem: A Calendar is a heavyweight object and expensive to create. &#13;
             Solution: Use Date, Java 8+ java.time.[Local/Zoned]DateTime.
@@ -1034,7 +992,7 @@ public class CalendarStuff {
           language="java"
           message="List is not modified after object construction, make it immutable or unmodifiable"
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-          typeResolution="true"
+          
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#pml01">
         <description>Problem: A list which is unnecessarily mutable may accidentally be added to and cause a memory leak. &#13;
             Solution: Make it impossible to modify the list after object construction/initialization: use Java 9 List.of, Java 11 List.copyOf, Collections.unmodifiableList or Guava ImmutableList.
@@ -1104,7 +1062,7 @@ public class Good {
           language="java"
           message="Use concatenation (+) instead of new StringBuilder if only one statement."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-          typeResolution="true"
+          
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#isu05">
         <description>Problem: Creating a StringBuilder and using append is more verbose, less readable and less maintainable than simply using String concatenation (+).
             For one statement resulting in a String, creating a StringBuilder and using append is not faster than simply using concatenation.&#13;
@@ -1166,7 +1124,7 @@ class Foo {
           language="java"
           message="Map has enum keys or Set has enum elemens, use EnumMap or EnumSet for more efficiency."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-          typeResolution="true"
+          
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#iuoc03">
         <description>Problem: A HashMap and HashSet are rather greedy in memory usage.&#13;
             Solution: Use an EnumMap or EnumSet. It is represented internally with arrays which is extremely compact and efficient.
@@ -1233,7 +1191,7 @@ Set<YourEnumType> set = EnumSet.allOf(YourEnumType.class);
           language="java"
           message="Avoid Lombok annotations for fields of a class while the class has no fields."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-          typeResolution="true"
+          
           externalInfoUrl="">
         <description>Problem: Lombok annotations for fields [@Getter, @Setter, @EqualsAndHashCode, @Value, @Data] are of no use and confusing in case the class has no fields.&#13;
             Solution: Remove the Lombok annotation.
@@ -1264,7 +1222,7 @@ Set<YourEnumType> set = EnumSet.allOf(YourEnumType.class);
           language="java"
           message="Avoid unconditional creation of a log argument, it may not be needed."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-          typeResolution="true"
+          
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#il06">
         <description>Problem: Creation of a log argument with a toString or other operation(s) may be expensive, while depending on the log level, the result may not be used.&#13;
             Solution: Create the log argument conditionally on the log level, within an if statement. For just 'obj.toString()', just pass 'obj' to the log method and leave it to SLF4J to call toString() only if needed.
@@ -1332,7 +1290,7 @@ class Foo {
           language="java"
           message="Give variables and fields a meaningful name."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-          typeResolution="true"
+          
           externalInfoUrl="${doc_root}/JavaCodeQuality.md#m01">
         <description>Problem: Variables like 'var3' and fields like 'FOUR = 4', do not express what they are used for. This is bad for maintainability.&#13;
             Solution: Let variable names express what they are used for, like 'key' and 'MAX_KEYS = 4'
@@ -1369,7 +1327,7 @@ class Foo {
           language="java"
           message="Avoid exposing mutable state of the record. Use copyOf in the compact constructor."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-          typeResolution="true"
+          
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#voedos06">
         <description>Problem: Internal state can be modified from outside of the record, through the implicit accessor method or by the caller of the constructor. Risk of thread-unsafety.
             Solution: Use the record compact constructor to defensively copy the (possibly) mutable object such as a List, Set or Map, e.g. with List.copyOf().
@@ -1403,7 +1361,7 @@ record GoodRecord(String name, List<String> list) {
           language="java"
           message="Avoid re-streaming enum values to find a value by a field."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-          typeResolution="true"
+          
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#iuoc07">
         <description>Problem: the time to find element is O(n); n = the number of enum values. This identical processing is executed for every call. Considered problematic when n > 3.
             Solution: use a static field-to-enum-value Map. Access time is O(1), provided the hashCode is well-defined.
@@ -1466,7 +1424,7 @@ public enum Fruit {
           language="java"
           message="Map keys should implement Comparable in order to make access fast."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-          typeResolution="true"
+          
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#iuoc08">
         <description>Problem: If multiple entries end up in the same HashMap bucket, they are stored as LinkedList, and with more than 7 as a red black tree.
             The list access time is O(n) and tree access time is only O(log n) which is much faster for large n. This tree implementation utilizes the compareTo from the Comparable interface.
@@ -1525,7 +1483,7 @@ and (pmd-java:typeIs('java.lang.Object'))
           language="java"
           message="Set elements should implement Comparable in order to make access by element fast."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-          typeResolution="true"
+          
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#iuoc09">
         <description>Problem: A Set is implemented with a Map. If multiple entries end up in the same HashMap bucket, they are stored as LinkedList, and with more than 7 as a red-black tree.
             The list access time is O(n) and tree access time is only O(log n) which is much faster for large n. This tree implementation utilizes the compareTo from the Comparable interface.
@@ -1596,7 +1554,7 @@ class Foo {
           language="java"
           message="FileInputStream and FileOutputStream are not buffered, add buffering."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-          typeResolution="true"
+          
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#isio05">
         <description>Problem: With FileInputStream and FileOutputStream, file access is not buffered.
             The stream is read-from/written-to file byte by byte, where each operating system call has its overhead, which makes it slow.
@@ -1638,7 +1596,7 @@ class BufferFileStreaming {
           language="java"
           message="Files.newInputStream or Files.newOutputStream is not buffered, add buffering."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-          typeResolution="true"
+          
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#isio06">
         <description>Problem: Files.newInputStream or Files.newOutputStream is not buffered.
             The stream is read from/written to file byte by byte, where each operating system call has its overhead which makes it slow.
@@ -1678,7 +1636,7 @@ class Foo {
           language="java"
           message="Files.readAll methods load all bytes from a file into memory: a risk of memory problems."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-          typeResolution="true"
+          
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#isio03">
         <description>Problem: Files.readAllBytes and Files.readAllLines load all bytes from a file into the heap memory.
             This may result in an OutOfMemoryError crash, or long gc pauses and slow responses.
@@ -1721,7 +1679,7 @@ class Good {
           language="java"
           message="hashCode only calls super."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-          typeResolution="true"
+          
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#isio03">
         <description>Problem: when equals is implemented, hashCode needs to be implemented, too; and if objects are equal, hashCode needs to be equal, too. If hashCode only calls super.hashCode, it is effectively not implemented.
             Strange things can happen, for instance, if super.hashCode calls Object.hashCode, it is unique for each object and when used in Set or as key in Map, equal objects can duplicate in Set, and keys not found in Map.
@@ -1775,7 +1733,7 @@ class Good {
           language="java"
           message="Avoid re-creating security providers, this is expensive."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-          typeResolution="true"
+          
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#iuosf01">
         <description>Problem: Creating a security provider is expensive because of loading of algorithms and other classes. Additionally, it uses synchronized which leads to lock contention when used with multiple threads.
             Solution: This only needs to happen once in the JVM lifetime, because once loaded, the provider is typically available from the Security class. Create the security provider only once: only in case it is nog available from the Security class, yet.

@@ -280,4 +280,46 @@ class ConcatsExample {
         </example>
     </rule>
 
+    <rule name="AvoidRecompilingPatterns"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          language="java"
+          message="Pattern.compile is used in a method. Compiling a regex pattern can be expensive, make it a static final field."
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ireu02">
+        <description>A regular expression is compiled on every invocation. Problem: this can be expensive, depending on the length of the regular expression.&#13;
+            Solution: Usually a pattern is a literal, not dynamic and can be compiled only once. Assign it to a private static field. java.util.Pattern objects are thread-safe so they can be shared among threads.
+            (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+//MethodDeclaration//MethodCall[pmd-java:matchesSig('java.util.regex.Pattern#compile(java.lang.String)')
+and not(.//VariableAccess[@Name = ancestor::MethodDeclaration//FormalParameter/VariableId/@Name])]
+	]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+class Bad {
+    public static final String STR_PAT1 = "[A-Z][a-z]+";
+
+    public static void bad() {
+        Pattern p1 = Pattern.compile(STR_PAT1); // bad
+        Pattern p2 = Pattern.compile("(?=\\p{Lu})"); // bad
+        boolean b = p1.matcher("Start ").matches();
+    }
+}
+class Good {
+    public static final Pattern PAT1 = Pattern.compile("[A-Z][a-z]+");
+    public static final Pattern PAT2 = Pattern.compile("(?=\\p{Lu})");
+
+    public static void good() {
+        boolean b = PAT1.matcher("Start ").matches();
+    }
+}
+            ]]>
+        </example>
+
+    </rule>
+
 </ruleset>
