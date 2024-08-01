@@ -6,7 +6,6 @@
           language="java"
           message="Explicit CDI references need to be destroyed otherwise they leak."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-          typeResolution="true"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#pml05">
         <description>Problem: A proxy object is created by Contexts and Dependency Injection (CDI) for explicit references, they are not de-referenced implicitly and become a memory leak. &#13;
             Solution: Destroy the reference explicitly.
@@ -50,7 +49,9 @@ public class CDIStuff {
         </example>
     </rule>
 
-    <rule name="AvoidConstantsInInterface" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java" message="Interface defines constants. It may expose implementation details." typeResolution="true"
+    <rule name="AvoidConstantsInInterface"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          language="java" message="Interface defines constants. It may expose implementation details."
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#voedos04">
         <description>Interface defines constants. Problem: Possibly exposes implementation details.  &#13;
             Solution: Make it a Class which cannot be instantiated, or an Enum. Use static imports.
@@ -81,10 +82,10 @@ public enum Animal {
         </example>
     </rule>
 
-    <rule name="AvoidDecimalAndChoiceFormatAsField" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-          dfa="false" language="java"
+    <rule name="AvoidDecimalAndChoiceFormatAsField"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          language="java"
           message="Avoid using DecimalFormat or ChoiceFormat as field since it is thread-unsafe."
-          typeResolution="true"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#idtf01">
         <description>Problem: java.text.NumberFormat: DecimalFormat and ChoiceFormat are thread-unsafe.&#13;
             Solution: usual solution is to create a new local one when needed in a method.
@@ -115,8 +116,8 @@ public class Foo {
 
     <rule name="AvoidDuplicateAssignmentsInCases"
           message="Avoid duplicate assignments in different switch cases"
-          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
-          typeResolution="true" externalInfoUrl="${doc_root}/JavaCodeQuality.md#SSC01">
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" language="java"
+          externalInfoUrl="${doc_root}/JavaCodeQuality.md#SSC01">
         <description>
             Problem: Potential bug: expected to have different assignments in different cases.&#13;
             Solution: assign different values in different cases, common assignments should be taken out of the switch.
@@ -195,7 +196,8 @@ String good_replaceInnerLineBreakBySpace() {
         </example>
     </rule>
 
-    <rule name="AvoidInMemoryStreamingDefaultConstructor" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+    <rule name="AvoidInMemoryStreamingDefaultConstructor"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           language="java"
           message="The default capacity or smaller is used for ByteArrayOutputStream or StringWriter, it usually needs expensive expansions."
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#isio01">
@@ -235,8 +237,29 @@ class Good {
 }
             ]]>
         </example>
-
     </rule>
 
+    <rule name="AvoidMultipleConcatStatements"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          language="java"
+          message="Multiple statements concatenate to the same String. Use StringBuilder append."
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#isu02">
+        <description>Multiple statements concatenate to the same String. Problem: Each statement with one or more +-operators creates a hidden temporary StringBuilder, a char[] and a new String object, which all have to be garbage collected.&#13;
+            Solution: Use StringBuilder.append.
+            (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+//AssignmentExpression[@Operator='+='][VariableAccess/@Name=ancestor::Block//VariableDeclarator/VariableId[pmd-java:typeIs('java.lang.String')]/@Name]
+[VariableAccess/@Name = ../preceding-sibling::ExpressionStatement/AssignmentExpression[@Operator='+=']/VariableAccess/@Name]
+|
+//InfixExpression[@Operator='+'][VariableAccess/@Name=../VariableAccess/@Name][VariableAccess/@Name=ancestor::Block//VariableDeclarator/VariableId[pmd-java:typeIs('java.lang.String')]/@Name]
+[VariableAccess/@Name = ../../preceding-sibling::ExpressionStatement//InfixExpression[@Operator='+']/VariableAccess/@Name]/..
+	]]></value>
+            </property>
+        </properties>
+    </rule>
 
 </ruleset>

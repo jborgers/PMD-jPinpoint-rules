@@ -5,7 +5,8 @@
         xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
     <test-code>
         <description>Avoid multiple concat statements</description>
-        <expected-problems>2</expected-problems>
+        <expected-problems>4</expected-problems>
+        <expected-linenumbers>11,12, 28,29</expected-linenumbers>
         <code><![CDATA[
 import java.util.Arrays;
 import java.util.List;
@@ -14,11 +15,12 @@ public class AvoidMultipleConcatStatementsTest {
 
 	public void testMultipleConcatDefect() {
 		String logStatement = "";
-		List<String> values = Arrays
-				.asList(new String[] { "tic", "tac", "toe" });
+		List<String> values = Arrays.asList(new String[] { "tic", "tac", "toe" });
 
 		logStatement += values.get(0);
-		logStatement += values.get(1);
+		logStatement += values.get(1); // bad
+        logStatement += values.get(2); // bad
+        otherCall();
 	}
 
 	public void testMultipleConcatCorrect() {
@@ -30,11 +32,12 @@ public class AvoidMultipleConcatStatementsTest {
 
 	public void testMultipleConcatDefect2() {
 		String logStatement = "";
-		List<String> values = Arrays
-				.asList(new String[] { "tic", "tac", "toe" });
+		List<String> values = Arrays.asList(new String[] { "tic", "tac", "toe" });
 
 		logStatement = logStatement + values.get(0);
-		logStatement = logStatement + values.get(1);
+		logStatement = logStatement + values.get(1); // bad
+        logStatement = logStatement + values.get(2); // bad
+        otherCall();
 	}
 
 	public void testMultipleConcatCorrect2() {
@@ -54,7 +57,16 @@ public class AvoidMultipleConcatStatementsTest {
 		}
 	}
 
+    public void testMultipleConcatCorrect4() {
+		String log1 = "";
+		String log2 = "";
+        int log3 = 0;
+        log3 += 1;
+		log1 += values.get(0); // good
+        log2 += values(1); // good
+	}
 }
+
      ]]></code>
     </test-code>
 </test-data>
