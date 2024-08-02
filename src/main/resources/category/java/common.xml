@@ -319,7 +319,58 @@ class Good {
 }
             ]]>
         </example>
-
     </rule>
+
+    <rule name="AvoidRecompilingXPathExpression" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" language="java" message="XPathExpression is created and compiled every time. Beware it is thread-unsafe."
+      externalInfoUrl="${doc_root}/JavaCodePerformance.md#ux02">
+    <description>XPathExpression is created and compiled on every method call, compiled possibly implicitly by XPath::evaluate.
+        Problem: Creation of XPath and compilation of XPathExpression takes time. It may slow down your application. &#13;
+        Solution: 1. Avoid XPath usage. 2. Compile the xpath expression as String into a XPathExpression. However, since XPath and XPathExpression classes are thread-unsafe, they are not easily cached. Caching it in a ThreadLocal may be a solution.
+        (jpinpoint-rules)</description>
+    <priority>2</priority>
+    <properties>
+        <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+        <property name="xpath">
+            <value><![CDATA[
+//MethodDeclaration//MethodCall[pmd-java:matchesSig('javax.xml.xpath.XPath#compile(java.lang.String)') or
+    pmd-java:matchesSig('javax.xml.xpath.XPath#evaluate(java.lang.String,java.lang.Object,javax.xml.namespace.QName)')]
+]]></value>
+        </property>
+    </properties>
+    <example>
+        <![CDATA[
+class Bad {
+    public static NodeList bad1(Document doc) {
+        XPath xpath = XPathFactory.newInstance().newXPath();
+        XPathExpression expr = xpath.compile("//book[author='Isaac Asimov']/title/text()"); // bad
+        return (NodeList) expr.evaluate(doc, XPathConstants.NODESET);
+    }
+    public static NodeList bad2(Document doc) throws XPathExpressionException {
+        XPath xpath = XPathFactory.newInstance().newXPath();
+        String xPathQuery = "//book[author='Isaac Asimov']/title/text()";
+        return (NodeList) xpath.evaluate(xPathQuery, doc, XPathConstants.NODESET); // bad
+    }
+}
+
+class Good {
+    private static final ThreadLocal<XPathFactory> tlFac = ThreadLocal.withInitial(XPathFactory::newInstance);
+    private static final ThreadLocal<XPathExpression> tlExpr;
+    static {
+        XPath xpath = tlFac.get().newXPath();
+        try {
+            XPathExpression expr = xpath.compile("//book[author='Isaac Asimov']/title/text()");
+            tlExpr = ThreadLocal.withInitial(() -> expr); // good
+        } catch (XPathExpressionException e) {
+            throw new RuntimeException(e);
+        }
+    }
+    public static NodeList good(Document doc) throws XPathExpressionException {
+        return (NodeList) tlExpr.get().evaluate(doc, XPathConstants.NODESET); // good
+    }
+}
+        ]]>
+    </example>
+</rule>
+
 
 </ruleset>

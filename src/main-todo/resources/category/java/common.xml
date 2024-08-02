@@ -3,7 +3,7 @@
     <description>jPinpoint rule set for performance aware Java coding, sponsored by Rabobank.</description>
     
 
-    <rule name="AvoidRecompilingXPathExpression" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" language="java" message="XPathExpression is created and compiled every time. Beware it is thread-unsafe." 
+    <!--rule name="AvoidRecompilingXPathExpression" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" language="java" message="XPathExpression is created and compiled every time. Beware it is thread-unsafe."
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#ux02">
         <description>XPathExpression is created and compiled on every method call, compiled possibly implicitly by XPath::evaluate.
             Problem: Creation of XPath and compilation of XPathExpression takes time. It may slow down your application. &#13;
@@ -56,7 +56,7 @@ class Good {
         </example>
 
 
-    </rule>
+    </rule-->
 
     <rule name="AvoidRecreatingDateTimeFormatter"
           message="Avoid recreating DateTimeFormatter, it is relatively expensive."
