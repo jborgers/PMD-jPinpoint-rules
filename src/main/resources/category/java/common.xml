@@ -408,4 +408,41 @@ class Good {
         </properties>
     </rule>
 
+    <rule name="AvoidReflectionInToStringAndHashCode" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" language="java" message="Reflection is used in toString or hashCode, which is expensive."
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#uuor01">
+        <description>Problem: Reflection is relatively expensive. &#13;
+            Solution: Avoid to use reflection. Use the non-reflective, explicit way, like generation by IDE or Lombok.
+            (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+//MethodCall[starts-with(@MethodName, 'reflection')][(TypeExpression|ConstructorCall)
+    [pmd-java:typeIs('org.apache.commons.lang3.builder.EqualsBuilder') or pmd-java:typeIs('org.apache.commons.lang3.builder.HashCodeBuilder')]]
+]]>
+                </value>
+            </property>
+        </properties>
+        <example>
+class Bad {
+    private int state;
+
+    public boolean equals(Object o) {
+        return EqualsBuilder.reflectionEquals(o, this); // bad
+    }
+}
+
+class Good {
+    private int state;
+
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Good)) return false;
+        return new EqualsBuilder().append(((Good)o).state, state).isEquals();
+    }
+}
+        </example>
+    </rule>
+
 </ruleset>

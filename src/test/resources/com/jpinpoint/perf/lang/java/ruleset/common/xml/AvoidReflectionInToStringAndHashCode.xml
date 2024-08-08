@@ -4,13 +4,11 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
     <test-code>
-        <description>Avoid reflection in toString and hashcode methods</description>
+        <description>Avoid reflection in toString and hashCode methods</description>
         <expected-problems>4</expected-problems>
         <code><![CDATA[
-package com.jpinpoint.perf.pinpointrules;
-
-import org.apache.commons.lang.builder.EqualsBuilder;
-import org.apache.commons.lang.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 public class ReflectionUsage {
 
@@ -43,11 +41,9 @@ public class ReflectionUsage {
 		return new EqualsBuilder().append(that.state, state).isEquals();
 	}
 
-
 	public int hashCodeOK() {
 		return new HashCodeBuilder().append(state).toHashCode();
 	}
-
 }
      ]]></code>
     </test-code>
