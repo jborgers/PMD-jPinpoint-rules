@@ -2,21 +2,6 @@
 <ruleset name="jpinpoint-common-rules" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 https://pmd.sourceforge.io/ruleset_2_0_0.xsd" xmlns="http://pmd.sourceforge.net/ruleset/2.0.0">
     <description>jPinpoint rule set for performance aware Java coding, sponsored by Rabobank.</description>
 
-    <rule name="AvoidStringBuffer" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" language="java" message="StringBuffer is used. It introduces locking overhead, use StringBuilder." 
-          externalInfoUrl="${doc_root}/JavaCodePerformance.md#isu01" >
-        <description>Problem: StringBuffer introduces locking overhead because it is thread safe. Its thread-safety is rarely needed.&#13;
-            Solution: Replace StringBuffer by StringBuilder.  (jpinpoint-rules)</description>
-        <priority>3</priority>
-        <properties>
-            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
-            <property name="xpath">
-                <value><![CDATA[
-                    //VariableDeclarator[../Type/ReferenceType/ClassOrInterfaceType[pmd-java:typeIs('java.lang.StringBuffer')]]
-                    ]]></value>
-            </property>
-        </properties>
-    </rule>
-
     <rule name="AvoidUnconditionalBuiltLogStrings" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" language="java" message="Log String is built irrespective of log level." 
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#il02">
         <description>A String to be logged is built unconditionally. Problem: String building, concatenation and/or other operations happen before the debug, trace or info method executes, so independent of the need to actually log. Concatenation is relatively expensive. &#13;

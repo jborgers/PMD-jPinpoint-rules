@@ -477,4 +477,29 @@ public class Foo {
         </example>
     </rule>
 
+    <rule name="AvoidStringBuffer" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" language="java" message="StringBuffer is used. It introduces locking overhead, use StringBuilder."
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#isu01" >
+        <description>Problem: StringBuffer introduces locking overhead because it is thread safe. Its thread-safety is rarely needed.&#13;
+            Solution: Replace StringBuffer by StringBuilder.  (jpinpoint-rules)</description>
+        <priority>3</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+//ConstructorCall/ClassType[pmd-java:typeIs('java.lang.StringBuffer')]
+]]>
+                </value>
+            </property>
+        </properties>
+        <example>
+class Foo {
+    public void bad() {
+        var sb = new StringBuffer(); // bad
+    }
+    public void good() {
+        var sb = new StringBuilder(); // good
+    }
+}
+        </example>
+    </rule>
 </ruleset>
