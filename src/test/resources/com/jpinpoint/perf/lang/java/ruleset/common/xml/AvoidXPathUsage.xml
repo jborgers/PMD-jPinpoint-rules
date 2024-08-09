@@ -6,7 +6,7 @@
     <test-code>
         <description>Avoid xpath usage</description>
         <expected-problems>2</expected-problems>
-        <expected-linenumbers>18, 31</expected-linenumbers>
+        <expected-linenumbers>16, 29</expected-linenumbers>
         <code><![CDATA[
 import org.apache.xpath.XPathAPI;
 import org.w3c.dom.Document;
@@ -20,8 +20,6 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 import javax.xml.xpath.*;
 import java.io.IOException;
-//import org.apache.commons.jxpath.*;
-
 
 public class XPathUsageTest {
 

@@ -2,28 +2,6 @@
 <ruleset name="jpinpoint-common-rules" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 https://pmd.sourceforge.io/ruleset_2_0_0.xsd" xmlns="http://pmd.sourceforge.net/ruleset/2.0.0">
     <description>jPinpoint rule set for performance aware Java coding, sponsored by Rabobank.</description>
 
-    <rule name="AvoidXPathUsage"
-          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-          language="java"
-          message="XPath is used. XPath implementation has bad performance."
-          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ux03">
-        <description>XPath is used. Problem: XPath implementation is slow.&#13;
-            Solution: 1. avoid using XPath. 2. improve performance by using jvm parameters and possibly Cached XPath API.
-            (jpinpoint-rules)</description>
-        <priority>3</priority>
-        <properties>
-            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
-            <property name="xpath">
-                <value><![CDATA[
-//TypeDeclaration/ClassOrInterfaceDeclaration/ClassOrInterfaceBody/
-ClassOrInterfaceBodyDeclaration
-//PrimaryExpression/PrimaryPrefix/Name[@Image='XPathFactory.newInstance']
-[not (ancestor::FieldDeclaration//ClassOrInterfaceType/@Image = 'ThreadLocal')]
-	]]></value>
-            </property>
-        </properties>
-    </rule>
-
     <rule name="ImplementEqualsHashCodeOnValueObjects"
           message="Equals and/or hashCode is missing for a value object."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
