@@ -2,37 +2,6 @@
 <ruleset name="jpinpoint-common-rules" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 https://pmd.sourceforge.io/ruleset_2_0_0.xsd" xmlns="http://pmd.sourceforge.net/ruleset/2.0.0">
     <description>jPinpoint rule set for performance aware Java coding, sponsored by Rabobank.</description>
 
-    <rule name="AvoidUnconditionalBuiltLogStrings" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" language="java" message="Log String is built irrespective of log level." 
-          externalInfoUrl="${doc_root}/JavaCodePerformance.md#il02">
-        <description>A String to be logged is built unconditionally. Problem: String building, concatenation and/or other operations happen before the debug, trace or info method executes, so independent of the need to actually log. Concatenation is relatively expensive. &#13;
-            Solution: Build the String conditionally on the log level, within an if statement.
-            (jpinpoint-rules)</description>
-        <priority>2</priority>
-        <properties>
-            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
-            <property name="xpath">
-                <value><![CDATA[
-//MethodDeclaration/Block/BlockStatement/Statement//StatementExpression/PrimaryExpression/PrimaryPrefix/Name[
-(substring-before(@Image, '.') =
-ancestor::MethodDeclaration//BlockStatement/Statement/StatementExpression/PrimaryExpression/PrimaryPrefix/Name[ends-with
-(@Image, '.debug') or ends-with(@Image, '.trace') or ends-with(@Image, '.info')]
-/../../PrimarySuffix/Arguments/ArgumentList/Expression/PrimaryExpression/PrimaryPrefix/Name/attribute::Image
-and
-substring-after(@Image, '.') = 'append')
-and count(ancestor::IfStatement) = 0
-and
-count(ancestor::MethodDeclaration/Block/BlockStatement/Statement//PrimaryExpression/PrimaryPrefix/Name[
-(substring-before(@Image, '.') =
-ancestor::MethodDeclaration//BlockStatement/Statement//PrimaryExpression/PrimaryPrefix/Name[ends-with
-(@Image, '.debug') or ends-with(@Image, '.trace') or ends-with(@Image, '.info')]
-/../../PrimarySuffix/Arguments/ArgumentList//PrimaryExpression/PrimaryPrefix/Name/attribute::Image
-and
-substring-after(@Image, '.') != 'append')]) = 0
-]
-	]]></value>
-            </property>
-        </properties>
-    </rule>
 
     <rule name="AvoidWideScopeXPathExpression" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" language="java" message="XPathExpression targets a wide scope, this is potentially slow." 
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#ux01">

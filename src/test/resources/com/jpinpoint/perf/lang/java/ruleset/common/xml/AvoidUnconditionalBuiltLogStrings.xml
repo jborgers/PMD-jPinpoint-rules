@@ -6,9 +6,8 @@
     <test-code>
         <description>Avoid unconditional string building in log statements</description>
         <expected-problems>7</expected-problems>
+        <expected-linenumbers>54,65,76,89,100,114,127</expected-linenumbers>
         <code><![CDATA[
-package com.jpinpoint.perf.pinpointrules;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.slf4j.Logger;
@@ -62,7 +61,7 @@ public class ConditionalLogging {
         List<String> values = Arrays
                 .asList("tic", "tac", "toe");
         for (String val : values) {
-            logStatement.append(val + ", ");
+            logStatement.append(val + ", "); // bad 1
         }
         LOG.debug("logStatement: {}.", logStatement);
     }
@@ -73,7 +72,7 @@ public class ConditionalLogging {
                 .asList("tic", "tac", "toe");
         Iterator<String> iter = values.iterator();
         while (iter.hasNext()) {
-            logStatement.append(iter.next() + ", ");
+            logStatement.append(iter.next() + ", "); // bad 2
         }
         LOG.trace("logStatement: {}.", logStatement);
     }
@@ -84,7 +83,7 @@ public class ConditionalLogging {
                 .asList("tic", "tac", "toe");
         Iterator<String> iter = values.iterator();
         do {
-            logStatement.append(iter.next() + ", ");
+            logStatement.append(iter.next() + ", "); //bad 3
         } while (iter.hasNext());
 
         LOG.info("logStatement: {}.", logStatement);
@@ -97,7 +96,7 @@ public class ConditionalLogging {
         int i = 0;
         for (String val : values) {
             i++;
-            logStatement.append(val).append(", ");
+            logStatement.append(val).append(", "); // bad 4
         }
         LOG.debug("logStatement: {}.{}", logStatement, "other");
 
@@ -108,7 +107,7 @@ public class ConditionalLogging {
         StringBuilder logStatement = new StringBuilder();
         List<String> values = Arrays.asList("tic", "tac", "toe");
         for (String val : values) {
-            logStatement.append(val);
+            logStatement.append(val); // bad 5
         }
         LOG.debug("values: {}.", values);
         LOG.debug("logStatement: {}.", logStatement);
@@ -122,7 +121,7 @@ public class ConditionalLogging {
                 .asList("tic", "tac", "toe");
         for (String val : values) {
             LOG.debug("statement: {}.", statement);
-            logStatement.append(val);
+            logStatement.append(val); // bad 6
         }
         LOG.debug("statement: {}.", statement);
         LOG.debug("logStatement: {}.", logStatement);
@@ -135,7 +134,7 @@ public class ConditionalLogging {
         List<String> values = Arrays
                 .asList("tic", "tac", "toe");
 
-        logStmt.append(values.get(0));
+        logStmt.append(values.get(0)); // bad 7
         LOG.debug("statement: {}.", statement);
         LOG.debug("logStatement: {}.", logStmt);
 
@@ -281,8 +280,6 @@ public class ConditionalLogging {
 
         }
     }
-
-
 }
      ]]></code>
     </test-code>

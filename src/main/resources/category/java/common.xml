@@ -502,4 +502,57 @@ class Foo {
 }
         </example>
     </rule>
+
+    <rule name="AvoidUnconditionalBuiltLogStrings" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" language="java" message="Log String is built irrespective of log level."
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#il02">
+        <description>A String to be logged is built unconditionally. Problem: String building, concatenation and/or other operations happen before the debug, trace or info method executes, so independent of the need to actually log. Concatenation is relatively expensive. &#13;
+            Solution: Build the String conditionally on the log level, within an if statement.
+            (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+//MethodCall
+[pmd-java:matchesSig('java.lang.StringBuilder#append(java.lang.String)')]
+(: variable in append following used in logging :)
+[VariableAccess/@Name=(ancestor::ExpressionStatement|ancestor::ForeachStatement|ancestor::DoStatement|ancestor::WhileStatement)
+  /(following-sibling::TryStatement|following-sibling::ExpressionStatement)//MethodCall
+  [@MethodName='trace' or @MethodName='debug' or @MethodName='info']
+  [VariableAccess[pmd-java:typeIs('org.slf4j.Logger') or pmd-java:typeIs('java.util.logging.Logger') or pmd-java:typeIs('org.apache.commons.logging.Log')]]
+    //VariableAccess/@Name
+]
+(: variable in append following not used in anything other than logging :)
+[not(
+VariableAccess/@Name=(ancestor::ExpressionStatement|ancestor::ForeachStatement|ancestor::DoStatement|ancestor::WhileStatement)
+  /(following-sibling::TryStatement|following-sibling::ExpressionStatement)//MethodCall
+  [not(@MethodName='trace' or @MethodName='debug' or @MethodName='info')
+  or VariableAccess[not(pmd-java:typeIs('org.slf4j.Logger')) and not(pmd-java:typeIs('java.util.logging.Logger')) and not(pmd-java:typeIs('org.apache.commons.logging.Log'))]]
+    //VariableAccess/@Name
+)]
+	]]></value>
+            </property>
+        </properties>
+        <example>
+class Foo {
+   public void bad(List values) {
+        var logLine = new StringBuilder();
+        for (String val : values) {
+            logLine.append(val + ", "); // bad
+        }
+        LOG.debug("log: {}.", logLine);
+    }
+    public void good(List values) {
+        if (LOG.isDebugEnabled()) {
+            var logLine = new StringBuilder();
+            for (String val : values) {
+                logLine.append(val + ", ");
+            }
+            LOG.debug("log: {}.", logLine);
+        }
+    }
+}
+        </example>
+    </rule>
+
 </ruleset>
