@@ -2,24 +2,10 @@
 <ruleset name="jpinpoint-common-rules" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 https://pmd.sourceforge.io/ruleset_2_0_0.xsd" xmlns="http://pmd.sourceforge.net/ruleset/2.0.0">
     <description>jPinpoint rule set for performance aware Java coding, sponsored by Rabobank.</description>
 
-    <rule name="AvoidXPathAPIUsage" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" language="java" message="XPathAPI is used. XPathAPI implementation has bad performance." 
-          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ux03">
-        <description>XPathAPI is used. Problem: XPathAPI implementation is slow.&#13;
-            Solution: 1. try to avoid using XPathAPI. 2. improve performance by using jvm parameters and possibly CachedXPathAPI.
-            (jpinpoint-rules)</description>
-        <priority>3</priority>
-        <properties>
-            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
-            <property name="xpath">
-                <value><![CDATA[
-//TypeDeclaration/ClassOrInterfaceDeclaration/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration
-//PrimaryExpression/PrimaryPrefix/Name[starts-with(@Image, 'XPathAPI.')]
-	]]></value>
-            </property>
-        </properties>
-    </rule>
-
-    <rule name="AvoidXPathUsage" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" language="java" message="XPath is used. XPath implementation has bad performance." 
+    <rule name="AvoidXPathUsage"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          language="java"
+          message="XPath is used. XPath implementation has bad performance."
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#ux03">
         <description>XPath is used. Problem: XPath implementation is slow.&#13;
             Solution: 1. avoid using XPath. 2. improve performance by using jvm parameters and possibly Cached XPath API.
@@ -40,7 +26,8 @@ ClassOrInterfaceBodyDeclaration
 
     <rule name="ImplementEqualsHashCodeOnValueObjects"
           message="Equals and/or hashCode is missing for a value object."
-          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" language="java"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          language="java"
           externalInfoUrl="${doc_root}/JavaCodeQuality.md#incorrect-equals-and-hashcode">
         <description>
             Problem: If equals and hashCode are not defined, they don't meet the programmer's expectations and the requirements for use with the collections API. It may result in unexpected, undesired behavior.&#13;
@@ -159,7 +146,10 @@ class LombokGetterGood {
         </example>
     </rule>
 
-    <rule name="MDCPutWithoutRemove" message="MDC put is used without finally remove." class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" language="java" externalInfoUrl="${doc_root}/JavaCodePerformance.md#IL04">
+    <rule name="MDCPutWithoutRemove"
+          message="MDC put is used without finally remove."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          language="java" externalInfoUrl="${doc_root}/JavaCodePerformance.md#IL04">
         <description>
             MDC values are added for logging, but not removed. Problem: MDC values can leak to other user transactions (requests) and log incorrect information. Solution: remove the MDC value in a finally clause.
             (jpinpoint-rules)</description>
@@ -207,7 +197,9 @@ class Good {
         </example>
     </rule>
 
-    <rule name="MinimizeAttributesInSession" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" language="java" 
+    <rule name="MinimizeAttributesInSession"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          language="java" 
           message="Attribute is set in the session, yet not removed. This may bloat the session." 
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#tmsu01">
         <description>An attribute is set in the session and not removed. Problem: This may be a large object and data in the sessions takes heap space and stay in the session until time-out. This may take substantial heap space.&#13;
@@ -262,7 +254,10 @@ class Good {
         </example>
     </rule>
 
-    <rule name="UnconditionalConcatInLogArgument" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" language="java" message="String concatenation (+) is executed regardless of log level and can be expensive" 
+    <rule name="UnconditionalConcatInLogArgument"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          language="java"
+          message="String concatenation (+) is executed regardless of log level and can be expensive" 
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#il01">
         <description>Problem: String concatenation (+) is executed regardless of log level and can be expensive. &#13;
             Solution: Use SLF4J formatting with {}-placeholders or log and format conditionally.  (jpinpoint-rules)</description>
@@ -298,7 +293,10 @@ class Foo {
     </example>
     </rule>
 
-    <rule name="UnconditionalOperationOnLogArgument" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" language="java" message="Operation is executed regardless of log level and can be expensive" 
+    <rule name="UnconditionalOperationOnLogArgument"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          language="java"
+          message="Operation is executed regardless of log level and can be expensive" 
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#il03">
         <description>Problem: An operation is executed regardless of log level. This could be much processing while the result is typically not used. Detected are obj.toString() and operations with one or more arguments except usually cheap obj.getXXX(arg).&#13;
             Solution: Execute the operation only conditionally and utilize SLF4J formatting with {}-placeholders.  (jpinpoint-rules)</description>
@@ -360,7 +358,10 @@ class Foo {
         </example>
     </rule>
 
-    <rule name="UsingSuppressWarningsHighRisk" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" language="java" message="Using SuppressWarnings for a rule that is meant to prevent high risk problems." 
+    <rule name="UsingSuppressWarningsHighRisk"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          language="java"
+          message="Using SuppressWarnings for a rule that is meant to prevent high risk problems." 
           externalInfoUrl="${doc_root}/JavaCodePerformance.md">
         <description>(Informative - are you sure?) Problem: This rule detects high risk problems, suppressing them without full knowledge can lead to incidents like customer data mix-up, corrupt data, server crashes or very bad performance. &#13;
             Solution: Suppress warnings judiciously based on full knowledge and report reasons to suppress (false positives) to the rule maintainers so the rule can be fixed. (jpinpoint-rules)</description>
@@ -381,7 +382,10 @@ class Foo {
         </properties>
     </rule>
 
-    <rule name="UsingSuppressWarnings" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" language="java" message="Using SuppressWarnings." 
+    <rule name="UsingSuppressWarnings"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          language="java"
+          message="Using SuppressWarnings." 
           externalInfoUrl="${doc_root}/JavaCodePerformance.md">
         <description>(Informative - be aware) Problem: This rule detects problems, suppressing them without full knowledge can lead to the problems this rule is trying to prevent. &#13;
             Solution: Suppress warnings judiciously based on full knowledge and report reasons to suppress (false positives) to the rule maintainers so the rule can be fixed. (jpinpoint-rules)</description>
@@ -401,7 +405,10 @@ class Foo {
         </properties>
     </rule>
 
-    <rule name="AvoidTimeUnitConfusion" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" language="java" message="A primitive variable identifier or @Value member ends with time, timeout, duration or similar: time unit is missing." 
+    <rule name="AvoidTimeUnitConfusion"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          language="java"
+          message="A primitive variable identifier or @Value member ends with time, timeout, duration or similar: time unit is missing." 
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#IBI19">
         <description>Problem: Time unit like hours, seconds, milliseconds is not specified and may be assumed differently by readers.
             Different assumptions will lead to errors or hidden problems like ineffective caches.&#13;
@@ -437,7 +444,10 @@ public RetrieveCache(final @Value("${cache.expiryTimeMillis}") long timeToLiveMi
         </example>
     </rule>
 
-    <rule name="AvoidTimeUnitConfusionPMD7" since="7.0" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" language="java" message="A primitive variable identifier or @Value member ends with time, timeout, duration or similar: time unit is missing." 
+    <rule name="AvoidTimeUnitConfusionPMD7" since="7.0"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          language="java"
+          message="A primitive variable identifier or @Value member ends with time, timeout, duration or similar: time unit is missing." 
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#IBI19">
         <description>Problem: Time unit like hours, seconds, milliseconds is not specified and may be assumed differently by readers.
             Different assumptions will lead to errors or hidden problems like ineffective caches.&#13;
@@ -473,7 +483,10 @@ public RetrieveCache(final @Value("${cache.expiryTimeMillis}") long timeToLiveMi
         </example>
     </rule>
 
-    <rule name="FieldOfHashCodeMissingInEquals" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" language="java" message="Equals does not use all fields used by hashCode." 
+    <rule name="FieldOfHashCodeMissingInEquals"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          language="java"
+          message="Equals does not use all fields used by hashCode." 
           externalInfoUrl="${doc_root}/JavaCodeQuality.md#ieah03">
         <description>Problem: Equal objects may have different hashCodes and end-up in different buckets of a Map/Set. Strange things can happen like adding an object to a Set and not being able to find it back.&#13;
             Solution: When objects are equal, hashCode needs to be equal, too. Use the same fields in equals and hashCode. (jpinpoint-rules)</description>
@@ -528,7 +541,10 @@ class Bad {
         </example>
     </rule>
 
-    <rule name="EqualsOperationInconsistentWithHashCode" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" language="java" message="Equals uses a conversion inconsistent with hashCode." 
+    <rule name="EqualsOperationInconsistentWithHashCode"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          language="java"
+          message="Equals uses a conversion inconsistent with hashCode." 
           externalInfoUrl="${doc_root}/JavaCodeQuality.md#ieah03">
         <description>Problem: Equal objects may have different hashCodes and end-up in different buckets of a Map/Set. Strange things can happen like adding an object to a Set and not being able to find it back.&#13;
             Solution: When objects are equal, hashCode needs to be equal, too. Use the same fields in equals and hashCode and use identical conversions like toUpperCase() in both when needed. Don't use equalsIgnoreCase. (jpinpoint-rules)</description>
@@ -623,7 +639,10 @@ class Good {
         </example>
     </rule>
 
-    <rule name="MissingFieldInEquals" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" language="java" message="Field simply assigned to is missing in equals method." 
+    <rule name="MissingFieldInEquals"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          language="java"
+          message="Field simply assigned to is missing in equals method." 
           externalInfoUrl="${doc_root}/JavaCodeQuality.md#ieah04">
         <description>Problem: If a field which can be assigned separately (independent of other fields) is missing in the equals method, then changing the field in one object has no effect on the equality with another object.
             However, if a field of one of two equal objects is changed, the expectation is that they are no longer equal.&#13;
@@ -679,7 +698,10 @@ class Bad1 {
         </example>
     </rule>
 
-    <rule name="MissingFieldInHashCode" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" language="java" message="Equals uses a field which is missing in hashCode." 
+    <rule name="MissingFieldInHashCode"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          language="java"
+          message="Equals uses a field which is missing in hashCode." 
           externalInfoUrl="${doc_root}/JavaCodeQuality.md#ieah03">
         <description>Problem: Two unequal objects can have the same hashCode and end up in the same bucket of a Map. This may result in bad performance, O(n) lookup instead of O(1).&#13;
             Solution: Use the same fields in hashCode as are used in equals. (jpinpoint-rules)</description>

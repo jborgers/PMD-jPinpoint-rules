@@ -606,4 +606,23 @@ public class Foo {
         </example>
     </rule>
 
+    <rule name="AvoidXPathAPIUsage"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          language="java"
+          message="XPathAPI is used. XPathAPI implementation has bad performance."
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ux03">
+        <description>XPathAPI is used. Problem: XPathAPI implementation is slow.&#13;
+            Solution: 1. try to avoid using XPathAPI. 2. improve performance by using jvm parameters and possibly CachedXPathAPI.
+            (jpinpoint-rules)</description>
+        <priority>3</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+//MethodCall/TypeExpression/ClassType[pmd-java:typeIs('org.apache.xpath.XPathAPI')]
+	]]></value>
+            </property>
+        </properties>
+    </rule>
+
 </ruleset>
