@@ -2,29 +2,6 @@
 <ruleset name="jpinpoint-common-rules" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 https://pmd.sourceforge.io/ruleset_2_0_0.xsd" xmlns="http://pmd.sourceforge.net/ruleset/2.0.0">
     <description>jPinpoint rule set for performance aware Java coding, sponsored by Rabobank.</description>
 
-
-    <rule name="AvoidWideScopeXPathExpression" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" language="java" message="XPathExpression targets a wide scope, this is potentially slow." 
-          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ux01">
-        <description>The XPathExpression targets a wide scope since it starts with '//'. Problem: XPath has to search in a wide scope for occurrences, this may take a while. &#13;
-            Solution: 1. Avoid XPath usage. 2. Make the scope as narrow as possible, do not start with '//'.
-            (jpinpoint-rules)</description>
-        <priority>2</priority>
-        <properties>
-            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
-            <property name="xpath">
-                <value><![CDATA[
-//TypeDeclaration/ClassOrInterfaceDeclaration/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDeclaration
-//PrimaryExpression/PrimarySuffix[
-Arguments/ArgumentList/Expression/PrimaryExpression/PrimaryPrefix/
-Literal[starts-with(@Image, '"//')]
-and
-../PrimaryPrefix/Name[ends-with(@Image, '.compile')]
-]
-	]]></value>
-            </property>
-        </properties>
-    </rule>
-
     <rule name="AvoidXPathAPIUsage" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" language="java" message="XPathAPI is used. XPathAPI implementation has bad performance." 
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#ux03">
         <description>XPathAPI is used. Problem: XPathAPI implementation is slow.&#13;
