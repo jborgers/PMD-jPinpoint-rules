@@ -645,4 +645,56 @@ public class Foo {
         </properties>
     </rule>
 
+
+
+    <rule name="MDCPutWithoutRemove"
+          message="MDC put is used without finally remove."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          language="java" externalInfoUrl="${doc_root}/JavaCodePerformance.md#IL04">
+        <description>
+            MDC values are added for logging, but not removed. Problem: MDC values can leak to other user transactions (requests) and log incorrect information. Solution: remove the MDC value in a finally clause.
+            (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,performance,correctness" type="String" description="classification"/>
+            <property name="xpath">
+                <value>
+                    <![CDATA[
+//MethodCall[pmd-java:matchesSig('org.slf4j.MDC#put(java.lang.String,java.lang.String)')]/ArgumentList/*[1][self::StringLiteral or self::VariableAccess]
+[not(@Image=ancestor::TryStatement//FinallyClause//MethodCall[pmd-java:matchesSig('org.slf4j.MDC#remove(java.lang.String)')]/ArgumentList/*[1]/@Image
+or ancestor::TryStatement//FinallyClause//MethodCall[pmd-java:matchesSig('org.slf4j.MDC#clear()')]
+or @Image=ancestor::ClassBody//MethodDeclaration[@Name='afterCompletion' or @Name='postHandle']//MethodCall[pmd-java:matchesSig('org.slf4j.MDC#remove(java.lang.String)')]/ArgumentList/*[1]/@Image
+or ancestor::ClassBody//MethodDeclaration[@Name='afterCompletion' or @Name='postHandle']//MethodCall[pmd-java:matchesSig('org.slf4j.MDC#clear()')]
+)]
+]]>
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+class Bad {
+    public void bad() {
+        MDC.put("levelKey1", "levelName1"); // bad, not removed in finally
+        MDC.put("levelKey2", "levelName2"); // bad, not removed at all
+        doStuff();
+        MDC.remove("levelKey1");
+    }
+}
+
+class Good {
+    public void good() {
+        try {
+            MDC.put("levelKey1", "levelName1");
+            MDC.put("levelKey2", "levelName2");
+            doStuff();
+        } finally {
+            MDC.remove("levelKey1");
+            MDC.remove("levelKey2");
+        }
+    }
+}
+            ]]>
+        </example>
+    </rule>
+
 </ruleset>

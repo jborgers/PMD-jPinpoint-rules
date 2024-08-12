@@ -134,8 +134,8 @@ public class Foo implements WebRequestInterceptor {
         <expected-problems>1</expected-problems>
         <expected-linenumbers>7</expected-linenumbers>
         <code><![CDATA[
+import org.slf4j.MDC;
 public class TracingInterceptor extends HandlerInterceptorAdapter {
-
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
         MDC.put("sessionId", request.getSession().getId());
