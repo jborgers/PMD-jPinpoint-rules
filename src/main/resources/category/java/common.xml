@@ -645,7 +645,7 @@ public class Foo {
         </properties>
     </rule>
 
-
+<!-- complex rule TODO ImplementEqualsHashCodeOnValueObjects -->
 
     <rule name="MDCPutWithoutRemove"
           message="MDC put is used without finally remove."
@@ -697,4 +697,38 @@ class Good {
         </example>
     </rule>
 
+    <rule name="UnconditionalConcatInLogArgument"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          language="java"
+          message="String concatenation (+) is executed regardless of log level and can be expensive"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#il01">
+        <description>Problem: String concatenation (+) is executed regardless of log level and can be expensive. &#13;
+            Solution: Use SLF4J formatting with {}-placeholders or log and format conditionally.  (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+//MethodCall
+  [@MethodName='trace' or @MethodName='debug' or @MethodName='info']
+  [VariableAccess[pmd-java:typeIs('org.slf4j.Logger') or pmd-java:typeIs('java.util.logging.Logger') or pmd-java:typeIs('org.apache.commons.logging.Log')]]
+  /ArgumentList[.//InfixExpression[@Operator='+'][(VariableAccess|MethodCall)[pmd-java:typeIs('java.lang.String')] or (StringLiteral and (VariableAccess or MethodCall))]]
+[not(ancestor::IfStatement/MethodCall[@MethodName = ('isTraceEnabled', 'isDebugEnabled','isInfoEnabled', 'isLoggable')])]
+]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+@slf4j
+class Foo {
+    void bad(String a, String b) {
+        log.debug("message: {}", a + b); // bad
+    }
+    void good(String a, String b) {
+        log.debug("message: {}-{}", a, b); // good
+    }
+}
+            ]]>
+        </example>
+    </rule>
 </ruleset>

@@ -5,7 +5,8 @@
         xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
     <test-code>
         <description>Unconditional contactenation of strings in log statements</description>
-        <expected-problems>4</expected-problems>
+        <expected-problems>5</expected-problems>
+        <expected-linenumbers>30,32,40,47,247</expected-linenumbers>
         <code><![CDATA[
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -37,9 +38,9 @@ public class ConditionalLogging {
                     + "] in the given order.");
         }
         LOG.debug("Trying to get key [" + key + "] or ["
-                + faultCode.toUpperCase(Locale.US) + "] in the given order.");
+                + faultCode.toUpperCase(Locale.US) + "] in the given order."); // bad
         JUTIL_LOG.info("Trying to get key [" + key + "] or ["
-                + faultCode.toUpperCase(Locale.US) + "] in the given order.");
+                + faultCode.toUpperCase(Locale.US) + "] in the given order."); // bad
     }
 
     public void testUnConditionalStringOperations() {
@@ -49,10 +50,11 @@ public class ConditionalLogging {
         LOG.debug(String
                 .format("TotalMem= %s , FreeMem= %s", totalMem, freeMem)
                 + ", usedMem [MB]= "
-                + String.valueOf((totalMem - freeMem) / 1000000));
+                + String.valueOf((totalMem - freeMem) / 1000000)); // bad
         LOG.debug(String
                 .format("TotalMem= %s , FreeMem= %s", totalMem, freeMem));
         LOG.debug("buffer = {}", sb.toString());
+        LOG.debug("buffer = " + Integer.valueOf(freeMem), sb.toString()); // bad
     }
 
     public void testUnConditionalBuiltLogStringDefect1() {
@@ -252,7 +254,7 @@ public class ConditionalLogging {
     }
 
     public void testUnconditionalCommonLogging(String wraAuthenticationToken) {
-        COMMONS_LOG.debug("Entering doFilter : " + wraAuthenticationToken);
+        COMMONS_LOG.debug("Entering doFilter : " + wraAuthenticationToken); // bad
     }
 
     public static void testRMLiteralsCorrect() {
@@ -279,32 +281,34 @@ public class ConditionalLogging {
 
         }
     }
-
-
 }
      ]]></code>
     </test-code>
 
     <test-code>
         <description>Add and subtract numbers is not concatenation, only consider Strings, issue #141</description>
-        <expected-problems>4</expected-problems>
-        <expected-linenumbers>10,11,12,13</expected-linenumbers>
+        <expected-problems>5</expected-problems>
+        <expected-linenumbers>10,13,14,15,16</expected-linenumbers>
         <code><![CDATA[
 @slf4j
-class Foo {
+class Foo2 {
+    private static final org.slf4j.Logger log = LoggerFactory
+            .getLogger(ConditionalLogging.class);
     void bar() {
          long startTime = System.currentTimeMillis();
          long endTime = System.currentTimeMillis();
          log.info("Execution Time : {} ms ", endTime - startTime); // good, no concat
          log.info("More Time : {} ms ", endTime + startTime); // good, no concat
+         log.info("Delta Time : {} ms, endtime: " + endTime, endTime + startTime); // bad, concat
          String strStart = String.valueOf(startTime);
          String strEnd = String.valueOf(endTime);
          log.info("Concatenation of Strings {} ", strEnd + strStart); // bad
-         log.info("Concatenation of String and converted value {} ", strEnd + startTime); // bad
+         log.info("Concatenation of String and converted value {} " + startTime, strEnd + startTime); // bad
          log.info("Concatenation of converted value and String {} ", endTime + strStart); // bad
          log.info("Concat confusing : {} ms ", "" + endTime + startTime); // bad
     }
 }
+
     ]]></code>
         </test-code>
 </test-data>
