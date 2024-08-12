@@ -534,7 +534,7 @@ class Foo {
 (: variable in append following used in logging :)
 [VariableAccess/@Name=(ancestor::ExpressionStatement|ancestor::ForeachStatement|ancestor::DoStatement|ancestor::WhileStatement)
   /(following-sibling::TryStatement|following-sibling::ExpressionStatement)//MethodCall
-  [@MethodName='trace' or @MethodName='debug' or @MethodName='info']
+  [@MethodName=('trace', 'debug', 'info')]
   [VariableAccess[pmd-java:typeIs('org.slf4j.Logger') or pmd-java:typeIs('java.util.logging.Logger') or pmd-java:typeIs('org.apache.commons.logging.Log')]]
     //VariableAccess/@Name
 ]
@@ -542,7 +542,7 @@ class Foo {
 [not(
 VariableAccess/@Name=(ancestor::ExpressionStatement|ancestor::ForeachStatement|ancestor::DoStatement|ancestor::WhileStatement)
   /(following-sibling::TryStatement|following-sibling::ExpressionStatement)//MethodCall
-  [not(@MethodName='trace' or @MethodName='debug' or @MethodName='info')
+  [not(@MethodName=('trace', 'debug', 'info'))
   or VariableAccess[not(pmd-java:typeIs('org.slf4j.Logger')) and not(pmd-java:typeIs('java.util.logging.Logger')) and not(pmd-java:typeIs('org.apache.commons.logging.Log'))]]
     //VariableAccess/@Name
 )]
@@ -710,7 +710,7 @@ class Good {
             <property name="xpath">
                 <value><![CDATA[
 //MethodCall
-  [@MethodName='trace' or @MethodName='debug' or @MethodName='info']
+  [@MethodName=('trace','debug','info')]
   [VariableAccess[pmd-java:typeIs('org.slf4j.Logger') or pmd-java:typeIs('java.util.logging.Logger') or pmd-java:typeIs('org.apache.commons.logging.Log')]]
   /ArgumentList[.//InfixExpression[@Operator='+'][(VariableAccess|MethodCall)[pmd-java:typeIs('java.lang.String')] or (StringLiteral and (VariableAccess or MethodCall))]]
 [not(ancestor::IfStatement/MethodCall[@MethodName = ('isTraceEnabled', 'isDebugEnabled','isInfoEnabled', 'isLoggable')])]
