@@ -74,19 +74,23 @@ public class Good {
     <test-code>
         <description>Unconditional operation in log statement: return if debugEnabled before actual log</description>
         <expected-problems>3</expected-problems>
-        <expected-linenumbers>9,12,18</expected-linenumbers>
+        <expected-linenumbers>13,16,22</expected-linenumbers>
         <code><![CDATA[
+import org.slf4j.*;
+
 public class UnconOp {
+    private static final Logger LOG = LoggerFactory.getLogger(UnconOp.class);
+
     public static void good(String to) {
         if (!LOG.isDebugEnabled()) {
             return;
         }
         LOG.debug("green-> {}", shortenActor1(to));
     }
-   public static void bad1(String to) {
+    public static void bad1(String to) {
         LOG.debug("green-> {}", shortenActor2(to)); //bad
     }
-   public static void bad2(String to) {
+    public static void bad2(String to) {
         LOG.debug("green-> {}", shortenActor3(to)); //bad
         if (!LOG.isDebugEnabled()) {
             return;
@@ -106,12 +110,14 @@ public class UnconOp {
     <test-code>
         <description>Avoid unconditional operation on log argument issue #158</description>
         <expected-problems>1</expected-problems>
-        <expected-linenumbers>4</expected-linenumbers>
+        <expected-linenumbers>6</expected-linenumbers>
         <code><![CDATA[
+import org.slf4j.*;
 class Foo {
+    private static final Logger LOG = LoggerFactory.getLogger(Foo.class);
     private static void bar(Environment env) {
-        LOGGER.info("Application '{}' has started!", env.getProperty("spring.application.name")); //good
-        LOGGER.info("Application", env.resolvePlaceHoldersProperty(" '${spring.application.name}' has started!")); //bad
+        LOG.info("Application '{}' has started!", env.getProperty("spring.application.name")); //good
+        LOG.info("Application", env.resolvePlaceHoldersProperty(" '${spring.application.name}' has started!")); //bad
     }
 }
     ]]></code>
