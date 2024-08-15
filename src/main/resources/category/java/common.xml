@@ -771,4 +771,54 @@ class Foo {
             ]]>
         </example>
     </rule>
+
+    <rule name="UnconditionalCreatedLogArguments"
+          language="java"
+          message="Avoid unconditional creation of a log argument, it may not be needed."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#il06">
+        <description>Problem: Creation of a log argument with a toString or other operation(s) may be expensive, while depending on the log level, the result may not be used.&#13;
+            Solution: Create the log argument conditionally on the log level, within an if statement. For just 'obj.toString()', just pass 'obj' to the log method and leave it to SLF4J to call toString() only if needed.
+        </description>
+        <priority>2</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+//MethodCall
+    (: log levels typically/often not enabled :)
+  [@MethodName=('trace','debug','info')]
+  (: supported logger libs :)
+  [VariableAccess[pmd-java:typeIs('org.slf4j.Logger') or pmd-java:typeIs('java.util.logging.Logger') or pmd-java:typeIs('org.apache.commons.logging.Log')]]
+  (: no violation if conditionally: only executed if level enabled is okay :)
+  [not(ancestor::IfStatement/MethodCall[@MethodName = ('isTraceEnabled', 'isDebugEnabled','isInfoEnabled', 'isLoggable')])]
+  (: no violation if return conditionally before :)
+  [not(ancestor::ExpressionStatement/preceding-sibling::IfStatement[.//ReturnStatement and .//MethodCall[@MethodName = ('isTraceEnabled', 'isDebugEnabled','isInfoEnabled', 'isLoggable')]])]
+  (: equals a declared var, with initializer not like obj.get[Xxx], we assume a simple getter is quick; except when in a loop :)
+  /ArgumentList//VariableAccess
+     [@Name = ancestor::MethodDeclaration//VariableDeclarator[not(MethodCall[starts-with(@MethodName, 'get')] and not(ancestor::WhileStatement or ancestor::ForStatement or ancestor::DoStatement))]/VariableId/@Name]
+     (: and it is not used in a return :)
+     [not (@Name = ancestor::MethodDeclaration//VariableAccess[not(ancestor::MethodCall[@MethodName=('trace','debug','info')])]/@Name)]
+     (: method name starts with log, we assume it is called conditionally :)
+     [not(ancestor::MethodDeclaration[starts-with(@Name, 'log')]
+ )]
+                ]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+class Foo {
+    void bad(Object obj) {
+      String logObj = obj.toString();
+      log.debug("object to String: {}", logObj); //bad
+    }
+
+    void good(Object obj) {
+      log.debug("object to String: {}", obj); //good
+    }
+}
+            ]]>
+        </example>
+    </rule>
+
 </ruleset>

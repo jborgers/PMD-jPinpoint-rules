@@ -6,9 +6,12 @@
     <test-code>
         <description>UnconditionalCreatedLogArguments - Avoid unconditional creation of log arguments</description>
         <expected-problems>6</expected-problems>
-        <expected-linenumbers>11,28,34,40,91,105</expected-linenumbers>
+        <expected-linenumbers>14,31,37,43,94,108</expected-linenumbers>
         <code><![CDATA[
+import org.slf4j.Logger;
 class Foo {
+    private Logger log;
+
    void bar1(Object obj) {
         if (log.isDebugEnabled()) {
           String logObj1 = obj.toString();
@@ -98,21 +101,21 @@ class Foo {
         while (headerNames.hasMoreElements()) {
             String headerName = headerNames.nextElement();
             String header = httpRequest.getHeader(headerName);
-            LOG.debug("DoFilter, headerName{}: value{}", headerName, header); // bad: simple getter but in a loop
+            log.debug("DoFilter, headerName{}: value{}", headerName, header); // bad: simple getter but in a loop
         }
     }
 
     void bar15(Object obj1) {
             String name = obj1.toString();
             byte[] bar15 = name.getBytes();
-            LOG.debug("name {}: bytes {}", name, bar15); // good: simple getter is cheap
+            log.debug("name {}: bytes {}", name, bar15); // good: simple getter is cheap
     }
 
    void bar16(Object obj1) {
         while (true) {
             String name = obj1.toString();
             byte[] bar16 = name.getBytes();
-            LOG.debug("name {}: bytes {}", name, bar16); // bad: getter but in a loop
+            log.debug("name {}: bytes {}", name, bar16); // bad: getter but in a loop
         }
     }
 }
@@ -123,8 +126,8 @@ class Foo {
         <description>Avoid unconditional creation of log arguments, issue #176</description>
         <expected-problems>0</expected-problems>
         <code><![CDATA[
-class Klass {
-
+import org.slf4j.Logger;
+class Foo {
     Logger log = new Logger("Klass");
     Map map = new HashMap();
 
@@ -146,22 +149,24 @@ class Klass {
     <test-code>
         <description>Fix Request: false positive and missed case in UnconditionalCreatedLogArguments #209</description>
         <expected-problems>2</expected-problems>
-        <expected-linenumbers>8,9</expected-linenumbers>
+        <expected-linenumbers>10,11</expected-linenumbers>
         <code><![CDATA[
+import org.slf4j.Logger;
 class Foo {
+    Logger LOGGER;
     Bar field1;
     Bar field2;
 
     void bad(Bar param) {
       String log = param.baz(field1.get());
       String logThis = param.baz(this.field1.get());
-      log.debug("field: {}", log); //bad, missed
-      log.debug("field: {}", logThis); //bad
+      LOGGER.debug("field: {}", log); //bad, missed
+      LOGGER.debug("field: {}", logThis); //bad
 
       String fieldGet = field1.getClass();
       String fieldGetThis = this.field2.getClass();
-      log.debug("field getter: {}", fieldGet); // good
-      log.debug("field this.getter: {}", fieldGetThis); // good, false positive
+      LOGGER.debug("field getter: {}", fieldGet); // good
+      LOGGER.debug("field this.getter: {}", fieldGetThis); // good, false positive
     }
 }
 ]]></code>
@@ -171,7 +176,9 @@ class Foo {
         <description>Fix Request for UnconditionalCreatedLogArgument #312</description>
         <expected-problems>0</expected-problems>
         <code><![CDATA[
+import org.slf4j.Logger;
 class Foo {
+    private Logger log;
 
     private void calcYear(Data data) {
             Long loss = this.fService.filter(data);
