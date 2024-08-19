@@ -1516,7 +1516,10 @@ class LombokGetterGood {
             <property name="xpath">
                 <value><![CDATA[
 //VariableDeclaratorId[matches(@Name, 'VALUE|VAL|INTEGER|INT|LONG|NUMBER|NUM|[0-9]+|ZERO|ONE|TWO|THREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|TEN|TWENTY', 'i')
-and replace(@Name, 'VALUE|VAL|INTEGER|INT|LONG|NUMBER|NUM|[0-9]+|ZERO|ONE|TWO|THREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|TEN|TWENTY|_', '', 'i') = ''
+(: not allowed only as uppercase :)
+and (replace(@Name, 'VALUE|VAL|NUMBER|NUM|[0-9]+|ZERO|ONE|TWO|THREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|TEN|TWENTY|_', '') = ''
+   (: not allowed as lower and uppercase :)
+   or replace(@Name, 'INTEGER|INT|LONG|[0-9]+|ZERO|ONE|TWO|THREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|TEN|TWENTY|_', '', 'i') = '')
 or starts-with(@Name, 'var') and number(substring-after(@Name, 'var'))]
                 ]]></value>
             </property>
