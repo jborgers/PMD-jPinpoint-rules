@@ -88,4 +88,22 @@ class HasEqualsHashCodeWithGetterSetterGood { // good
 }
     ]]></code>
     </test-code>
+
+    <test-code>
+        <description>MissingEqualsHashCodeWithGetterSetter issue #324</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import lombok.Getter;
+
+@RequiredArgsConstructor
+@Getter // false positive
+public enum DomainContext {
+
+    DK("001"),
+    VK("002");
+
+    private final String code;
+}
+            ]]></code>
+    </test-code>
 </test-data>

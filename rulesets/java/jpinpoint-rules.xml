@@ -1659,11 +1659,11 @@ class Good {
             <property name="xpath">
                 <value><![CDATA[
 //TypeDeclaration[./Annotation[pmd-java:typeIs('lombok.Getter') or pmd-java:typeIs('lombok.Setter')]
-    and not(./Annotation[pmd-java:typeIs('lombok.EqualsAndHashCode')]
-        or (.//MethodDeclaration[@Name='equals']/ResultType/Type[@TypeImage='boolean']
-            and .//MethodDeclaration[@Name='hashCode']/ResultType/Type[@TypeImage='int']))
+    and not(./Annotation[pmd-java:typeIs('lombok.EqualsAndHashCode')] or EnumDeclaration
+        or (.//MethodDeclaration[@Name='equals'][ResultType/Type[@TypeImage='boolean']][MethodDeclarator/FormalParameters[@Size=1]/FormalParameter[pmd-java:typeIs('java.lang.Object')]]
+            and .//MethodDeclaration[@Name='hashCode'][ResultType/Type[@TypeImage='int']][MethodDeclarator/FormalParameters[@Size=0]]))
 ]
-/Annotation
+/Annotation[pmd-java:typeIs('lombok.Getter') or pmd-java:typeIs('lombok.Setter')]
                 ]]></value>
             </property>
             <property name="version" value="2.0"/>
