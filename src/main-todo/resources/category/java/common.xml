@@ -183,54 +183,6 @@ class Good {
         </example>
     </rule>
 
-
-    <rule name="UsingSuppressWarningsHighRisk"
-          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-          language="java"
-          message="Using SuppressWarnings for a rule that is meant to prevent high risk problems." 
-          externalInfoUrl="${doc_root}/JavaCodePerformance.md">
-        <description>(Informative - are you sure?) Problem: This rule detects high risk problems, suppressing them without full knowledge can lead to incidents like customer data mix-up, corrupt data, server crashes or very bad performance. &#13;
-            Solution: Suppress warnings judiciously based on full knowledge and report reasons to suppress (false positives) to the rule maintainers so the rule can be fixed. (jpinpoint-rules)</description>
-        <priority>4</priority>
-        <properties>
-            <property name="tags" value="jpinpoint-rule,suspicious" type="String" description="classification"/>
-            <property name="tags" value="data-mix-up" type="String" description="classification"/>
-            <property name="ruleIdMatches" type="String" value="AvoidUnguardedMutableFieldsInSharedObjects|AvoidUnguardedAssignmentToNonFinalFieldsInSharedObjects|AvoidMutableStaticFields|[^\w]ALL[^\w]|[^\w]all[^\w]|PMD[^\.]|pmd[^:]"
-                      description="Regex for inclusion of high risk rules"/>
-            <property name="ruleIdNotMatches" type="String" value="^$"
-                      description="Regex for exclusion of high risk rules"/>
-            <property name="xpath">
-                <value><![CDATA[
-//Annotation//Name[@Image="SuppressWarnings" or @Image="SuppressFBWarnings"]/..//Literal[(matches(@Image, $ruleIdMatches)) and not (matches(@Image, $ruleIdNotMatches))]
-			]]>
-                </value>
-            </property>
-        </properties>
-    </rule>
-
-    <rule name="UsingSuppressWarnings"
-          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-          language="java"
-          message="Using SuppressWarnings." 
-          externalInfoUrl="${doc_root}/JavaCodePerformance.md">
-        <description>(Informative - be aware) Problem: This rule detects problems, suppressing them without full knowledge can lead to the problems this rule is trying to prevent. &#13;
-            Solution: Suppress warnings judiciously based on full knowledge and report reasons to suppress (false positives) to the rule maintainers so the rule can be fixed. (jpinpoint-rules)</description>
-        <priority>5</priority>
-        <properties>
-            <property name="tags" value="jpinpoint-rule,suspicious" type="String" description="classification"/>
-            <property name="ruleIdMatches" type="String" value=".*"
-                      description="Regex for inclusion of rules"/>
-            <property name="ruleIdNotMatches" type="String" value="^$"
-                      description="Regex for exclusion of rules"/>
-            <property name="xpath">
-                <value><![CDATA[
-//Annotation//Name[@Image="SuppressWarnings" or @Image="SuppressFBWarnings"]/..//Literal[(matches(@Image, $ruleIdMatches)) and not (matches(@Image, $ruleIdNotMatches))]
-			]]>
-                </value>
-            </property>
-        </properties>
-    </rule>
-
     <rule name="AvoidTimeUnitConfusion"
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           language="java"
