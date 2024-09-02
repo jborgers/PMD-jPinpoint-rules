@@ -930,4 +930,70 @@ public RetrieveCache(final @Value("${cache.expiryTimeMillis}") long timeToLiveMi
         </example>
     </rule>
 
+    <rule name="FieldOfHashCodeMissingInEquals"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          language="java"
+          message="Equals does not use all fields used by hashCode."
+          externalInfoUrl="${doc_root}/JavaCodeQuality.md#ieah03">
+        <description>Problem: Equal objects may have different hashCodes and end-up in different buckets of a Map/Set. Strange things can happen like adding an object to a Set and not being able to find it back.&#13;
+            Solution: When objects are equal, hashCode needs to be equal, too. Use the same fields in equals and hashCode. (jpinpoint-rules)</description>
+        <priority>1</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,correctness" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+//FieldDeclaration/VariableDeclarator[
+(@Name = ancestor::ClassBody[1]//MethodDeclaration[@Name='equals' and FormalParameters/@Size = 1]/Block//(FieldAccess|VariableAccess)/@Name) <
+(@Name = ancestor::ClassBody[1]//MethodDeclaration[@Name='hashCode' and FormalParameters/@Size = 0]/Block//(FieldAccess|VariableAccess)/@Name)
+]/VariableId
+|
+//FieldDeclaration/VariableDeclarator[
+(@Name = ancestor::ClassBody[1]//MethodDeclaration[@Name='equals' and FormalParameters/@Size = 1]/Block//MethodCall[@MethodName='toLowerCase']/(FieldAccess|VariableAccess)/@Name) >
+(@Name = ancestor::ClassBody[1]//MethodDeclaration[@Name='hashCode' and FormalParameters/@Size = 0]/Block//MethodCall[@MethodName='toLowerCase']/(FieldAccess|VariableAccess)/@Name)
+]/VariableId
+|
+//FieldDeclaration/VariableDeclarator[
+(@Name = ancestor::ClassBody[1]//MethodDeclaration[@Name='equals' and FormalParameters/@Size = 1]/Block//MethodCall[@MethodName='toUpperCase']/(FieldAccess|VariableAccess)/@Name) >
+(@Name = ancestor::ClassBody[1]//MethodDeclaration[@Name='hashCode' and FormalParameters/@Size = 0]/Block//MethodCall[@MethodName='toUpperCase']/(FieldAccess|VariableAccess)/@Name)
+]/VariableId
+			]]>
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+class Good1 {
+    String field1, field2;
+
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Good1 that = (Good1) o;
+        return Objects.equals(field1, that.field1) &&
+                Objects.equals(field2, that.field2);
+    }
+    public int hashCode() {
+        return Objects.hash(field1, field2);
+    }
+}
+
+class Bad {
+    String field1;
+    String field2; //bad
+
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Bad that = (Bad) o;
+        return Objects.equals(field1, that.field1); // field2 missing
+    }
+    public int hashCode() {
+        return Objects.hash(field1, field2);
+    }
+}
+
+            ]]>
+        </example>
+    </rule>
+
 </ruleset>

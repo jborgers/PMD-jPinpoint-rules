@@ -183,46 +183,8 @@ class Good {
         </example>
     </rule>
 
-    <rule name="AvoidTimeUnitConfusion"
-          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-          language="java"
-          message="A primitive variable identifier or @Value member ends with time, timeout, duration or similar: time unit is missing." 
-          externalInfoUrl="${doc_root}/JavaCodePerformance.md#IBI19">
-        <description>Problem: Time unit like hours, seconds, milliseconds is not specified and may be assumed differently by readers.
-            Different assumptions will lead to errors or hidden problems like ineffective caches.&#13;
-            Solution: Specify the time unit in the identifier, like connectTimeoutMillis. (jpinpoint-rules)</description>
-        <priority>3</priority>
-        <properties>
-            <property name="tags" value="jpinpoint-rule,confusing" type="String" description="classification"/>
-            <property name="xpath">
-                <value><![CDATA[
-(: for fields, formal parameters and local variables :)
-//Type/PrimitiveType/../..//VariableDeclaratorId[ends-with(lower-case(@Name), 'timetolive') or ends-with(lower-case(@Name), 'time_to_live') or
-ends-with(lower-case(@Name), 'time')
-or ends-with(lower-case(@Name), 'timeout') or ends-with(lower-case(@Name), 'time_out')
-or ends-with(lower-case(@Name), 'duration') or ends-with(lower-case(@Name), 'durationout') or ends-with(lower-case(@Name), 'duration_out')
-or ends-with(lower-case(@Name), 'ttl') or ends-with(lower-case(@Name), 'timestamp')]
-,
-(: @Value :)
-//SingleMemberAnnotation/Name[@Image='Value']/..//Literal[ends-with(lower-case(@Image), 'timetolive') or ends-with(lower-case(@Image), 'expirytime}"')
-or ends-with(lower-case(@Image), 'timeout}"') or ends-with(lower-case(@Image), 'ttl}"') or ends-with(lower-case(@Image), 'timestamp}"')]
-			]]>
-                </value>
-            </property>
-        </properties>
-        <example>
-            <![CDATA[
-@Autowired
-public RetrieveCache(final @Value("${cache.expiryTime}") long timeToLive) { // 2x bad
-}
-@Autowired
-public RetrieveCache(final @Value("${cache.expiryTimeMillis}") long timeToLiveMillis) { // 2x good
-}
-            ]]>
-        </example>
-    </rule>
 
-    <rule name="AvoidTimeUnitConfusionPMD7" since="7.0"
+    <!--rule name="AvoidTimeUnitConfusionPMD7" since="7.0"
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           language="java"
           message="A primitive variable identifier or @Value member ends with time, timeout, duration or similar: time unit is missing." 
@@ -233,6 +195,7 @@ public RetrieveCache(final @Value("${cache.expiryTimeMillis}") long timeToLiveMi
         <priority>3</priority>
         <properties>
             <property name="tags" value="jpinpoint-rule,confusing" type="String" description="classification"/>
+            <property name="deprecated" value="true" type="boolean" description="developed for pre-release of PMD7"/>
             <property name="xpath">
                 <value><![CDATA[
 (: for fields, formal parameters and local variables :)
@@ -259,7 +222,7 @@ public RetrieveCache(final @Value("${cache.expiryTimeMillis}") long timeToLiveMi
 }
             ]]>
         </example>
-    </rule>
+    </rule-->
 
     <rule name="FieldOfHashCodeMissingInEquals"
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
