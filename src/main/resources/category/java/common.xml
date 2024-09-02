@@ -1049,4 +1049,62 @@ class Bad1 {
             ]]>
         </example>
     </rule>
+
+    <rule name="MissingFieldInHashCode"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          language="java"
+          message="Equals uses a field which is missing in hashCode."
+          externalInfoUrl="${doc_root}/JavaCodeQuality.md#ieah03">
+        <description>Problem: Two unequal objects can have the same hashCode and end up in the same bucket of a Map. This may result in bad performance, O(n) lookup instead of O(1).&#13;
+            Solution: Use the same fields in hashCode as are used in equals. (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+//FieldDeclaration/VariableDeclarator[
+(@Name = ancestor::ClassBody[1]//MethodDeclaration[@Name='equals' and FormalParameters/@Size = 1]/Block//(FieldAccess|VariableAccess)/@Name) >
+(@Name = ancestor::ClassBody[1]//MethodDeclaration[@Name='hashCode' and FormalParameters/@Size = 0]/Block//(FieldAccess|VariableAccess)/@Name)
+]/VariableId
+			]]>
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+class Good {
+    String field1, field2;
+
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        EqHashTryout2 that = (EqHashTryout2) o;
+        return Objects.equals(field1, that.field1) &&
+                Objects.equals(field2, that.field2);
+    }
+    public int hashCode() {
+        return Objects.hash(field1, field2);
+    }
+}
+
+class Bad {
+    String field1;
+    String field2; //bad - missing in hashCode
+
+   public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        EqHashTryout2 that = (EqHashTryout2) o;
+        return Objects.equals(field1, that.field1) &&
+                Objects.equals(field2, that.field2);
+    }
+    public int hashCode() {
+        int result = field1 != null ? field1.hashCode() : 0;
+        return result;
+    }
+}
+            ]]>
+        </example>
+    </rule>
+
 </ruleset>
