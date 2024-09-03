@@ -1107,4 +1107,66 @@ class Bad {
         </example>
     </rule>
 
+    <rule name="AvoidMutableLists"
+          language="java"
+          message="List is not modified after object construction, make it immutable or unmodifiable"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#pml01">
+        <description>Problem: A list which is unnecessarily mutable may accidentally be added to and cause a memory leak. &#13;
+            Solution: Make it impossible to modify the list after object construction/initialization: use Java 9 List.of, Java 11 List.copyOf, Collections.unmodifiableList or Guava ImmutableList.
+        </description>
+        <priority>3</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,pitfall" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+(: a field of type List :)
+//FieldDeclaration[//VariableId[pmd-java:typeIs('java.util.List')]]
+(: exclude ConfigurationProperties classes :)
+[count(ancestor::ClassDeclaration/ModifierList/Annotation[@SimpleName='ConfigurationProperties']) = 0]
+(: exclude when JPA annotated :)
+[count(ModifierList/Annotation[@SimpleName='OneToMany' or @SimpleName='ManyToMany']) = 0]
+//VariableId[
+    (: with a method defined at that level that does not use the field with a modify operation (case field.modOp) :)
+    not(@Name = ancestor::ClassBody/MethodDeclaration/Block//MethodCall[
+        starts-with(@MethodName, 'add') or starts-with(@MethodName, 'remove') or
+        @MethodName = ('set', 'clear', 'replaceAll', 'retainAll')
+    ]/(VariableAccess|FieldAccess)/@Name)
+]
+[   (: field is initialized with List constructor :)
+    ../ConstructorCall[pmd-java:typeIs('java.util.List')]
+    or
+    (: or static block / constructor has field initialized with List allocation :)
+    ancestor::ClassBody/(Initializer|ConstructorDeclaration)//AssignmentExpression[ConstructorCall[pmd-java:typeIs('java.util.List')]]/(VariableAccess|FieldAccess)[1]/@Name = @Name
+    or
+    (: or constructor has a simple assignment to the field, param or literal: no arguments :)
+    ancestor::ClassBody/ConstructorDeclaration/Block//AssignmentExpression[VariableAccess[2][pmd-java:typeIs('java.util.List')]]/VariableAccess[1]/@Name = @Name
+]
+]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+public class Bad {
+    List unmutated = new ArrayList(Arrays.asList("one", "two")); // bad
+    List mutated = new ArrayList();
+
+    private void mutate() {
+        mutated.add("one");
+    }
+}
+public class Good {
+    List unmutated1 = Collections.unmodifiableList(Arrays.asList("one", "two")); // Java 8
+    List unmutated2 = List.of("one", "two"); // Java 9+
+    List mutated = new ArrayList();
+
+    private void mutate() {
+        mutated.add("one");
+    }
+}
+            ]]>
+        </example>
+    </rule>
+
 </ruleset>
