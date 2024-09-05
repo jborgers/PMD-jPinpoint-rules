@@ -1169,4 +1169,62 @@ public class Good {
         </example>
     </rule>
 
+    <rule name="AvoidUnnecessaryStringBuilderCreation"
+          language="java"
+          message="Use concatenation (+) instead of new StringBuilder if only one statement."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#isu05">
+        <description>Problem: Creating a StringBuilder and using append is more verbose, less readable and less maintainable than simply using String concatenation (+).
+            For one statement resulting in a String, creating a StringBuilder and using append is not faster than simply using concatenation.&#13;
+            Solution: Simply concatenate Strings in one statement, it is more concise, better readable and more maintainable.
+        </description>
+        <priority>3</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,bad-practice" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+(: append used in one chained statement on constructor of StringBuilder and with chained toString :)
+//MethodDeclaration//Block//MethodCall[@MethodName = "toString"]/MethodCall[@MethodName='append']
+[//ConstructorCall[pmd-java:typeIs('java.lang.StringBuilder') or pmd-java:typeIs('java.lang.StringBuffer')]]
+|
+(: or :)
+(: append on builder var, where var is allocated as StringBuilder :)
+//MethodDeclaration//Block//MethodCall[@MethodName='append']
+[//VariableAccess[pmd-java:typeIs('java.lang.StringBuilder') or pmd-java:typeIs('java.lang.StringBuffer')]]
+[(
+(: and toString is called on the var in same block :)
+../MethodCall[@MethodName='append']/VariableAccess/@Name = ancestor::Block//(ReturnStatement|ExpressionStatement)//MethodCall[@MethodName='toString']/VariableAccess/@Name
+(: and not append on var used in inner block like a ForStatement or IfStatement :)
+and not(../MethodCall[@MethodName='append']/VariableAccess/@Name = ancestor::Block//Block//MethodCall[@MethodName='append']/VariableAccess/@Name)
+(: and not append in lambda expression, issue 195 :)
+and not(ancestor::LambdaExpression)
+(: and var not passed as argument to method :)
+and not(../MethodCall[@MethodName='append']/VariableAccess/@Name = ancestor::MethodDeclaration//MethodCall/ArgumentList/VariableAccess/@Name))
+]
+	         ]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+class Foo {
+    String name;
+    String value;
+
+    public String bad() {
+        return new StringBuilder()
+           .append(name) // bad
+           .append(" = ")// bad
+           .append(value)// bad
+           .toString();
+    }
+
+    public String good() {
+        return name + " = " + value;
+    }
+}
+            ]]>
+        </example>
+    </rule>
+
 </ruleset>

@@ -64,9 +64,9 @@ public class Foo {
     </test-code>
 
     <test-code>
-        <description>violation: mutable List used while not mutated</description>
+        <description>violation: unnecessary string builder creation</description>
         <expected-problems>7</expected-problems>
-        <expected-linenumbers>7,15,21,28,36,44,45</expected-linenumbers>
+        <expected-linenumbers>6,14,21,28,36,44,45</expected-linenumbers>
         <code><![CDATA[
 public class Foo {
     String field1;
