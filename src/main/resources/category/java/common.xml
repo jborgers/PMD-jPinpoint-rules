@@ -1272,4 +1272,35 @@ Set<YourEnumType> set = EnumSet.allOf(YourEnumType.class);
             ]]>
         </example>
     </rule>
+
+    <rule name="AvoidLombokAnnotationForNonExistentFields"
+          language="java"
+          message="Avoid Lombok annotations for fields of a class while the class has no fields."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          externalInfoUrl="">
+        <description>Problem: Lombok annotations for fields [@Getter, @Setter, @EqualsAndHashCode, @Value, @Data] are of no use and confusing in case the class has no fields.&#13;
+            Solution: Remove the Lombok annotation.
+        </description>
+        <priority>4</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,unused,confusing" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+//ClassDeclaration/ModifierList/Annotation
+    [pmd-java:typeIs('lombok.Getter') or pmd-java:typeIs('lombok.Setter') or pmd-java:typeIs('lombok.Value') or
+     pmd-java:typeIs('lombok.Data') or pmd-java:typeIs('lombok.EqualsAndHashCode')]
+    [ancestor::ClassDeclaration/ClassBody[count(FieldDeclaration) = 0]]
+                ]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+        @Data // bad
+        public class BusinessException extends RuntimeException {
+            // no fields, no methods
+        }
+            ]]>
+        </example>
+    </rule>
+
 </ruleset>
