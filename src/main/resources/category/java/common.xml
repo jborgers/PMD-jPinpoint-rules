@@ -1227,4 +1227,49 @@ class Foo {
         </example>
     </rule>
 
+    <rule name="OptimizeMapOrSetForEnum"
+          language="java"
+          message="Map has enum keys or Set has enum elements, use EnumMap or EnumSet for more efficiency."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#iuoc03">
+        <description>Problem: A HashMap and HashSet are rather greedy in memory usage.&#13;
+            Solution: Use an EnumMap or EnumSet. It is represented internally with arrays which is extremely compact and efficient.
+        </description>
+        <priority>3</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+//(FieldDeclaration|LocalVariableDeclaration)[
+    ClassType[(pmd-java:typeIs('java.util.Map') and not (pmd-java:typeIs('java.util.EnumMap'))) or (pmd-java:typeIs('java.util.Set') and not(pmd-java:typeIs('java.util.EnumSet')))]
+        /TypeArguments/ClassType[1][pmd-java:typeIs('java.lang.Enum') or @SimpleName = //EnumDeclaration/@SimpleName]
+    and
+    VariableDeclarator/(MethodCall|ConstructorCall)
+        [not ((pmd-java:typeIs('java.util.EnumSet') or pmd-java:typeIs('java.util.EnumMap')) or
+        (: Set.of() with 1 or 2 elems doesn't have the HashSet overhead :)
+        (@MethodName='of' and pmd-java:typeIsExactly('java.util.Set') and ArgumentList/@Size <= 2) or
+        (: it is exactly a Map or Set, cannot determine implementation #194 :)
+        ((@MethodName!='of' and pmd-java:typeIsExactly('java.util.Set'))
+            or pmd-java:typeIsExactly('java.util.Map'))
+        (: cannot determine type, indirect #194 :)
+        or (not(pmd-java:typeIs('java.util.Set') or pmd-java:typeIs('java.util.Map')))
+     )]
+]
+|
+//Initializer//AssignmentExpression[(pmd-java:typeIs('java.util.Map') and not (pmd-java:typeIs('java.util.EnumMap'))) or (pmd-java:typeIs('java.util.Set') and not(pmd-java:typeIs('java.util.EnumSet')))]
+/(MethodCall|ConstructorCall)
+        [not ((pmd-java:typeIs('java.util.EnumSet') or pmd-java:typeIs('java.util.EnumMap')) or
+        (: Set.of() with 1 or 2 elems doesn't have the HashSet overhead :)
+        (pmd-java:typeIsExactly('java.util.Set') and @MethodName='of' and ArgumentList/@Size <= 2))
+]
+]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+Map<YourEnumType, String> map = new EnumMap<>(YourEnumType.class);
+Set<YourEnumType> set = EnumSet.allOf(YourEnumType.class);
+            ]]>
+        </example>
+    </rule>
 </ruleset>
