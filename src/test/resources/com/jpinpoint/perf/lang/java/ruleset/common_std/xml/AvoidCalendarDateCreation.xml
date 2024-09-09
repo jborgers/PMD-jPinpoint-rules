@@ -28,8 +28,9 @@ public class Foo {
     <test-code>
         <description>violation: joda-time: new DateTime([Gregorian]Calendar.getInstance())</description>
         <expected-problems>2</expected-problems>
-        <expected-linenumbers>3,4</expected-linenumbers>
+        <expected-linenumbers>4,5</expected-linenumbers>
         <code><![CDATA[
+import java.util.*;
 public class Foo {
 	void bad() {
 		DateTime nowDT1 = new DateTime(GregorianCalendar.getInstance()); // bad
@@ -42,8 +43,9 @@ public class Foo {
     <test-code>
         <description>violation: Calendar.getInstance().getTimeInMillis()</description>
         <expected-problems>2</expected-problems>
-        <expected-linenumbers>3,4</expected-linenumbers>
+        <expected-linenumbers>4,5</expected-linenumbers>
         <code><![CDATA[
+import java.util.*;
 public class Foo {
 	void bad() {
 		long time = Calendar.getInstance().getTimeInMillis(); // bad
@@ -75,16 +77,16 @@ public class Foo {
         <description>no violation</description>
         <expected-problems>0</expected-problems>
         <code><![CDATA[
+import foo.bar.Bar;
 public class Foo {
-	void bad() {
+	void good() {
 		int warmestMonth = Calendar.getInstance().AUGUST;
 		long time = System.currentTimeMillis();
 		Date now = new Date();
+		Date future = Bar.getInstance().getTime();
 	}
 }
      ]]></code>
     </test-code>
-
-
 
 </test-data>

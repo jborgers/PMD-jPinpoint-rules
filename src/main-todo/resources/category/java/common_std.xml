@@ -5,55 +5,6 @@
          xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 https://pmd.sourceforge.io/ruleset_2_0_0.xsd">
     <description>jPinpoint rule set for performance aware Java coding, sponsored by Rabobank.</description>
 <!--
-    <rule name="AvoidCalendarDateCreation"
-          language="java"
-          message="A Calendar is used to create a Date or DateTime, this is expensive."
-          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-          typeResolution="true"
-          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ue01">
-        <description>Problem: A Calendar is a heavyweight object and expensive to create. &#13;
-            Solution: Use 'new Date()', Java 8+ java.time.[Local/Zoned]DateTime.now().
-        </description>
-        <priority>2</priority>
-        <properties>
-            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
-            <property name="xpath">
-                <value><![CDATA[
-//PrimaryPrefix[Name[ends-with(@Image, 'Calendar.getInstance')]] [count(../PrimarySuffix) > 2 and ../PrimarySuffix[last()-1][@Image = 'getTime' or @Image='getTimeInMillis']]
-|
-//Block/BlockStatement//Expression/PrimaryExpression/
-PrimaryPrefix/Name[pmd-java:typeIs('java.util.Calendar') and (ends-with(@Image,'.getTime') or ends-with(@Image,'.getTimeInMillis'))]
-|
-//ClassOrInterfaceType[pmd-java:typeIs('org.joda.time.DateTime') or pmd-java:typeIs('org.joda.time.LocalDateTime')][../Arguments/ArgumentList/Expression/PrimaryExpression/PrimaryPrefix/Name[ends-with(@Image, 'Calendar.getInstance')]]
-	         ]]></value>
-            </property>
-        </properties>
-        <example>
-            <![CDATA[
-public class DateStuff {
-    private Date bad1() {
-        return Calendar.getInstance().getTime(); // now
-    }
-    private Date good1a() {
-        return new Date(); // now
-    }
-    private LocalDateTime good1b() {
-        return LocalDateTime.now();
-    }
-    private long bad2() {
-        return Calendar.getInstance().getTimeInMillis();
-    }
-    private long good2() {
-        return System.currentTimeMillis();
-    }
-}
-            ]]>
-        </example>
-    </rule>
-
-
     <rule name="AvoidConcatInAppend"
           language="java"
           message="Concatenation inside append. Use extra append."
