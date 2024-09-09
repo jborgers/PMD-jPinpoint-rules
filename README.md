@@ -51,7 +51,7 @@ After installing the tool you can run `pmd.sh` or `pmd.bat` similar to the follo
 
 ## IntelliJ IDEA with PMD Plugin
 
-- You need version from 2023-1 to 2024-1 of IntelliJ. Unfortunately the proper plugin version is not supported in 2024-2+ yet.
+- You need version 2024-1 of IntelliJ. Unfortunately the proper plugin version is not supported in 2024-2+ yet.
 - PMD Plugin: you need version 1.9.2 (until we migrated fully to PMD7). Install:
 
       Settings > Plugins > Browse Repositories > Search 'PMD' > Select 'PMD' > Plugin homepage > Plugin Versions
