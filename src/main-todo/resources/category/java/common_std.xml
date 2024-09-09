@@ -5,59 +5,6 @@
          xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 https://pmd.sourceforge.io/ruleset_2_0_0.xsd">
     <description>jPinpoint rule set for performance aware Java coding, sponsored by Rabobank.</description>
 <!--
-    <rule name="AvoidApacheCommonsFileItemNonStreaming"
-          language="java"
-          message="Avoid memory intensive FileItem.get and FileItem.getString"
-          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-          typeResolution="true"
-          externalInfoUrl="${doc_root}/JavaCodePerformance.md#isio03">
-        <description>
-            Problem: Use of FileItem.get and FileItem.getString could exhaust memory since they load the entire file into memory&#13;
-            Solution: Use streaming methods and buffering.
-        </description>
-        <priority>2</priority>
-        <properties>
-            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
-            <property name="xpath">
-                <value>
-                    <![CDATA[
-//PrimaryPrefix/Name
-[ends-with(@Image, '.get') or ends-with(@Image, '.getString')]
-[
-	starts-with(@Image, concat(
-		ancestor::MethodDeclaration//FormalParameter/Type/ReferenceType/ClassOrInterfaceType[pmd-java:typeIs('org.apache.commons.fileupload.FileItem')]/../../..//VariableDeclaratorId/@Name,
-		'.')
-	) or
-	starts-with(@Image, concat(
-		ancestor::MethodDeclaration//LocalVariableDeclaration/Type/ReferenceType/ClassOrInterfaceType[pmd-java:typeIs('org.apache.commons.fileupload.FileItem')]/../../..//VariableDeclaratorId/@Name,
-		'.')
-	) or
-	starts-with(@Image, concat(
-		ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration/Type/ReferenceType/ClassOrInterfaceType[pmd-java:typeIs('org.apache.commons.fileupload.FileItem')]/../../..//VariableDeclaratorId/@Name,
-		'.')
-)
-]
-]]>
-                </value>
-            </property>
-        </properties>
-        <example>
-            <![CDATA[
-public class FileStuff {
-   private String bad(FileItem fileItem) {
-        return fileItem.getString();
-   }
-
-   private InputStream good(FileItem fileItem) {
-        return fileItem.getInputStream();
-   }
-}
-            ]]>
-        </example>
-    </rule>
-
     <rule name="AvoidCalendarDateCreation"
           language="java"
           message="A Calendar is used to create a Date or DateTime, this is expensive."
