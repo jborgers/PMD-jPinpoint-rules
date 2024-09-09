@@ -5,8 +5,8 @@
         xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
     <test-code>
         <description>Violation: Avoid contact in append method invocations</description>
-        <expected-problems>3</expected-problems>
-        <expected-linenumbers>9,18,24</expected-linenumbers>
+        <expected-problems>5</expected-problems>
+        <expected-linenumbers>9,15,16,21,27</expected-linenumbers>
         <code><![CDATA[
 public class Foo {
 
@@ -21,7 +21,10 @@ public class Foo {
 
     private void concatNumericIsBad() {
         StringBuilder sb = new StringBuilder();
-        sb.append(1 + 2); // bad
+        String bar = "bar";
+        sb.append(1 + 2 + "foo"); // bad
+        sb.append(3 + 4 + bar + 5 + 6); //bad
+        sb.append(1 + 3); // good: makes 4
     }
 
     private String testStaticBad() {

@@ -39,4 +39,50 @@
                 ]]>
         </example>
     </rule>
+
+    <rule name="AvoidConcatInAppend"
+          language="java"
+          message="Concatenation inside append. Use extra append."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          typeResolution="true"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#isu04">
+        <description>Concatenation of Strings is used inside an StringBuilder.append argument. Problem: Each statement with one or more +-operators creates a hidden temporary StringBuilder, a char[] and a new String object, which all have to be garbage collected.&#13;
+            Solution: Use an extra fluent append instead of concatenation.
+        </description>
+        <priority>2</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+//(ReturnStatement|ExpressionStatement|LocalVariableDeclaration)
+[.//MethodCall[@MethodName="append"]
+  //ArgumentList[./InfixExpression[@Operator="+"][last()]
+     /*[pmd-java:typeIs('java.lang.String')][count(..//VariableAccess) > 0
+        and not(..//VariableAccess/@Name = ancestor::ClassBody//VariableId[@Final=true()]/@Name)]]
+]
+|
+(: needed to match on append numerics with at least one String literal :)
+//ExpressionStatement[.//MethodCall[@MethodName="append"]//ArgumentList[./InfixExpression[@Operator="+"][count(.//NumericLiteral) > 1 and count(.//*[pmd-java:typeIs('java.lang.String')]) > 0]]]
+	]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+public class StringStuff {
+   private String bad(String arg) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("arg='" + arg + "'");
+        return sb.toString();
+   }
+
+   private String good(String arg) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("arg='").append(arg).append("'");
+        return sb.toString();
+   }
+}
+            ]]>
+        </example>
+    </rule>
+
 </ruleset>

@@ -53,57 +53,6 @@ public class DateStuff {
         </example>
     </rule>
 
-
-    <rule name="AvoidConcatInAppend"
-          language="java"
-          message="Concatenation inside append. Use extra append."
-          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-          typeResolution="true"
-          externalInfoUrl="${doc_root}/JavaCodePerformance.md#isu04">
-        <description>Concatenation of Strings is used inside an StringBuilder.append argument. Problem: Each statement with one or more +-operators creates a hidden temporary StringBuilder, a char[] and a new String object, which all have to be garbage collected.&#13;
-            Solution: Use an extra fluent append instead of concatenation.
-            </description>
-        <priority>2</priority>
-        <properties>
-            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
-            <property name="xpath">
-                <value><![CDATA[
-//MethodDeclaration/Block/BlockStatement[
-(.//PrimaryExpression/PrimaryPrefix/Name[substring-after(@Image, '.') = 'append']
-or
-.//PrimaryExpression/PrimarySuffix/@Image = 'append')
-and
-.//PrimaryExpression/PrimarySuffix/Arguments/ArgumentList/Expression[1]/AdditiveExpression[pmd-java:typeIs('java.lang.String')
-and (count(PrimaryExpression/PrimaryPrefix/Name) > 0)
-and not(PrimaryExpression/PrimaryPrefix/Name/@Image=
-ancestor::ClassOrInterfaceBody//FieldDeclaration[@Final=true()]//VariableDeclaratorId/@Name)
-and not(PrimaryExpression/PrimaryPrefix/Name/@Image=
-ancestor::Block//LocalVariableDeclaration[@Final=true()]//VariableDeclaratorId/@Name)
-]]
-	]]></value>
-            </property>
-        </properties>
-        <example>
-            <![CDATA[
-public class StringStuff {
-   private String bad(String arg) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("arg='" + arg + "'");
-        return sb.toString();
-   }
-
-   private String good(String arg) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("arg='").append(arg).append("'");
-        return sb.toString();
-   }
-}
-            ]]>
-        </example>
-    </rule>
-
     <rule name="AvoidConcatInLoop"
           language="java"
           message="A String is concatenated in a loop. Use StringBuilder.append."
