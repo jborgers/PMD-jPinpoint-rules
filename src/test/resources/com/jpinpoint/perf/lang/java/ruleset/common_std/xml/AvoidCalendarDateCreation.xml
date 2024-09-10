@@ -27,14 +27,18 @@ public class Foo {
 
     <test-code>
         <description>violation: joda-time: new DateTime([Gregorian]Calendar.getInstance())</description>
-        <expected-problems>2</expected-problems>
-        <expected-linenumbers>4,5</expected-linenumbers>
+        <expected-problems>4</expected-problems>
+        <expected-linenumbers>6,7,8,8</expected-linenumbers>
         <code><![CDATA[
 import java.util.*;
+import org.joda.time.*;
+
 public class Foo {
 	void bad() {
 		DateTime nowDT1 = new DateTime(GregorianCalendar.getInstance()); // bad
 		DateTime nowDT2 = new DateTime(Calendar.getInstance()); // bad
+		DateTime nowDT3 = new DateTime(Calendar.getInstance().getTime()); // bad
+        DateTime nowDT4 = new DateTime(new Date().getTime()); // good
 	}
 }
      ]]></code>

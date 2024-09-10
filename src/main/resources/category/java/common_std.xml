@@ -55,11 +55,11 @@
             <property name="xpath">
                 <value>
                     <![CDATA[
-//MethodCall[@MethodName="getInstance"][ancestor::MethodCall[@MethodName='getTime' or @MethodName='getTimeInMillis']//TypeExpression/ClassType[@SimpleName='Calendar' or @SimpleName='GregorianCalendar']]
+//MethodCall[pmd-java:matchesSig('java.util.Calendar#getInstance()') or pmd-java:matchesSig('java.util.GregorianCalendar#getInstance()')][ancestor::MethodCall[@MethodName='getTime' or @MethodName='getTimeInMillis']]
 |
 //MethodCall[@MethodName='getTime' or @MethodName='getTimeInMillis'][VariableAccess[pmd-java:typeIs('java.util.Calendar')]]
 |
-//ClassType[@SimpleName='DateTime'][../ArgumentList/MethodCall[@MethodName="getInstance"]//TypeExpression/ClassType[@SimpleName='Calendar' or @SimpleName='GregorianCalendar']]
+//ConstructorCall/ClassType[pmd-java:typeIs('org.joda.time.DateTime')]/../ArgumentList//MethodCall[pmd-java:matchesSig('java.util.Calendar#getInstance()') or pmd-java:matchesSig('java.util.GregorianCalendar#getInstance()')]
                     ]]>
                 </value>
             </property>
