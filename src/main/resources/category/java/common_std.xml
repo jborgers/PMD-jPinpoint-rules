@@ -103,7 +103,6 @@ public class StringStuff {
             <property name="xpath">
                 <value><![CDATA[
 (: number of statements should be limited, setters are ignored. Chained methods are one statement :)
-(: number of statements should be limited, setters are ignored. Chained methods are one statement :)
 //LambdaExpression/Block[count(.//(
   Block|
   BreakStatement|
