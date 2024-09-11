@@ -104,60 +104,6 @@ public class StringStuff {
         </example>
     </rule>
 
-    <rule name="AvoidConcatInLoop"
-          language="java"
-          message="A String is concatenated in a loop. Use StringBuilder.append."
-          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-          typeResolution="true"
-          externalInfoUrl="${doc_root}/JavaCodePerformance.md#isu02">
-        <description>A String is built in a loop by concatenation. Problem: Each statement with one or more +-operators creates a hidden temporary StringBuilder, a char[] and a new String object, which all have to be garbage collected. &#13;
-            Solution: Use the StringBuilder append method.
-        </description>
-        <priority>2</priority>
-        <properties>
-            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
-            <property name="xpath">
-                <value><![CDATA[
-(//ForStatement | //WhileStatement | //DoStatement)//AssignmentOperator[
-    (: a += ...;  - a being a string :)
-    @Image='+=' and preceding-sibling::*[1]/PrimaryPrefix/Name[pmd-java:typeIs('java.lang.String')]
-    (: a = ... + a + ...; - a being a string :)
-    or @Image='=' and following-sibling::*[1]/AdditiveExpression/PrimaryExpression/PrimaryPrefix/Name[
-        pmd-java:typeIs('java.lang.String')
-        and @Image = ancestor::StatementExpression/PrimaryExpression/PrimaryPrefix/Name/@Image
-    ]
-]/.. (: Go up to report on the StatementExpression :)
-	]]>
-                </value>
-            </property>
-        </properties>
-        <example>
-            <![CDATA[
-public class StringStuff {
-   private String bad(String arg) {
-        String log = "";
-        List<String> values = Arrays.asList("tic ", "tac ", "toe ");
-        for (String val : values) {
-            log += val;
-        }
-        return log;
-    }
-
-   private String good(String arg) {
-        StringBuilder sb = new StringBuilder();
-        List<String> values = Arrays.asList("tic ", "tac ", "toe ");
-        for (String val : values) {
-            sb.append(val);
-        }
-        return sb.toString();
-   }
-}
-            ]]>
-        </example>
-    </rule>
-
     <rule name="LimitWildcardStaticImports"
           language="java"
           message="The number of static imports with a wildcard should be limited"
