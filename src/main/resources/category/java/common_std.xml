@@ -98,7 +98,7 @@ public class StringStuff {
         </description>
         <priority>3</priority>
         <properties>
-            <property name="tag" value="jpinpoint-rule,brain-overload,replaces-sonar-rule" type="String" description="classification"/>
+            <property name="tags" value="jpinpoint-rule,brain-overload,replaces-sonar-rule" type="String" description="classification"/>
             <property name="param-max" value="5" type="String" description="Maximum number of allowed non-setter statements"/>
             <property name="xpath">
                 <value><![CDATA[
