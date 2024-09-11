@@ -40,6 +40,52 @@
         </example>
     </rule>
 
+    <rule name="AvoidConcatInLoop"
+          language="java"
+          message="A String is concatenated in a loop. Use StringBuilder.append."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          typeResolution="true"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#isu02">
+        <description>A String is built in a loop by concatenation. Problem: Each statement with one or more +-operators creates a hidden temporary StringBuilder, a char[] and a new String object, which all have to be garbage collected. &#13;
+            Solution: Use the StringBuilder append method.
+        </description>
+        <priority>2</priority>
+        <properties>
+            <property name="tag" value="jpinpoint-rule,performance" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+(//ForeachStatement | //WhileStatement | //DoStatement)//AssignmentExpression[
+    (: a += ...;  - a being a string OR a = ... + a + ...; - a being a string :)
+    @Operator = '+=' or @Operator = '=']/VariableAccess[pmd-java:typeIs('java.lang.String')]
+/.. (: Go up to report on the StatementExpression :)
+	]]>
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+public class StringStuff {
+   private String bad(String arg) {
+        String log = "";
+        List<String> values = Arrays.asList("tic ", "tac ", "toe ");
+        for (String val : values) {
+            log += val;
+        }
+        return log;
+    }
+
+   private String good(String arg) {
+        StringBuilder sb = new StringBuilder();
+        List<String> values = Arrays.asList("tic ", "tac ", "toe ");
+        for (String val : values) {
+            sb.append(val);
+        }
+        return sb.toString();
+   }
+}
+            ]]>
+        </example>
+    </rule>
 
     <rule name="LimitWildcardStaticImports"
           language="java"
