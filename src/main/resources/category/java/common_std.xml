@@ -103,12 +103,12 @@ public class StringStuff {
             <property name="xpath">
                 <value><![CDATA[
 (: number of statements should be limited, setters are ignored. Chained methods are one statement :)
-//LambdaExpression[count(.//(
+(: number of statements should be limited, setters are ignored. Chained methods are one statement :)
+//LambdaExpression/Block[count(.//(
   Block|
   BreakStatement|
   ContinueStatement|
   DoStatement|
-  EmptyStatement|
   ExplicitConstructorInvocation|
   ExpressionStatement|
   ForeachStatement|
@@ -124,7 +124,7 @@ public class StringStuff {
   ThrowStatement|
   TryStatement|
   WhileStatement|
-  YieldStatement)) - count(.//ExpressionStatement/MethodCall[starts-with(@MethodName,'set')]) > 6]
+  YieldStatement)) - count(.//ExpressionStatement/MethodCall[starts-with(@MethodName,'set')]) > number($param-max)]
                 ]]></value>
             </property>
         </properties>
