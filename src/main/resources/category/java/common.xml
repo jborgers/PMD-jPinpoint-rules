@@ -1303,4 +1303,43 @@ Set<YourEnumType> set = EnumSet.allOf(YourEnumType.class);
         </example>
     </rule>
 
+    <rule name="ImproperVariableName"
+          language="java"
+          message="Give variables and fields a meaningful name."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+
+          externalInfoUrl="${doc_root}/JavaCodeQuality.md#m01">
+        <description>Problem: Variables like 'var3' and fields like 'FOUR = 4', do not express what they are used for. This is bad for maintainability.&#13;
+            Solution: Let variable names express what they are used for, like 'key' and 'MAX_KEYS = 4'
+        </description>
+        <priority>3</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,bad-practice,confusing" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+//VariableId[matches(@Name, 'VALUE|VAL|INTEGER|INT|LONG|NUMBER|NUM|[0-9]+|ZERO|ONE|TWO|THREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|TEN|TWENTY', 'i')
+(: not allowed only as uppercase :)
+and (replace(@Name, 'VALUE|VAL|NUMBER|NUM|[0-9]+|ZERO|ONE|TWO|THREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|TEN|TWENTY|_', '') = ''
+   (: not allowed as lower and uppercase :)
+   or replace(@Name, 'INTEGER|INT|LONG|[0-9]+|ZERO|ONE|TWO|THREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|TEN|TWENTY|_', '', 'i') = '')
+or starts-with(@Name, 'var') and number(substring-after(@Name, 'var'))]
+                ]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+class Foo {
+    private static final int FOUR_ZERO_NINE_SIX = 4096; // bad
+    private static final int VALUE_42 = 42; // bad
+    private static int six = 6; // bad
+    private int five = 7; // what? bad
+    private static final int SIXTIES_START = 1960; // good
+
+    void bar() {
+        String var1 = "baz"; // bad
+    }
+}
+            ]]>
+        </example>
+    </rule>
 </ruleset>
