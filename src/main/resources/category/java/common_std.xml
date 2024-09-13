@@ -103,27 +103,7 @@ public class StringStuff {
             <property name="xpath">
                 <value><![CDATA[
 (: number of statements should be limited, setters are ignored. Chained methods are one statement :)
-//LambdaExpression/Block[count(.//(
-  Block|
-  BreakStatement|
-  ContinueStatement|
-  DoStatement|
-  ExplicitConstructorInvocation|
-  ExpressionStatement|
-  ForeachStatement|
-  ForStatement|
-  IfStatement|
-  LabeledStatement|
-  LocalClassStatement|
-  LocalVariableDeclaration|
-  ReturnStatement|
-  StatementExpressionList|
-  SwitchStatement|
-  SynchronizedStatement|
-  ThrowStatement|
-  TryStatement|
-  WhileStatement|
-  YieldStatement)) - count(.//ExpressionStatement/MethodCall[starts-with(@MethodName,'set')]) > number($param-max)]
+//LambdaExpression/Block[count(.//*[pmd-java:nodeIs('Statement')]) - count(.//EmptyStatement) - count(.//ExpressionStatement/MethodCall[starts-with(@MethodName,'set')]) > number($param-max)]
                 ]]></value>
             </property>
         </properties>
