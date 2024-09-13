@@ -1453,4 +1453,61 @@ public enum Fruit {
         </example>
     </rule>
 
+    <rule name="NonComparableSetElements"
+          language="java"
+          message="Set elements should implement Comparable in order to make access by element fast."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#iuoc09">
+        <description>Problem: A Set is implemented with a Map. If multiple entries end up in the same HashMap bucket, they are stored as LinkedList, and with more than 7 as a red-black tree.
+            The list access time is O(n) and tree access time is only O(log n) which is much faster for large n. This tree implementation utilizes the compareTo from the Comparable interface.
+            If this is not implemented, access by element will be slow. Iterating through the elements does not suffer from this slow access because no lookup by key in the map is involved.
+            Access methods by element which are affected: contains[All], retainAll, remove[All].
+            Solution: Implement Comparable for your own Set elements. Avoid using large Sets with elements of types which don't implement Comparable, like Thread, Class and Object. At least when using access by element.
+            Note that equals and hashCode must be implemented properly for the elements, and compareTo must be compatible with equals.
+        </description>
+        <priority>3</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+(: declared variable used in Set by-element access :)
+//VariableId[@Name = ancestor::ClassBody//MethodCall[@MethodName = ('contains','containsAll','remove','removeAll','retainAll')]/VariableAccess/@Name]
+    (: for 3 ways defined as a Set :)
+    [(ancestor::FieldDeclaration|ancestor::LocalVariableDeclaration|ancestor::FormalParameter)/ClassType[pmd-java:typeIs('java.util.Set')]
+    (: element type does not implement Comparable :)
+    /TypeArguments/ClassType[not(pmd-java:typeIs('java.lang.Comparable'))]]/../..
+               ]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+import java.util.*;
+import org.apache.hc.client5.http.HttpRoute; // does implement equals/hashCode yet *not* compareTo
+
+class Foo {
+  Set<String> strSet = new HashSet<>();
+  List<String> strList = new ArrayList<>();
+  Set<HttpRoute> fieldRouteSet = new HashSet<>(); // bad
+  List<HttpRoute> routeList = new ArrayList<>();
+
+  void byElemBad(Set<HttpRoute> paramRouteSet) { // bad
+    paramRouteSet.retainAll(routeList);
+
+    fieldRouteSet.contains(t);
+
+    Set<HttpRoute> localRouteSet = new HashSet<>(); // bad
+    localRouteSet.removeAll(routeList);
+  }
+
+  void otherCasesGood(Set<HttpRoute> paramRouteSet) {
+    strSet.contains("bla");
+    strSet.retainAll(strList);
+    strSet.remove("other");
+    paramRouteSet.iterator().next();
+  }
+}
+            ]]>
+        </example>
+    </rule>
 </ruleset>
