@@ -55,14 +55,11 @@
             <property name="xpath">
                 <value><![CDATA[
 //(ReturnStatement|ExpressionStatement|LocalVariableDeclaration)
-[.//MethodCall[@MethodName="append"]
-  //ArgumentList[./InfixExpression[@Operator="+"][last()]
+[.//MethodCall[pmd-java:matchesSig('java.lang.StringBuilder#append(java.lang.String)') or pmd-java:matchesSig('java.lang.StringBuffer#append(java.lang.String)')]
+  //ArgumentList[./InfixExpression[@Operator="+"]
      /*[pmd-java:typeIs('java.lang.String')][count(..//VariableAccess) > 0
         and not(..//VariableAccess/@Name = ancestor::ClassBody//VariableId[@Final=true()]/@Name)]]
 ]
-|
-(: needed to match on append numerics with at least one String literal :)
-//ExpressionStatement[.//MethodCall[@MethodName="append"]//ArgumentList[./InfixExpression[@Operator="+"][count(.//NumericLiteral) > 1 and count(.//*[pmd-java:typeIs('java.lang.String')]) > 0]]]
 	]]></value>
             </property>
         </properties>
