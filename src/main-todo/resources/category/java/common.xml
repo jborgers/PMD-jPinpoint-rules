@@ -305,64 +305,6 @@ class Foo {
         </example>
     </rule>
 
-    <rule name="NonComparableMapKeys"
-          language="java"
-          message="Map keys should implement Comparable in order to make access fast."
-          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-          
-          externalInfoUrl="${doc_root}/JavaCodePerformance.md#iuoc08">
-        <description>Problem: If multiple entries end up in the same HashMap bucket, they are stored as LinkedList, and with more than 7 as a red black tree.
-            The list access time is O(n) and tree access time is only O(log n) which is much faster for large n. This tree implementation utilizes the compareTo from the Comparable interface.
-            If this is not implemented, access will be slow.
-            Solution: Implement Comparable for your Map keys. Do not use classes for the keys which don't implement Comparable, like Thread, Class and Object. At least not for Maps which can grow large.
-            Note that equals and hashCode must be implemented properly for the keys, and compareTo must be compatible with equals.
-        </description>
-        <priority>3</priority>
-        <properties>
-            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
-            <property name="xpath">
-                <value><![CDATA[
-(: check key/elem type in declaration :)
-//Type/ReferenceType/ClassOrInterfaceType[pmd-java:typeIs('java.util.Map')]
-(: first type argument does not implement Comparable :)
-[TypeArguments/TypeArgument[1]/ReferenceType[not(pmd-java:typeIs('java.lang.Comparable'))
-(: and can be resolved :)
-and (pmd-java:typeIs('java.lang.Object'))
-]]
-,
-(: for when key/elem type ise missing in declaration, check Map.put and Set.add :)
-//PrimaryExpression[PrimaryPrefix/Name[ends-with(@Image, '.put') and pmd-java:typeIs('java.util.Map')]]
-/PrimarySuffix/Arguments/ArgumentList/Expression[1]
-(: first arg does not implement Comparable :)
-[not(pmd-java:typeIs('java.lang.Comparable'))
-(: and can be resolved :)
-and (pmd-java:typeIs('java.lang.Object'))
-]
-               ]]></value>
-            </property>
-        </properties>
-        <example>
-            <![CDATA[
- class Foo {
-    Map<Object, String> oMap; // bad, Object does not implement Comparable
-    Map<Thread, String> tMap; // bad, Thread does not implement Comparable
-
-    Map oldStyleMap = new HashMap(); // cannot check here
-
-    void putInOldStyleBad() {
-        oldStyleMap.put(new Thread(), "value"); // bad
-    }
-
-    Map<Comparable, String> cMap; // good
-
-    void putInOldStyleGood() {
-        oldStyleMap.put("key", "value");
-    }
-}
-
-            ]]>
-        </example>
-    </rule>
 
     <rule name="NonComparableSetElements"
           language="java"
