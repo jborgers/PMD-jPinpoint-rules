@@ -5,8 +5,8 @@
         xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
     <test-code>
         <description>Improper Variable Name</description>
-        <expected-problems>5</expected-problems>
-        <expected-linenumbers>2, 3, 4, 6, 10</expected-linenumbers>
+        <expected-problems>15</expected-problems>
+        <expected-linenumbers>2, 3, 4, 6, 10, 11, 12, 13, 14, 15, 16, 17, 18, 26, 29</expected-linenumbers>
         <code><![CDATA[
 class Foo {
     private static final int FOUR_ZERO_NINE_SIX = 4096; // bad
