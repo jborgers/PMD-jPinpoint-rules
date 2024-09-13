@@ -305,69 +305,6 @@ class Foo {
         </example>
     </rule>
 
-    <rule name="AvoidReStreamingEnumValues"
-          language="java"
-          message="Avoid re-streaming enum values to find a value by a field."
-          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-          
-          externalInfoUrl="${doc_root}/JavaCodePerformance.md#iuoc07">
-        <description>Problem: the time to find element is O(n); n = the number of enum values. This identical processing is executed for every call. Considered problematic when n > 3.
-            Solution: use a static field-to-enum-value Map. Access time is O(1), provided the hashCode is well-defined.
-            For one String field, usually toString returns that field. Implement a fromString method to provide the reverse conversion by using the map.
-        </description>
-        <priority>3</priority>
-        <properties>
-            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
-            <property name="xpath">
-                <value><![CDATA[
-    //EnumDeclaration/EnumBody[count(EnumConstant) > 3]//MethodDeclaration/Block//PrimaryExpression
-    [PrimaryPrefix/Name[@Image='Arrays.stream' or @Image='Stream.of']]
-    [//PrimaryExpression/PrimaryPrefix/Name[@Image = 'values' or @Image = concat(ancestor::EnumDeclaration/@SimpleName, '.values')]]
-    [PrimarySuffix[starts-with(@Image, 'find')]]
-                ]]></value>
-            </property>
-        </properties>
-        <example>
-            <![CDATA[
-// BAD
-public enum Fruit {
-    APPLE("apple"),
-    ORANGE("orange"),
-    BANANA("banana"),
-    KIWI("kiwi");
-
-    private final String name;
-
-    Fruit(String name) { this.name = name; }
-    @Override public String toString() { return name; }
-    public static Optional<Fruit> fromString(String name) {
-        return Stream.of(values()).filter(v -> v.toString().equals(name)).findAny(); // bad: iterates for every call, O(n) access time
-    }
-}
-
-Usage: `Fruit f = Fruit.fromString("banana");`
-
-// GOOD
-public enum Fruit {
-    APPLE("apple"),
-    ORANGE("orange"),
-    BANANA("banana"),
-    KIWI("kiwi");
-
-    private static final Map<String, Fruit> nameToValue =
-            Stream.of(values()).collect(toMap(Object::toString, v -> v));
-    private final String name;
-
-    Fruit(String name) { this.name = name; }
-    @Override public String toString() { return name; }
-    public static Optional<Fruit> fromString(String name) {
-        return Optional.ofNullable(nameToValue.get(name)); // good, get from Map, O(1) access time
-    }
-}
-            ]]>
-        </example>
-    </rule>
-
     <rule name="NonComparableMapKeys"
           language="java"
           message="Map keys should implement Comparable in order to make access fast."
