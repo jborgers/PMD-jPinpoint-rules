@@ -322,6 +322,7 @@ ancestor::FunctionBody//PropertyDeclaration[(
 
         </example>
     </rule>
+
     <rule name="AvoidWideScopeXPathExpression"
           class="net.sourceforge.pmd.lang.rule.XPathRule"
           dfa="false"
@@ -417,6 +418,139 @@ class Foo {
                 </value>
             </property>
         </properties>
+    </rule>
+
+    <rule name="AvoidXPathAPIUsage"
+          class="net.sourceforge.pmd.lang.rule.XPathRule"
+          dfa="false"
+          language="kotlin"
+          message="XPathAPI is used. XPathAPI implementation has bad performance."
+          typeResolution="true"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ux01">
+        <description>XPathAPI is used. Problem: XPathAPI implementation is slow.&#13;
+            Solution: 1. try to avoid using XPathAPI. 2. improve performance by using jvm parameters and possibly CachedXPathAPI.
+            (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <!--property name="tag" value="performance" type="String" description="for-sonar"/-->
+            <property name="xpath">
+                <value><![CDATA[
+//ImportHeader[.//T-Identifier[@Text='org'] and .//T-Identifier[@Text='apache'] and .//T-Identifier[@Text='xpath']][1]/ancestor::KotlinFile
+//ClassBody//SimpleIdentifier/T-Identifier[@Text='XPathAPI']
+	]]></value>
+            </property>
+        </properties>
+        <example><![CDATA[
+import org.w3c.dom.Node
+import org.apache.xpath.XPathAPI
+import org.apache.xpath.CachedXPathAPI
+
+class FooBad {
+    fun getAction(doc: Node?): String? {
+        return try {
+            XPathAPI.eval(doc, "/Envelope/Header/Action").toString() // bad
+        } catch (e: TransformerException) {
+            null
+        }
+    }
+}
+
+class FooGood {
+    fun getAction(doc: Node?): String? {
+        return try {
+            CachedXPathAPI.eval(doc, "/Envelope/Header/Action").toString()
+        } catch (e: TransformerException) {
+            null
+        }
+    }
+}
+]]>
+        </example>
+    </rule>
+
+    <rule name="AvoidImplicitlyRecompilingRegex"
+          class="net.sourceforge.pmd.lang.rule.XPathRule"
+          dfa="false"
+          language="kotlin"
+          message="String regex method, Pattern.matches or FileSystem.getPathMatcher is used. Implicitly compiles a regex pattern, can be expensive."
+          typeResolution="true"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ireu01">
+        <description>A regular expression is compiled implicitly on every invocation. Problem: this can be expensive, depending on the length of the regular expression.&#13;
+            Solution: Compile the regex pattern only once and assign it to a private static final Pattern field. java.util.Pattern objects are thread-safe so they can be shared among threads.
+            (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <property name="xpath">
+                <value>
+                    //FunctionDeclaration//PostfixUnaryExpression/PostfixUnarySuffix/NavigationSuffix/SimpleIdentifier/T-Identifier[
+    @Text='toRegex'
+    (: not called on function parameter :)
+    and not(../../../../PrimaryExpression//T-Identifier[
+        @Text = ancestor::FunctionDeclaration//FunctionValueParameter//Parameter/SimpleIdentifier/T-Identifier/@Text])
+    (: not called on 'dynamic' function call :)
+    and not(../../../../../PostfixUnaryExpression/PostfixUnarySuffix[1]/CallSuffix)
+    (: not if based on local variable initialized by parameter :)
+    and not(../../../../../PostfixUnaryExpression/PrimaryExpression/SimpleIdentifier/T-Identifier[
+        @Text = ancestor::FunctionBody//PropertyDeclaration/VariableDeclaration/SimpleIdentifier/T-Identifier/@Text])
+]
+
+|
+
+(: check if java.util.regex.Pattern import exists as filter for same named classes in other packages :)
+//ImportHeader[
+    (.//T-Identifier[@Text='java'] and .//T-Identifier[@Text='util'] and .//T-Identifier[@Text='regex'] and .//T-Identifier[@Text='Pattern'] or .//T-MULT)
+  ][1]/ancestor::KotlinFile
+//SimpleIdentifier/T-Identifier[@Text='Pattern'
+    and ../../../PostfixUnarySuffix//T-Identifier[@Text='matches']
+    (: not if first param is function parameter :)
+    and not(../../../PostfixUnarySuffix/CallSuffix/ValueArguments/ValueArgument[1]//SimpleIdentifier/T-Identifier[
+        @Text = ancestor::FunctionDeclaration//Parameter/SimpleIdentifier/T-Identifier/@Text])
+]
+
+|
+
+(: check if java.nio.file.FileSystems or java.nio.file.Path imports exists as filter for same named classes in other packages :)
+(: TODO is this a bug: having to use T-FILE for 'file' :)
+//ImportHeader[
+    (.//T-Identifier[@Text='java']
+        and .//T-Identifier[@Text='nio'] and .//T-FILE[@Text='file'] and .//T-Identifier[@Text='FileSystems' or @Text='Path'] or .//T-MULT)
+  ][1]/ancestor::KotlinFile
+//FunctionDeclaration//PostfixUnarySuffix//T-Identifier[(@Text='getPathMatcher' or @Text='matches')
+    and (ancestor::PostfixUnaryExpression/PrimaryExpression/SimpleIdentifier/T-Identifier[@Text='FileSystems'])
+    (: not if first param is function parameter :)
+    and not(ancestor::PrefixUnaryExpression//CallSuffix/ValueArguments/ValueArgument//SimpleIdentifier/T-Identifier[
+       @Text = ancestor::FunctionDeclaration//Parameter/SimpleIdentifier/T-Identifier/@Text])
+    (: not param in String template in function param :)
+    and not(ancestor::PrefixUnaryExpression//CallSuffix/ValueArguments/ValueArgument//LineStringContent/T-LineStrRef[
+       @Text = ancestor::FunctionDeclaration//Parameter/SimpleIdentifier/T-Identifier/concat('$', @Text)])
+]
+
+                </value>
+            </property>
+        </properties>
+        <example>
+class Foo {
+
+    companion object {
+        val INNER_LINE_BREAK_REGEX = """([^.\n])\n""".toRegex()
+        val INNER_LINE_BREAK_PATTERN = """([^.\n])\n""".toPattern()
+    }
+
+    fun bad_replaceInnerLineBreakBySpace(text: String): String {
+        return text.replace("""([^.\n])\n""".toRegex(), "$1 ") // bad
+    }
+
+    fun good_replaceInnerLineBreakBySpace1(text: String): String {
+        return text.replace(INNER_LINE_BREAK_REGEX, "$1 ") // good
+    }
+
+    fun good_replaceInnerLineBreakBySpace2(text: String): String {
+        return INNER_LINE_BREAK_PATTERN.matcher(text).replaceAll("$1 ") // good
+    }
+}
+        </example>
     </rule>
 
 </ruleset>

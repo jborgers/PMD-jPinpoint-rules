@@ -6,6 +6,7 @@
     <test-code>
         <description>Avoid XPathAPI usage</description>
         <expected-problems>1</expected-problems>
+        <expected-linenumbers>41</expected-linenumbers>
         <code><![CDATA[
 import org.apache.xpath.XPathAPI;
 import org.w3c.dom.Document;
@@ -20,7 +21,6 @@ import javax.xml.transform.TransformerException;
 import javax.xml.xpath.*;
 import java.io.IOException;
 //import org.apache.commons.jxpath.*;
-
 
 public class XPathUsageTest {
 
@@ -45,10 +45,9 @@ public class XPathUsageTest {
 		}
 	}
 
-	public String getAction() {
+	public String getAction(Node doc) {
 		try {
-			Node doc = null;
-			return XPathAPI.eval(doc, "/Envelope/Header/Action").toString();
+			return XPathAPI.eval(doc, "/Envelope/Header/Action").toString(); // bad
 		} catch (TransformerException e) {
 			//logger.debug("", e);
 			return null;

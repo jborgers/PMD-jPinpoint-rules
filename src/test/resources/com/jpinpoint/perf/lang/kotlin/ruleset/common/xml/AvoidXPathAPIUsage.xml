@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>violation: Avoid XPathAPI Usage</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>8</expected-linenumbers>
+        <code><![CDATA[
+import org.w3c.dom.Node
+import org.apache.xpath.XPathAPI
+import org.apache.xpath.CachedXPathAPI
+
+class FooBad {
+    fun getAction(doc: Node?): String? {
+        return try {
+            XPathAPI.eval(doc, "/Envelope/Header/Action").toString() // bad
+        } catch (e: TransformerException) {
+            null
+        }
+    }
+}
+
+class FooGood {
+    fun getAction(doc: Node?): String? {
+        return try {
+            CachedXPathAPI.eval(doc, "/Envelope/Header/Action").toString()
+        } catch (e: TransformerException) {
+            null
+        }
+    }
+}
+     ]]></code>
+    </test-code>
+</test-data>
