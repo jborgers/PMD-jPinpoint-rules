@@ -102,12 +102,11 @@ public class StringStuff {
             <property name="tags" value="jpinpoint-rule,pitfall,replaces-sonar-rule" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
-//ClassDeclaration[ImplementsList/ClassType[@SimpleName='Serializable']
-or pmd-java:typeIs('java.io.Serializable')
+//ClassDeclaration[pmd-java:typeIs('java.io.Serializable')
 (: Throwable is the exception, except RemoteException :)
 and not(pmd-java:typeIs('java.lang.Throwable') and not(pmd-java:typeIs('java.rmi.RemoteException')))]
 (: non-transient, non-static, non-primitive fields :)
-//FieldDeclaration[not(pmd-java:modifiers() = 'transient') and not(pmd-java:modifiers() = 'static')]
+//FieldDeclaration[not(pmd-java:modifiers() = ('transient', 'static'))]
 [not(.//PrimitiveType)]
 [ClassType[not(pmd-java:typeIs('java.io.Serializable'))]]
 (: and can be resolved :)
@@ -118,8 +117,7 @@ and not(pmd-java:typeIs('java.lang.Throwable') and not(pmd-java:typeIs('java.rmi
                                          (: and can be resolved :)
                                          and pmd-java:typeIs('java.lang.Object')]
     )
-]
-                ]]></value>
+]                ]]></value>
             </property>
         </properties>
         <example>
