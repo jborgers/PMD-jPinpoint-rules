@@ -1126,7 +1126,7 @@ class Bad {
 (: exclude ConfigurationProperties classes :)
 [count(ancestor::ClassDeclaration/ModifierList/Annotation[@SimpleName='ConfigurationProperties']) = 0]
 (: exclude when JPA annotated :)
-[count(ModifierList/Annotation[@SimpleName='OneToMany' or @SimpleName='ManyToMany']) = 0]
+[count(ModifierList/Annotation[@SimpleName=('OneToMany', 'ManyToMany')]) = 0]
 //VariableId[
     (: with a method defined at that level that does not use the field with a modify operation (case field.modOp) :)
     not(@Name = ancestor::ClassBody/MethodDeclaration/Block//MethodCall[
