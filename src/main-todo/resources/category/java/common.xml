@@ -305,40 +305,6 @@ class Foo {
         </example>
     </rule>
 
-    <rule name="AvoidExposingMutableRecordState"
-          language="java"
-          message="Avoid exposing mutable state of the record. Use copyOf in the compact constructor."
-          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-          
-          externalInfoUrl="${doc_root}/JavaCodePerformance.md#voedos06">
-        <description>Problem: Internal state can be modified from outside of the record, through the implicit accessor method or by the caller of the constructor. Risk of thread-unsafety.
-            Solution: Use the record compact constructor to defensively copy the (possibly) mutable object such as a List, Set or Map, e.g. with List.copyOf().
-        </description>
-        <priority>3</priority>
-        <properties>
-            <property name="tags" value="jpinpoint-rule,multi-threading" type="String" description="classification"/>
-            <property name="xpath">
-                <value><![CDATA[
-//RecordDeclaration//RecordComponent/Type[(pmd-java:typeIs('java.util.Collection') or pmd-java:typeIs('java.util.Map'))
-and
-not(../VariableDeclaratorId/@Name = ancestor::RecordDeclaration/RecordBody/CompactConstructorDeclaration//StatementExpression
-[Expression//PrimaryExpression/PrimaryPrefix/Name[ends-with(@Image, 'copyOf')]]/PrimaryExpression/PrimaryPrefix/Name/@Image)]                ]]></value>
-            </property>
-        </properties>
-        <example>
-            <![CDATA[
-record BadRecord(String name, List<String> list) {
-}
-
-record GoodRecord(String name, List<String> list) {
-    public GoodRecord {
-        list = List.copyOf(list);
-    }
-}
-            ]]>
-        </example>
-    </rule>
-
     <rule name="AvoidReStreamingEnumValues"
           language="java"
           message="Avoid re-streaming enum values to find a value by a field."
