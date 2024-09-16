@@ -228,4 +228,56 @@ class Baz extends RemoteException {
         </example>
     </rule>
 
+
+    <rule name="LimitStatementsInLambdas"
+          language="java"
+          message="Avoid many statements in lambda expressions."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          externalInfoUrl="${doc_root}/JavaCodeQuality.md#isr03">
+        <description>Problem: lambda expressions with many statements are hard to understand and maintain.
+            Solution: extract the lambda expression code block into one or more well-named separate method(s).
+        </description>
+        <priority>3</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,brain-overload,replaces-sonar-rule" type="String" description="classification"/>
+            <property name="param-max" value="5" type="String" description="Maximum number of allowed non-setter statements"/>
+            <property name="xpath">
+                <value><![CDATA[
+(: number of statements should be limited, setters are ignored. Chained methods are one statement :)
+//LambdaExpression/Block[count(.//*[pmd-java:nodeIs('Statement')]) - count(.//EmptyStatement) - count(.//ExpressionStatement/MethodCall[starts-with(@MethodName,'set')]) > number($param-max)]
+                ]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+class Foo {
+       void bar(List additionals) {
+            additionals.forEach(entity -> {
+                if (entity.getKNr() != null) {
+                    action.withActions(
+                            new Action().withFoId(actionFoId.incrementAndGet())
+                                    .withEntityPlanFoId(1)
+                                    .withEntity(mapLogicType(true))
+                    );
+                }
+            });
+       }
+
+       void baz(List additionals) {
+            additionals.forEach(entity -> {         // bad, too many statements (5)
+                if (entity.getKNr() != null) {
+                    action.withActions(
+                            new Action().withFoId(actionFoId.incrementAndGet())
+                                    .withEntityPlanFoId(1)
+                                    .withEntity(mapLogicType(true))
+                    );
+                }
+                else { action.withActions(new Action().withFoId(0)); }
+            });
+        }
+}
+            ]]>
+        </example>
+    </rule>
+
 </ruleset>
