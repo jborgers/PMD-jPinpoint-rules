@@ -1591,4 +1591,42 @@ class BufferFileStreaming {
         </example>
     </rule>
 
+    <rule name="BufferFilesNewStream"
+          language="java"
+          message="Files.newInputStream or Files.newOutputStream is not buffered, add buffering."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#isio06">
+        <description>Problem: Files.newInputStream or Files.newOutputStream is not buffered.
+            The stream is read from/written to file byte by byte, where each operating system call has its overhead which makes it slow.
+            Solution: Use buffering to read/write a chunk of bytes at once with much lower overhead.
+            Use e.g. BufferedInputStream or BufferedOutputStream which has a buffer size of 8 kB to read/write at once. Make sure to close it after use.
+        </description>
+        <priority>3</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+//MethodCall[TypeExpression[pmd-java:typeIs('java.nio.file.Files')]
+   and (@MethodName='newInputStream' and (not(ancestor::MethodDeclaration//ConstructorCall[pmd-java:typeIs('java.io.BufferedInputStream')]))
+      and not(ancestor::MethodDeclaration//MethodCall[starts-with(@MethodName, 'read') and TypeExpression[pmd-java:typeIs('org.apache.commons.io.IOUtils')]])
+   or (@MethodName='newOutputStream' and not(ancestor::MethodDeclaration//ConstructorCall[pmd-java:typeIs('java.io.BufferedOutputStream')])))
+]
+                ]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+class Foo {
+    OutputStream badO(String path) throws IOException {
+        return java.nio.file.Files.newOutputStream(Paths.get(path)); // bad
+    }
+    OutputStream goodO(String path) throws IOException {
+        return new BufferedOutputStream(java.nio.file.Files.newOutputStream(Paths.get(path)));
+    }
+}
+            ]]>
+        </example>
+    </rule>
+
 </ruleset>
