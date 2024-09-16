@@ -6,9 +6,17 @@
     <test-code>
         <description>violation: forEach in streams</description>
         <expected-problems>2</expected-problems>
-        <expected-linenumbers>6, 22</expected-linenumbers>
+        <expected-linenumbers>14,30</expected-linenumbers>
         <code><![CDATA[
+import java.util.*;
+import java.util.stream.IntStream;
+
+import static java.util.stream.Collectors.toMap;
+
 class AvoidForEachInStreams {
+
+    Logger log;
+
     List<String> letters = Arrays.asList("a", "b", "c");
     Map<String, Integer> map;
     void forEachInStream() {
@@ -42,17 +50,19 @@ class AvoidForEachInStreams {
         System.out.println(l);
     }
 }
-    ]]></code>
+        ]]></code>
     </test-code>
 
     <test-code>
         <description>no violation: forEach in streams Issue258</description>
         <expected-problems>0</expected-problems>
         <code><![CDATA[
+import java.util.*;
+
 class Issue258 {
     Iterable values = new ArrayList();
     void bad() {
-        values.forEach(log::debug); // good
+        values.forEach(Log::debug); // good
     }
 }
      ]]></code>
