@@ -40,6 +40,53 @@
         </example>
     </rule>
 
+    <rule name="AvoidCalendarDateCreation"
+          language="java"
+          message="A Calendar is used to create a Date or DateTime, this is expensive."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          typeResolution="true"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ue01">
+        <description>Problem: A Calendar is a heavyweight object and expensive to create. &#13;
+            Solution: Use 'new Date()', Java 8+ java.time.[Local/Zoned]DateTime.now().
+        </description>
+        <priority>2</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+            <property name="xpath">
+                <value>
+                    <![CDATA[
+//MethodCall[pmd-java:matchesSig('java.util.Calendar#getInstance()') or pmd-java:matchesSig('java.util.GregorianCalendar#getInstance()')][ancestor::MethodCall[@MethodName='getTime' or @MethodName='getTimeInMillis']]
+|
+//MethodCall[@MethodName='getTime' or @MethodName='getTimeInMillis'][VariableAccess[pmd-java:typeIs('java.util.Calendar')]]
+|
+//ConstructorCall/ClassType[pmd-java:typeIs('org.joda.time.DateTime')]/../ArgumentList//MethodCall[pmd-java:matchesSig('java.util.Calendar#getInstance()') or pmd-java:matchesSig('java.util.GregorianCalendar#getInstance()')]
+                    ]]>
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+public class DateStuff {
+    private Date bad1() {
+        return Calendar.getInstance().getTime(); // now
+    }
+    private Date good1a() {
+        return new Date(); // now
+    }
+    private LocalDateTime good1b() {
+        return LocalDateTime.now();
+    }
+    private long bad2() {
+        return Calendar.getInstance().getTimeInMillis();
+    }
+    private long good2() {
+        return System.currentTimeMillis();
+    }
+}
+            ]]>
+        </example>
+    </rule>
+
     <rule name="AvoidConcatInLoop"
           language="java"
           message="A String is concatenated in a loop. Use StringBuilder.append."
@@ -228,7 +275,6 @@ class Baz extends RemoteException {
         </example>
     </rule>
 
-
     <rule name="LimitStatementsInLambdas"
           language="java"
           message="Avoid many statements in lambda expressions."
@@ -331,5 +377,49 @@ class Foo {
         </example>
     </rule>
 
+    <rule name="AvoidForEachInStreams"
+          language="java"
+          message="Prefer side-effect-free functions in streams, use forEach only for logging."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          externalInfoUrl="${doc_root}/JavaCodeQuality.md#ils01">
+        <description>Problem: Streams is a paradigm based on functional programming: the result should depend only on its input and not update any state.
+            Use of forEach is actually iterative code masquerading as streams code. It is typically harder to read and less maintainable than the iterative form.
+            Solution: Use the for-each (enhanced-for) loop, or the pure functional form. The forEach operation should only be used to report (i.e. log) the result of a stream computation.
+        </description>
+        <priority>4</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,bad-practice" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+(: should match java.lang.Iterable#forEach(java.util.function.Consumer) but also others like java.util.stream.IntStream#forEach(java.util.function.IntConsumer) :)
+//MethodCall[pmd-java:matchesSig('_#forEach(_)')]
+[not (
+    .//MethodReference[starts-with(@MethodName, 'log')]
+    or .//TypeExpression/ClassType[starts-with(lower-case(@SimpleName), 'log')]
+    or .//LambdaExpression//VariableAccess[starts-with(@Name, 'log')]
+)]
+                ]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+        // forEach in stream
+        map = new HashMap<>();
+        letters.forEach(l -> map.put(l, 0)); // bad, side effect, modifies map
+
+        // reporting result by logging, good
+        letters.forEach(Log::info);
+
+        // iterative form, meant for modifying state, good
+        map = new HashMap<>();
+        for (String l : letters) {
+            map.put(l, 0);
+        }
+
+        // pure functional form, good
+        map = letters.stream().collect(toMap(l -> l, v -> 0));
+            ]]>
+        </example>
+    </rule>
 
 </ruleset>

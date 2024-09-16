@@ -267,44 +267,198 @@ public class CalendarStuff {
         </example>
     </rule-->
 
-
-    <rule name="ImproperVariableName"
+    <rule name="AvoidReStreamingEnumValues"
           language="java"
-          message="Give variables and fields a meaningful name."
+          message="Avoid re-streaming enum values to find a value by a field."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           
-          externalInfoUrl="${doc_root}/JavaCodeQuality.md#m01">
-        <description>Problem: Variables like 'var3' and fields like 'FOUR = 4', do not express what they are used for. This is bad for maintainability.&#13;
-            Solution: Let variable names express what they are used for, like 'key' and 'MAX_KEYS = 4'
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#iuoc07">
+        <description>Problem: the time to find element is O(n); n = the number of enum values. This identical processing is executed for every call. Considered problematic when n > 3.
+            Solution: use a static field-to-enum-value Map. Access time is O(1), provided the hashCode is well-defined.
+            For one String field, usually toString returns that field. Implement a fromString method to provide the reverse conversion by using the map.
         </description>
         <priority>3</priority>
         <properties>
-            <property name="tags" value="jpinpoint-rule,bad-practice" type="String" description="classification"/>
-            <property name="tags" value="confusing" type="String" description="classification"/>
+            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
-//VariableDeclaratorId[matches(@Name, 'ZERO|ONE|TWO|THREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|TEN', 'i')
-and replace(@Name, 'ZERO|ONE|TWO|THREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|TEN|_', '', 'i') = ''
-or starts-with(@Name, 'var') and number(substring-after(@Name, 'var'))]
+    //EnumDeclaration/EnumBody[count(EnumConstant) > 3]//MethodDeclaration/Block//PrimaryExpression
+    [PrimaryPrefix/Name[@Image='Arrays.stream' or @Image='Stream.of']]
+    [//PrimaryExpression/PrimaryPrefix/Name[@Image = 'values' or @Image = concat(ancestor::EnumDeclaration/@SimpleName, '.values')]]
+    [PrimarySuffix[starts-with(@Image, 'find')]]
                 ]]></value>
             </property>
         </properties>
         <example>
             <![CDATA[
-class Foo {
-    private static final int FOUR_ZERO_NINE_SIX = 4096; // bad
-    private static int six = 6; // bad
-    private int five = 6; // really bad
-    private static final int SIXTIES_START = 1960; // good
+// BAD
+public enum Fruit {
+    APPLE("apple"),
+    ORANGE("orange"),
+    BANANA("banana"),
+    KIWI("kiwi");
 
-    void bar() {
-        String var1 = "baz"; // bad
+    private final String name;
+
+    Fruit(String name) { this.name = name; }
+    @Override public String toString() { return name; }
+    public static Optional<Fruit> fromString(String name) {
+        return Stream.of(values()).filter(v -> v.toString().equals(name)).findAny(); // bad: iterates for every call, O(n) access time
+    }
+}
+
+Usage: `Fruit f = Fruit.fromString("banana");`
+
+// GOOD
+public enum Fruit {
+    APPLE("apple"),
+    ORANGE("orange"),
+    BANANA("banana"),
+    KIWI("kiwi");
+
+    private static final Map<String, Fruit> nameToValue =
+            Stream.of(values()).collect(toMap(Object::toString, v -> v));
+    private final String name;
+
+    Fruit(String name) { this.name = name; }
+    @Override public String toString() { return name; }
+    public static Optional<Fruit> fromString(String name) {
+        return Optional.ofNullable(nameToValue.get(name)); // good, get from Map, O(1) access time
     }
 }
             ]]>
         </example>
     </rule>
 
+    <rule name="NonComparableMapKeys"
+          language="java"
+          message="Map keys should implement Comparable in order to make access fast."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#iuoc08">
+        <description>Problem: If multiple entries end up in the same HashMap bucket, they are stored as LinkedList, and with more than 7 as a red black tree.
+            The list access time is O(n) and tree access time is only O(log n) which is much faster for large n. This tree implementation utilizes the compareTo from the Comparable interface.
+            If this is not implemented, access will be slow.
+            Solution: Implement Comparable for your Map keys. Do not use classes for the keys which don't implement Comparable, like Thread, Class and Object. At least not for Maps which can grow large.
+            Note that equals and hashCode must be implemented properly for the keys, and compareTo must be compatible with equals.
+        </description>
+        <priority>3</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+(: check key/elem type in declaration :)
+//Type/ReferenceType/ClassOrInterfaceType[pmd-java:typeIs('java.util.Map')]
+(: first type argument does not implement Comparable :)
+[TypeArguments/TypeArgument[1]/ReferenceType[not(pmd-java:typeIs('java.lang.Comparable'))
+(: and can be resolved :)
+and (pmd-java:typeIs('java.lang.Object'))
+]]
+,
+(: for when key/elem type ise missing in declaration, check Map.put and Set.add :)
+//PrimaryExpression[PrimaryPrefix/Name[ends-with(@Image, '.put') and pmd-java:typeIs('java.util.Map')]]
+/PrimarySuffix/Arguments/ArgumentList/Expression[1]
+(: first arg does not implement Comparable :)
+[not(pmd-java:typeIs('java.lang.Comparable'))
+(: and can be resolved :)
+and (pmd-java:typeIs('java.lang.Object'))
+]
+               ]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+ class Foo {
+    Map<Object, String> oMap; // bad, Object does not implement Comparable
+    Map<Thread, String> tMap; // bad, Thread does not implement Comparable
+
+    Map oldStyleMap = new HashMap(); // cannot check here
+
+    void putInOldStyleBad() {
+        oldStyleMap.put(new Thread(), "value"); // bad
+    }
+
+    Map<Comparable, String> cMap; // good
+
+    void putInOldStyleGood() {
+        oldStyleMap.put("key", "value");
+    }
+}
+
+            ]]>
+        </example>
+    </rule>
+
+    <rule name="NonComparableSetElements"
+          language="java"
+          message="Set elements should implement Comparable in order to make access by element fast."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#iuoc09">
+        <description>Problem: A Set is implemented with a Map. If multiple entries end up in the same HashMap bucket, they are stored as LinkedList, and with more than 7 as a red-black tree.
+            The list access time is O(n) and tree access time is only O(log n) which is much faster for large n. This tree implementation utilizes the compareTo from the Comparable interface.
+            If this is not implemented, access by element will be slow. Iterating through the elements does not suffer from this slow access because no lookup by key in the map is involved.
+            Access methods by element which are affected: contains[All], retainAll, remove[All].
+            Solution: Implement Comparable for your own Set elements. Avoid using large Sets with elements of types which don't implement Comparable, like Thread, Class and Object. At least when using access by element.
+            Note that equals and hashCode must be implemented properly for the elements, and compareTo must be compatible with equals.
+        </description>
+        <priority>3</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+//FieldDeclaration/Type[pmd-java:typeIs('java.util.Set') and ReferenceType//TypeArgument[1][not(pmd-java:typeIs('java.lang.Comparable'))
+(: and can be resolved :)
+and pmd-java:typeIs('java.lang.Object')]]/..//VariableDeclaratorId[
+ancestor::ClassOrInterfaceBody//PrimaryExpression/PrimaryPrefix/Name/@Image = concat(@Name, '.contains')
+or ancestor::ClassOrInterfaceBody//PrimaryExpression/PrimaryPrefix/Name/@Image = concat(@Name, '.containsAll')
+or ancestor::ClassOrInterfaceBody//PrimaryExpression/PrimaryPrefix/Name/@Image = concat(@Name, '.remove')
+or ancestor::ClassOrInterfaceBody//PrimaryExpression/PrimaryPrefix/Name/@Image = concat(@Name, '.removeAll')
+or ancestor::ClassOrInterfaceBody//PrimaryExpression/PrimaryPrefix/Name/@Image = concat(@Name, '.retainAll')
+]/../..
+,
+//(FormalParameter|LocalVariableDeclaration)/Type[pmd-java:typeIs('java.util.Set') and ReferenceType//TypeArgument[1][not(pmd-java:typeIs('java.lang.Comparable'))
+(: and can be resolved :)
+and pmd-java:typeIs('java.lang.Object')]]/..//VariableDeclaratorId[
+ancestor::MethodDeclaration//PrimaryExpression/PrimaryPrefix/Name/@Image = concat(@Name, '.contains')
+or ancestor::MethodDeclaration//PrimaryExpression/PrimaryPrefix/Name/@Image = concat(@Name, '.containsAll')
+or ancestor::MethodDeclaration//PrimaryExpression/PrimaryPrefix/Name/@Image = concat(@Name, '.remove')
+or ancestor::MethodDeclaration//PrimaryExpression/PrimaryPrefix/Name/@Image = concat(@Name, '.removeAll')
+or ancestor::MethodDeclaration//PrimaryExpression/PrimaryPrefix/Name/@Image = concat(@Name, '.retainAll')
+]/../..
+               ]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+import java.util.*;
+import org.apache.hc.client5.http.HttpRoute; // does implement equals/hashCode yet *not* compareTo
+
+class Foo {
+  Set<String> strSet = new HashSet<>();
+  List<String> strList = new ArrayList<>();
+  Set<HttpRoute> fieldRouteSet = new HashSet<>(); // bad
+  List<HttpRoute> routeList = new ArrayList<>();
+
+  void byElemBad(Set<HttpRoute> paramRouteSet) { // bad
+    paramRouteSet.retainAll(routeList);
+
+    fieldRouteSet.contains(t);
+
+    Set<HttpRoute> localRouteSet = new HashSet<>(); // bad
+    localRouteSet.removeAll(routeList);
+  }
+
+  void otherCasesGood(Set<HttpRoute> paramRouteSet) {
+    strSet.contains("bla");
+    strSet.retainAll(strList);
+    strSet.remove("other");
+    paramRouteSet.iterator().next();
+  }
+}
+            ]]>
+        </example>
+    </rule>
 
     <rule name="BufferFileStreaming"
           language="java"
