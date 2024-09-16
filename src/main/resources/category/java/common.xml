@@ -1126,7 +1126,7 @@ class Bad {
 (: exclude ConfigurationProperties classes :)
 [count(ancestor::ClassDeclaration/ModifierList/Annotation[@SimpleName='ConfigurationProperties']) = 0]
 (: exclude when JPA annotated :)
-[count(ModifierList/Annotation[@SimpleName='OneToMany' or @SimpleName='ManyToMany']) = 0]
+[count(ModifierList/Annotation[@SimpleName=('OneToMany', 'ManyToMany')]) = 0]
 //VariableId[
     (: with a method defined at that level that does not use the field with a modify operation (case field.modOp) :)
     not(@Name = ancestor::ClassBody/MethodDeclaration/Block//MethodCall[
@@ -1269,6 +1269,112 @@ class Foo {
             <![CDATA[
 Map<YourEnumType, String> map = new EnumMap<>(YourEnumType.class);
 Set<YourEnumType> set = EnumSet.allOf(YourEnumType.class);
+            ]]>
+        </example>
+    </rule>
+
+    <rule name="AvoidLombokAnnotationForNonExistentFields"
+          language="java"
+          message="Avoid Lombok annotations for fields of a class while the class has no fields."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          externalInfoUrl="">
+        <description>Problem: Lombok annotations for fields [@Getter, @Setter, @EqualsAndHashCode, @Value, @Data] are of no use and confusing in case the class has no fields.&#13;
+            Solution: Remove the Lombok annotation.
+        </description>
+        <priority>4</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,unused,confusing" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+//ClassDeclaration/ModifierList/Annotation
+    [pmd-java:typeIs('lombok.Getter') or pmd-java:typeIs('lombok.Setter') or pmd-java:typeIs('lombok.Value') or
+     pmd-java:typeIs('lombok.Data') or pmd-java:typeIs('lombok.EqualsAndHashCode')]
+    [ancestor::ClassDeclaration/ClassBody[count(FieldDeclaration) = 0]]
+                ]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+        @Data // bad
+        public class BusinessException extends RuntimeException {
+            // no fields, no methods
+        }
+            ]]>
+        </example>
+    </rule>
+
+    <rule name="AvoidExposingMutableRecordState"
+          language="java"
+          message="Avoid exposing mutable state of the record. Use copyOf in the compact constructor."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#voedos06">
+        <description>Problem: Internal state can be modified from outside of the record, through the implicit accessor method or by the caller of the constructor. Risk of thread-unsafety.
+            Solution: Use the record compact constructor to defensively copy the (possibly) mutable object such as a List, Set or Map, e.g. with List.copyOf().
+        </description>
+        <priority>3</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,multi-threading" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+//RecordDeclaration//RecordComponent/ClassType[(pmd-java:typeIs('java.util.Collection') or pmd-java:typeIs('java.util.Map'))
+    and not(../VariableId/@Name = ancestor::RecordDeclaration/RecordBody/CompactConstructorDeclaration
+        //AssignmentExpression[VariableAccess/@Name = .//MethodCall[@MethodName='copyOf']
+            /ArgumentList/VariableAccess/@Name]/VariableAccess/@Name)
+]/..
+]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+record BadRecord(String name, List<String> list) {
+}
+
+record GoodRecord(String name, List<String> list) {
+    public GoodRecord {
+        list = List.copyOf(list);
+    }
+}
+            ]]>
+        </example>
+    </rule>
+
+    <rule name="ImproperVariableName"
+          language="java"
+          message="Give variables and fields a meaningful name."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+
+          externalInfoUrl="${doc_root}/JavaCodeQuality.md#m01">
+        <description>Problem: Variables like 'var3' and fields like 'FOUR = 4', do not express what they are used for. This is bad for maintainability.&#13;
+            Solution: Let variable names express what they are used for, like 'key' and 'MAX_KEYS = 4'
+        </description>
+        <priority>3</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,bad-practice,confusing" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+//VariableId[matches(@Name, 'VALUE|VAL|INTEGER|INT|LONG|NUMBER|NUM|[0-9]+|ZERO|ONE|TWO|THREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|TEN|TWENTY', 'i')
+(: not allowed only as uppercase :)
+and (replace(@Name, 'VALUE|VAL|NUMBER|NUM|[0-9]+|ZERO|ONE|TWO|THREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|TEN|TWENTY|_', '') = ''
+   (: not allowed as lower and uppercase :)
+   or replace(@Name, 'INTEGER|INT|LONG|[0-9]+|ZERO|ONE|TWO|THREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|TEN|TWENTY|_', '', 'i') = '')
+or starts-with(@Name, 'var') and number(substring-after(@Name, 'var'))]
+                ]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+class Foo {
+    private static final int FOUR_ZERO_NINE_SIX = 4096; // bad
+    private static final int VALUE_42 = 42; // bad
+    private static int six = 6; // bad
+    private int five = 7; // what? bad
+    private static final int SIXTIES_START = 1960; // good
+
+    void bar() {
+        String var1 = "baz"; // bad
+    }
+}
             ]]>
         </example>
     </rule>
