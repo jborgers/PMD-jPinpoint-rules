@@ -40,8 +40,6 @@
         </example>
     </rule>
 
-
-
     <rule name="AvoidCalendarDateCreation"
           language="java"
           message="A Calendar is used to create a Date or DateTime, this is expensive."
