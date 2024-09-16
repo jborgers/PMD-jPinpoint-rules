@@ -1126,7 +1126,7 @@ class Bad {
 (: exclude ConfigurationProperties classes :)
 [count(ancestor::ClassDeclaration/ModifierList/Annotation[@SimpleName='ConfigurationProperties']) = 0]
 (: exclude when JPA annotated :)
-[count(ModifierList/Annotation[@SimpleName='OneToMany' or @SimpleName='ManyToMany']) = 0]
+[count(ModifierList/Annotation[@SimpleName=('OneToMany', 'ManyToMany')]) = 0]
 //VariableId[
     (: with a method defined at that level that does not use the field with a modify operation (case field.modOp) :)
     not(@Name = ancestor::ClassBody/MethodDeclaration/Block//MethodCall[
@@ -1299,6 +1299,42 @@ Set<YourEnumType> set = EnumSet.allOf(YourEnumType.class);
         public class BusinessException extends RuntimeException {
             // no fields, no methods
         }
+            ]]>
+        </example>
+    </rule>
+
+    <rule name="AvoidExposingMutableRecordState"
+          language="java"
+          message="Avoid exposing mutable state of the record. Use copyOf in the compact constructor."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#voedos06">
+        <description>Problem: Internal state can be modified from outside of the record, through the implicit accessor method or by the caller of the constructor. Risk of thread-unsafety.
+            Solution: Use the record compact constructor to defensively copy the (possibly) mutable object such as a List, Set or Map, e.g. with List.copyOf().
+        </description>
+        <priority>3</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,multi-threading" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+//RecordDeclaration//RecordComponent/ClassType[(pmd-java:typeIs('java.util.Collection') or pmd-java:typeIs('java.util.Map'))
+    and not(../VariableId/@Name = ancestor::RecordDeclaration/RecordBody/CompactConstructorDeclaration
+        //AssignmentExpression[VariableAccess/@Name = .//MethodCall[@MethodName='copyOf']
+            /ArgumentList/VariableAccess/@Name]/VariableAccess/@Name)
+]/..
+]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+record BadRecord(String name, List<String> list) {
+}
+
+record GoodRecord(String name, List<String> list) {
+    public GoodRecord {
+        list = List.copyOf(list);
+    }
+}
             ]]>
         </example>
     </rule>
