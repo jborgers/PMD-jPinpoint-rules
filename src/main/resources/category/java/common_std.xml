@@ -40,6 +40,53 @@
         </example>
     </rule>
 
+    <rule name="AvoidCalendarDateCreation"
+          language="java"
+          message="A Calendar is used to create a Date or DateTime, this is expensive."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          typeResolution="true"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ue01">
+        <description>Problem: A Calendar is a heavyweight object and expensive to create. &#13;
+            Solution: Use 'new Date()', Java 8+ java.time.[Local/Zoned]DateTime.now().
+        </description>
+        <priority>2</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+            <property name="xpath">
+                <value>
+                    <![CDATA[
+//MethodCall[pmd-java:matchesSig('java.util.Calendar#getInstance()') or pmd-java:matchesSig('java.util.GregorianCalendar#getInstance()')][ancestor::MethodCall[@MethodName='getTime' or @MethodName='getTimeInMillis']]
+|
+//MethodCall[@MethodName='getTime' or @MethodName='getTimeInMillis'][VariableAccess[pmd-java:typeIs('java.util.Calendar')]]
+|
+//ConstructorCall/ClassType[pmd-java:typeIs('org.joda.time.DateTime')]/../ArgumentList//MethodCall[pmd-java:matchesSig('java.util.Calendar#getInstance()') or pmd-java:matchesSig('java.util.GregorianCalendar#getInstance()')]
+                    ]]>
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+public class DateStuff {
+    private Date bad1() {
+        return Calendar.getInstance().getTime(); // now
+    }
+    private Date good1a() {
+        return new Date(); // now
+    }
+    private LocalDateTime good1b() {
+        return LocalDateTime.now();
+    }
+    private long bad2() {
+        return Calendar.getInstance().getTimeInMillis();
+    }
+    private long good2() {
+        return System.currentTimeMillis();
+    }
+}
+            ]]>
+        </example>
+    </rule>
+
     <rule name="AvoidConcatInLoop"
           language="java"
           message="A String is concatenated in a loop. Use StringBuilder.append."
@@ -228,7 +275,6 @@ class Baz extends RemoteException {
         </example>
     </rule>
 
-
     <rule name="LimitStatementsInLambdas"
           language="java"
           message="Avoid many statements in lambda expressions."
@@ -330,7 +376,6 @@ class Foo {
             ]]>
         </example>
     </rule>
-
 
     <rule name="AvoidForEachInStreams"
           language="java"
