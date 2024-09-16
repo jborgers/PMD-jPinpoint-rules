@@ -269,48 +269,6 @@ public class CalendarStuff {
 
 
 
-    <rule name="AvoidLoadingAllFromFile"
-          language="java"
-          message="Files.readAll methods load all bytes from a file into memory: a risk of memory problems."
-          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-          
-          externalInfoUrl="${doc_root}/JavaCodePerformance.md#isio03">
-        <description>Problem: Files.readAllBytes and Files.readAllLines load all bytes from a file into the heap memory.
-            This may result in an OutOfMemoryError crash, or long gc pauses and slow responses.
-            Solution: Stream-through: use streaming all the way, don't store the whole thing in memory, don't use byte arrays.
-            Often, functionality can be achieved in a streaming way.
-            Note: not a problem for small files.
-        </description>
-        <priority>2</priority>
-        <properties>
-            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
-            <property name="xpath">
-                <value><![CDATA[
-//MethodDeclaration//PrimaryPrefix/Name[@Image='Files.readAllBytes' or @Image='Files.readAllLines']
-                ]]></value>
-            </property>
-        </properties>
-        <example>
-            <![CDATA[
-class Bad {
-    void bad(Path path) {
-        byte[] fileBytes = Files.readAllBytes(path); // bad
-        List<String> fileLines = Files.readAllLines(path); // bad
-        // process bytes / lines
-    }
-}
-
-class Good {
-    void good(Path in) throws IOException {
-        try (BufferedReader reader = Files.newBufferedReader(in)) {
-            String line = reader.readLine();
-            // process line by line
-        }
-    }
-}
-            ]]>
-        </example>
-    </rule>
 
     <rule name="HashCodeOnlyCallsSuper"
           language="java"
