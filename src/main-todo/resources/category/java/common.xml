@@ -270,59 +270,6 @@ public class CalendarStuff {
 
 
 
-    <rule name="HashCodeOnlyCallsSuper"
-          language="java"
-          message="hashCode only calls super."
-          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-          
-          externalInfoUrl="${doc_root}/JavaCodePerformance.md#isio03">
-        <description>Problem: when equals is implemented, hashCode needs to be implemented, too; and if objects are equal, hashCode needs to be equal, too. If hashCode only calls super.hashCode, it is effectively not implemented.
-            Strange things can happen, for instance, if super.hashCode calls Object.hashCode, it is unique for each object and when used in Set or as key in Map, equal objects can duplicate in Set, and keys not found in Map.
-            Solution: implement hashCode properly, consistent with equals. Meet the equals and hashCode contracts. If objects are equal, hashCode needs to be equal, too. See Effective Java.
-        </description>
-        <priority>1</priority>
-        <properties>
-            <property name="tags" value="jpinpoint-rule,correctness" type="String" description="classification"/>
-            <property name="xpath">
-                <value><![CDATA[
-//MethodDeclaration[@Name='equals' and MethodDeclarator/FormalParameters/@Size=1 and @Public=true() and @Static=false()]
-/ancestor::ClassOrInterfaceBody[1]//MethodDeclaration[@Name='hashCode' and MethodDeclarator/FormalParameters/@Size=0 and @Public=true() and @Static=false()]
-/Block[count(./BlockStatement/Statement) = 1][count(.//ArgumentList) = 0]//PrimaryExpression[PrimaryPrefix[@SuperModifier=true()]]/PrimarySuffix[@Image='hashCode']
-                ]]></value>
-            </property>
-        </properties>
-        <example>
-            <![CDATA[
-class Bad {
-    String field1;
-
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Bad that = (Bad) o;
-        return Objects.equals(field1, that.field1);
-    }
-    public int hashCode() {
-        return super.hashCode(); // bad
-    }
-}
-
-class Good {
-    String field1;
-
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Bad1 that = (Bad1) o;
-        return Objects.equals(field1, that.field1);
-    }
-    public int hashCode() {
-        return Objects.hash(field1); // good
-    }
-}
-            ]]>
-        </example>
-    </rule>
 
     <rule name="AvoidRecreatingSecurityProviders"
           language="java"

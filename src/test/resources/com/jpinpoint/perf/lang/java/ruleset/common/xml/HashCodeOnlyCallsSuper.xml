@@ -6,8 +6,10 @@
     <test-code>
         <description>no violation: HashCodeOnlyCallsSuper</description>
         <expected-problems>2</expected-problems>
-        <expected-linenumbers>11,25</expected-linenumbers>
+        <expected-linenumbers>12,26</expected-linenumbers>
         <code><![CDATA[
+import java.util.*;
+
 class Bad1 {
     String field1;
 
