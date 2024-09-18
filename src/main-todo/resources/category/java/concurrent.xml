@@ -2,44 +2,6 @@
 <ruleset name="jpinpoint-concurrent-rules" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 https://pmd.sourceforge.io/ruleset_2_0_0.xsd" xmlns="http://pmd.sourceforge.net/ruleset/2.0.0">
     <description>jPinpoint rule set for performance aware Java coding, sponsored by Rabobank.</description>
 <!--
-    <rule name="AvoidCompletionServiceTake"
-          message="Avoid completionService.take, use poll"
-          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
-          typeResolution="true" externalInfoUrl="${doc_root}/JavaCodePerformance.md">
-        <description>
-            Problem: take() stalls indefinitely in case of hanging threads and consumes a thread.&#13;
-            Solution: use poll() with a timeout value and handle the timeout.
-            (jpinpoint-rules)</description>
-        <priority>2</priority>
-        <properties>
-            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
-            <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
-            <property name="xpath">
-                <value>
-                    <![CDATA[
-  //MethodDeclaration//PrimaryPrefix/Name[ends-with(@Image, '.take')]
-    [(starts-with(@Image, concat(ancestor::MethodDeclaration//FormalParameter/Type/ReferenceType/ClassOrInterfaceType[
-    pmd-java:typeIs('java.util.concurrent.CompletionService')
-    or pmd-java:typeIs('java.util.concurrent.ExecutorCompletionService')
-    ]/../../../VariableDeclaratorId/@Name, '.'))
-    or
-    starts-with(@Image, concat(ancestor::MethodDeclaration//LocalVariableDeclaration/Type/ReferenceType/ClassOrInterfaceType[
-     pmd-java:typeIs('java.util.concurrent.CompletionService')
-    or pmd-java:typeIs('java.util.concurrent.ExecutorCompletionService')
-    ]/../../../VariableDeclarator/VariableDeclaratorId/@Name, '.'))
-    or
-    starts-with(@Image, concat(ancestor::ClassOrInterfaceBody//FieldDeclaration/Type/ReferenceType/ClassOrInterfaceType[
-     pmd-java:typeIs('java.util.concurrent.CompletionService')
-    or pmd-java:typeIs('java.util.concurrent.ExecutorCompletionService')
-    ]/../../../VariableDeclarator/VariableDeclaratorId/@Name, '.')))
-]    ]]>
-                </value>
-            </property>
-        </properties>
-    </rule>
-
     <rule name="AvoidFutureGetWithoutTimeout"
           message="Avoid future.get without timeout"
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"

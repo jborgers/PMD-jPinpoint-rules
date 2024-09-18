@@ -1,7 +1,46 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ruleset name="jpinpoint-concurrent-rules" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 https://pmd.sourceforge.io/ruleset_2_0_0.xsd" xmlns="http://pmd.sourceforge.net/ruleset/2.0.0">
     <description>jPinpoint rule set for performance aware Java coding, sponsored by Rabobank.</description>
-    
+
+    <rule name="AvoidCompletionServiceTake"
+          message="Avoid completionService.take, use poll"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
+          typeResolution="true" externalInfoUrl="${doc_root}/JavaCodePerformance.md">
+        <description>
+            Problem: take() stalls indefinitely in case of hanging threads and consumes a thread.&#13;
+            Solution: use poll() with a timeout value and handle the timeout.
+            (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,multi-threading,performance" type="String" description="classification"/>
+            <property name="xpath">
+                <value>
+                    <![CDATA[
+//MethodCall[
+    pmd-java:matchesSig('java.util.concurrent.CompletionService#take()')
+ or pmd-java:matchesSig('java.util.concurrent.ExecutorCompletionService#take()')]
+                    ]]>
+                </value>
+            </property>
+        </properties>
+        <example><![CDATA[
+    public static <T> void collectAllCollectionReplyFromThreads(CompletableFuture<List<T>> complFuture, List<T> responseCollector,
+                                                                List<Future<List<T>>> listOfFutures, CompletionService<List<T>> completionService) {
+        for (int index = 0; index < listOfFutures.size(); index++) {
+            try {
+                Future<List<T>> futureLocal = completionService.take(); // bad
+                Future<List<T>> futuresGood = completionService.poll(3, TimeUnit.SECONDS); // good
+                responseCollector.addAll(futuresGood.get(10, TimeUnit.SECONDS)); // good
+            } catch (InterruptedException | ExecutionException e) {
+                //LOGGER.error("Error in Thread : {}", e);
+            } catch (TimeoutException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+     ]]></example>
+    </rule>
+
 </ruleset>
 
 
