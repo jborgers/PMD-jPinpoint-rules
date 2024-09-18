@@ -122,23 +122,53 @@ public static String good(CompletableFuture<String> complFuture) throws Exceptio
                 ]]></value>
             </property>
         </properties>
-        <example>
-            <![CDATA[
-    enum Bad {
-        VAL1;
-        static final Map<String, Bad> STRING_TO_ENUM = new HashMap<>(); // bad
+        <example><![CDATA[
+enum Bad {
+    VAL1;
+    static final Map<String, Bad> STRING_TO_ENUM = new HashMap<>(); // bad
+}
+enum Good {
+    VAL1;
+    static final Map<String, Good> STRING_TO_ENUM; // good
+    static {
+        Map<String, Good> map = new HashMap<>();
+        STRING_TO_ENUM = Collections.unmodifiableMap(map);
     }
-    enum Good {
-        VAL1;
-        static final Map<String, Good> STRING_TO_ENUM; // good
-        static {
-            Map<String, Good> map = new HashMap<>();
-            STRING_TO_ENUM = Collections.unmodifiableMap(map);
-        }
-    }
-            ]]>
-        </example>
+}
+        ]]></example>
     </rule>
+
+    <rule name="AvoidThreadUnsafeJaxbUsage" message="A JAXB Marshaller, Unmarshaller or Validator is used in a thread-unsafe way." class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java" typeResolution="true" externalInfoUrl="${doc_root}/JavaCodePerformance.md#IUOXAR07">
+        <description>Problem: JAXB Marshaller, Unmarshaller and Validator are not thread-safe.  &#13;
+            Solution: Create a new instance every time you need to marshall, unmarshall or validate a document.
+            (jpinpoint-rules)</description>
+        <priority>1</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,multi-threading" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+//FieldDeclaration[ClassType[pmd-java:typeIs('javax.xml.bind.Marshaller')
+  or pmd-java:typeIs('javax.xml.bind.Unmarshaller')
+  or pmd-java:typeIs('javax.xml.bind.Validator')
+  or pmd-java:typeIs('javax.xml.validation.Validator')]
+]
+			     ]]></value>
+            </property>
+        </properties>
+        <example><![CDATA[
+class Exporter {
+
+    private javax.xml.bind.Unmarshaller sharedUnmarshaller; // bad
+    private javax.xml.bind.Validator sharedValidator; // bad
+
+    public Thing doSomething(File xml) {
+        Unmarshaller unmarshaller = jaxbContext.createUnmarshaller(); // good, create one each time
+        return (Thing) unmarshaller.unmarshal(xml);
+    }
+}
+        ]]></example>
+    </rule>
+
 </ruleset>
 
 
