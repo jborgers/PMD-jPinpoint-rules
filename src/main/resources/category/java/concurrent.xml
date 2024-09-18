@@ -16,9 +16,7 @@
             <property name="xpath">
                 <value>
                     <![CDATA[
-//MethodCall[
-    pmd-java:matchesSig('java.util.concurrent.CompletionService#take()')
- or pmd-java:matchesSig('java.util.concurrent.ExecutorCompletionService#take()')]
+//MethodCall[pmd-java:matchesSig('java.util.concurrent.CompletionService#take()')]
                     ]]>
                 </value>
             </property>
