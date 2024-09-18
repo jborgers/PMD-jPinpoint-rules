@@ -1654,7 +1654,7 @@ class Good {
         <description>Problem: If only the @Setter and/or @Getter annotation is used, and equals and hashcode are not defined, this is probably a mistake. The object has fields and if used in a collection or with equality, it will not behave as expected.
             Solution: include equals and hashCode e.g. by @EqualsAndHashCode or usually better @Data instead of @Setter/@Getter, however, are setters really needed? Prefer immutability, so @Value, combined with @Builder, with @Singular for collection fields.
         (jpinpoint-rules)</description>
-        <priority>2</priority>
+        <priority>3</priority>
         <properties>
             <property name="xpath">
                 <value><![CDATA[
