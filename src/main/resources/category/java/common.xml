@@ -931,14 +931,16 @@ public RetrieveCache(final @Value("${cache.expiryTimeMillis}") long timeToLiveMi
     </rule>
 
     <rule name="EqualsOperationInconsistentWithHashCode"
-          class="net.sourceforge.pmd.lang.rule.XPathRule"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           language="java"
           message="Equals uses a conversion inconsistent with hashCode."
           externalInfoUrl="${doc_root}/JavaCodeQuality.md#ieah03">
-        <description>Problem: Equal objects may have different hashCodes and end-up in different buckets of a Map/Set. Strange things can happen like adding an object to a Set and not being able to find it back.&#13;
-            Solution: When objects are equal, hashCode needs to be equal, too. Use the same fields in equals and hashCode and use identical conversions like toUpperCase() in both when needed. Don't use equalsIgnoreCase. (jpinpoint-rules)</description>
+        <description>Problem: Equal objects may have different hashCodes and end-up in different buckets of a Map/Set. Strange things can happen like adding an object to a Set and not being able to find it back.
+            Solution: When objects are equal, hashCode needs to be equal, too. Use the same fields in equals and hashCode and use identical conversions like toUpperCase() in both when needed. Don't use equalsIgnoreCase. (jpinpoint-rules)
+        </description>
         <priority>1</priority>
         <properties>
+            <property name="tags" value="jpinpoint-rule,correctness" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
 //FieldDeclaration//VariableId[
@@ -954,23 +956,22 @@ public RetrieveCache(final @Value("${cache.expiryTimeMillis}") long timeToLiveMi
 /ancestor::ClassBody[1]//MethodDeclaration[@Name='equals']/Block//MethodCall[pmd-java:matchesSig('java.lang.String#toUpperCase()')]
 ,
 //MethodDeclaration[@Name='equals' and (FormalParameters/@Size = 1)]/Block//MethodCall[pmd-java:matchesSig('java.lang.String#equalsIgnoreCase(java.lang.String)')]
-                ]]>
+			]]>
                 </value>
             </property>
-            <property name="tags" value="correctness,jpinpoint-rule" type="String" description="classification"/>
         </properties>
         <example>
             <![CDATA[
 class Bad1 {
     String field1;
-    String field2; //bad
+    String field2;
 
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Bad1 that = (Bad1) o;
         if (field1 != null ? !field1.equals(that.field1) : that.field1 != null) return false;
-        return field2 != null ? field2.equalsIgnoreCase(that.field2) : that.field2 == null; // ignore case
+        return field2 != null ? field2.equalsIgnoreCase(that.field2) : that.field2 == null; // ignore case, bad
     }
     public int hashCode() {
         return Objects.hash(field1, field2);
@@ -1017,10 +1018,10 @@ class Good {
         if (o == null || getClass() != o.getClass()) return false;
         Good that = (Good) o;
         return Objects.equals(field1, that.field1) &&
-                Objects.equals(field2.toUpperCase(), that.field2.toUpperCase()); // ignore case
+                Objects.equals(field2.toUpperCase(), that.field2.toUpperCase()); // ignore case same way
     }
     public int hashCode() {
-        return Objects.hash(field1, field2.toUpperCase()); // ignore case
+        return Objects.hash(field1, field2.toUpperCase()); // ignore case same way
     }
 }
             ]]>
