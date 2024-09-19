@@ -5,16 +5,18 @@
         xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
     <test-code>
         <description>violation: AvoidReadingAllFromFile</description>
-        <expected-problems>2</expected-problems>
-        <expected-linenumbers>6, 7</expected-linenumbers>
+        <expected-problems>3</expected-problems>
+        <expected-linenumbers>7, 8, 9</expected-linenumbers>
         <code><![CDATA[
 import java.io.*;
 import java.nio.file.*;
+import java.nio.charset.*;
 
 class Bad {
     void bad(Path path) {
         byte[] fileBytes = Files.readAllBytes(path); // bad
         List<String> fileLines = Files.readAllLines(path); // bad
+        List<String> fileLines2 = Files.readAllLines(path, Charset.defaultCharset()); // bad
         // process bytes / lines
     }
 }

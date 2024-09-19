@@ -1378,4 +1378,403 @@ class Foo {
             ]]>
         </example>
     </rule>
+    <rule name="AvoidReStreamingEnumValues"
+          language="java"
+          message="Avoid re-streaming enum values to find a value by a field."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#iuoc07">
+        <description>Problem: the time to find element is O(n); n = the number of enum values. This identical processing is executed for every call. Considered problematic when n > 3.
+            Solution: use a static field-to-enum-value Map. Access time is O(1), provided the hashCode is well-defined.
+            For one String field, usually toString returns that field. Implement a fromString method to provide the reverse conversion by using the map.
+        </description>
+        <priority>3</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+//EnumDeclaration/EnumBody[count(EnumConstant) > 3]//MethodDeclaration/Block
+    //MethodCall[pmd-java:matchesSig('java.util.stream.Stream#findFirst()') or pmd-java:matchesSig('java.util.stream.Stream#findAny()')]
+    [//MethodCall[pmd-java:matchesSig('java.util.stream.Stream#of(_)') or pmd-java:matchesSig('java.util.Arrays#stream(_)')]
+    [ArgumentList/MethodCall[pmd-java:matchesSig('_#values()')]]]
+                ]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+// BAD
+public enum Fruit {
+    APPLE("apple"),
+    ORANGE("orange"),
+    BANANA("banana"),
+    KIWI("kiwi");
+
+    private final String name;
+
+    Fruit(String name) { this.name = name; }
+    @Override public String toString() { return name; }
+    public static Optional<Fruit> fromString(String name) {
+        return Stream.of(values()).filter(v -> v.toString().equals(name)).findAny(); // bad: iterates for every call, O(n) access time
+    }
+}
+
+Usage: `Fruit f = Fruit.fromString("banana");`
+
+// GOOD
+public enum Fruit {
+    APPLE("apple"),
+    ORANGE("orange"),
+    BANANA("banana"),
+    KIWI("kiwi");
+
+    private static final Map<String, Fruit> nameToValue =
+            Stream.of(values()).collect(toMap(Object::toString, v -> v));
+    private final String name;
+
+    Fruit(String name) { this.name = name; }
+    @Override public String toString() { return name; }
+    public static Optional<Fruit> fromString(String name) {
+        return Optional.ofNullable(nameToValue.get(name)); // good, get from Map, O(1) access time
+    }
+}            ]]>
+        </example>
+    </rule>
+
+    <rule name="NonComparableMapKeys"
+          language="java"
+          message="Map keys should implement Comparable in order to make access fast."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#iuoc08">
+        <description>Problem: If multiple entries end up in the same HashMap bucket, they are stored as LinkedList, and with more than 7 as a red black tree.
+            The list access time is O(n) and tree access time is only O(log n) which is much faster for large n. This tree implementation utilizes the compareTo from the Comparable interface.
+            If this is not implemented, access will be slow.
+            Solution: Implement Comparable for your Map keys. Do not use classes for the keys which don't implement Comparable, like Thread, Class and Object. At least not for Maps which can grow large.
+            Note that equals and hashCode must be implemented properly for the keys, and compareTo must be compatible with equals.
+        </description>
+        <priority>3</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+(: check key type in declaration :)
+//VariableDeclarator/../ClassType[pmd-java:typeIs('java.util.Map')]
+(: first type argument does not implement Comparable :)
+/TypeArguments/ClassType[1][not(pmd-java:typeIs('java.lang.Comparable'))]
+,
+(: for when key type is missing in declaration (old style), check Map.put :)
+//MethodCall[pmd-java:matchesSig('java.util.Map#put(_,_)')]
+(: first arg does not implement Comparable :)
+/ArgumentList/*[1][not(pmd-java:typeIs('java.lang.Comparable'))]
+               ]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+ class Foo {
+    Map<Object, String> oMap; // bad, Object does not implement Comparable
+    Map<Thread, String> tMap; // bad, Thread does not implement Comparable
+
+    Map oldStyleMap = new HashMap(); // cannot check here
+
+    void putInOldStyleBad() {
+        oldStyleMap.put(new Thread(), "value"); // bad
+    }
+
+    Map<Comparable, String> cMap; // good
+
+    void putInOldStyleGood() {
+        oldStyleMap.put("key", "value");
+    }
+}
+
+            ]]>
+        </example>
+    </rule>
+
+    <rule name="NonComparableSetElements"
+          language="java"
+          message="Set elements should implement Comparable in order to make access by element fast."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#iuoc09">
+        <description>Problem: A Set is implemented with a Map. If multiple entries end up in the same HashMap bucket, they are stored as LinkedList, and with more than 7 as a red-black tree.
+            The list access time is O(n) and tree access time is only O(log n) which is much faster for large n. This tree implementation utilizes the compareTo from the Comparable interface.
+            If this is not implemented, access by element will be slow. Iterating through the elements does not suffer from this slow access because no lookup by key in the map is involved.
+            Access methods by element which are affected: contains[All], retainAll, remove[All].
+            Solution: Implement Comparable for your own Set elements. Avoid using large Sets with elements of types which don't implement Comparable, like Thread, Class and Object. At least when using access by element.
+            Note that equals and hashCode must be implemented properly for the elements, and compareTo must be compatible with equals.
+        </description>
+        <priority>3</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+(: declared variable used in Set by-element access :)
+//VariableId[@Name = ancestor::ClassBody//MethodCall[@MethodName = ('contains','containsAll','remove','removeAll','retainAll')]/VariableAccess/@Name]
+    (: for 3 ways defined as a Set :)
+    [(ancestor::FieldDeclaration|ancestor::LocalVariableDeclaration|ancestor::FormalParameter)/ClassType[pmd-java:typeIs('java.util.Set')]
+    (: element type does not implement Comparable :)
+    /TypeArguments/ClassType[not(pmd-java:typeIs('java.lang.Comparable'))]]/../..
+               ]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+import java.util.*;
+import org.apache.hc.client5.http.HttpRoute; // does implement equals/hashCode yet *not* compareTo
+
+class Foo {
+  Set<String> strSet = new HashSet<>();
+  List<String> strList = new ArrayList<>();
+  Set<HttpRoute> fieldRouteSet = new HashSet<>(); // bad
+  List<HttpRoute> routeList = new ArrayList<>();
+
+  void byElemBad(Set<HttpRoute> paramRouteSet) { // bad
+    paramRouteSet.retainAll(routeList);
+
+    fieldRouteSet.contains(t);
+
+    Set<HttpRoute> localRouteSet = new HashSet<>(); // bad
+    localRouteSet.removeAll(routeList);
+  }
+
+  void otherCasesGood(Set<HttpRoute> paramRouteSet) {
+    strSet.contains("bla");
+    strSet.retainAll(strList);
+    strSet.remove("other");
+    paramRouteSet.iterator().next();
+  }
+}
+            ]]>
+        </example>
+    </rule>
+
+    <rule name="BufferFileStreaming"
+          language="java"
+          message="FileInputStream and FileOutputStream are not buffered, add buffering."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#isio05">
+        <description>Problem: With FileInputStream and FileOutputStream, file access is not buffered.
+            The stream is read-from/written-to file byte by byte, where each operating system call has its overhead, which makes it slow.
+            Solution: Use buffering to read/write a chunk of bytes at once with much lower overhead.
+            Use BufferedOutput/InputStream which has a buffer size of 8 kB by default to write at once. Make sure to close it after use.
+        </description>
+        <priority>3</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+//Resource//ConstructorCall[pmd-java:typeIs('java.io.FileInputStream') or pmd-java:typeIs('java.io.FileOutputStream')]
+[not (ancestor::TryStatement//ConstructorCall[pmd-java:typeIs('java.io.BufferedInputStream') or pmd-java:typeIs('java.io.BufferedOutputStream')])]
+]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+import java.io.*;
+
+class BufferFileStreaming {
+    void bad(String inputFilename, String outputFilename) {
+        try (FileInputStream fis = new FileInputStream(inputFilename)) { // bad
+            //use fis
+        }
+    }
+    void good(String inputFilename, String outputFilename) {
+        try (InputStream bfis = new BufferedInputStream(new FileInputStream(inputFilename))) { // good
+            //use bfis
+        }
+    }
+}
+            ]]>
+        </example>
+    </rule>
+
+    <rule name="BufferFilesNewStream"
+          language="java"
+          message="Files.newInputStream or Files.newOutputStream is not buffered, add buffering."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#isio06">
+        <description>Problem: Files.newInputStream or Files.newOutputStream is not buffered.
+            The stream is read from/written to file byte by byte, where each operating system call has its overhead which makes it slow.
+            Solution: Use buffering to read/write a chunk of bytes at once with much lower overhead.
+            Use e.g. BufferedInputStream or BufferedOutputStream which has a buffer size of 8 kB to read/write at once. Make sure to close it after use.
+        </description>
+        <priority>3</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+//MethodCall[TypeExpression[pmd-java:typeIs('java.nio.file.Files')]
+   and (@MethodName='newInputStream' and (not(ancestor::MethodDeclaration//ConstructorCall[pmd-java:typeIs('java.io.BufferedInputStream')]))
+      and not(ancestor::MethodDeclaration//MethodCall[starts-with(@MethodName, 'read') and TypeExpression[pmd-java:typeIs('org.apache.commons.io.IOUtils')]])
+   or (@MethodName='newOutputStream' and not(ancestor::MethodDeclaration//ConstructorCall[pmd-java:typeIs('java.io.BufferedOutputStream')])))
+]
+                ]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+class Foo {
+    OutputStream badO(String path) throws IOException {
+        return java.nio.file.Files.newOutputStream(Paths.get(path)); // bad
+    }
+    OutputStream goodO(String path) throws IOException {
+        return new BufferedOutputStream(java.nio.file.Files.newOutputStream(Paths.get(path)));
+    }
+}
+            ]]>
+        </example>
+    </rule>
+
+    <rule name="AvoidLoadingAllFromFile"
+          language="java"
+          message="Files.readAll methods load all bytes from a file into memory: a risk of memory problems."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#isio03">
+        <description>Problem: Files.readAllBytes and Files.readAllLines load all bytes from a file into the heap memory.
+            This may result in an OutOfMemoryError crash, or long gc pauses and slow responses.
+            Solution: Stream-through: use streaming all the way, don't store the whole thing in memory, don't use byte arrays.
+            Often, functionality can be achieved in a streaming way.
+            Note: not a problem for small files.
+        </description>
+        <priority>2</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+//MethodDeclaration//MethodCall[pmd-java:matchesSig('java.nio.file.Files#readAllBytes(java.nio.file.Path)')
+    or pmd-java:matchesSig('java.nio.file.Files#readAllLines(java.nio.file.Path)')
+    or pmd-java:matchesSig('java.nio.file.Files#readAllLines(java.nio.file.Path,_)')
+]
+                ]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+class Bad {
+    void bad(Path path) {
+        byte[] fileBytes = Files.readAllBytes(path); // bad
+        List<String> fileLines = Files.readAllLines(path); // bad
+        // process bytes / lines
+    }
+}
+
+class Good {
+    void good(Path in) throws IOException {
+        try (BufferedReader reader = Files.newBufferedReader(in)) {
+            String line = reader.readLine();
+            // process line by line
+        }
+    }
+}
+            ]]>
+        </example>
+    </rule>
+
+    <rule name="HashCodeOnlyCallsSuper"
+          language="java"
+          message="hashCode only calls super."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#isio03">
+        <description>Problem: when equals is implemented, hashCode needs to be implemented, too; and if objects are equal, hashCode needs to be equal, too. If hashCode only calls super.hashCode, it is effectively not implemented.
+            Strange things can happen, for instance, if super.hashCode calls Object.hashCode, it is unique for each object and when used in Set or as key in Map, equal objects can duplicate in Set, and keys not found in Map.
+            Solution: implement hashCode properly, consistent with equals. Meet the equals and hashCode contracts. If objects are equal, hashCode needs to be equal, too. See Effective Java.
+        </description>
+        <priority>1</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,correctness" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+//MethodDeclaration[@Name='equals' and FormalParameters/@Size=1 and @Static=false() and ModifierList/@ExplicitModifiers='public']
+/ancestor::ClassBody[1]//MethodDeclaration[@Name='hashCode' and FormalParameters/@Size=0 and @Static=false() and ModifierList/@ExplicitModifiers='public']
+/Block[count(descendant::MethodCall)=1][//MethodCall[pmd-java:matchesSig('java.lang.Object#hashCode()')]/SuperExpression]
+                ]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+class Bad {
+    String field1;
+
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Bad that = (Bad) o;
+        return Objects.equals(field1, that.field1);
+    }
+    public int hashCode() {
+        return super.hashCode(); // bad
+    }
+}
+
+class Good {
+    String field1;
+
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Bad1 that = (Bad1) o;
+        return Objects.equals(field1, that.field1);
+    }
+    public int hashCode() {
+        return Objects.hash(field1); // good
+    }
+}
+            ]]>
+        </example>
+    </rule>
+
+    <rule name="AvoidRecreatingSecurityProviders"
+          language="java"
+          message="Avoid re-creating security providers, this is expensive."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#iuosf01">
+        <description>Problem: Creating a security provider is expensive because of loading of algorithms and other classes. Additionally, it uses synchronized which leads to lock contention when used with multiple threads.
+            Solution: This only needs to happen once in the JVM lifetime, because once loaded, the provider is typically available from the Security class. Create the security provider only once: only in case it is nog available from the Security class, yet.
+        </description>
+        <priority>2</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+//MethodDeclaration
+   [not((@Name='main' and @Static=true())or ModifierList/Annotation/@SimpleName='PostConstruct'
+      or .//IfStatement//InfixExpression
+         [@Operator='=='][VariableAccess[pmd-java:typeIs('java.security.Provider')] and NullLiteral]
+   )]
+//ConstructorCall[pmd-java:typeIs('java.security.Provider') or pmd-java:typeIs('org.bouncycastle.jce.provider.BouncyCastleProvider')]
+                ]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+import java.security.*;
+import javax.crypto.*;
+import org.bouncycastle.jce.provider.*;
+
+class Foo {
+    public Cipher initBlowfishBad() throws GeneralSecurityException {
+        Security.addProvider(new BouncyCastleProvider()); // bad
+        // build a Cipher
+    }
+
+    public Cipher initBlowfishGood() throws GeneralSecurityException {
+        Provider bouncyCastleProvider = Security.getProvider(BouncyCastleProvider.PROVIDER_NAME);
+        if (bouncyCastleProvider == null) {
+            bouncyCastleProvider = new BouncyCastleProvider();
+            Security.addProvider(bouncyCastleProvider);
+        }
+        // build a Cipher
+    }
+}
+            ]]>
+        </example>
+    </rule>
+
 </ruleset>
