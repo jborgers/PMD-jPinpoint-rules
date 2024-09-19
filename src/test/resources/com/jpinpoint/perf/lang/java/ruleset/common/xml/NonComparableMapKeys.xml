@@ -6,13 +6,13 @@
     <test-code>
         <description>violati
             on: NonComparableMapKeys</description>
-        <expected-problems>5</expected-problems>
-        <expected-linenumbers>5,9,10,11,16</expected-linenumbers>
+        <expected-problems>6</expected-problems>
+        <expected-linenumbers>4,5,9,10,11,16</expected-linenumbers>
         <code><![CDATA[
 import java.util.*;
 
 public class NonComparableMapKeys {
-    Map<NonComparableKey, String> nckMap; // (bad), however not able to test here, not available from classpath, so typeIs does not work
+    Map<NonComparableKey, String> nckMap; // bad, with pmd7 we are able to test this, nice!
     Map<Runnable, String> rMap; // bad
     Map<ComparableKey, String> ckMap; // good. Not available from classpath, type cannot be determined, then no violation
     Map<Comparable, String> cMap; // good
