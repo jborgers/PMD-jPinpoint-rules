@@ -930,6 +930,93 @@ public RetrieveCache(final @Value("${cache.expiryTimeMillis}") long timeToLiveMi
         </example>
     </rule>
 
+    <rule name="ImplementEqualsHashCodeOnValueObjects"
+          message="Equals and/or hashCode is missing for a value object."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          language="java"
+          externalInfoUrl="${doc_root}/JavaCodeQuality.md#incorrect-equals-and-hashcode">
+        <description>
+            Problem: If equals and hashCode are not defined, they don't meet the programmer's expectations and the requirements for use with the collections API. It may result in unexpected, undesired behavior.&#13;
+            Solution: Add proper equals and hashCode methods that meet the equals-hashCode contract to all objects which might anyhow be put in a Map, Set or other collection. Or use Lombok @EqualsAndHashCode, @Value or @Data. Also holds for inner classes.
+            If the object should never be checked for equality or used in a collection, also add those methods and let them throw UnsupportedOperationException to fail fast. @Xml... , @Entity, Throwable and Executor objects are ignored because they are assumed to be not used as value objects.
+            (jpinpoint-rules)</description>
+        <priority>3</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,unpredictable" type="String" description="classification"/>
+            <property name="xpath">
+                <value>
+                    <![CDATA[
+(:- top level class - not annotated that would make it a non-value object -:)
+//ClassDeclaration
+[not(pmd-java:hasAnnotation('lombok.Data') or pmd-java:hasAnnotation('lombok.Value')or pmd-java:hasAnnotation('lombok.EqualsAndHashCode')
+    or pmd-java:hasAnnotation('javax.ejb.Singleton') or pmd-java:hasAnnotation('jakarta.ejb.Singleton')
+    or pmd-java:hasAnnotation('org.springframework.stereotype.Component') or pmd-java:hasAnnotation('org.springframework.stereotype.Controller')
+    or pmd-java:hasAnnotation('org.springframework.stereotype.Service') or pmd-java:hasAnnotation('org.springframework.stereotype.Repository')
+    or pmd-java:hasAnnotation('org.springframework.context.annotation.Configuration')
+    or pmd-java:hasAnnotation('org.springframework.web.bind.annotation.RestController') or pmd-java:hasAnnotation('org.springframework.web.bind.annotation.ControllerAdvice')
+    or pmd-java:hasAnnotation('org.springframework.ws.server.endpoint.annotation.Endpoint')
+    or pmd-java:hasAnnotation('javax.persistence.Entity') or pmd-java:hasAnnotation('jakarta.persistence.Entity')
+    or pmd-java:hasAnnotation('javax.persistence.Embeddable') or pmd-java:hasAnnotation('jakarta.persistence.Embeddable')
+    or pmd-java:hasAnnotation('javax.persistence.MappedSuperclass') or pmd-java:hasAnnotation('jakarta.persistence.MappedSuperclass')
+    or ModifierList/Annotation[starts-with(@SimpleName, 'Xml')]
+)]
+[@Interface=false() and @Abstract=false() and not(pmd-java:typeIs('java.util.concurrent.Executor') or pmd-java:typeIs('java.lang.Throwable'))]
+/ClassBody[FieldDeclaration[@Static=false() and (not (pmd-java:hasAnnotation('javax.xml.bind.annotation.XmlElement')))
+    and
+    (: a getter with result type of a field :)
+    (ancestor::ClassBody[1]/MethodDeclaration
+       [(@Visibility='public' or ../../@Nested=true()) and @Static=false() and (starts-with(@Name, 'get') and string-length(@Name) > 3 or starts-with(@Name, 'is') and string-length(@Name) > 2)]
+       [ClassType/@SimpleName=ancestor::ClassBody[1]/FieldDeclaration[@Static=false()]/ClassType/@SimpleName]
+    (: or a @Getter on class :)
+    or ancestor::ClassDeclaration[1][pmd-java:hasAnnotation('lombok.Getter')]
+    )
+    (: and class has no equals nor hashCode method :)
+    and (not (ancestor::ClassBody[1]/MethodDeclaration[(@Visibility='public' or ../../@Nested=true()) and @Static=false() and (@Name='equals' and .//FormalParameters[@Size=1]) or (@Name='hashCode' and .//FormalParameters[@Size=0])]))
+    (: and class has a toString and #fields <= 1+#getters :)
+    and ((ancestor::ClassBody[1]//MethodDeclaration[(@Visibility='public' or ../../@Nested=true()) and @Static=false() and @Name='toString']
+            and count(ancestor::ClassBody[1]/FieldDeclaration[@Static=false()]) <=
+                (1 + count(ancestor::ClassBody[1]/MethodDeclaration[(@Visibility='public' or ../../@Nested=true()) and @Static=false() and (starts-with(@Name, 'get') and string-length(@Name) > 3 or starts-with(@Name, 'is') and string-length(@Name) > 2)]))
+            or ancestor::ClassDeclaration[1][ends-with(@SimpleName, 'Dto')])
+        (: or #fields == #getters :)
+        or count(ancestor::ClassBody[1]/FieldDeclaration[@Static=false()]) = count(ancestor::ClassBody[1]/MethodDeclaration[(@Visibility='public' or ../../@Nested=true()) and @Static=false() and (starts-with(@Name, 'get') and string-length(@Name) > 3 or starts-with(@Name, 'is') and string-length(@Name) > 2)])
+        or ancestor::ClassDeclaration[1][pmd-java:hasAnnotation('lombok.Getter')]
+        )
+] (:-up to class -:)
+]/..
+]]>
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+class Getters { // bad
+    private String someState1 = "some1";
+    private String someState2 = "some2";
+
+    public String getSomeState1() {
+        return someState1;
+    }
+    public String getSomeState2() {
+        return someState2;
+    }
+}
+
+@Getter
+class LombokGetterBad { // bad
+    private String someState1 = "some1";
+    private String someState2 = "some2";
+}
+
+@Getter
+@EqualsAndHashCode
+class LombokGetterGood {
+    private String someState1 = "some1";
+    private String someState2 = "some2";
+}
+            ]]>
+        </example>
+    </rule>
+
     <rule name="EqualsOperationInconsistentWithHashCode"
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           language="java"
