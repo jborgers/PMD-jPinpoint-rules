@@ -1,7 +1,174 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ruleset name="jpinpoint-concurrent-rules" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 https://pmd.sourceforge.io/ruleset_2_0_0.xsd" xmlns="http://pmd.sourceforge.net/ruleset/2.0.0">
     <description>jPinpoint rule set for performance aware Java coding, sponsored by Rabobank.</description>
-    
+
+    <rule name="AvoidCompletionServiceTake"
+          message="Avoid completionService.take, use poll"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
+          typeResolution="true" externalInfoUrl="${doc_root}/JavaCodePerformance.md">
+        <description>
+            Problem: take() stalls indefinitely in case of hanging threads and consumes a thread.&#13;
+            Solution: use poll() with a timeout value and handle the timeout.
+            (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,multi-threading,performance" type="String" description="classification"/>
+            <property name="xpath">
+                <value>
+                    <![CDATA[
+//MethodCall[pmd-java:matchesSig('java.util.concurrent.CompletionService#take()')]
+                    ]]>
+                </value>
+            </property>
+        </properties>
+        <example><![CDATA[
+public static <T> void collectAllCollectionReplyFromThreads(CompletionService<List<T>> completionService) {
+    try {
+        Future<List<T>> futureLocal = completionService.take(); // bad
+        Future<List<T>> futuresGood = completionService.poll(3, TimeUnit.SECONDS); // good
+        responseCollector.addAll(futuresGood.get(10, TimeUnit.SECONDS)); // good
+    } catch (InterruptedException | ExecutionException e) {
+        LOGGER.error("Error in Thread : {}", e);
+    } catch (TimeoutException e) {
+        LOGGER.error("Timeout in Thread : {}", e);
+    }
+}
+     ]]></example>
+    </rule>
+
+    <rule name="AvoidFutureGetWithoutTimeout"
+          message="Avoid future.get without timeout"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
+          typeResolution="true" externalInfoUrl="${doc_root}/JavaCodePerformance.md">
+        <description>
+            Problem: Stalls indefinitely in case of hanging threads and consumes a thread.&#13;
+            Solution: Provide a timeout value and handle the timeout.
+            (jpinpoint-rules)</description>
+        <priority>1</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,multi-threading,performance" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+//MethodCall[pmd-java:matchesSig('java.util.concurrent.Future#get()')]
+                ]]></value>
+            </property>
+        </properties>
+        <example><![CDATA[
+public static String bad(CompletableFuture<String> complFuture) throws Exception {
+    return complFuture.get(); // bad
+}
+
+public static String good(CompletableFuture<String> complFuture) throws Exception {
+    return complFuture.get(10, TimeUnit.SECONDS); // good
+}
+         ]]></example>
+    </rule>
+
+    <rule name="AvoidMutableStaticFields"
+          message="Avoid non-final or mutable static fields. Make final immutable or access thread-safely AND use @GuardedBy."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
+          typeResolution="true" externalInfoUrl="${doc_root}/JavaCodePerformance.md#tutc08">
+        <description>
+            Problem: Multiple threads typically access static fields. Unguarded assignment to a mutable or non-final static field is thread-unsafe and may cause corruption or visibility problems. To make this thread-safe, that is, guard the field e.g. with synchronized methods, may cause contention. &#13;
+            Solution: Make the fields final and unmodifiable.  If they really need to be mutable, make access thread-safe: use synchronized and @GuardedBy or use volatile. Consider lock contention.&#13;
+            (jpinpoint-rules)</description>
+        <priority>3</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+(: static field, non-final, non-volatile, non-guarded by :)
+//FieldDeclaration[
+    pmd-java:modifiers() = ('static')
+    and not(pmd-java:modifiers() = ('final','volatile'))
+    and not(./ModifierList/Annotation[pmd-java:typeIs('net.jcip.annotations.GuardedBy')])
+]
+,
+(: static field, non-guarded, some often used known mutable types, declaration side :)
+//FieldDeclaration[
+    pmd-java:modifiers() = ('static')
+    and (./ClassType[(pmd-java:typeIs('java.util.Date') or pmd-java:typeIs('java.lang.StringBuilder') or pmd-java:typeIs('java.lang.StringBuffer') or pmd-java:typeIs('java.net.URL')) or pmd-java:typeIs('java.io.File')]
+    or ./VariableDeclarator/ArrayInitializer[@Length > 0])
+    and not(./ModifierList/Annotation[pmd-java:typeIs('net.jcip.annotations.GuardedBy')])
+]
+,
+(: static field, non-guarded, some often used known collection/array types, allocation side:)
+//FieldDeclaration[
+    pmd-java:modifiers() = ('static') and not(./ModifierList/Annotation[pmd-java:typeIs('net.jcip.annotations.GuardedBy')])
+    and .//ConstructorCall/ClassType[
+       (pmd-java:typeIs('java.util.ArrayList') and not(ancestor::MethodCall[pmd-java:matchesSig('java.util.Collections#unmodifiableList(_*)')]) )
+       or ((pmd-java:typeIs('java.util.HashMap') or pmd-java:typeIs('java.util.EnumMap')) and not(ancestor::MethodCall[pmd-java:matchesSig('java.util.Collections#unmodifiableMap(_*)')]))
+       or (pmd-java:typeIs('java.util.HashSet') and not(ancestor::MethodCall[pmd-java:matchesSig('java.util.Collections#unmodifiableSet(_*)')]))
+    ]
+    or .//ArrayInitializer[@Length > 0]
+    or .//ArrayAllocation[.//ArrayDimExpr/NumericLiteral[@ValueAsInt > 0]]
+    or .//MethodCall[pmd-java:matchesSig('java.util.Arrays#asList(_*)') and not(ancestor::MethodCall[pmd-java:matchesSig('java.util.Collections#unmodifiableList(_*)')])]
+]
+,
+(: static-block allocations of non-empty arrays :)
+//Initializer//ArrayAllocation[ArrayType/ArrayDimensions[@Size > 0]/ArrayDimExpr/NumericLiteral[@ValueAsInt > 0]
+  or exists(.//ArrayDimExpr/VariableAccess/@Name)
+  or exists(.//ArrayInitializer/*)]
+,
+(: static-block allocations of known mutable types :)
+//Initializer//ExpressionStatement//ConstructorCall[
+       (
+         (pmd-java:typeIs('java.util.ArrayList') and not(ancestor::MethodCall[pmd-java:matchesSig('java.util.Collections#unmodifiableList(_*)')]) )
+           or ((pmd-java:typeIs('java.util.HashMap') or pmd-java:typeIs('java.util.EnumMap')) and not(ancestor::MethodCall[pmd-java:matchesSig('java.util.Collections#unmodifiableMap(_*)')]))
+           or (pmd-java:typeIs('java.util.HashSet') and not(ancestor::MethodCall[pmd-java:matchesSig('java.util.Collections#unmodifiableSet(_*)')]))
+       )
+  and not(../VariableAccess/@Name = ancestor::ClassDeclaration//FieldDeclaration[count(ModifierList/Annotation[pmd-java:typeIs('net.jcip.annotations.GuardedBy')]) > 0]/VariableDeclarator/VariableId/@Name)
+]
+                ]]></value>
+            </property>
+        </properties>
+        <example><![CDATA[
+enum Bad {
+    VAL1;
+    static final Map<String, Bad> STRING_TO_ENUM = new HashMap<>(); // bad
+}
+enum Good {
+    VAL1;
+    static final Map<String, Good> STRING_TO_ENUM; // good
+    static {
+        Map<String, Good> map = new HashMap<>();
+        STRING_TO_ENUM = Collections.unmodifiableMap(map);
+    }
+}
+        ]]></example>
+    </rule>
+
+    <rule name="AvoidThreadUnsafeJaxbUsage" message="A JAXB Marshaller, Unmarshaller or Validator is used in a thread-unsafe way." class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java" typeResolution="true" externalInfoUrl="${doc_root}/JavaCodePerformance.md#IUOXAR07">
+        <description>Problem: JAXB Marshaller, Unmarshaller and Validator are not thread-safe.  &#13;
+            Solution: Create a new instance every time you need to marshall, unmarshall or validate a document.
+            (jpinpoint-rules)</description>
+        <priority>1</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,multi-threading" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+//FieldDeclaration[ClassType[pmd-java:typeIs('javax.xml.bind.Marshaller')
+  or pmd-java:typeIs('javax.xml.bind.Unmarshaller')
+  or pmd-java:typeIs('javax.xml.bind.Validator')
+  or pmd-java:typeIs('javax.xml.validation.Validator')]
+]
+			     ]]></value>
+            </property>
+        </properties>
+        <example><![CDATA[
+class Exporter {
+
+    private javax.xml.bind.Unmarshaller sharedUnmarshaller; // bad
+    private javax.xml.bind.Validator sharedValidator; // bad
+
+    public Thing doSomething(File xml) {
+        Unmarshaller unmarshaller = jaxbContext.createUnmarshaller(); // good, create one each time
+        return (Thing) unmarshaller.unmarshal(xml);
+    }
+}
+        ]]></example>
+    </rule>
+
 </ruleset>
 
 
