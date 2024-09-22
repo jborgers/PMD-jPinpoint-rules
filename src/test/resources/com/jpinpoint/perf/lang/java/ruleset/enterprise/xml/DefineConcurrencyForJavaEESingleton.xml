@@ -6,10 +6,21 @@
     <test-code>
         <description>Define concurrency for JavaEE Singleton</description>
         <expected-problems>2</expected-problems>
-        <expected-linenumbers>20, 35</expected-linenumbers>
+        <expected-linenumbers>32, 47</expected-linenumbers>
         <code><![CDATA[
-package com.jpinpoint.tryout;
-import javax.ejb.*;
+import javax.ejb.Singleton;
+import javax.ejb.ConcurrencyManagement;
+import javax.ejb.ConcurrencyManagementType;
+import static javax.ejb.LockType.READ;
+import static javax.ejb.LockType.WRITE;
+import javax.ejb.Lock;
+
+/*import jakarta.ejb.Singleton;
+import jakarta.ejb.ConcurrencyManagement;
+import static jakarta.ejb.LockType.READ;
+import static jakarta.ejb.LockType.WRITE;
+import jakarta.ejb.Lock;*/
+
 public class SingletonTryout {}
 
 @ConcurrencyManagement(ConcurrencyManagementType.CONTAINER)
