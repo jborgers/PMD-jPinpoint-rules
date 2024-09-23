@@ -195,7 +195,7 @@ return JsonMapper.builder().build(); // bad
     </rule>
 
     <!--
-<rule name="HttpClientBuilderWithoutPoolSize"
+<rule -name="HttpClientBuilderWithoutPoolSize"
 class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
 language="java"
 message="HttpClient builder is used and the connection pool is not configured. HttpClient defaults of 2 per route and 20 max total are probably not right."
@@ -265,7 +265,7 @@ return HttpClientBuilder.create() // good, setConnectionManager called, pool con
 </example>
 </rule>
 
-<rule name="HttpClientBuilderPoolSettingsIgnored"
+<rule -name="HttpClientBuilderPoolSettingsIgnored"
 class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
 language="java"
 message="HttpClient builder is used with a ConnectionManager and MaxConn settings on the client are ignored. Remove them."
@@ -320,7 +320,7 @@ return HttpClientBuilder.create() // good
 </example>
 </rule>
 
-<rule name="HttpClientBuilderWithoutTimeouts"
+<rule -name="HttpClientBuilderWithoutTimeouts"
 class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
 language="java"
 message="HttpClient-v4 builder is used and not all three timeouts are configured. The defaults are probably not optimal (e.g. infinite). "
@@ -408,7 +408,7 @@ return HttpClientBuilder.create()
 </example>
 </rule>
 
-<rule name="DefaultFeignClientWithoutTLSConnectionReuse"
+<rule -name="DefaultFeignClientWithoutTLSConnectionReuse"
 class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
 language="java"
 message="Default Feign client is used with (mutual) TLS. This is HttpURLConnection that creates a new connection for each call with TLS overhead."
@@ -451,7 +451,7 @@ return Feign.builder().client(feignClient);
 </example>
 </rule>
 
-<rule name="AvoidJAXBUtil"
+<rule -name="AvoidJAXBUtil"
 language="java"
 message="The JAXB utility class is not optimized for performance."
 class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
@@ -482,7 +482,7 @@ JAXB.marshal(response, stringWriter); // bad
 </example>
 </rule>
 
-<rule name="UseCloseableForHttpClient"
+<rule -name="UseCloseableForHttpClient"
 class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
 language="java"
 message="HttpClient is used instead of ClosableHttpClient. "
@@ -528,7 +528,7 @@ ClientHttpRequestFactory clientHttpRequestFactory = new HttpComponentsClientHttp
 </example>
 </rule>
 
-<rule name="AvoidModifyingObjectMapper"
+<rule -name="AvoidModifyingObjectMapper"
 class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
 language="java"
 message="ObjectMapper is configured/modified, only initialize it right after construction."
@@ -592,7 +592,7 @@ new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL).write
 </example>
 </rule>
 
-<rule name="AvoidDeprecatedHystrix"
+<rule -name="AvoidDeprecatedHystrix"
 class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
 language="java"
 message="Netflix Hystrix is deprecated. Use an alternative like resilience4j"
@@ -613,7 +613,7 @@ Solution: Netflix recommends to use open source alternatives like resilience4j. 
 </example>
 </rule>
 
-<rule name="AvoidRecreatingHttpClient"
+<rule -name="AvoidRecreatingHttpClient"
 class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
 language="java"
 message="An HttpClient is created and combined with request-response."
@@ -647,7 +647,7 @@ return remoteCall(httpClient, requestEntity);
 </example>
 </rule>
 
-<rule name="RetryCanCauseOverload"
+<rule -name="RetryCanCauseOverload"
 class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
 language="java"
 message="Be careful with retrying: multiple retry locations in a call chain can cause overload."
@@ -683,7 +683,7 @@ public Response callSomeService() {
 </example>
 </rule>
 
-<rule name="AvoidReactorDebugOverhead"
+<rule -name="AvoidReactorDebugOverhead"
 class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
 language="java"
 message="Do not use Reactor debugging in production, it has much overhead."
@@ -713,7 +713,7 @@ Hooks.onOperatorDebug(); //bad
 </example>
 </rule>
 
-<rule name="AvoidDiscardingHttpClientConfig"
+<rule -name="AvoidDiscardingHttpClientConfig"
 class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
 language="java"
 message="Do not replace the configured httpClient provided in the constructor of the factory."
@@ -758,7 +758,7 @@ return factory;
 </example>
 </rule>
 
-<rule name="AvoidHttpHostOneArgumentConstructor"
+<rule -name="AvoidHttpHostOneArgumentConstructor"
 class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
 language="java"
 message="Avoid the HttpHost constructor with only hostname, provide port number and protocol as well."
@@ -796,7 +796,7 @@ HttpHost hostGood1 = new HttpHost("localhost", 8080, "http"); //good
 </rule>
 
 
-<rule name="AvoidClientHttpRequestFactorySupplier"
+<rule -name="AvoidClientHttpRequestFactorySupplier"
 class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
 language="java"
 message="Avoid use of ClientHttpRequestFactorySupplier."
@@ -854,7 +854,7 @@ and use it to replace the bad line in Bad example:
 </example>
 </rule>
 
-<rule name="SetQueueCapacityForTaskExecutor"
+<rule -name="SetQueueCapacityForTaskExecutor"
 class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
 language="java"
 message="Configure the queue capacity for the ThreadPoolTaskExecutor."
@@ -897,7 +897,7 @@ return executor;
 </example>
 </rule>
 
-<rule name="BufferingClientHttpRequestFactoryIsMemoryGreedy"
+<rule -name="BufferingClientHttpRequestFactoryIsMemoryGreedy"
 class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
 language="java"
 message="BufferingClientHttpRequestFactory is memory greedy. Only use when multiple reads of the response body cannot be avoided."
@@ -937,7 +937,7 @@ return new RestTemplate(factory); // good
 </example>
 </rule>
 
-<rule name="HttpClientImproperConnectionTimeouts"
+<rule -name="HttpClientImproperConnectionTimeouts"
 class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
 language="java"
 message="ApacheHttpClient RequestConfig connectionRequestTimeout and connectTimeout have values which are typically too high."
@@ -1000,7 +1000,7 @@ return requestConfig;
 </example>
 </rule>
 
-<rule name="AvoidObjectMapperAsField"
+<rule -name="AvoidObjectMapperAsField"
 class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
 language="java"
 message="Avoid ObjectMapper as field, use ObjectReader or ObjectWriter instead."
@@ -1044,7 +1044,7 @@ new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL).write
 </example>
 </rule>
 
-<rule name="AxualProducerCreatedForEachMethodCall"
+<rule -name="AxualProducerCreatedForEachMethodCall"
 message="An Axual (Kafka) producer is created for each method call, which is expensive and takes resources."
 class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
 dfa="false"
@@ -1089,7 +1089,7 @@ return producer;
 </example>
 </rule>
 
-<rule name="AvoidLeakingRetryEventConsumers"
+<rule -name="AvoidLeakingRetryEventConsumers"
 message="Avoid leaking of retry event consumers."
 class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
 dfa="false"
@@ -1141,7 +1141,7 @@ retryLocal.getEventPublisher().onRetry(event -> retryCountLocal.getAndIncrement(
 </example>
 </rule>
 
-<rule name="AvoidHardcodedConnectionConfig"
+<rule -name="AvoidHardcodedConnectionConfig"
 message="Avoid hardcoded connection configuration."
 class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
 dfa="false"
@@ -1188,7 +1188,7 @@ int otherTimeoutInS = 3; // good, var
 </example>
 </rule>
 
-<rule name="AvoidExcessiveClassloadingWithSaajSoap"
+<rule -name="AvoidExcessiveClassloadingWithSaajSoap"
 message="Avoid excessive class loading with SAAJ SOAP messaging, use alternative Axiom, or system properties."
 class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
 dfa="false"
