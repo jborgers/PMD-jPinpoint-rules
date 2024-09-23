@@ -14,11 +14,11 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 public class AvoidXMLGregorianCalendar {
 
-	private XMLGregorianCalendar sprinkleDatum;
-	protected XMLGregorianCalendar sparkleDatum;
+	private XMLGregorianCalendar sprinkleDatum; // bad
+	protected XMLGregorianCalendar sparkleDatum; // bad
 
-	public XMLGregorianCalendar getSparkleDatum2() {
-		XMLGregorianCalendar cal = sprinkleDatum;
+	public XMLGregorianCalendar getSparkleDatum2() { // bad
+		XMLGregorianCalendar cal = sprinkleDatum;  // bad
 		try {
 			cal = DatatypeFactory.newInstance().newXMLGregorianCalendar();
 		} catch (DatatypeConfigurationException e) {
