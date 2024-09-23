@@ -74,7 +74,7 @@ class Good {
         </properties>
     </rule>
 
-    <!--
+
 <rule name="ObjectMapperCreatedForEachMethodCall"
       message="An ObjectMapper or JsonMapper is created for each method call, which is expensive."
       class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
@@ -87,34 +87,33 @@ class Good {
         <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
         <property name="xpath">
             <value><![CDATA[
-//MethodDeclaration//Expression/PrimaryExpression/PrimaryPrefix/AllocationExpression/ClassOrInterfaceType[
-(pmd-java:typeIs('com.fasterxml.jackson.databind.ObjectMapper')) and
-not(ancestor::TypeDeclaration/Annotation/MarkerAnnotation/Name/@Image='Configuration')
+(: ObjectMapper constructor called in a method :)
+//MethodDeclaration//ConstructorCall[(pmd-java:typeIs('com.fasterxml.jackson.databind.ObjectMapper')) and
+    (: configuration is assumed to be called only once :)
+    not(ancestor::ClassDeclaration[1][(pmd-java:hasAnnotation('org.springframework.context.annotation.Configuration'))])
 ],
-//MethodDeclaration//PrimaryPrefix[
-(pmd-java:typeIs('com.fasterxml.jackson.databind.json.JsonMapper') and
-     ancestor::PrimaryExpression//(PrimaryPrefix/Name|PrimarySuffix)[ends-with(@Image, 'build')]) and
-not(ancestor::TypeDeclaration/Annotation/MarkerAnnotation/Name/@Image='Configuration')
-],
-//MethodDeclaration//VariableDeclarator[
-pmd-java:typeIs('com.fasterxml.jackson.databind.ObjectMapper')
-]/VariableInitializer//PrimaryPrefix/Name[ends-with(@Image, 'build')]
+(: a violation for both builder() and build() method because both can be expensive :)
+//MethodDeclaration//MethodCall[(pmd-java:matchesSig('com.fasterxml.jackson.databind.json.JsonMapper#builder()') or pmd-java:matchesSig('com.fasterxml.jackson.databind.cfg.MapperBuilder#build()')) and
+    (: configuration is assumed to be called only once :)
+    not(ancestor::ClassDeclaration[1][(pmd-java:hasAnnotation('org.springframework.context.annotation.Configuration'))])
+]
         ]]></value>
         </property>
      </properties>
     <example>
         <![CDATA[
 public static ObjectMapper createMapper() {
-return new ObjectMapper(); // violation
+return new ObjectMapper(); // bad
 }
 
 public static JsonMapper createMapper() {
-return JsonMapper.builder().build(); // violation
+return JsonMapper.builder().build(); // bad
 }
         ]]>
     </example>
 </rule>
 
+    <!--
 <rule name="GsonCreatedForEachMethodCall"
       message="A Gson object is created for each method call, which is expensive."
       class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
