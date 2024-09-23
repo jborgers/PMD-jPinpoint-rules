@@ -155,35 +155,36 @@ return JsonMapper.builder().build(); // bad
 </properties>
 </rule>
 
-    <!--
-<rule name="HttpClientBuilderWithoutDisableConnectionState"
-class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-language="java"
-message="A HttpClient builder is used and disableConnectionState is not called. HTTP client tracks connection state while using TLS"
-externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi07">
-<description>Problem: NTLM authenticated connections and SSL/TLS connections with client certificate authentication are stateful: they have a specific user identity/security context per session. If HttpClients have enabled connection state tracking which is the default, established TLS connections will not be reused because it is assumed that the user identity or security context may differ.
-Then performance will suffer due to a full TLS handshake for each request.&#13;
-Solution: HttpClients should disable connection state tracking in order to reuse TLS connections, since service calls for one pool have the same user identity/security context for all sessions. (jpinpoint-rules)</description>
-<priority>2</priority>
-<properties>
-<property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
-<property name="xpath">
-    <value><![CDATA[
-(:locally created http client builder without disableConnectionState :)
-//MethodDeclaration//PrimaryExpression/PrimaryPrefix/Name[
-(@Image="HttpClientBuilder.create" or @Image="HttpAsyncClientBuilder.create" or @Image="HttpClients.custom") and not(
-ancestor::MethodDeclaration//PrimarySuffix/@Image="disableConnectionState")]
-,
-(: method param http client builder without disableConnectionState :)
-//MethodDeclaration//FormalParameter//ClassOrInterfaceType[
-(@Image="HttpClientBuilder" or @Image="HttpAsyncClientBuilder" or @Image="HttpClients") and not(
-ancestor::MethodDeclaration//PrimarySuffix/@Image="disableConnectionState")]
-]]>
-    </value>
-</property>
-</properties>
-</rule>
 
+    <rule name="HttpClientBuilderWithoutDisableConnectionState"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          language="java"
+          message="A HttpClient builder is used and disableConnectionState is not called. HTTP client tracks connection state while using TLS"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi07">
+        <description>Problem: NTLM authenticated connections and SSL/TLS connections with client certificate
+            authentication are stateful: they have a specific user identity/security context per session. If HttpClients
+            have enabled connection state tracking which is the default, established TLS connections will not be reused
+            because it is assumed that the user identity or security context may differ.
+            Then performance will suffer due to a full TLS handshake for each request.&#13;
+            Solution: HttpClients should disable connection state tracking in order to reuse TLS connections, since
+            service calls for one pool have the same user identity/security context for all sessions. (jpinpoint-rules)
+        </description>
+        <priority>2</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+//MethodCall[pmd-java:matchesSig('org.apache.http.impl.client.HttpClientBuilder#create()')][not(ancestor::MethodDeclaration//MethodCall[@MethodName='disableConnectionState'])]
+,
+//MethodCall[pmd-java:matchesSig('org.apache.http.impl.client.HttpClients#custom()')][not(ancestor::MethodDeclaration//MethodCall[@MethodName='disableConnectionState'])]
+,
+//MethodCall[pmd-java:matchesSig('org.apache.http.impl.nio.client.HttpAsyncClientBuilder#build()')][not(ancestor::MethodDeclaration//MethodCall[@MethodName='disableConnectionState'])]
+]]>
+                </value>
+            </property>
+        </properties>
+    </rule>
+    <!--
 <rule name="HttpClientBuilderWithoutPoolSize"
 class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
 language="java"
