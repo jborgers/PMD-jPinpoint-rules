@@ -958,6 +958,7 @@ public RetrieveCache(final @Value("${cache.expiryTimeMillis}") long timeToLiveMi
     or pmd-java:hasAnnotation('javax.persistence.Entity') or pmd-java:hasAnnotation('jakarta.persistence.Entity')
     or pmd-java:hasAnnotation('javax.persistence.Embeddable') or pmd-java:hasAnnotation('jakarta.persistence.Embeddable')
     or pmd-java:hasAnnotation('javax.persistence.MappedSuperclass') or pmd-java:hasAnnotation('jakarta.persistence.MappedSuperclass')
+    (: JAXB annotations: @XmlType, @XmlRootElement, @XmlAccessorType, @XmlAccessorOrder :)
     or ModifierList/Annotation[starts-with(@SimpleName, 'Xml')]
 )]
 [@Interface=false() and @Abstract=false() and not(pmd-java:typeIs('java.util.concurrent.Executor') or pmd-java:typeIs('java.lang.Throwable'))]
@@ -976,7 +977,7 @@ public RetrieveCache(final @Value("${cache.expiryTimeMillis}") long timeToLiveMi
     and ((ancestor::ClassBody[1]//MethodDeclaration[(@Visibility='public' or ../../@Nested=true()) and @Static=false() and @Name='toString']
             and count(ancestor::ClassBody[1]/FieldDeclaration[@Static=false()]) <=
                 (1 + count(ancestor::ClassBody[1]/MethodDeclaration[(@Visibility='public' or ../../@Nested=true()) and @Static=false() and (starts-with(@Name, 'get') and string-length(@Name) > 3 or starts-with(@Name, 'is') and string-length(@Name) > 2)]))
-            or ancestor::ClassDeclaration[1][ends-with(@SimpleName, 'Dto')])
+            or ancestor::ClassDeclaration[1][ends-with(upper-case(@SimpleName), 'DTO')])
         (: or #fields == #getters :)
         or count(ancestor::ClassBody[1]/FieldDeclaration[@Static=false()]) = count(ancestor::ClassBody[1]/MethodDeclaration[(@Visibility='public' or ../../@Nested=true()) and @Static=false() and (starts-with(@Name, 'get') and string-length(@Name) > 3 or starts-with(@Name, 'is') and string-length(@Name) > 2)])
         or ancestor::ClassDeclaration[1][pmd-java:hasAnnotation('lombok.Getter')]
@@ -1030,18 +1031,23 @@ class LombokGetterGood {
             <property name="tags" value="jpinpoint-rule,correctness" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
+(: the number of toLowerCase on a field used in equals should not be larger than that of hashCode :)
 //FieldDeclaration//VariableId[
 (@Name = ancestor::ClassBody[1]//MethodDeclaration[@Name='equals' and (FormalParameters/@Size = 1)]/Block//MethodCall[pmd-java:matchesSig('java.lang.String#toLowerCase()')]//VariableAccess/@Name) >
 (@Name = ancestor::ClassBody[1]//MethodDeclaration[@Name='hashCode' and (FormalParameters/@Size = 0)]/Block//MethodCall[pmd-java:matchesSig('java.lang.String#toLowerCase()')]//VariableAccess/@Name)
 ]
+(: go to violating toLowerCase in equals :)
 /ancestor::ClassBody[1]//MethodDeclaration[@Name='equals']/Block//MethodCall[pmd-java:matchesSig('java.lang.String#toLowerCase()')]
 ,
+(: the number of toUpperCase on a field used in equals should not be larger than that of hashCode :)
 //FieldDeclaration//VariableId[
 (@Name = ancestor::ClassBody[1]//MethodDeclaration[@Name='equals' and (FormalParameters/@Size = 1)]/Block//MethodCall[pmd-java:matchesSig('java.lang.String#toUpperCase()')]//VariableAccess/@Name) >
 (@Name = ancestor::ClassBody[1]//MethodDeclaration[@Name='hashCode' and (FormalParameters/@Size = 0)]/Block//MethodCall[pmd-java:matchesSig('java.lang.String#toUpperCase()')]//VariableAccess/@Name)
 ]
+(: go to violating toUpperCase in equals :)
 /ancestor::ClassBody[1]//MethodDeclaration[@Name='equals']/Block//MethodCall[pmd-java:matchesSig('java.lang.String#toUpperCase()')]
 ,
+(: equalsIgnoreCase on field, in equals, not allowed :)
 //MethodDeclaration[@Name='equals' and (FormalParameters/@Size = 1)]/Block//MethodCall[pmd-java:matchesSig('java.lang.String#equalsIgnoreCase(java.lang.String)')]
 			]]>
                 </value>

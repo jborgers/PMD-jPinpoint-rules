@@ -5,8 +5,8 @@
         xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
     <test-code>
         <description>violation: Implement equals and hashcode methods on value Objects</description>
-        <expected-problems>4</expected-problems>
-        <expected-linenumbers>44,52,66,80</expected-linenumbers>
+        <expected-problems>5</expected-problems>
+        <expected-linenumbers>44,52,66,80,94</expected-linenumbers>
         <code><![CDATA[
 import lombok.*;
 import org.slf4j.Logger;
@@ -100,6 +100,15 @@ class ViolateLoggerProducerBad { // bad 80
 
     public Properties getProperties() {return properties;}
 }
+
+class ViolateDTOBad2 { // bad line 94
+    private String someState = "some";
+
+    public String getSomeState() {
+        return someState;
+    }
+}
+
      ]]></code>
     </test-code>
     <test-code>
