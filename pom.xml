@@ -72,6 +72,12 @@
             <version>2.4.0-b180830.0359</version>
             <scope>test</scope>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/jakarta.xml.bind/jakarta.xml.bind-api -->
+        <dependency>
+            <groupId>jakarta.xml.bind</groupId>
+            <artifactId>jakarta.xml.bind-api</artifactId>
+            <version>4.0.2</version>
+        </dependency>
         <dependency>
             <groupId>javax.xml.soap</groupId>
             <artifactId>javax.xml.soap-api</artifactId>
@@ -85,12 +91,12 @@
             <scope>provided</scope>
         </dependency>
         <!-- https://mvnrepository.com/artifact/javax.portlet/portlet-api -->
-        <dependency>
+        <!--dependency>
             <groupId>javax.portlet</groupId>
             <artifactId>portlet-api</artifactId>
             <version>3.0.1</version>
             <scope>provided</scope>
-        </dependency>
+        </dependency-->
         <!-- https://mvnrepository.com/artifact/javax.persistence/javax.persistence-api -->
         <dependency>
             <groupId>javax.persistence</groupId>
