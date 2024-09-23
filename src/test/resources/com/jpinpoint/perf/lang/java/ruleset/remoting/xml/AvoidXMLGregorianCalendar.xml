@@ -5,7 +5,8 @@
         xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
     <test-code>
         <description>Avoid XMLGregorianCalendar</description>
-        <expected-problems>3</expected-problems>
+        <expected-problems>4</expected-problems>
+        <expected-linenumbers>7,8,10,11</expected-linenumbers>
         <code><![CDATA[
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;

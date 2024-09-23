@@ -135,11 +135,11 @@ return JsonMapper.builder().build(); // bad
     </properties>
 </rule>
 
-    <!--
+
 <rule name="AvoidXMLGregorianCalendar"
   class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
   language="java"
-  message="XMLGregorianCalendar is used. It is slow in JAXB." typeResolution="true"
+  message="XMLGregorianCalendar is used. It is slow in JAXB."
   externalInfoUrl="${doc_root}/JavaCodePerformance.md#iuoxar05">
 <description>Problem: XMLGregorianCalendar is a large object, involving substantial processing. It is created with the poorly performing DatatypeFactory.
     Solution: Add a converter for alternative date handling with Java 8+ java.time.
@@ -149,29 +149,26 @@ return JsonMapper.builder().build(); // bad
     <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
     <property name="xpath">
         <value><![CDATA[
-//TypeDeclaration/ClassOrInterfaceDeclaration/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/
-FieldDeclaration/Type/ReferenceType/ClassOrInterfaceType[pmd-java:typeIs('javax.xml.datatype.XMLGregorianCalendar')]
-|
-//TypeDeclaration/ClassOrInterfaceDeclaration/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/
-MethodDeclaration//LocalVariableDeclaration/Type/ReferenceType/ClassOrInterfaceType[pmd-java:typeIs('javax.xml.datatype.XMLGregorianCalendar')]
+//ClassType[pmd-java:typeIs('javax.xml.datatype.XMLGregorianCalendar')]
 ]]></value>
     </property>
 </properties>
 </rule>
 
+    <!--
 <rule name="HttpClientBuilderWithoutDisableConnectionState"
-  class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-  language="java"
-  message="A HttpClient builder is used and disableConnectionState is not called. HTTP client tracks connection state while using TLS" typeResolution="true"
-  externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi07">
+class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+language="java"
+message="A HttpClient builder is used and disableConnectionState is not called. HTTP client tracks connection state while using TLS"
+externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi07">
 <description>Problem: NTLM authenticated connections and SSL/TLS connections with client certificate authentication are stateful: they have a specific user identity/security context per session. If HttpClients have enabled connection state tracking which is the default, established TLS connections will not be reused because it is assumed that the user identity or security context may differ.
-    Then performance will suffer due to a full TLS handshake for each request.&#13;
-    Solution: HttpClients should disable connection state tracking in order to reuse TLS connections, since service calls for one pool have the same user identity/security context for all sessions. (jpinpoint-rules)</description>
+Then performance will suffer due to a full TLS handshake for each request.&#13;
+Solution: HttpClients should disable connection state tracking in order to reuse TLS connections, since service calls for one pool have the same user identity/security context for all sessions. (jpinpoint-rules)</description>
 <priority>2</priority>
 <properties>
-    <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
-    <property name="xpath">
-        <value><![CDATA[
+<property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+<property name="xpath">
+    <value><![CDATA[
 (:locally created http client builder without disableConnectionState :)
 //MethodDeclaration//PrimaryExpression/PrimaryPrefix/Name[
 (@Image="HttpClientBuilder.create" or @Image="HttpAsyncClientBuilder.create" or @Image="HttpClients.custom") and not(
@@ -181,25 +178,25 @@ ancestor::MethodDeclaration//PrimarySuffix/@Image="disableConnectionState")]
 //MethodDeclaration//FormalParameter//ClassOrInterfaceType[
 (@Image="HttpClientBuilder" or @Image="HttpAsyncClientBuilder" or @Image="HttpClients") and not(
 ancestor::MethodDeclaration//PrimarySuffix/@Image="disableConnectionState")]
-    ]]>
-        </value>
-    </property>
+]]>
+    </value>
+</property>
 </properties>
 </rule>
 
 <rule name="HttpClientBuilderWithoutPoolSize"
-  class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-  language="java"
-  message="HttpClient builder is used and the connection pool is not configured. HttpClient defaults of 2 per route and 20 max total are probably not right." typeResolution="true"
-  externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi03">
+class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+language="java"
+message="HttpClient builder is used and the connection pool is not configured. HttpClient defaults of 2 per route and 20 max total are probably not right."
+externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi03">
 <description>Problem: by default only 2 connections are available per route. When two external calls are being made, a third thread requesting a connection must wait for a free connection.&#13;
-    Solution: HttpClients should explicitly define the number of connections per route. If only one route is used, make the max number of connections equal to conn per route.
-    Either use 1. setConnectionManager and call setMaxTotal and setDefaultMaxPerRoute on that connection manager, or 2. no ConnectionManager: call setMaxConnTotal and setMaxConnPerRoute on the client directly. (jpinpoint-rules)</description>
+Solution: HttpClients should explicitly define the number of connections per route. If only one route is used, make the max number of connections equal to conn per route.
+Either use 1. setConnectionManager and call setMaxTotal and setDefaultMaxPerRoute on that connection manager, or 2. no ConnectionManager: call setMaxConnTotal and setMaxConnPerRoute on the client directly. (jpinpoint-rules)</description>
 <priority>2</priority>
 <properties>
-    <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
-    <property name="xpath">
-        <value><![CDATA[
+<property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+<property name="xpath">
+    <value><![CDATA[
 (: locally created http client builder without setMaxConnTotal/setMaxConnPerRoute :)
 //MethodDeclaration//PrimaryExpression/PrimaryPrefix/Name[
 (
@@ -236,40 +233,40 @@ pmd-java:typeIs('org.apache.http.impl.conn.PoolingHttpClientConnectionManager')
 and count(ancestor::MethodDeclaration//(PrimaryPrefix/Name|PrimarySuffix)[ends-with(@Image, 'setMaxTotal') or ends-with(@Image, 'setDefaultMaxPerRoute')])<2
 ]
 ]]>
-        </value>
-    </property>
+    </value>
+</property>
 </properties>
 <example>
-    <![CDATA[
+<![CDATA[
 return HttpClientBuilder.create() // bad, missing setMaxConnPerRoute/setMaxConnTotal or setConnectionManager
-        .disableConnectionState()
-        .build();
+    .disableConnectionState()
+    .build();
 
 return HttpClientBuilder.create() // good, both setMaxConnPerRoute and setMaxConnTotal called on client
-        .setMaxConnPerRoute(MAX_CONNECTIONS_TOTAL)
-        .setMaxConnTotal(MAX_CONNECTIONS_TOTAL)
-        .build();
+    .setMaxConnPerRoute(MAX_CONNECTIONS_TOTAL)
+    .setMaxConnTotal(MAX_CONNECTIONS_TOTAL)
+    .build();
 
 return HttpClientBuilder.create() // good, setConnectionManager called, pool config delegated
-        .setConnectionManager(conMgr)
-        .build();
-    ]]>
+    .setConnectionManager(conMgr)
+    .build();
+]]>
 </example>
 </rule>
 
 <rule name="HttpClientBuilderPoolSettingsIgnored"
-  class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-  language="java"
-  message="HttpClient builder is used with a ConnectionManager and MaxConn settings on the client are ignored. Remove them." typeResolution="true"
-  externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi09">
+class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+language="java"
+message="HttpClient builder is used with a ConnectionManager and MaxConn settings on the client are ignored. Remove them."
+externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi09">
 <description>Problem: If you use setConnectionManager, the connection pool must be configured on that Connection Manager. Pool settings on the client are ignored and lost. &#13;
-    Solution: HttpClients should either 1. use setConnectionManager and *only* call setMaxTotal and setDefaultMaxPerRoute on that ConnectionManager or
-    2. not use a ConnectionManager and call setMaxConnTotal and setMaxConnPerRoute on the client directly (jpinpoint-rules)</description>
+Solution: HttpClients should either 1. use setConnectionManager and *only* call setMaxTotal and setDefaultMaxPerRoute on that ConnectionManager or
+2. not use a ConnectionManager and call setMaxConnTotal and setMaxConnPerRoute on the client directly (jpinpoint-rules)</description>
 <priority>2</priority>
 <properties>
-    <property name="tags" value="jpinpoint-rule,correctness" type="String" description="classification"/>
-    <property name="xpath">
-        <value><![CDATA[
+<property name="tags" value="jpinpoint-rule,correctness" type="String" description="classification"/>
+<property name="xpath">
+    <value><![CDATA[
 (: locally created http client builder with setConnectionManager and at least one of setMaxConnTotal/setMaxConnPerRoute :)
 //MethodDeclaration//PrimaryExpression/PrimaryPrefix/Name[
 (
@@ -290,40 +287,40 @@ or pmd-java:typeIs('org.apache.http.impl.client.HttpClients')
 and (ancestor::MethodDeclaration//(PrimaryPrefix/Name|PrimarySuffix)[ends-with(@Image, 'setConnectionManager')])
 ]/ancestor::MethodDeclaration//(PrimaryPrefix/Name|PrimarySuffix)[ends-with(@Image, 'setMaxConnTotal') or ends-with(@Image, 'setMaxConnPerRoute')]
 ]]>
-        </value>
-    </property>
+    </value>
+</property>
 </properties>
 <example>
-    <![CDATA[
+<![CDATA[
 return HttpClientBuilder.create()
-        .setConnectionManager(conMgr)
-        .setMaxConnPerRoute(MAX_CONNECTIONS_TOTAL) // bad, ignored
-        .build();
+    .setConnectionManager(conMgr)
+    .setMaxConnPerRoute(MAX_CONNECTIONS_TOTAL) // bad, ignored
+    .build();
 
 return HttpClientBuilder.create() // good
-        .setMaxConnPerRoute(MAX_CONNECTIONS_TOTAL)
-        .setMaxConnTotal(MAX_CONNECTIONS_TOTAL)
-        .build();
+    .setMaxConnPerRoute(MAX_CONNECTIONS_TOTAL)
+    .setMaxConnTotal(MAX_CONNECTIONS_TOTAL)
+    .build();
 
 return HttpClientBuilder.create() // good
-        .setConnectionManager(conMgr)
-        .build();
-    ]]>
+    .setConnectionManager(conMgr)
+    .build();
+]]>
 </example>
 </rule>
 
 <rule name="HttpClientBuilderWithoutTimeouts"
-  class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-  language="java"
-  message="HttpClient-v4 builder is used and not all three timeouts are configured. The defaults are probably not optimal (e.g. infinite). " typeResolution="true"
-  externalInfoUrl="${doc_root}/JavaCodePerformance.md#IBI10">
+class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+language="java"
+message="HttpClient-v4 builder is used and not all three timeouts are configured. The defaults are probably not optimal (e.g. infinite). "
+externalInfoUrl="${doc_root}/JavaCodePerformance.md#IBI10">
 <description>Problem: (Apache client version 4) For connectionRequestTimeout, connectTimeout, socketTimeout (for HttpComponentsClientHttpRequestFactory) or readTimeout (for RequestConfig) the default timeout settings are not optimal in most cases. &#13;
-    Solution: Set the timeouts explicitly to proper reasoned values. See best practice values via the link. Use the setDefaultRequestConfig with a method with a RequestConfig object on HttpClient builders to set the timeouts.(jpinpoint-rules)</description>
+Solution: Set the timeouts explicitly to proper reasoned values. See best practice values via the link. Use the setDefaultRequestConfig with a method with a RequestConfig object on HttpClient builders to set the timeouts.(jpinpoint-rules)</description>
 <priority>2</priority>
 <properties>
-    <property name="tags" value="jpinpoint-rule,performance,suspicious" type="String" description="classification"/>
-    <property name="xpath">
-        <value><![CDATA[
+<property name="tags" value="jpinpoint-rule,performance,suspicious" type="String" description="classification"/>
+<property name="xpath">
+    <value><![CDATA[
 (: only for Apache http client 4 :)
 (: locally created http client builder without setDefaultRequestConfig to set timeouts :)
 //MethodDeclaration//PrimaryExpression/PrimaryPrefix/Name[
@@ -384,43 +381,43 @@ and count(ancestor::MethodDeclaration//(PrimaryPrefix/Name|PrimarySuffix)[ends-w
 ]
 
 ]]>
-        </value>
-    </property>
+    </value>
+</property>
 </properties>
 <example>
-    <![CDATA[
+<![CDATA[
 RequestConfig requestConfig = RequestConfig.custom()
-    .setSocketTimeout(4000)
-    .build(); // bad, not all timeouts set
+.setSocketTimeout(4000)
+.build(); // bad, not all timeouts set
 
 return HttpClientBuilder.create()
-    .setDefaultRequestConfig(requestConfig) // good
-    .build();
-    ]]>
+.setDefaultRequestConfig(requestConfig) // good
+.build();
+]]>
 </example>
 </rule>
 
 <rule name="DefaultFeignClientWithoutTLSConnectionReuse"
-  class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-  language="java"
-  message="Default Feign client is used with (mutual) TLS. This is HttpURLConnection that creates a new connection for each call with TLS overhead." typeResolution="true"
-  externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi21">
+class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+language="java"
+message="Default Feign client is used with (mutual) TLS. This is HttpURLConnection that creates a new connection for each call with TLS overhead."
+externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi21">
 <description>Problem: the default http client of Feign is java.net.HttpURLConnection that does not pool connections when using mutual TLS. This causes connection handshake overhead: extra CPU usage and higher latency.&#13;
-    Solution: switch to a Feign client that supports HTTP connection pooling with mTLS, for instance Apache HttpClient 4 with disableConnectionState and proper connection pool size and timeouts. (jpinpoint-rules)</description>
+Solution: switch to a Feign client that supports HTTP connection pooling with mTLS, for instance Apache HttpClient 4 with disableConnectionState and proper connection pool size and timeouts. (jpinpoint-rules)</description>
 <priority>2</priority>
 <properties>
-    <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
-    <property name="xpath">
-        <value><![CDATA[
+<property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+<property name="xpath">
+    <value><![CDATA[
 (: default client constructor with sslSocketFactory :)
 //MethodDeclaration//PrimaryExpression/PrimaryPrefix/AllocationExpression/ClassOrInterfaceType[pmd-java:typeIs('feign.Client.Default')
 and not(ancestor::Expression//Arguments[ArgumentList/@Size=2]//Expression[1]//NullLiteral)]
 ]]>
-        </value>
-    </property>
+    </value>
+</property>
 </properties>
 <example>
-    <![CDATA[
+<![CDATA[
 import feign.Client;
 
 public class MyFeignClient {
@@ -435,33 +432,33 @@ return new Client.Default(null, null); // good
 
 public Feign.Builder feignBuilder() {
 Client feignClient =
-    new Client.Default(setupSSLContextForMutualTLS().getSocketFactory(), new DefaultHostnameVerifier()); // bad
+new Client.Default(setupSSLContextForMutualTLS().getSocketFactory(), new DefaultHostnameVerifier()); // bad
 return Feign.builder().client(feignClient);
 }
 }
-    ]]>
+]]>
 </example>
 </rule>
 
 <rule name="AvoidJAXBUtil"
-  language="java"
-  message="The JAXB utility class is not optimized for performance."
-  class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-  externalInfoUrl="${doc_root}/JavaCodePerformance.md#iuoxar04">
+language="java"
+message="The JAXB utility class is not optimized for performance."
+class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+externalInfoUrl="${doc_root}/JavaCodePerformance.md#iuoxar04">
 <description>Problem: JAXB utility methods do not reuse JAXBContext when more that one context is used. &#13;
-    Solution: use JAXB API directly for marshalling and unmarshalling to gain all the performance benefits as described in IUOXAR04 and IUOXAR06.
+Solution: use JAXB API directly for marshalling and unmarshalling to gain all the performance benefits as described in IUOXAR04 and IUOXAR06.
 </description>
 <priority>2</priority>
 <properties>
-    <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
-    <property name="xpath">
-        <value><![CDATA[
+<property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+<property name="xpath">
+    <value><![CDATA[
 //PrimaryExpression/PrimaryPrefix[pmd-java:typeIs('javax.xml.bind.JAXB')]
-     ]]></value>
-    </property>
+ ]]></value>
+</property>
 </properties>
 <example>
-    <![CDATA[
+<![CDATA[
 public class XMLConversion {
 public <T> T myUnmarshal(final Source response, final Class<T> clazz) {
 return JAXB.unmarshal(response, clazz); // bad
@@ -470,22 +467,22 @@ public void myMarshal(final Object response, StringWriter stringWriter) {
 JAXB.marshal(response, stringWriter); // bad
 }
 }
-    ]]>
+]]>
 </example>
 </rule>
 
 <rule name="UseCloseableForHttpClient"
-  class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-  language="java"
-  message="HttpClient is used instead of ClosableHttpClient. "
-  externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi08">
+class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+language="java"
+message="HttpClient is used instead of ClosableHttpClient. "
+externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi08">
 <description>Problem: if HttpClient connections are not closed properly when needed, resources are not released and connections may not (or not quick enough) become available from the pool.&#13;
-    Solution: Use ClosableHttpClient to allow for invoking close on it to properly close the connection. Or use HttpComponentsClientHttpRequestFactory(httpClient) to let it manage closing. (jpinpoint-rules)</description>
+Solution: Use ClosableHttpClient to allow for invoking close on it to properly close the connection. Or use HttpComponentsClientHttpRequestFactory(httpClient) to let it manage closing. (jpinpoint-rules)</description>
 <priority>2</priority>
 <properties>
-    <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
-    <property name="xpath">
-        <value><![CDATA[
+<property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+<property name="xpath">
+    <value><![CDATA[
 (: bad: HttpClient without HttpComponentsClientHttpRequestFactory :)
 //LocalVariableDeclaration/Type[pmd-java:typeIsExactly('org.apache.http.client.HttpClient')
 and not(ancestor::MethodDeclaration//AllocationExpression/ClassOrInterfaceType
@@ -498,40 +495,40 @@ and not(ancestor::MethodDeclaration//AllocationExpression/ClassOrInterfaceType
 not(../Arguments//Expression[pmd-java:typeIs('org.apache.http.client.HttpClient')])
 and not(ancestor::MethodDeclaration//Name[ends-with(@Image, '.setHttpClient')])]]
 ]]>
-        </value>
-    </property>
+    </value>
+</property>
 </properties>
 <example>
 <![CDATA[
 void bad() {
 HttpClient httpClient = HttpClientBuilder.create()
-        .disableConnectionState().build();
+    .disableConnectionState().build();
 }
 
 void good() {
 CloseableHttpClient httpClient = HttpClientBuilder.create()
-        .disableConnectionState().build();
+    .disableConnectionState().build();
 }
 void good2() {
 HttpClient httpClient = HttpClientBuilder.create().disableConnectionState().build();
 ClientHttpRequestFactory clientHttpRequestFactory = new HttpComponentsClientHttpRequestFactory(httpClient);
 }
-    ]]>
+]]>
 </example>
 </rule>
 
 <rule name="AvoidModifyingObjectMapper"
-  class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-  language="java"
-  message="ObjectMapper is configured/modified, only initialize it right after construction."
-  externalInfoUrl="${doc_root}/JavaCodePerformance.md#iuojar02">
+class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+language="java"
+message="ObjectMapper is configured/modified, only initialize it right after construction."
+externalInfoUrl="${doc_root}/JavaCodePerformance.md#iuojar02">
 <description>Problem: ObjectMapper is thread-safe only after configuration. Configuring an ObjectMapper is not thread-safe.  &#13;
-    Solution: Avoid configuring objectMappers except when initializing: right after construction. It is recommended to create ObjectReaders and ObjectWriters from ObjectMapper and pass those around since they are immutable and therefore thread-safe. (jpinpoint-rules)</description>
+Solution: Avoid configuring objectMappers except when initializing: right after construction. It is recommended to create ObjectReaders and ObjectWriters from ObjectMapper and pass those around since they are immutable and therefore thread-safe. (jpinpoint-rules)</description>
 <priority>2</priority>
 <properties>
-    <property name="tags" value="jpinpoint-rule,multi-threading" type="String" description="classification"/>
-    <property name="xpath">
-        <value><![CDATA[
+<property name="tags" value="jpinpoint-rule,multi-threading" type="String" description="classification"/>
+<property name="xpath">
+    <value><![CDATA[
 (: exclude method annotated with PostConstruct :)
 //ClassOrInterfaceBodyDeclaration[count(Annotation//Name[@Image='PostConstruct']) = 0]
 (: exclude factory where config is in method returning 'this' and one method, typically build(), returning objectMapper :)
@@ -553,80 +550,80 @@ or ancestor::ClassOrInterfaceBody[count(.//MethodDeclaration/ResultType/Type[pmd
 (ancestor::ConstructorDeclaration//FormalParameter|ancestor::ClassOrInterfaceBody//FieldDeclaration[@Static=true()])[pmd-java:typeIs('com.fasterxml.jackson.databind.ObjectMapper')]//VariableDeclaratorId/@Name)
 ]
 ]]>
-        </value>
-    </property>
+    </value>
+</property>
 </properties>
 <example>
-    <![CDATA[
+<![CDATA[
 public class OldStyle {
 private static final ObjectMapper staticObjectMapper = new ObjectMapper();
 private final ObjectMapper mapperField = new ObjectMapper();
 
 static {
-    staticObjectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL); // good
+staticObjectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL); // good
 }
 
 public OldStyle() {
-    mapperField.setSerializationInclusion(JsonInclude.Include.NON_NULL); // good
+mapperField.setSerializationInclusion(JsonInclude.Include.NON_NULL); // good
 }
 
 ObjectMapper bad(ObjectMapper mapper) {
-    mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL); // bad
-    return mapper;
+mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL); // bad
+return mapper;
 }
 }
 
 public class NewStyle {
 private static final ObjectWriter staticObjectWriter =
-    new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL).writer(); // good
+new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL).writer(); // good
 }
-    ]]>
+]]>
 </example>
 </rule>
 
 <rule name="AvoidDeprecatedHystrix"
-  class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-  language="java"
-  message="Netflix Hystrix is deprecated. Use an alternative like resilience4j"
-  externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi11">
+class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+language="java"
+message="Netflix Hystrix is deprecated. Use an alternative like resilience4j"
+externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi11">
 <description>Problem: Hystrix is not actively maintained anymore.&#13;
-    Solution: Netflix recommends to use open source alternatives like resilience4j. (jpinpoint-rules)</description>
+Solution: Netflix recommends to use open source alternatives like resilience4j. (jpinpoint-rules)</description>
 <priority>3</priority>
 <properties>
-    <property name="tags" value="jpinpoint-rule,deprecated" type="String" description="classification"/>
-    <property name="xpath">
-        <value><![CDATA[
+<property name="tags" value="jpinpoint-rule,deprecated" type="String" description="classification"/>
+<property name="xpath">
+    <value><![CDATA[
 //ImportDeclaration/Name[starts-with(@Image, "com.netflix.hystrix")]
 ]]>
-        </value>
-    </property>
+    </value>
+</property>
 </properties>
 <example>
 </example>
 </rule>
 
 <rule name="AvoidRecreatingHttpClient"
-  class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-  language="java"
-  message="An HttpClient is created and combined with request-response."
-  externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi12">
+class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+language="java"
+message="An HttpClient is created and combined with request-response."
+externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi12">
 <description>Problem: Apache HttpClient with its connection pool and timeouts should be setup once and then used for many requests. It is quite expensive to create and can only provide the benefits of pooling when reused in all requests for that connection.&#13;
-    Solution: Create/build HttpClient with proper connection pooling and timeouts once, and then use it for requests. (jpinpoint-rules)</description>
+Solution: Create/build HttpClient with proper connection pooling and timeouts once, and then use it for requests. (jpinpoint-rules)</description>
 <priority>2</priority>
 <properties>
-    <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
-    <property name="xpath">
-        <value><![CDATA[
+<property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+<property name="xpath">
+    <value><![CDATA[
 //TypeDeclaration/ClassOrInterfaceDeclaration[count(.//Annotation//Name[@Image='Configuration']) = 0]
 //MethodDeclaration//VariableInitializer//Name[
 @Image='HttpClientBuilder.create' or @Image='HttpClients.custom' or @Image='HttpAsyncClientBuilder.create']
 [ancestor::MethodDeclaration//ClassOrInterfaceType[@Image='HttpEntity' or @Image='ResponseEntity']]
 ]]>
-        </value>
-    </property>
+    </value>
+</property>
 </properties>
 <example>
-    <![CDATA[
+<![CDATA[
 class Foo {
 ResponseEntity<Object> connectBad(Object req) {
 HttpEntity<Object> requestEntity = new HttpEntity<>(req);
@@ -635,34 +632,34 @@ HttpClient httpClient = HttpClientBuilder.create().setMaxConnPerRoute(10).build(
 return remoteCall(httpClient, requestEntity);
 }
 }
-    ]]>
+]]>
 </example>
 </rule>
 
 <rule name="RetryCanCauseOverload"
-  class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-  language="java"
-  message="Be careful with retrying: multiple retry locations in a call chain can cause overload."
-  externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi13">
+class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+language="java"
+message="Be careful with retrying: multiple retry locations in a call chain can cause overload."
+externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi13">
 <description>Problem: Multiple Retry locations in a call chain multiply the number of calls. For 2x retry on 3 locations (service calls) in a chain calling a system which is just recovering,
-    results in 3 x 3 x 3 = 27 calls instead of 1. This may cause it not being able to restart.&#13;
-    Solution: Have the retry mechanism in one location in the chain only, recommended only the one closest to the user. (jpinpoint-rules)</description>
+results in 3 x 3 x 3 = 27 calls instead of 1. This may cause it not being able to restart.&#13;
+Solution: Have the retry mechanism in one location in the chain only, recommended only the one closest to the user. (jpinpoint-rules)</description>
 <priority>5</priority>
 <properties>
-    <property name="tags" value="jpinpoint-rule,performance,resilience,suspicious" type="String" description="classification"/>
-    <property name="xpath">
-        <value><![CDATA[
+<property name="tags" value="jpinpoint-rule,performance,resilience,suspicious" type="String" description="classification"/>
+<property name="xpath">
+    <value><![CDATA[
 //Annotation//Name[@Image='Retry']
 ,
 //Annotation//Name[@Image='Retryable']
 ,
 //FieldDeclaration//ClassOrInterfaceType[@Image='Retry']
 ]]>
-        </value>
-    </property>
+    </value>
+</property>
 </properties>
 <example>
-    <![CDATA[
+<![CDATA[
 import io.github.resilience4j.retry.annotation.Retry;
 
 @Retry(name = "some-service") // inform
@@ -671,29 +668,29 @@ public Response callSomeService() {
 //...and someService does a Retry for a call to the next service
 }
 }
-    ]]>
+]]>
 </example>
 </rule>
 
 <rule name="AvoidReactorDebugOverhead"
-  class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-  language="java"
-  message="Do not use Reactor debugging in production, it has much overhead."
-  externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi14">
+class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+language="java"
+message="Do not use Reactor debugging in production, it has much overhead."
+externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi14">
 <description>Problem: For troubleshooting Reactor, Blockhound can be used. It needs proper stack traces which can be achieved by Hooks.onOperatorDebug(). This can have much CPU overhead. &#13;
-    Solution: Remove Hooks.onOperatorDebug() when not debugging. (jpinpoint-rules)</description>
+Solution: Remove Hooks.onOperatorDebug() when not debugging. (jpinpoint-rules)</description>
 <priority>2</priority>
 <properties>
-    <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
-    <property name="xpath">
-        <value><![CDATA[
+<property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+<property name="xpath">
+    <value><![CDATA[
 //StatementExpression/PrimaryExpression/PrimaryPrefix[pmd-java:typeIs('reactor.core.publisher.Hooks')]//Name[ends-with(@Image, 'Hooks.onOperatorDebug')]
 ]]>
-        </value>
-    </property>
+    </value>
+</property>
 </properties>
 <example>
-    <![CDATA[
+<![CDATA[
 import reactor.core.publisher.Hooks;
 
 public class Foo {
@@ -701,38 +698,38 @@ public void bar() {
 Hooks.onOperatorDebug(); //bad
 }
 }
-    ]]>
+]]>
 </example>
 </rule>
 
 <rule name="AvoidDiscardingHttpClientConfig"
-  class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-  language="java"
-  message="Do not replace the configured httpClient provided in the constructor of the factory."
-  externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi15">
+class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+language="java"
+message="Do not replace the configured httpClient provided in the constructor of the factory."
+externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi15">
 <description>Problem: Apache HttpComponentsClientHttpRequestFactory has a constructor which takes a HttpClient and also a setter: setHttpClient.
-    If you use both on the same factory, you discard all configuration done on the one provided in the constructor because it is replaced by the one provided to the setter.  &#13;
-    Solution: Don't use both on the same factory, provide the HttpClient only once to the factory. (jpinpoint-rules)</description>
+If you use both on the same factory, you discard all configuration done on the one provided in the constructor because it is replaced by the one provided to the setter.  &#13;
+Solution: Don't use both on the same factory, provide the HttpClient only once to the factory. (jpinpoint-rules)</description>
 <priority>2</priority>
 <properties>
-    <property name="tags" value="jpinpoint-rule,confusing" type="String" description="classification"/>
-    <property name="xpath">
-        <value><![CDATA[
+<property name="tags" value="jpinpoint-rule,confusing" type="String" description="classification"/>
+<property name="xpath">
+    <value><![CDATA[
 //Statement[StatementExpression[//ArgumentList]/PrimaryExpression/PrimaryPrefix/Name/@Image =
 ancestor::MethodDeclaration//VariableDeclarator[.//AllocationExpression/ClassOrInterfaceType[@Image='HttpComponentsClientHttpRequestFactory'][..//ArgumentList]]
 /VariableDeclaratorId/concat(@Name, '.setHttpClient')]
 ]]>
-        </value>
-    </property>
+    </value>
+</property>
 </properties>
 <example>
-    <![CDATA[
+<![CDATA[
 class Bad {
 ClientHttpRequestFactory getFactory(HttpClientConfiguration config) {
 HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory(HttpClientBuilder.create()
-        .setMaxConnTotal(config.getMaxTotalConnections())
-        .setMaxConnPerRoute(config.getMaxConnPerRoute())
-        .build());
+    .setMaxConnTotal(config.getMaxTotalConnections())
+    .setMaxConnPerRoute(config.getMaxConnPerRoute())
+    .build());
 
 factory.setHttpClient(createHttpClient(config)); //bad
 return factory;
@@ -742,7 +739,7 @@ return factory;
 class Good {
 ClientHttpRequestFactory getFactory(HttpClientConfiguration config) {
 HttpComponentsClientHttpRequestFactory factory =
-    new HttpComponentsClientHttpRequestFactory(createFullyConfiguredHttpClient(config));
+new HttpComponentsClientHttpRequestFactory(createFullyConfiguredHttpClient(config));
 return factory;
 }
 }
@@ -751,27 +748,27 @@ return factory;
 </rule>
 
 <rule name="AvoidHttpHostOneArgumentConstructor"
-  class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-  language="java"
-  message="Avoid the HttpHost constructor with only hostname, provide port number and protocol as well."
-  externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi16">
+class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+language="java"
+message="Avoid the HttpHost constructor with only hostname, provide port number and protocol as well."
+externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi16">
 <description>Problem: the HttpHost constructor with one argument must only be provided with a host name, the default port 80 and protocol http are implied.
-    The mistake of providing a URL and assuming it will be parsed into hostname, port and protocol is easily made.
-    When this HttpHost is then used for a route and stored socketConfig for, port 80 is added for the host and the socketConfig is stored with the wrong key and will not be used.
-    It is typically difficult to find out if the config is actually used. Note that http://github.com/jborgers/http-client-monitor helps here.&#13;
-    Solution: Use the HttpHost constructor with 2 (including port) or preferably 3 arguments (including port and protocol). (jpinpoint-rules)</description>
+The mistake of providing a URL and assuming it will be parsed into hostname, port and protocol is easily made.
+When this HttpHost is then used for a route and stored socketConfig for, port 80 is added for the host and the socketConfig is stored with the wrong key and will not be used.
+It is typically difficult to find out if the config is actually used. Note that http://github.com/jborgers/http-client-monitor helps here.&#13;
+Solution: Use the HttpHost constructor with 2 (including port) or preferably 3 arguments (including port and protocol). (jpinpoint-rules)</description>
 <priority>2</priority>
 <properties>
-    <property name="tags" value="jpinpoint-rule,confusing,suspicious" type="String" description="classification"/>
-    <property name="xpath">
-        <value><![CDATA[
+<property name="tags" value="jpinpoint-rule,confusing,suspicious" type="String" description="classification"/>
+<property name="xpath">
+    <value><![CDATA[
 //AllocationExpression[pmd-java:typeIs("org.apache.http.HttpHost")]/Arguments/ArgumentList[count(./Expression) = 1]/../..
 ]]>
-        </value>
-    </property>
+    </value>
+</property>
 </properties>
 <example>
-    <![CDATA[
+<![CDATA[
 import org.apache.http.HttpHost;
 
 class Foo {
@@ -789,39 +786,39 @@ HttpHost hostGood1 = new HttpHost("localhost", 8080, "http"); //good
 
 
 <rule name="AvoidClientHttpRequestFactorySupplier"
-  class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-  language="java"
-  message="Avoid use of ClientHttpRequestFactorySupplier."
-  externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi17">
+class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+language="java"
+message="Avoid use of ClientHttpRequestFactorySupplier."
+externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi17">
 <description>Problem: The org.springframework.boot.web.client.ClientHttpRequestFactorySupplier may return a HttpComponentsClientHttpRequestFactory which you supply as @Bean, however,
-    this can silently go wrong and e.g. an unconfigured SimpleClientHttpRequestFactory can be returned.
-    Default pool size and timeouts will be used, possibly resulting in very slow connection use.&#13;
-    Solution: Provide your own supplier with explicit pool sizing and timeouts by a class implementing Supplier. (jpinpoint-rules)</description>
+this can silently go wrong and e.g. an unconfigured SimpleClientHttpRequestFactory can be returned.
+Default pool size and timeouts will be used, possibly resulting in very slow connection use.&#13;
+Solution: Provide your own supplier with explicit pool sizing and timeouts by a class implementing Supplier. (jpinpoint-rules)</description>
 <priority>2</priority>
 <properties>
-    <property name="tags" value="jpinpoint-rule,performance,confusing,suspicious" type="String" description="classification"/>
-    <property name="xpath">
-        <value><![CDATA[
+<property name="tags" value="jpinpoint-rule,performance,confusing,suspicious" type="String" description="classification"/>
+<property name="xpath">
+    <value><![CDATA[
 //AllocationExpression/ClassOrInterfaceType[@Image='ClientHttpRequestFactorySupplier']
 [/CompilationUnit/ImportDeclaration/Name[starts-with(@Image, 'org.springframework.boot.web.client')]]]]>
-        </value>
-    </property>
+    </value>
+</property>
 </properties>
 <example>
-    <![CDATA[
+<![CDATA[
 import org.springframework.boot.web.client.ClientHttpRequestFactorySupplier;
 import org.springframework.web.client.RestTemplate;
 
 class Bad {
 void bad() {
 RestTemplate restTemplate = new RestTemplateBuilder(rt -> rt.getInterceptors()
-       .add((request, body, execution) -> {
-           request.getHeaders().add("SomeKey", someKey);
-           return execution.execute(request, body);
-       }))
-       .requestFactory(new ClientHttpRequestFactorySupplier()) // bad
-       .uriTemplateHandler(defaultUriBuilderFactory)
-       .build();
+   .add((request, body, execution) -> {
+       request.getHeaders().add("SomeKey", someKey);
+       return execution.execute(request, body);
+   }))
+   .requestFactory(new ClientHttpRequestFactorySupplier()) // bad
+   .uriTemplateHandler(defaultUriBuilderFactory)
+   .build();
 return restTemplate;
 }
 }
@@ -829,46 +826,46 @@ return restTemplate;
 class MyClientHttpRequestFactorySupplier implements Supplier<ClientHttpRequestFactory> {
 
 public ClientHttpRequestFactory get() {
-   PoolingHttpClientConnectionManager poolingHttpClientConnectionManager = new PoolingHttpClientConnectionManager();
-   poolingHttpClientConnectionManager.setDefaultMaxPerRoute(MAX_CONN_PER_ROUTE);
-   poolingHttpClientConnectionManager.setMaxTotal(MAX_CONN_TOTAL);
+PoolingHttpClientConnectionManager poolingHttpClientConnectionManager = new PoolingHttpClientConnectionManager();
+poolingHttpClientConnectionManager.setDefaultMaxPerRoute(MAX_CONN_PER_ROUTE);
+poolingHttpClientConnectionManager.setMaxTotal(MAX_CONN_TOTAL);
 
-   CloseableHttpClient httpClient = HttpClients.custom()
-         .setConnectionManager(poolingHttpClientConnectionManager)
-         .disableConnectionState()
-         .build();
-   return new HttpComponentsClientHttpRequestFactory(httpClient);
+CloseableHttpClient httpClient = HttpClients.custom()
+     .setConnectionManager(poolingHttpClientConnectionManager)
+     .disableConnectionState()
+     .build();
+return new HttpComponentsClientHttpRequestFactory(httpClient);
 }
 }
 and use it to replace the bad line in Bad example:
-    .requestFactory(new MyClientHttpRequestFactorySupplier()) // good
+.requestFactory(new MyClientHttpRequestFactorySupplier()) // good
 ]]>
 </example>
 </rule>
 
 <rule name="SetQueueCapacityForTaskExecutor"
-  class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-  language="java"
-  message="Configure the queue capacity for the ThreadPoolTaskExecutor."
-  externalInfoUrl="${doc_root}/JavaCodePerformance.md#ia05">
+class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+language="java"
+message="Configure the queue capacity for the ThreadPoolTaskExecutor."
+externalInfoUrl="${doc_root}/JavaCodePerformance.md#ia05">
 <description>The org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor queue capacity is not configured.
-    Problem: It has a default queue capacity which is unlimited which can lead to an out of memory situation. &#13;
-    Solution: Call setQueueCapacity, for instance with a value equal to CorePoolSize.
-    Note that the pool will only grow beyond CorePoolSize up to MaxPoolSize when the queue is full. (jpinpoint-rules)</description>
+Problem: It has a default queue capacity which is unlimited which can lead to an out of memory situation. &#13;
+Solution: Call setQueueCapacity, for instance with a value equal to CorePoolSize.
+Note that the pool will only grow beyond CorePoolSize up to MaxPoolSize when the queue is full. (jpinpoint-rules)</description>
 <priority>2</priority>
 <properties>
-    <property name="tags" value="jpinpoint-rule,performance,bad-practice" type="String" description="classification"/>
-    <property name="xpath">
-        <value><![CDATA[
+<property name="tags" value="jpinpoint-rule,performance,bad-practice" type="String" description="classification"/>
+<property name="xpath">
+    <value><![CDATA[
 //LocalVariableDeclaration//AllocationExpression/ClassOrInterfaceType[@Image='ThreadPoolTaskExecutor']
 /ancestor::MethodDeclaration[.//Name[ends-with(@Image,'setCorePoolSize') or ends-with(@Image,'setMaxPoolSize')] and not(.//Name[ends-with(@Image,'.setQueueCapacity')])]
 //AllocationExpression/ClassOrInterfaceType[@Image='ThreadPoolTaskExecutor']
 ]]>
-        </value>
-    </property>
+    </value>
+</property>
 </properties>
 <example>
-    <![CDATA[
+<![CDATA[
 private ThreadPoolTaskExecutor bad() {
 ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor(); // bad
 executor.setCorePoolSize(10);
@@ -890,27 +887,27 @@ return executor;
 </rule>
 
 <rule name="BufferingClientHttpRequestFactoryIsMemoryGreedy"
-  class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-  language="java"
-  message="BufferingClientHttpRequestFactory is memory greedy. Only use when multiple reads of the response body cannot be avoided."
-  externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi18">
+class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+language="java"
+message="BufferingClientHttpRequestFactory is memory greedy. Only use when multiple reads of the response body cannot be avoided."
+externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi18">
 <description>org.springframework.http.client.BufferingClientHttpRequestFactory is used.
-    Problem: It buffers all incoming and outgoing streams fully in memory which may result in high memory usage. &#13;
-    Solution: Avoid multiple reads of the response body so it is not needed. (jpinpoint-rules)</description>
+Problem: It buffers all incoming and outgoing streams fully in memory which may result in high memory usage. &#13;
+Solution: Avoid multiple reads of the response body so it is not needed. (jpinpoint-rules)</description>
 <priority>3</priority>
 <properties>
-    <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
-    <property name="xpath">
-        <value><![CDATA[
+<property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+<property name="xpath">
+    <value><![CDATA[
 (: somehow typeIs does not work with spring-web-6.0, do it old school way :)
 //AllocationExpression/ClassOrInterfaceType[@Image='BufferingClientHttpRequestFactory']
 [/CompilationUnit/ImportDeclaration/Name[starts-with(@Image, 'org.springframework.http.client')]]
 ]]>
-        </value>
-    </property>
+    </value>
+</property>
 </properties>
 <example>
-    <![CDATA[
+<![CDATA[
 import org.springframework.http.client.*;
 import org.springframework.web.client.RestTemplate;
 
@@ -930,20 +927,20 @@ return new RestTemplate(factory); // good
 </rule>
 
 <rule name="HttpClientImproperConnectionTimeouts"
-  class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-  language="java"
-  message="ApacheHttpClient RequestConfig connectionRequestTimeout and connectTimeout have values which are typically too high."
-  externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi20">
+class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+language="java"
+message="ApacheHttpClient RequestConfig connectionRequestTimeout and connectTimeout have values which are typically too high."
+externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi20">
 <description>org.apache.http.client.config.RequestConfig is used with connectionRequestTimeout and connectTimeout values above 500 milli seconds.
-    Problem: 1. connectTimeout is for establishing a connection which should be quick, say below 200 ms.
-    2. connectionRequestTimeout is for requesting a connection from the connection manager, which should be almost as quick, say below 250 ms.
-    If timeouts are long, requests will wait long for an unavailable service and cause high thread usage and possibly overload.  &#13;
-    Solution: Set connectTimeout and connectionRequestTimeout to values based om tests, for instance 200 ms and 250 ms. respectively (jpinpoint-rules)</description>
+Problem: 1. connectTimeout is for establishing a connection which should be quick, say below 200 ms.
+2. connectionRequestTimeout is for requesting a connection from the connection manager, which should be almost as quick, say below 250 ms.
+If timeouts are long, requests will wait long for an unavailable service and cause high thread usage and possibly overload.  &#13;
+Solution: Set connectTimeout and connectionRequestTimeout to values based om tests, for instance 200 ms and 250 ms. respectively (jpinpoint-rules)</description>
 <priority>2</priority>
 <properties>
-    <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
-    <property name="xpath">
-        <value><![CDATA[
+<property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+<property name="xpath">
+    <value><![CDATA[
 (: use of field, local var and return statement :)
 //FieldDeclaration[Type/PrimitiveType[@Image='int' or @Image='long']]//VariableDeclaratorId[@Name =
 ancestor::ClassOrInterfaceDeclaration[//LocalVariableDeclaration/Type
@@ -967,11 +964,11 @@ or @TypeImage='HttpComponentsClientHttpRequestFactory'
 |PrimaryPrefix[./Name[ends-with(@Image, 'setConnectionRequestTimeout')] or ./Name[ends-with(@Image, 'setConnectTimeout')]])
 /following-sibling::PrimarySuffix[1]//Literal[number(@Image) > 500]
 ]]>
-        </value>
-    </property>
+    </value>
+</property>
 </properties>
 <example>
-    <![CDATA[
+<![CDATA[
 import org.apache.http.client.config.RequestConfig;
 
 public class HttpClientStuff {
@@ -981,10 +978,10 @@ private static final int SOCKET_TIMEOUTMILLIS = 5000; // timeout of waiting for 
 
 public RequestConfig requestConfigWithTimeouts() {
 RequestConfig requestConfig = RequestConfig.custom()
-        .setConnectionRequestTimeout(CONNECTIONREQUEST_TIMEOUTMILLIS)
-        .setConnectTimeout(CONNECTION_TIMEOUTMILLIS)
-        .setSocketTimeout(SOCKET_TIMEOUTMILLIS)
-        .build();
+    .setConnectionRequestTimeout(CONNECTIONREQUEST_TIMEOUTMILLIS)
+    .setConnectTimeout(CONNECTION_TIMEOUTMILLIS)
+    .setSocketTimeout(SOCKET_TIMEOUTMILLIS)
+    .build();
 return requestConfig;
 }
 }
@@ -993,19 +990,19 @@ return requestConfig;
 </rule>
 
 <rule name="AvoidObjectMapperAsField"
-  class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-  language="java"
-  message="Avoid ObjectMapper as field, use ObjectReader or ObjectWriter instead."
-  externalInfoUrl="${doc_root}/JavaCodePerformance.md#iuojar02">
+class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+language="java"
+message="Avoid ObjectMapper as field, use ObjectReader or ObjectWriter instead."
+externalInfoUrl="${doc_root}/JavaCodePerformance.md#iuojar02">
 <description>Problem: Configuring an ObjectMapper is thread-unsafe.  &#13;
-    Solution: Create ObjectReaders and ObjectWriters from ObjectMapper and only share those as field, since they are immutable and therefore thread-safe.
-    Exceptions: A convertValue method is not provided by ObjectReader nor ObjectWriter, therefore in those cases this rule is not applied.
-    Also when used like jaxMsgConverter.setObjectMapper(objectMapper) it is not considered a violation. (jpinpoint-rules)</description>
+Solution: Create ObjectReaders and ObjectWriters from ObjectMapper and only share those as field, since they are immutable and therefore thread-safe.
+Exceptions: A convertValue method is not provided by ObjectReader nor ObjectWriter, therefore in those cases this rule is not applied.
+Also when used like jaxMsgConverter.setObjectMapper(objectMapper) it is not considered a violation. (jpinpoint-rules)</description>
 <priority>3</priority>
 <properties>
-    <property name="tags" value="jpinpoint-rule,multi-threading" type="String" description="classification"/>
-    <property name="xpath">
-        <value><![CDATA[
+<property name="tags" value="jpinpoint-rule,multi-threading" type="String" description="classification"/>
+<property name="xpath">
+    <value><![CDATA[
 (for $node in (//FieldDeclaration[pmd-java:typeIs('com.fasterxml.jackson.databind.ObjectMapper')
 (: if class not in classpath, can use following line :)
 (:or (Type//ClassOrInterfaceType[@Image='ObjectMapper'] and //ImportDeclaration/Name[starts-with(@Image, 'com.fasterxml.jackson.databind.')]):)
@@ -1018,11 +1015,11 @@ and not($node/@Name = ancestor::ClassOrInterfaceDeclaration//PrimaryExpression[P
 /PrimarySuffix//PrimaryPrefix/Name/@Image)
 ]))
 ]]>
-        </value>
-    </property>
+    </value>
+</property>
 </properties>
 <example>
-    <![CDATA[
+<![CDATA[
 public class BadStyle {
 private static final ObjectMapper staticObjectMapper = new ObjectMapper(); // bad
 private final ObjectMapper mapperField = new ObjectMapper(); //bad
@@ -1030,33 +1027,33 @@ private final ObjectMapper mapperField = new ObjectMapper(); //bad
 
 class GoodStyle {
 private static final ObjectWriter staticObjectWriter =
-    new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL).writer(); // good
+new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL).writer(); // good
 }
-    ]]>
+]]>
 </example>
 </rule>
 
 <rule name="AxualProducerCreatedForEachMethodCall"
-  message="An Axual (Kafka) producer is created for each method call, which is expensive and takes resources."
-  class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-  dfa="false"
-  language="java"
-  externalInfoUrl="${doc_root}/JavaCodePerformance.md#ia10">
+message="An Axual (Kafka) producer is created for each method call, which is expensive and takes resources."
+class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+dfa="false"
+language="java"
+externalInfoUrl="${doc_root}/JavaCodePerformance.md#ia10">
 <description>Problem: each Producer takes threads and memory. If you create it in each method call, and call this frequently, it will result in an explosion of threads and memory used and lead to Out Of Memory Error.  &#13;
-    Solution: Since the Axual Producer is thread-safe, it should be shared e.g. from a static field.
-    (jpinpoint-rules)</description>
+Solution: Since the Axual Producer is thread-safe, it should be shared e.g. from a static field.
+(jpinpoint-rules)</description>
 <priority>1</priority>
 <properties>
-    <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
-    <property name="xpath">
-        <value><![CDATA[
+<property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+<property name="xpath">
+    <value><![CDATA[
 //MethodDeclaration//VariableDeclarator[pmd-java:typeIs('io.axual.client.producer.Producer')]
 [ancestor::TypeDeclaration[count(./Annotation//Name[@Image='Configuration'])=0]]
-    ]]></value>
-    </property>
+]]></value>
+</property>
 </properties>
 <example>
-    <![CDATA[
+<![CDATA[
 import io.axual.client.producer.Producer;
 
 public class AxualProducerBad {
@@ -1077,36 +1074,36 @@ Producer<String, String> producer = axualClient.buildProducer(producerConfig);
 return producer;
 }
 }
-    ]]>
+]]>
 </example>
 </rule>
 
 <rule name="AvoidLeakingRetryEventConsumers"
-  message="Avoid leaking of retry event consumers."
-  class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-  dfa="false"
-  language="java"
-  externalInfoUrl="${doc_root}/JavaCodePerformance.md#pml06">
+message="Avoid leaking of retry event consumers."
+class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+dfa="false"
+language="java"
+externalInfoUrl="${doc_root}/JavaCodePerformance.md#pml06">
 <description>Problem: A resilience4j retry event consumer is added to a retry event publisher for every method call. Likely a lambda retaining one or more objects.
-    This will result in a growing list of consumers: a memory leak. Besides, the event will be sent to the growing number of consumers, taking more and more CPU time.&#13;
-    Solution: Only call EventPublisher.onRetry (that is, add a consumer) in the same scope as the Retry instance lives. Note there is no way to unregister a consumer.
-    (jpinpoint-rules)</description>
+This will result in a growing list of consumers: a memory leak. Besides, the event will be sent to the growing number of consumers, taking more and more CPU time.&#13;
+Solution: Only call EventPublisher.onRetry (that is, add a consumer) in the same scope as the Retry instance lives. Note there is no way to unregister a consumer.
+(jpinpoint-rules)</description>
 <priority>1</priority>
 <properties>
-    <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
-    <property name="xpath">
-        <value><![CDATA[
+<property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+<property name="xpath">
+    <value><![CDATA[
 //MethodDeclaration//PrimaryPrefix/Name[pmd-java:typeIs('io.github.resilience4j.retry.Retry') and ends-with(@Image, '.getEventPublisher')]
 (: any on-method: onRetry, onError, .. :)
 [../../PrimarySuffix[starts-with(@Image, 'on')]]
 (: it is a field :)
 [exists(index-of((ancestor::ClassOrInterfaceBody//FieldDeclaration[pmd-java:typeIs('io.github.resilience4j.retry.Retry')]
 /VariableDeclarator/VariableDeclaratorId/@Name), substring-before(@Image,'.')))]
-        ]]></value>
-    </property>
+    ]]></value>
+</property>
 </properties>
 <example>
-    <![CDATA[
+<![CDATA[
 import io.github.resilience4j.retry.Retry;
 
 public class Foo {
@@ -1129,32 +1126,32 @@ retryLocal.getEventPublisher().onRetry(event -> retryCountLocal.getAndIncrement(
 // same for onSuccess, onError, onIgnoredError
 }
 }
-    ]]>
+]]>
 </example>
 </rule>
 
 <rule name="AvoidHardcodedConnectionConfig"
-  message="Avoid hardcoded connection configuration."
-  class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-  dfa="false"
-  language="java"
-  externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi22">
+message="Avoid hardcoded connection configuration."
+class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+dfa="false"
+language="java"
+externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi22">
 <description>Problem: configuring connection settings like timeouts and pool sizes in code (int values) makes it difficult to manage and tune these settings.&#13;
-    Solution: use property files, e.g. yml, to define the values for these settings for each called service.
-    (jpinpoint-rules)</description>
+Solution: use property files, e.g. yml, to define the values for these settings for each called service.
+(jpinpoint-rules)</description>
 <priority>3</priority>
 <properties>
-    <property name="tags" value="jpinpoint-rule,performance,bad-practice" type="String" description="classification"/>
-    <property name="xpath">
-        <value><![CDATA[
+<property name="tags" value="jpinpoint-rule,performance,bad-practice" type="String" description="classification"/>
+<property name="xpath">
+    <value><![CDATA[
 //FieldDeclaration[Type/@TypeImage='int']/VariableDeclarator[VariableDeclaratorId[@Final = true()][contains(upper-case(@Name), 'TIMEOUT') or contains(upper-case(@Name), 'DURATIONOUT')
 or(contains(upper-case(@Name), 'MAX') and contains(upper-case(@Name), 'ROUTE'))]]
 [VariableInitializer//Literal or VariableDeclaratorId/@Name=ancestor::ClassOrInterfaceBody//ConstructorDeclaration//StatementExpression[Expression//Literal]//Name/@Image]
-        ]]></value>
-    </property>
+    ]]></value>
+</property>
 </properties>
 <example>
-    <![CDATA[
+<![CDATA[
 class AvoidHardcodedConnectionConfig {
 private static final int CONNECTION_TIMEOUT = 50000;// bad
 private static final int SOCKET_TIMEOUT = 250000;// bad
@@ -1176,34 +1173,34 @@ final int timeout_s_local = 4; // good, method level
 int otherTimeoutInS = 3; // good, var
 }
 }
-    ]]>
+]]>
 </example>
 </rule>
 
 <rule name="AvoidExcessiveClassloadingWithSaajSoap"
-  message="Avoid excessive class loading with SAAJ SOAP messaging, use alternative Axiom, or system properties."
-  class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-  dfa="false"
-  language="java"
-  externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi23">
+message="Avoid excessive class loading with SAAJ SOAP messaging, use alternative Axiom, or system properties."
+class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+dfa="false"
+language="java"
+externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi23">
 <description>Problem: SAAJ uses DOM to load the XML document in memory which uses a TransformerFactory. The implementation class of it is loaded on every call which causes lock contention under load. This means long response times.&#13;
-    Solution: If possible, use Axiom SOAP messaging which uses the faster StAX. If you have/want to stick to SAAJ, set the proper system properties to prevent the excessive class loading.
-    (jpinpoint-rules)</description>
+Solution: If possible, use Axiom SOAP messaging which uses the faster StAX. If you have/want to stick to SAAJ, set the proper system properties to prevent the excessive class loading.
+(jpinpoint-rules)</description>
 <priority>2</priority>
 <properties>
-    <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
-    <property name="xpath">
-        <value><![CDATA[
+<property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+<property name="xpath">
+    <value><![CDATA[
 //Type//ClassOrInterfaceType[@Image='SaajSoapMessageFactory'
 and not (ancestor::ClassOrInterfaceBody//PrimaryExpression[./PrimaryPrefix/Name[@Image='System.setProperty'] and ./PrimarySuffix/Arguments//Literal[@Image = '"javax.xml.transform.TransformerFactory"']])]
 |
 //AllocationExpression/ClassOrInterfaceType[@Image='SaajSoapMessageFactory'
 and not (ancestor::ClassOrInterfaceBody//PrimaryExpression[./PrimaryPrefix/Name[@Image='System.setProperty'] and ./PrimarySuffix/Arguments//Literal[@Image='"javax.xml.transform.TransformerFactory"']])]
-        ]]></value>
-    </property>
+    ]]></value>
+</property>
 </properties>
 <example>
-    <![CDATA[
+<![CDATA[
 import org.springframework.ws.soap.saaj.SaajSoapMessageFactory;
 
 class Foo {
@@ -1220,7 +1217,7 @@ static {
 System.setProperty("javax.xml.transform.TransformerFactory", "com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl");
 System.setProperty("javax.xml.soap.MessageFactory", "com.sun.xml.internal.messaging.saaj.soap.ver1_1.SOAPMessageFactory1_1Impl");
 }
-    ]]>
+]]>
 </example>
 </rule>
 -->
