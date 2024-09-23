@@ -18,7 +18,7 @@
             <value>
                 <![CDATA[
 //ClassDeclaration[pmd-java:hasAnnotation('javax.ejb.Singleton')]
-    (: @Singlton without @ConcurrencyManagement :)
+    (: @Singleton without @ConcurrencyManagement :)
     [not(pmd-java:hasAnnotation('javax.ejb.ConcurrencyManagement'))
     (: or @Singleton with @ConcurrencyManagement CONTAINER and not a class level @Lock or has public methods without @Lock :)
     or pmd-java:hasAnnotation('javax.ejb.ConcurrencyManagement') and .//Annotation[@SimpleName='ConcurrencyManagement']//(FieldAccess|VariableAccess)[@Name='CONTAINER']
@@ -27,7 +27,7 @@
 ]
 ,
 //ClassDeclaration[pmd-java:hasAnnotation('jakarta.ejb.Singleton')]
-    (: @Singlton without @ConcurrencyManagement :)
+    (: @Singleton without @ConcurrencyManagement :)
     [not(pmd-java:hasAnnotation('jakarta.ejb.ConcurrencyManagement'))
     (: or @Singleton with @ConcurrencyManagement CONTAINER and not a class level @Lock or has public methods without @Lock :)
     or pmd-java:hasAnnotation('jakarta.ejb.ConcurrencyManagement') and .//Annotation[@SimpleName='ConcurrencyManagement']//(FieldAccess|VariableAccess)[@Name='CONTAINER']

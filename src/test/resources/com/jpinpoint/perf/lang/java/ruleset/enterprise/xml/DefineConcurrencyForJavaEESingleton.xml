@@ -6,7 +6,7 @@
     <test-code>
         <description>Define concurrency for JavaEE Singleton</description>
         <expected-problems>2</expected-problems>
-        <expected-linenumbers>32, 47</expected-linenumbers>
+        <expected-linenumbers>24, 39</expected-linenumbers>
         <code><![CDATA[
 import javax.ejb.Singleton;
 import javax.ejb.ConcurrencyManagement;
@@ -15,13 +15,95 @@ import static javax.ejb.LockType.READ;
 import static javax.ejb.LockType.WRITE;
 import javax.ejb.Lock;
 
-/*import jakarta.ejb.Singleton;
+@ConcurrencyManagement(ConcurrencyManagementType.CONTAINER)
+@Singleton
+class SingletonBean1 {
+    private String state;
+
+    @Lock(LockType.READ)
+    public String getState() {
+        return state;
+    }
+
+    @Lock(LockType.WRITE)
+    public void setState(String newState) {
+        state = newState;
+    }
+}
+@Singleton
+class SingletonBean2 { // bad - @ConcurrencyManagement missing
+    private String state;
+
+    @Lock(LockType.READ)
+    public String getState() {
+        return state;
+    }
+
+    @Lock(LockType.WRITE)
+    public void setState(String newState) {
+        state = newState;
+    }
+}
+@ConcurrencyManagement(ConcurrencyManagementType.CONTAINER)
+@Singleton // bad - @Lock missing on a public method
+class SingletonBean3 {
+    private String state;
+
+    public String getState() {
+        return state;
+    }
+
+    @Lock(LockType.WRITE)
+    public void setState(String newState) {
+        state = newState;
+    }
+}
+@ConcurrencyManagement(ConcurrencyManagementType.CONTAINER)
+@Singleton
+class SingletonBean4 {
+    private String state;
+
+    private String getState() {
+        return state;
+    }
+
+    @Lock(LockType.WRITE)
+    public void setState(String newState) {
+        state = newState;
+    }
+}
+@Singleton
+@ConcurrencyManagement(ConcurrencyManagementType.CONTAINER)
+@Lock(LockType.READ)
+class SingletonBean5 {
+        private String status;
+
+        public String getStatus() {
+            return status;
+        }
+        @Lock(LockType.WRITE)
+        public void setStatus(String newStatus) {
+            status = newStatus;
+        }
+}
+@ConcurrencyManagement(ConcurrencyManagementType.BEAN)
+@Singleton
+class SingletonBean5 { }
+]]>
+        </code>
+    </test-code>
+
+    <test-code>
+        <description>Define concurrency for JavaEE Singleton</description>
+        <expected-problems>2</expected-problems>
+        <expected-linenumbers>24, 39</expected-linenumbers>
+        <code><![CDATA[
+import jakarta.ejb.Singleton;
 import jakarta.ejb.ConcurrencyManagement;
+import jakarta.ejb.ConcurrencyManagementType;
 import static jakarta.ejb.LockType.READ;
 import static jakarta.ejb.LockType.WRITE;
-import jakarta.ejb.Lock;*/
-
-public class SingletonTryout {}
+import jakarta.ejb.Lock;
 
 @ConcurrencyManagement(ConcurrencyManagementType.CONTAINER)
 @Singleton
