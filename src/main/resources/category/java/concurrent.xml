@@ -280,7 +280,7 @@ class MyService {
 }
             ]]></example>
     </rule>
-    <!--
+
     <rule name="AvoidNonPrivateFieldsInSharedObjects"
           message="Avoid non-private objects shared among threads. Make fields private to ensure thread-safety."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
@@ -293,38 +293,61 @@ class MyService {
             (jpinpoint-rules)</description>
         <priority>1</priority>
         <properties>
-            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
+            <property name="tags" value="jpinpoint-rule,multithreading" type="String" description="classification"/>
             <property name="xpath">
                 <value>
                     <![CDATA[
 (: known assumed singleton types by annotation :)
-//TypeDeclaration/Annotation//Name[
-    (
-      @Image='Component'
-      or @Image='Service'
-      or @Image='Controller'
-      or @Image='RestController'
-      or @Image='Repository'
-      or (@Image='Singleton' and ancestor::TypeDeclaration/Annotation/NormalAnnotation/MemberValuePairs//Name[@Image='ConcurrencyManagementType.BEAN'])
+//ClassDeclaration[
+  (
+       pmd-java:hasAnnotation('org.springframework.stereotype.Service')
+    or pmd-java:hasAnnotation('org.springframework.stereotype.Component')
+    or pmd-java:hasAnnotation('org.springframework.stereotype.Controller')
+    or pmd-java:hasAnnotation('org.springframework.stereotype.Repository')
+    or pmd-java:hasAnnotation('org.springframework.web.bind.annotation.RestController')
+    or (pmd-java:hasAnnotation('javax.ejb.Singleton') and ModifierList/Annotation[pmd-java:typeIs('javax.ejb.ConcurrencyManagement')]/AnnotationMemberList/MemberValuePair/FieldAccess[./TypeExpression[pmd-java:typeIs('javax.ejb.ConcurrencyManagementType')] and @Name="BEAN"])
+   )
+   (: not shared when request or prototype scope :)
+   and not(pmd-java:hasAnnotation('org.springframework.context.annotation.Scope') and .//AnnotationMemberList/MemberValuePair[
+       StringLiteral[contains(@Image,'request') or contains(@Image,'prototype')]
+       or FieldAccess[@Name='SCOPE_REQUEST' or @Name='SCOPE_PROTOTYPE']/TypeExpression[pmd-java:typeIs('org.springframework.beans.factory.config.ConfigurableBeanFactory')]]
     )
-    (: not shared when request or prototype scope :)
-    and not (ancestor::TypeDeclaration/Annotation//Name[@Image='Scope']/..//Literal[@Image='"request"' or @Image='"prototype"'])
-    and not (ancestor::TypeDeclaration/Annotation//Name[@Image='RequestScope'])
-    (: if @NotThreadSafe no checking :)
-    and not (ancestor::TypeDeclaration/Annotation/MarkerAnnotation/Name[@Image='NotThreadSafe'])
+   (: if @NotThreadSafe no checking :)
+   and not(pmd-java:hasAnnotation('net.jcip.annotations.NotThreadSafe'))
 ]
 (: non-static, non-final and non-private fields :)
-/../../../ClassOrInterfaceDeclaration[@Static=false()]/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Private=false() and @Final=false()
-(: field not injection framework annotated :)
-and not (ancestor::ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='Autowired' or @Image='Value' or @Image='Inject'])]
-]]>
+//FieldDeclaration[
+  not(pmd-java:modifiers()=('private','final'))
+  (: field not injection framework annotated :)
+  and not(
+     pmd-java:hasAnnotation('org.springframework.beans.factory.annotation.Autowired')
+       or pmd-java:hasAnnotation('org.springframework.beans.factory.annotation.Value')
+       or pmd-java:hasAnnotation('javax.inject.Inject')
+  )
+  (: no innerclass, no static class :)
+  and not(ancestor::ClassDeclaration[@Nested=true() or pmd-java:modifiers()='static'])
+]
+                  ]]>
                 </value>
             </property>
         </properties>
-    </rule>
+        <example><![CDATA[
+@Controller
+public class RootController {
 
+    List baskets; // bad, not private
+    protected List baskets2; // bad, not private
+    public List baskets3; // bad, not private
+    final List baskets4; // good, final
+    static List baskets5; // bad, static not private
+    static final List baskets6; // good, static
+    private List baskets7; // good
+
+}
+]]></example>
+
+    </rule>
+    <!--
     <rule name="AvoidUnguardedMutableFieldsInSharedObjects"
           message="Avoid unguarded non-final or mutable fields in objects shared among threads. Make final immutable or access thread-safely AND use @GuardedBy."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
