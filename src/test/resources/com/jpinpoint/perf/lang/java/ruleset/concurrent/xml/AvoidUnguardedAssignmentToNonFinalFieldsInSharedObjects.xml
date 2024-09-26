@@ -5,11 +5,12 @@
         xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
     <test-code>
         <description>Avoid unguarded assignment to non-final fields in shared objects</description>
-        <expected-problems>11</expected-problems>
-        <expected-linenumbers>55, 87, 96, 137, 138, 157, 198, 223, 328, 338, 395</expected-linenumbers>
+        <expected-problems>13</expected-problems>
+        <expected-linenumbers>56, 88, 97, 140, 143, 165, 220, 243, 299, 300, 346, 356, 414</expected-linenumbers>
         <code><![CDATA[
 import com.google.common.annotations.VisibleForTesting;
 import lombok.Data;
+import lombok.Setter;
 import net.jcip.annotations.GuardedBy;
 import net.jcip.annotations.NotThreadSafe;
 import org.slf4j.Logger;
@@ -26,14 +27,19 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.annotation.RequestScope;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
-import javax.ejb.*;
+
+import javax.ejb.ConcurrencyManagement;
+import javax.ejb.ConcurrencyManagementType;
+import javax.ejb.Singleton;
+
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 //import javax.inject.Inject;
@@ -41,44 +47,39 @@ import static org.springframework.context.annotation.ScopedProxyMode.INTERFACES;
 import static org.springframework.context.annotation.ScopedProxyMode.TARGET_CLASS;
 import static org.springframework.web.context.WebApplicationContext.SCOPE_APPLICATION;
 
-
-/**
- * Created by BorgersJM on 25-4-2017.
- */
 public class AvoidUnguardedAssignmentToNonFinalFieldsInSharedObjectsTest {
 
 }
 
-
 // the same for @Service
 @Service
 class AService1 {
-    //static private Date date0OK = new Date(); // rule not applicable
-    //private Date date1OK = new Date();
-    //private String string1OK = new String();
-    //private final String string3OK = new String();
+    //static private Date date0Good = new Date(); // rule not applicable
+    //private Date date1Good = new Date();
+    //private String string1Good = new String();
+    //private final String string3Good = new String();
 
     @Value("${batchService.http.url}")
-    private String url; // violation on next line, of additional unguarded accessor method
+    private String url;
 
-    public void setUrlViolate(final String url) {
-        this.url = url;                                         // bad
-    } // violation: unguarded accessor method
+    public void setUrlBad(final String url) {
+        this.url = url; // bad - unguarded accessor method - 56
+    }
 }
 
 // the same for @Singleton, yet only in case ConcurrencyManagementType.BEAN
 @Singleton
 class ASingletonContainer {
-    //static private Date date0Ok = new Date(); // rule not applicable
-    //private Date date1Ok = new Date(); // same
-    //private String stringOk = new String(); // same
-    private final String string3Ok = new String(); // same
+    //static private Date date0Good = new Date(); // rule not applicable
+    //private Date date1Good = new Date(); // same
+    //private String stringGood = new String(); // same
+    private final String string3Good = new String(); // same
 
     private String url; //
 
-    public void setUrlOK(final String url) {
-        this.url = url;
-    } // OK: container manages thread-safety
+    public void setUrlGood(final String url) {
+        this.url = url; // good: container manages thread-safety
+    }
 
 }
 
@@ -86,96 +87,113 @@ class ASingletonContainer {
 @Singleton
 @ConcurrencyManagement(value = ConcurrencyManagementType.BEAN)
 class ASingletonBean {
-    //static private Date date0Ok = new Date(); // rule not applicable
-    //private Date date1Ok = new Date(); // same
-    //private String stringOk = new String(); // same
-    private final String string3Ok = new String(); //
+    //static private Date date0Good = new Date(); // rule not applicable
+    //private Date date1Good = new Date(); // same
+    //private String stringGood = new String(); // same
+    private final String string3Good = new String(); //
 
     private String url;
 
-    public void setUrlViolate(final String url) {
-        this.url = url;                                       // bad
-    } // violation: unguarded accessor method
+    public void setUrlBad(final String url) {
+        this.url = url; // bad - unguarded accessor method - 88
+    }
 }
 
 @Component
 @Scope(value = SCOPE_APPLICATION, proxyMode = TARGET_CLASS)
 class AComponent2 {
     private String _url;
-    public void setUrlViolate(final String url) {
-        _url = url;                                                // bad
-    } // violation: unguarded accessor method
+    public void setUrlBad(final String url) {
+        _url = url; // bad - unguarded accessor method - 97
+    }
 }
 
 @Component
 @Scope(value = "request", proxyMode = INTERFACES)
-        // Only request is safe
-class AComponent3Ok {
-    private String url; //
-    public void setUrlOk(final String url) {
-        this.url = url;
-    } // no violation: request scope
+// Only request is safe
+class AComponent3Good {
+    private String url;
+    public void setUrlGood(final String url) {
+        this.url = url; // good - request scope
+    }
 }
 
 @Component
 @Scope("request")
         // Only request is safe
-class AComponent4Ok {
-    private String url; //
-    public void setUrlOk(final String url) {
-        this.url = url;
-    } // no violation: request scope
+class AComponent4Good {
+    private String url;
+    public void setUrlGood(final String url) {
+        this.url = url; // good - request scope
+    }
 }
 
 @Component
 @RequestScope
-        // Only request is safe
-class AComponent5_Ok {
-    private String url; //
-    public void setUrlOk(final String url) {
-        this.url = url;
-    } // no violation: request scope
+// Only request is safe
+class AComponent5_Good {
+    private String url;
+    public void setUrlGood(final String url) {
+        this.url = url; // good - request scope
+    }
 }
 
 @Component
 class AnotherComponent {
     private String url;
-    private volatile String volatileOk;
-    private String wiredOk;
+    private String boringField;
+    private volatile String volatileGood;
+    private String wiredGood;
 
-    public void setUrlViolate(String url) {
-        url += "/";                                          // bad
-        this.url = url;                                      // bad
-    } // violation: unguarded accessor method
+    public void setUrlBad(String url) {
+        String urlx = url;
+        boringField = url; // bad - unguarded accessor method - 140
+        urlx += "x";
+        //url += "/"; // TODO
+        this.url = url; // bad - unguarded accessor method - 143
+        // TODO check below for field hiding (bad practice)
+        //String boringField = "foo";
+        //boringField = "bar";
+    }
 
-    public void setVolatileOk(String vol) {
-        volatileOk = vol;
+    public void setVolatileGood(String vol) {
+        volatileGood = vol;
     }
 
     @Autowired
-    public void setAutowiredOk(String wire) {
-        wiredOk = wire;
+    public void setAutowiredGood(String wire) {
+        wiredGood = wire;
     }
 }
 
 @Component
 @Scope(value = WebApplicationContext.SCOPE_SESSION, proxyMode = INTERFACES)
-        // sessions need to be thread safe, too; they are shared among threads
+// sessions need to be thread safe, too; they are shared among threads
 class ASessionScopedComponent {
     private String _url;
-    public void setUrlViolate(final String url) {
-        _url = url;                                           // bad
-    } // violation: unguarded accessor method
+    public void setUrlBad(final String url) {
+        _url = url; // bad - unguarded accessor method - 165
+    }
 }
 
 @Component
 @Scope(value = "prototype", proxyMode = INTERFACES)
-        // prototypes are recreated every time and instance fields are therefore safe, they are not shared
+// prototypes are recreated every time and instance fields are therefore safe, they are not shared
 class AComponent5 {
-    private String url; //
-    public void setUrlOk(final String url) {
-        this.url = url;
-    } // no violation: prototype scope
+    private String url;
+    public void setUrlGood(final String url) {
+        this.url = url; // good: prototype scope
+    }
+}
+
+@Component
+@Scope(value = ConfigurableBeanFactory.SCOPE_REQUEST)
+        // prototypes are recreated every time and instance fields are therefore safe, they are not shared
+class AComponent6 {
+    private String url;
+    public void setUrlGood(final String url) {
+        this.url = url; // good - prototype scope
+    }
 }
 
 // the same for @Singleton, yet only in case ConcurrencyManagementType.BEAN
@@ -184,65 +202,67 @@ class AComponent5 {
 class ASyncedSingletonConcurrencyBean {
     private final Object LOCK = new Object();
     @GuardedBy("LOCK")
-    private String string1Ok = new String(); // OK!: guarded
+    private String string1Good = new String(); // good - guarded
     @GuardedBy("LOCK")
-    private final List list1OK = new ArrayList(); // OK, guarded
+    private final List list1Good = new ArrayList(); // good - guarded
     @GuardedBy("LOCK")
-    private Map<String, String> map1Ok = new HashMap<>(); // OK, guarded
+    private Map<String, String> map1Good = new HashMap<>(); // good - guarded
     @Autowired
     private String url;
 
-    public void setString1Ok(String string1) {
+    public void setString1Good(String string1) {
         synchronized(LOCK) { // Findbugs should be able to check
-            string1Ok = string1;
+            this.string1Good = string1;
         }
     }
 
+    public void setString1Good2(String string1) {
+        this.string1Good = string1;
+    }
+
     @VisibleForTesting
-    void setUrlForTestingOnlyOk(String urlForTestingOnly) {
+    void setUrlForTestingOnlyGood(String urlForTestingOnly) {
         this.url = urlForTestingOnly;
     }
 
     @VisibleForTesting
-    public void setUrlForTestingOnlyViolate(String urlForTestingOnly) {
-        this.url = urlForTestingOnly;                                             // bad
+    public void setUrlForTestingOnlyBad(String urlForTestingOnly) {
+        this.url = urlForTestingOnly; // bad - 220
     }
 }
 
-
-
 @Component
 class AComponentMaoValidation {
-    //private String string1Violate = new String(); // violation: non-final, unguarded; not this rule
-    private final String string3Ok = new String(); // OK!: final, immutable
-    private RestTemplate restTemplateOk; // OK, autowired setter
+    // private String string1Bad = new String(); // bad: non-final, unguarded; not this rule
+    private final String string3Good = new String(); // good: final, immutable
+    private RestTemplate restTemplateGood; // good, autowired setter
 
     @Autowired
     public void setRestTemplate(@Qualifier("workLongRestTemplate") final RestTemplate restTemplate) {
-        this.restTemplateOk = restTemplate;
+        this.restTemplateGood = restTemplate;
     }
 
-    private RestTemplate restTemplateViolate; // Violation because also assigned outside autowired setter
+    private RestTemplate restTemplateBad;
 
     @Autowired
-    public void setRestTemplateViolate(@Qualifier("workLongRestTemplate") final RestTemplate restTemplate) {
-        this.restTemplateViolate = restTemplate;
+    public void setRestTemplateBad(@Qualifier("workLongRestTemplate") final RestTemplate restTemplate) {
+        this.restTemplateBad = restTemplate;
     }
 
-    public void doRestTemplateViolate() {
-        restTemplateViolate = null;                                 // bad
+    public void doRestTemplateBad() {
+        restTemplateBad = null; // bad - because also assigned outside autowired setter - 243
     }
 
     @Data
-    private static class InnerDataOk { // static, so not accessible from outer instance, so OK
+    private static class InnerDataGood { // static, so not accessible from outer instance, so Good
         private Long Id;
     }
 
     /*@Data
-    private class InnerDataViolate { // not static, so accessible from outer instance,
+    private class InnerDataBad { // not static, so accessible from outer instance,
         private Long Id; // violation: non-final, unguarded
-        private String string1Violate = new String(); // violation: non-final, unguarded
-        private final String string3Ok = new String(); // OK!: final, immutable
+        private String string1Bad = new String(); // violation: non-final, unguarded
+        private final String string3Good = new String(); // Good!: final, immutable
     }*/
 
     private static final int KILO = 1024;
@@ -250,48 +270,46 @@ class AComponentMaoValidation {
     @Value("${fileStorageService.http.output.buffer.size}")
     private int outputBufferSizeInBytes;
 
-    private int outputBufferSizeOk;
+    private int outputBufferSizeGood;
 
     @PostConstruct
     public void afterPropertiesSet() {
-        outputBufferSizeOk = outputBufferSizeInBytes * KILO;
+        outputBufferSizeGood = outputBufferSizeInBytes * KILO;
     }
 
     @Value("${rmc.getfiddlesummary.url}")
-    private String getFiddleSummaryUrlOK;
+    private String getFiddleSummaryUrlGood;
 
     @VisibleForTesting
     void setGetFiddleSummaryUrl(String getFiddleSummaryUrl) {
-        this.getFiddleSummaryUrlOK = getFiddleSummaryUrl;
+        this.getFiddleSummaryUrlGood = getFiddleSummaryUrl;
     }
 
     @PersistenceContext
-    private EntityManager entityManagerOk;
+    private EntityManager entityManagerGood;
 
-    private StepExecution stepExecutionOk;
+    private StepExecution stepExecutionGood;
 
     @BeforeStep
     public void setStepExecution(final StepExecution stepExecution) {
-        this.stepExecutionOk = stepExecution;
+        this.stepExecutionGood = stepExecution;
     }
 }
 
 // the same for @Singleton, yet only in case ConcurrencyManagementType.BEAN
-/*@Singleton
+@Singleton
 @ConcurrencyManagement(value = ConcurrencyManagementType.BEAN)
 class ASingletonConcurrencyBean {
-    static private Date date0Violate = new Date(); // violation: non-final, mutable, unguarded ; static or not doesn't make difference
-    private Date date1Violate = new Date(); // violation: non-final, mutable, unguarded
-    private final Object Lock = new Object();
-    @GuardedBy("LOCK")
-    private String string1Ok = new String(); // OK!: guarded
-    @GuardedBy("LOCK")
-    private final List list1OK = new ArrayList(); // OK, guarded
-    @GuardedBy("LOCK")
-    private Map<String, String> map1Ok = new HashMap<>(); // OK, guarded
+    static private Date date0Bad = new Date();
+    private Date date1Bad = new Date();
 
-    private final String string3Ok = new String(); // OK!: final, immutable
-}*/
+    private final String string3Good = new String(); // good: final, immutable
+
+    public void setDateBad(Date date) {
+        date0Bad = date; // bad: non-final, mutable, unguarded ; static or not doesn't make difference - 299
+        date1Bad = date; // bad: non-final, mutable, unguarded - 300
+    }
+}
 
 // From RO
 /*@Singleton
@@ -300,16 +318,16 @@ class ASingletonConcurrencyBean {
 class BbEventSender {
 
     @EJB
-    private Object bbEventServiceOk;
+    private Object bbEventServiceGood;
 
     @Resource
-    private SessionContext sessionContextOk;
+    private SessionContext sessionContextGood;
 
     @Inject
-    private Object bbEventProducerOk;
+    private Object bbEventProducerGood;
 
     @Inject
-    private Logger loggerOk;
+    private Logger loggerGood;
 
     // Boolean to indicate if the scheduled process is currently running.
     private AtomicBoolean processingBbEventViolation = new AtomicBoolean(false); // needs to be final
@@ -322,41 +340,41 @@ class BbEventSender {
 @LocalBean
 @ConcurrencyManagement(value = ConcurrencyManagementType.BEAN)
 class APayRequestOutSender {
-    private int databaseQueryMaxResultsOk;
-    private int databaseQueryMaxResultsViolation;
+    private int databaseQueryMaxResultsGood;
+    private int databaseQueryMaxResultsBad;
 
     @PostConstruct
     private void postConstruct() {
         try {
-            databaseQueryMaxResultsOk = Integer.parseInt("1000");
+            databaseQueryMaxResultsGood = Integer.parseInt("1000");
         } catch (NullPointerException | NumberFormatException e) {
-            databaseQueryMaxResultsOk = 5000;
+            databaseQueryMaxResultsGood = 5000;
         }
     }
     private void setMax() {
         try {
-            databaseQueryMaxResultsViolation = 5000;                           // bad
+            databaseQueryMaxResultsBad = 5000; // bad - 346
         } catch (RuntimeException e) {}
     }
 }
 
-@Service("InitializeRCDCTaskletViolate")
-abstract class AInitializeTaskletViolate implements Tasklet, InitializingBean {
+@Service("InitializeRCDCTaskletBad")
+abstract class AInitializeTaskletBad implements Tasklet, InitializingBean {
     // Work directory for this instance only.
-    protected String workDirectoryViolate;
+    protected String workDirectoryBad;
     public void setWorkDirectory(final String workDirectory) {
-        this.workDirectoryViolate = workDirectory;                              // bad
+        this.workDirectoryBad = workDirectory; // bad - 356
     }
 
 }
 
-@Service("InitializeRCDCTaskletOk")
+@Service("InitializeRCDCTaskletGood")
 @NotThreadSafe
-abstract class AInitializeTaskletOk implements Tasklet, InitializingBean {
+abstract class AInitializeTaskletGood implements Tasklet, InitializingBean {
     // Work directory for this instance only.
-    protected String workDirectoryOk;
+    protected String workDirectoryGood;
     public void setWorkDirectory(final String workDirectory) {
-        this.workDirectoryOk = workDirectory;
+        this.workDirectoryGood = workDirectory;
     }
 }
 
@@ -379,9 +397,10 @@ class Foo {
         field = f;
     }
 }
+
 // @Scope(value = "session", proxyMode = ScopedProxyMode.TARGET_CLASS)
 // @Scope(value = "session", proxyMode = ScopedProxyMode.INTERFACES)
-//@Scope(value = "globalSession", proxyMode = ScopedProxyMode.INTERFACES)
+// @Scope(value = "globalSession", proxyMode = ScopedProxyMode.INTERFACES)
 
 /*
     String SCOPE_REQUEST = "request";
@@ -398,12 +417,12 @@ class Foo {
 class SubClassBad extends Base {
 
     SubClassBad() {
-        baseField = ""; // good, could be final
+        baseField = ""; // good, could be final TODO
     }
 
     public void setBaseField(final String val) {
-        baseField = val;                                        // bad
-    } // violation: unguarded accessor method
+        basefield = val; // bad - unguarded accessor method - 414
+    }
 }
 
 // inherited field used
@@ -411,7 +430,7 @@ class SubClassBad extends Base {
 class SubClassGood extends Base {
     private final Object LOCK = new Object();
     SubClassGood() {
-        baseField = ""; // good, could be final
+        baseField = ""; // good, could be final TODO
     }
 
     public synchronized void setBaseField1(final String val) {
@@ -429,14 +448,15 @@ class SubClassGood extends Base {
     <test-code>
         <description>Avoid unguarded assignment to non-final fields in shared objects, inherited used as param in other method</description>
         <expected-problems>1</expected-problems>
-        <expected-linenumbers>6</expected-linenumbers>
+        <expected-linenumbers>7</expected-linenumbers>
         <code><![CDATA[
+import org.springframework.stereotype.Component;
 @Component
 public class Try extends Parent {
     volatile Object field;
 
     void bad() {
-        inherited = new Object();
+        inherited = new Object(); // bad - 7
     }
     void good(Object objParam, Object inherited) {
         inherited = new Object(); //good, shadowing
@@ -451,6 +471,7 @@ public class Try extends Parent {
         <description>Avoid unguarded assignment to non-final fields in shared objects, local var should be good</description>
         <expected-problems>0</expected-problems>
         <code><![CDATA[
+import org.springframework.stereotype.Service;
 @Service(AdviesEnAfsluitkostenFunction.NAME)
 public class AdviesEnAfsluitkostenFunction extends AbstractFunction<AdviesEnAfsluitkostenInput, AdviesEnAfsluitkostenResult> {
 
@@ -480,8 +501,9 @@ public class AdviesEnAfsluitkostenFunction extends AbstractFunction<AdviesEnAfsl
     <test-code>
             <description>Avoid unguarded assignment to non-final fields in shared objects: @RestController</description>
             <expected-problems>1</expected-problems>
-            <expected-linenumbers>6</expected-linenumbers>
+            <expected-linenumbers>7</expected-linenumbers>
             <code><![CDATA[
+import org.springframework.web.bind.annotation.RestController;
 @RestController
 class ARestController1 {
     private String url;
@@ -496,8 +518,9 @@ class ARestController1 {
     <test-code>
         <description>Avoid unguarded assignment to non-final fields in shared objects: in afterPropertiesSet to be ignored #154</description>
         <expected-problems>1</expected-problems>
-        <expected-linenumbers>7</expected-linenumbers>
+        <expected-linenumbers>8</expected-linenumbers>
         <code><![CDATA[
+import org.springframework.stereotype.Component;
 @Component
 class Foo {
     private Consumer badConsumer;
@@ -517,12 +540,14 @@ class Foo {
         <description>Avoid unguarded assignment to non-final fields in shared objects: @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE) issue #147</description>
         <expected-problems>0</expected-problems>
         <code><![CDATA[
+import org.springframework.context.annotation.Scope;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Component
 class Foo {
     private String id;
     void build() {
-        id = "1";
+        id = "1"; // good - scope prototype
     }
 }
         ]]></code>

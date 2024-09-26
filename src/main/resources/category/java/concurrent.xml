@@ -169,6 +169,115 @@ class Exporter {
         ]]></example>
     </rule>
 
+    <rule name="AvoidUnguardedAssignmentToNonFinalFieldsInSharedObjects"
+          message="Avoid unguarded assignments to non-final fields in objects shared among threads. Access thread-safely AND use @GuardedBy."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
+          typeResolution="true" externalInfoUrl="${doc_root}/JavaCodePerformance.md#tutc07">
+        <description>
+            Problem: Multiple threads typically access fields of a singleton or may access fields in session scoped objects. Unguarded assignment to a non-final field is thread-unsafe and may cause corruption or visibility problems. It may also unintentionally mix-up session data. &#13;
+            Solution: Make the fields final and unmodifiable. If they really need to be mutable, make access thread-safe: use synchronized and jcip @GuardedBy or use volatile.&#13;
+            Notes&#13;
+            1. For autowiring/injection, the assignment of the reference is thread safe, so final is not required. The unmodifiable/thread-safe requirement for that field still holds. Also make sure no other thread-unsafe assignment is made to that field.&#13;
+            2. In case you are sure the Component is used in single threaded context only (e.g. a Tasklet), annotate the class with @NotThreadSafe to make this explicit. &#13;
+            3. Use package-private and @VisibleForTesting for methods (e.g. setters) used for JUnit only.
+            4. Use synchronized for accessors to inherited fields, or better: make field private and use proper accessors on base class level using @GuardedBy.
+            (jpinpoint-rules)</description>
+        <priority>1</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,multi-threading,data-mix-up" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+(: annotations that make singleton like components in Spring and EJB :)
+//ClassDeclaration[
+  (
+       pmd-java:hasAnnotation('org.springframework.stereotype.Service')
+    or pmd-java:hasAnnotation('org.springframework.stereotype.Component')
+    or pmd-java:hasAnnotation('org.springframework.stereotype.Controller')
+    or pmd-java:hasAnnotation('org.springframework.stereotype.Repository')
+    or pmd-java:hasAnnotation('org.springframework.web.bind.annotation.RestController')
+    or (pmd-java:hasAnnotation('javax.ejb.Singleton') and ModifierList/Annotation[pmd-java:typeIs('javax.ejb.ConcurrencyManagement')]/AnnotationMemberList/MemberValuePair/FieldAccess[./TypeExpression[pmd-java:typeIs('javax.ejb.ConcurrencyManagementType')] and @Name="BEAN"])
+   )
+   (: no @RequestScope annotation :)
+   and not (pmd-java:hasAnnotation('org.springframework.context.annotation.Scope') and .//AnnotationMemberList/MemberValuePair[
+       StringLiteral[contains(@Image,'request') or contains(@Image,'prototype')]
+       or FieldAccess[@Name='SCOPE_REQUEST' or @Name='SCOPE_PROTOTYPE']/TypeExpression[pmd-java:typeIs('org.springframework.beans.factory.config.ConfigurableBeanFactory')]]
+    )
+    (: no request or prototype @Scope, literal or via constant :)
+  and not(pmd-java:hasAnnotation('org.springframework.web.context.annotation.RequestScope'))
+  (: if @NotThreadSafe no checking :)
+  and not(pmd-java:hasAnnotation('net.jcip.annotations.NotThreadSafe'))
+  (: no checking if @ConfigurationProperties and no @Setter :)
+  and not(pmd-java:hasAnnotation('org.springframework.boot.context.properties.ConfigurationProperties'))
+  and not(pmd-java:hasAnnotation('lombok.Setter'))
+]
+(: assignment to a field, get left hand of assignment :)
+//AssignmentExpression/*[1][
+   (
+       (: non-final, non-volatile and non-GuardedBy fields :)
+       @Name = ancestor::ClassBody//FieldDeclaration[
+                   not(pmd-java:modifiers() = ('final','volatile')
+                        or pmd-java:hasAnnotation('net.jcip.annotations.GuardedBy')
+                   )]//VariableId/@Name
+       or (
+         (: not 'this' and extends a base class :)
+         ancestor::ClassDeclaration//ExtendsList
+         and not (
+           (: var is not a local var :)
+           @Name = ancestor::Block//LocalVariableDeclaration//VariableId/@Name
+           or
+           (: var is not a param :)
+           @Name = ancestor::MethodDeclaration//FormalParameter/VariableId/@Name
+           or
+           (: var is not a field of current class TODO - repeat of line above, can be avoided? :)
+           @Name = ancestor::ClassBody//FieldDeclaration[(pmd-java:modifiers() = ('final','volatile') or pmd-java:hasAnnotation('net.jcip.annotations.GuardedBy'))]//VariableId/@Name
+         )
+         and not(
+              ancestor::SynchronizedStatement
+              or ancestor::MethodDeclaration[pmd-java:modifiers() = 'synchronized']
+             )
+       )
+     )
+     (: field not on accessor method with assignment, annotated with framework annotation :)
+     and not(
+          ancestor::MethodDeclaration[
+                pmd-java:hasAnnotation('org.springframework.beans.factory.annotation.Autowired')
+                or pmd-java:hasAnnotation('javax.annotation.PostConstruct')
+                or pmd-java:hasAnnotation('org.springframework.batch.core.annotation.BeforeStep')
+                or pmd-java:hasAnnotation('org.springframework.beans.factory.annotation.Value')
+                or pmd-java:hasAnnotation('javax.inject.Inject')
+             ]
+          (: field not assigned in non-public accessor method annotated with VisibleForTesting :)
+          or (ancestor::MethodDeclaration[pmd-java:hasAnnotation('com.google.common.annotations.VisibleForTesting') and not(@Visibility='public')])
+          (: annotation is not enough? :)
+          or ancestor::MethodDeclaration[@Name='afterPropertiesSet']
+        )
+ ]
+]]></value>
+            </property>
+        </properties>
+        <example><![CDATA[
+@Service
+class MyService {
+
+    private final LOCK = new Object();
+
+    @Value("${batchService.http.url}")
+    private String batchUrl;
+
+    @GuardedBy("LOCK")
+    @Value("${otherService.http.url}")
+    private String otherUrl;
+
+    public void setBatchUrl(final String url) {
+        this.batchUrl = url; // bad: unguarded accessor method
+    }
+
+    public void setOtherUrl(final String url) {
+        synchronized(LOCK) {
+            this.batchUrl = url; // good: synchronized accessor method
+        }
+    }
+}
+            ]]></example>
+    </rule>
 </ruleset>
-
-
