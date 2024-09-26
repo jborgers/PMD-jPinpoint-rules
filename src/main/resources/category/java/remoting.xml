@@ -599,28 +599,30 @@ new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL).write
 ]]>
 </example>
 </rule>
-
-<rule -name="AvoidDeprecatedHystrix"
-class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-language="java"
-message="Netflix Hystrix is deprecated. Use an alternative like resilience4j"
-externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi11">
-<description>Problem: Hystrix is not actively maintained anymore.&#13;
-Solution: Netflix recommends to use open source alternatives like resilience4j. (jpinpoint-rules)</description>
-<priority>3</priority>
-<properties>
-<property name="tags" value="jpinpoint-rule,deprecated" type="String" description="classification"/>
-<property name="xpath">
-<value><![CDATA[
-//ImportDeclaration/Name[starts-with(@Image, "com.netflix.hystrix")]
+-->
+    <rule name="AvoidDeprecatedHystrix"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          language="java"
+          message="Netflix Hystrix is deprecated. Use an alternative like resilience4j"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi11">
+        <description>Problem: Hystrix is not actively maintained anymore.&#13;
+            Solution: Netflix recommends to use open source alternatives like resilience4j. (jpinpoint-rules)
+        </description>
+        <priority>3</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,deprecated" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+//ImportDeclaration[starts-with(@ImportedName, "com.netflix.hystrix")]
 ]]>
-</value>
-</property>
-</properties>
-<example>
-</example>
-</rule>
+                </value>
+            </property>
+        </properties>
+        <example>
+        </example>
+    </rule>
 
+<!--
 <rule -name="AvoidRecreatingHttpClient"
 class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
 language="java"
