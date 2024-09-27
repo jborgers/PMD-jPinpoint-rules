@@ -438,19 +438,18 @@ import feign.Client;
 
 public class MyFeignClient {
 
-public Client createClient(SSLSocketFactory sslSocketFactory){
-return new Client.Default(sslSocketFactory, null); // bad
-}
+    public Client createClient(SSLSocketFactory sslSocketFactory){
+        return new Client.Default(sslSocketFactory, null); // bad
+    }
 
-public Client createClient(){
-return new Client.Default(null, null); // good
-}
+    public Client createClient(){
+        return new Client.Default(null, null); // good
+    }
 
-public Feign.Builder feignBuilder() {
-Client feignClient =
-new Client.Default(setupSSLContextForMutualTLS().getSocketFactory(), new DefaultHostnameVerifier()); // bad
-return Feign.builder().client(feignClient);
-}
+    public Feign.Builder feignBuilder() {
+        Client feignClient = new Client.Default(setupSSLContextForMutualTLS().getSocketFactory(), new DefaultHostnameVerifier()); // bad
+        return Feign.builder().client(feignClient);
+    }
 }
 ]]>
         </example>
@@ -489,117 +488,119 @@ public class XMLConversion {
         </example>
     </rule>
 
-    <!--
-<rule -name="UseCloseableForHttpClient"
-class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-language="java"
-message="HttpClient is used instead of ClosableHttpClient. "
-externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi08">
-<description>Problem: if HttpClient connections are not closed properly when needed, resources are not released and connections may not (or not quick enough) become available from the pool.&#13;
-Solution: Use ClosableHttpClient to allow for invoking close on it to properly close the connection. Or use HttpComponentsClientHttpRequestFactory(httpClient) to let it manage closing. (jpinpoint-rules)</description>
-<priority>2</priority>
-<properties>
-<property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
-<property name="xpath">
-<value><![CDATA[
+    <rule name="UseCloseableForHttpClient"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          language="java"
+          message="HttpClient is used instead of ClosableHttpClient. "
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi08">
+        <description>Problem: if HttpClient connections are not closed properly when needed, resources are not released
+            and connections may not (or not quick enough) become available from the pool.&#13;
+            Solution: Use ClosableHttpClient to allow for invoking close on it to properly close the connection. Or use
+            HttpComponentsClientHttpRequestFactory(httpClient) to let it manage closing. (jpinpoint-rules)
+        </description>
+        <priority>2</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
 (: bad: HttpClient without HttpComponentsClientHttpRequestFactory :)
-//LocalVariableDeclaration/Type[pmd-java:typeIsExactly('org.apache.http.client.HttpClient')
-and not(ancestor::MethodDeclaration//AllocationExpression/ClassOrInterfaceType
+//LocalVariableDeclaration/ClassType[pmd-java:typeIsExactly('org.apache.http.client.HttpClient')
+and not(ancestor::MethodDeclaration//ConstructorCall
 [pmd-java:typeIs('org.springframework.http.client.HttpComponentsClientHttpRequestFactory')])]
 ,
 (: bad: HttpClient with HttpComponentsClientHttpRequestFactory, yet if passed a param of constructor it is good :)
-//LocalVariableDeclaration/Type[pmd-java:typeIsExactly('org.apache.http.client.HttpClient')]
-[ancestor::MethodDeclaration//AllocationExpression/ClassOrInterfaceType
+//LocalVariableDeclaration/ClassType[pmd-java:typeIsExactly('org.apache.http.client.HttpClient')]
+[ancestor::MethodDeclaration//ConstructorCall
 [pmd-java:typeIs('org.springframework.http.client.HttpComponentsClientHttpRequestFactory') and
-not(../Arguments//Expression[pmd-java:typeIs('org.apache.http.client.HttpClient')])
-and not(ancestor::MethodDeclaration//Name[ends-with(@Image, '.setHttpClient')])]]
+not(ArgumentList//VariableAccess[pmd-java:typeIs('org.apache.http.client.HttpClient')])
+and not(ancestor::MethodDeclaration//MethodCall[@MethodName = 'setHttpClient'])]]
 ]]>
-</value>
-</property>
-</properties>
-<example>
-<![CDATA[
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
 void bad() {
-HttpClient httpClient = HttpClientBuilder.create()
-.disableConnectionState().build();
+    HttpClient httpClient = HttpClientBuilder.create()
+    .disableConnectionState().build();
 }
 
 void good() {
-CloseableHttpClient httpClient = HttpClientBuilder.create()
-.disableConnectionState().build();
+    CloseableHttpClient httpClient = HttpClientBuilder.create()
+    .disableConnectionState().build();
 }
 void good2() {
-HttpClient httpClient = HttpClientBuilder.create().disableConnectionState().build();
-ClientHttpRequestFactory clientHttpRequestFactory = new HttpComponentsClientHttpRequestFactory(httpClient);
+    HttpClient httpClient = HttpClientBuilder.create().disableConnectionState().build();
+    ClientHttpRequestFactory clientHttpRequestFactory = new HttpComponentsClientHttpRequestFactory(httpClient);
 }
 ]]>
-</example>
-</rule>
+        </example>
+    </rule>
+        <!--
+    <rule -name="AvoidModifyingObjectMapper"
+    class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+    language="java"
+    message="ObjectMapper is configured/modified, only initialize it right after construction."
+    externalInfoUrl="${doc_root}/JavaCodePerformance.md#iuojar02">
+    <description>Problem: ObjectMapper is thread-safe only after configuration. Configuring an ObjectMapper is not thread-safe.  &#13;
+    Solution: Avoid configuring objectMappers except when initializing: right after construction. It is recommended to create ObjectReaders and ObjectWriters from ObjectMapper and pass those around since they are immutable and therefore thread-safe. (jpinpoint-rules)</description>
+    <priority>2</priority>
+    <properties>
+    <property name="tags" value="jpinpoint-rule,multi-threading" type="String" description="classification"/>
+    <property name="xpath">
+    <value><![CDATA[
+    (: exclude method annotated with PostConstruct :)
+    //ClassOrInterfaceBodyDeclaration[count(Annotation//Name[@Image='PostConstruct']) = 0]
+    (: exclude factory where config is in method returning 'this' and one method, typically build(), returning objectMapper :)
+    /MethodDeclaration[count(Block//ReturnStatement/Expression/PrimaryExpression/PrimaryPrefix[@ThisModifier=true()])=0
+    or ancestor::ClassOrInterfaceBody[count(.//MethodDeclaration/ResultType/Type[pmd-java:typeIs('com.fasterxml.jackson.databind.ObjectMapper')]) != 1]]
+    (: modify operations on objectMapper in a method where objectMapper is a formal parameter or field :)
+    //Statement//Name[(concat(substring-before(@Image, '.config'), substring-before(@Image, '.set'), substring-before(@Image, '.register')
+    , substring-before(@Image, '.find'), substring-before(@Image, '.disable'), substring-before(@Image, '.enable'), substring-before(@Image, '.activate')
+    , substring-before(@Image, '.deactivate'), substring-before(@Image, '.add'), substring-before(@Image, '.clear'))
+    =
+    (ancestor::MethodDeclaration//FormalParameter|ancestor::ClassOrInterfaceBody//FieldDeclaration)[pmd-java:typeIs('com.fasterxml.jackson.databind.ObjectMapper')]//VariableDeclaratorId/@Name)
+    ]
+    ,
+    (: modify operations on objectMapper in a constructor where objectMapper is a formal parameter or static field :)
+    //ConstructorDeclaration//Statement//Name[(concat(substring-before(@Image, '.config'), substring-before(@Image, '.set'), substring-before(@Image, '.register')
+    , substring-before(@Image, '.find'), substring-before(@Image, '.disable'), substring-before(@Image, '.enable'), substring-before(@Image, '.activate')
+    , substring-before(@Image, '.deactivate'), substring-before(@Image, '.add'), substring-before(@Image, '.clear'))
+    =
+    (ancestor::ConstructorDeclaration//FormalParameter|ancestor::ClassOrInterfaceBody//FieldDeclaration[@Static=true()])[pmd-java:typeIs('com.fasterxml.jackson.databind.ObjectMapper')]//VariableDeclaratorId/@Name)
+    ]
+    ]]>
+    </value>
+    </property>
+    </properties>
+    <example>
+    <![CDATA[
+    public class OldStyle {
+    private static final ObjectMapper staticObjectMapper = new ObjectMapper();
+    private final ObjectMapper mapperField = new ObjectMapper();
 
-<rule -name="AvoidModifyingObjectMapper"
-class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-language="java"
-message="ObjectMapper is configured/modified, only initialize it right after construction."
-externalInfoUrl="${doc_root}/JavaCodePerformance.md#iuojar02">
-<description>Problem: ObjectMapper is thread-safe only after configuration. Configuring an ObjectMapper is not thread-safe.  &#13;
-Solution: Avoid configuring objectMappers except when initializing: right after construction. It is recommended to create ObjectReaders and ObjectWriters from ObjectMapper and pass those around since they are immutable and therefore thread-safe. (jpinpoint-rules)</description>
-<priority>2</priority>
-<properties>
-<property name="tags" value="jpinpoint-rule,multi-threading" type="String" description="classification"/>
-<property name="xpath">
-<value><![CDATA[
-(: exclude method annotated with PostConstruct :)
-//ClassOrInterfaceBodyDeclaration[count(Annotation//Name[@Image='PostConstruct']) = 0]
-(: exclude factory where config is in method returning 'this' and one method, typically build(), returning objectMapper :)
-/MethodDeclaration[count(Block//ReturnStatement/Expression/PrimaryExpression/PrimaryPrefix[@ThisModifier=true()])=0
-or ancestor::ClassOrInterfaceBody[count(.//MethodDeclaration/ResultType/Type[pmd-java:typeIs('com.fasterxml.jackson.databind.ObjectMapper')]) != 1]]
-(: modify operations on objectMapper in a method where objectMapper is a formal parameter or field :)
-//Statement//Name[(concat(substring-before(@Image, '.config'), substring-before(@Image, '.set'), substring-before(@Image, '.register')
-, substring-before(@Image, '.find'), substring-before(@Image, '.disable'), substring-before(@Image, '.enable'), substring-before(@Image, '.activate')
-, substring-before(@Image, '.deactivate'), substring-before(@Image, '.add'), substring-before(@Image, '.clear'))
-=
-(ancestor::MethodDeclaration//FormalParameter|ancestor::ClassOrInterfaceBody//FieldDeclaration)[pmd-java:typeIs('com.fasterxml.jackson.databind.ObjectMapper')]//VariableDeclaratorId/@Name)
-]
-,
-(: modify operations on objectMapper in a constructor where objectMapper is a formal parameter or static field :)
-//ConstructorDeclaration//Statement//Name[(concat(substring-before(@Image, '.config'), substring-before(@Image, '.set'), substring-before(@Image, '.register')
-, substring-before(@Image, '.find'), substring-before(@Image, '.disable'), substring-before(@Image, '.enable'), substring-before(@Image, '.activate')
-, substring-before(@Image, '.deactivate'), substring-before(@Image, '.add'), substring-before(@Image, '.clear'))
-=
-(ancestor::ConstructorDeclaration//FormalParameter|ancestor::ClassOrInterfaceBody//FieldDeclaration[@Static=true()])[pmd-java:typeIs('com.fasterxml.jackson.databind.ObjectMapper')]//VariableDeclaratorId/@Name)
-]
-]]>
-</value>
-</property>
-</properties>
-<example>
-<![CDATA[
-public class OldStyle {
-private static final ObjectMapper staticObjectMapper = new ObjectMapper();
-private final ObjectMapper mapperField = new ObjectMapper();
+    static {
+    staticObjectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL); // good
+    }
 
-static {
-staticObjectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL); // good
-}
+    public OldStyle() {
+    mapperField.setSerializationInclusion(JsonInclude.Include.NON_NULL); // good
+    }
 
-public OldStyle() {
-mapperField.setSerializationInclusion(JsonInclude.Include.NON_NULL); // good
-}
+    ObjectMapper bad(ObjectMapper mapper) {
+    mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL); // bad
+    return mapper;
+    }
+    }
 
-ObjectMapper bad(ObjectMapper mapper) {
-mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL); // bad
-return mapper;
-}
-}
-
-public class NewStyle {
-private static final ObjectWriter staticObjectWriter =
-new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL).writer(); // good
-}
-]]>
-</example>
-</rule>
--->
+    public class NewStyle {
+    private static final ObjectWriter staticObjectWriter =
+    new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL).writer(); // good
+    }
+    ]]>
+    </example>
+    </rule>
+    -->
     <rule name="AvoidDeprecatedHystrix"
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           language="java"
