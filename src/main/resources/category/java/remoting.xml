@@ -740,52 +740,57 @@ public class Foo {
         </example>
     </rule>
 
-    <!--
-<rule -name="AvoidDiscardingHttpClientConfig"
-class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-language="java"
-message="Do not replace the configured httpClient provided in the constructor of the factory."
-externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi15">
-<description>Problem: Apache HttpComponentsClientHttpRequestFactory has a constructor which takes a HttpClient and also a setter: setHttpClient.
-If you use both on the same factory, you discard all configuration done on the one provided in the constructor because it is replaced by the one provided to the setter.  &#13;
-Solution: Don't use both on the same factory, provide the HttpClient only once to the factory. (jpinpoint-rules)</description>
-<priority>2</priority>
-<properties>
-<property name="tags" value="jpinpoint-rule,confusing" type="String" description="classification"/>
-<property name="xpath">
-<value><![CDATA[
-//Statement[StatementExpression[//ArgumentList]/PrimaryExpression/PrimaryPrefix/Name/@Image =
-ancestor::MethodDeclaration//VariableDeclarator[.//AllocationExpression/ClassOrInterfaceType[@Image='HttpComponentsClientHttpRequestFactory'][..//ArgumentList]]
-/VariableDeclaratorId/concat(@Name, '.setHttpClient')]
-]]>
-</value>
-</property>
-</properties>
-<example>
-<![CDATA[
-class Bad {
-ClientHttpRequestFactory getFactory(HttpClientConfiguration config) {
-HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory(HttpClientBuilder.create()
-.setMaxConnTotal(config.getMaxTotalConnections())
-.setMaxConnPerRoute(config.getMaxConnPerRoute())
-.build());
 
-factory.setHttpClient(createHttpClient(config)); //bad
-return factory;
-}
+    <rule name="AvoidDiscardingHttpClientConfig"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          language="java"
+          message="Do not replace the configured httpClient provided in the constructor of the factory."
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi15">
+        <description>Problem: Apache HttpComponentsClientHttpRequestFactory has a constructor which takes a HttpClient
+            and also a setter: setHttpClient.
+            If you use both on the same factory, you discard all configuration done on the one provided in the
+            constructor because it is replaced by the one provided to the setter. &#13;
+            Solution: Don't use both on the same factory, provide the HttpClient only once to the factory.
+            (jpinpoint-rules)
+        </description>
+        <priority>2</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,confusing" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+//MethodCall[pmd-java:matchesSig('org.springframework.http.client.HttpComponentsClientHttpRequestFactory#setHttpClient(_)')][VariableAccess/@Name =
+ancestor::MethodDeclaration//VariableDeclarator[ConstructorCall[pmd-java:typeIs('org.springframework.http.client.HttpComponentsClientHttpRequestFactory')][ArgumentList]]
+/VariableId/@Name]
+]]>
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+class Bad {
+    ClientHttpRequestFactory getFactory(HttpClientConfiguration config) {
+        HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory(HttpClientBuilder.create()
+            .setMaxConnTotal(config.getMaxTotalConnections())
+            .setMaxConnPerRoute(config.getMaxConnPerRoute())
+            .build());
+
+        factory.setHttpClient(createHttpClient(config)); //bad
+        return factory;
+    }
 }
 
 class Good {
-ClientHttpRequestFactory getFactory(HttpClientConfiguration config) {
-HttpComponentsClientHttpRequestFactory factory =
-new HttpComponentsClientHttpRequestFactory(createFullyConfiguredHttpClient(config));
-return factory;
-}
+    ClientHttpRequestFactory getFactory(HttpClientConfiguration config) {
+        HttpComponentsClientHttpRequestFactory factory =
+        new HttpComponentsClientHttpRequestFactory(createFullyConfiguredHttpClient(config));
+        return factory;
+    }
 }
 ]]>
-</example>
-</rule>
+        </example>
+    </rule>
 
+    <!--
 <rule -name="AvoidHttpHostOneArgumentConstructor"
 class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
 language="java"

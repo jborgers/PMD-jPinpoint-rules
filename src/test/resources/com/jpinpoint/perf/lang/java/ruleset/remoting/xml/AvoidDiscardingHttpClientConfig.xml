@@ -6,8 +6,10 @@
     <test-code>
         <description>violation: avoid discarding httpClient config</description>
         <expected-problems>1</expected-problems>
-        <expected-linenumbers>8</expected-linenumbers>
+        <expected-linenumbers>10</expected-linenumbers>
         <code><![CDATA[
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+
 class Bad {
     ClientHttpRequestFactory getFactory(HttpClientConfiguration config) {
         HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory(HttpClientBuilder.create()
@@ -15,7 +17,7 @@ class Bad {
                 .setMaxConnPerRoute(config.getMaxConnPerRoute())
                 .build());
 
-        factory.setHttpClient(createHttpClient(config)); //bad
+        factory.setHttpClient(createHttpClient(config)); // bad
         return factory;
    }
 }
@@ -26,6 +28,8 @@ class Bad {
         <description>no violation: returning HttpClient built with disableConnectionState</description>
         <expected-problems>0</expected-problems>
         <code><![CDATA[
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+
 class Good {
     ClientHttpRequestFactory getFactory(HttpClientConfiguration config) {
         HttpComponentsClientHttpRequestFactory factory =
