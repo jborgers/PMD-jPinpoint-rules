@@ -312,6 +312,7 @@ class MyService {
        StringLiteral[contains(@Image,'request') or contains(@Image,'prototype')]
        or FieldAccess[@Name='SCOPE_REQUEST' or @Name='SCOPE_PROTOTYPE']/TypeExpression[pmd-java:typeIs('org.springframework.beans.factory.config.ConfigurableBeanFactory')]]
     )
+   and not(pmd-java:hasAnnotation('org.springframework.context.annotation.RequestScope'))
    (: if @NotThreadSafe no checking :)
    and not(pmd-java:hasAnnotation('net.jcip.annotations.NotThreadSafe'))
 ]
@@ -347,7 +348,7 @@ public class RootController {
 ]]></example>
 
     </rule>
-    <!--
+
     <rule name="AvoidUnguardedMutableFieldsInSharedObjects"
           message="Avoid unguarded non-final or mutable fields in objects shared among threads. Make final immutable or access thread-safely AND use @GuardedBy."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
@@ -364,50 +365,138 @@ public class RootController {
             (jpinpoint-rules)</description>
         <priority>1</priority>
         <properties>
-            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
-            <property name="tag" value="data-mix-up" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
+            <property name="tags" value="jpinpoint-rule,multi-threading,data-mix-up" type="String" description="classification"/>
             <property name="xpath">
                 <value>
                     <![CDATA[
 (: known assumed singleton types by annotation :)
-//TypeDeclaration/Annotation//Name[(@Image='Component' or @Image='Service' or @Image='Controller' or @Image='RestController' or @Image='Repository' or
-(@Image='Singleton' and ancestor::TypeDeclaration/Annotation/NormalAnnotation/MemberValuePairs//Name[@Image='ConcurrencyManagementType.BEAN']))
-(: not shared when request or prototype scope :)
-and not (ancestor::TypeDeclaration/Annotation//Name[@Image='Scope']/..//PrimaryPrefix[Literal[@Image='"request"' or @Image='"prototype"']
-    or Name[@Image='ConfigurableBeanFactory.SCOPE_REQUEST' or @Image='ConfigurableBeanFactory.SCOPE_PROTOTYPE']])
-and not (ancestor::TypeDeclaration/Annotation//Name[@Image='RequestScope'])
-(: if @NotThreadSafe no checking :)
-and not (ancestor::TypeDeclaration/Annotation/MarkerAnnotation/Name[@Image='NotThreadSafe'])
-(: ConfigurationProperties assumed executed only once, no violation, except if Lombok Setter :)
-and not ((ancestor::TypeDeclaration/Annotation//Name[@Image='ConfigurationProperties'])
-             and not (ancestor::TypeDeclaration/Annotation/MarkerAnnotation/Name[@Image='Setter']))]
+//ClassDeclaration[
+   (
+       pmd-java:hasAnnotation('org.springframework.stereotype.Service')
+    or pmd-java:hasAnnotation('org.springframework.stereotype.Component')
+    or pmd-java:hasAnnotation('org.springframework.stereotype.Controller')
+    or pmd-java:hasAnnotation('org.springframework.stereotype.Repository')
+    or pmd-java:hasAnnotation('org.springframework.web.bind.annotation.RestController')
+    or (pmd-java:hasAnnotation('javax.ejb.Singleton') and ModifierList/Annotation[pmd-java:typeIs('javax.ejb.ConcurrencyManagement')]/AnnotationMemberList/MemberValuePair/FieldAccess[./TypeExpression[pmd-java:typeIs('javax.ejb.ConcurrencyManagementType')] and @Name="BEAN"])
+   )
+   (: not shared when request or prototype scope :)
+   and not(pmd-java:hasAnnotation('org.springframework.context.annotation.Scope') and .//AnnotationMemberList/MemberValuePair[
+       StringLiteral[contains(@Image,'request') or contains(@Image,'prototype')]
+       or FieldAccess[@Name='SCOPE_REQUEST' or @Name='SCOPE_PROTOTYPE']/TypeExpression[pmd-java:typeIs('org.springframework.beans.factory.config.ConfigurableBeanFactory')]]
+    )
+   and not(pmd-java:hasAnnotation('org.springframework.context.annotation.RequestScope'))
+   (: if @NotThreadSafe no checking :)
+   and not(pmd-java:hasAnnotation('net.jcip.annotations.NotThreadSafe'))
+   (: ConfigurationProperties assumed executed only once, no violation, except if Lombok Setter :)
+   and not(pmd-java:hasAnnotation('org.springframework.boot.context.properties.ConfigurationProperties'))
+   and not(pmd-java:hasAnnotation('lombok.Setter'))]
 (: non-final and non-volatile fields :)
-/../../..//ClassOrInterfaceDeclaration[@Static=false()]/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Final=false() and @Volatile=false()
-(: field not annotated with framework annotation or GuardedBy :)
-and not (../Annotation//Name[@Image='Autowired' or @Image='PersistenceContext' or @Image='EJB' or @Image='Resource' or @Image='Inject' or @Image='Value' or @Image='GuardedBy'])
-(: field not on accessor method with assignment level annotated with framework annotation :)
-and not (../../ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='Autowired' or @Image='PostConstruct' or @Image='BeforeStep' or @Image='Value' or @Image='Inject']
-/../../..//BlockStatement/Statement//StatementExpression/AssignmentOperator/../PrimaryExpression//@Image=
-./VariableDeclarator/VariableDeclaratorId/@Name)
-(: or field of known mutable types including array :)
-or ((Type/ReferenceType/ClassOrInterfaceType[(pmd-java:typeIs('java.util.Date') or pmd-java:typeIs('java.lang.StringBuilder') or pmd-java:typeIs('java.lang.StringBuffer') or pmd-java:typeIs('java.net.URL') or pmd-java:typeIs('java.io.File')) or
-(ancestor::FieldDeclaration/VariableDeclarator/VariableInitializer[ArrayInitializer and count(ArrayInitializer/VariableInitializer) > 0])])
-(: or in-line allocation of known mutable collection types :)
-or (VariableDeclarator/VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/AllocationExpression[pmd-java:typeIs('java.util.ArrayList') or pmd-java:typeIs('java.util.HashMap') or pmd-java:typeIs('java.util.HashSet')] )
-(: or in-constructor allocation of known mutable collection types :)
-or (VariableDeclarator/VariableDeclaratorId/@Name = ancestor::ClassOrInterfaceBody//ConstructorDeclaration//StatementExpression/Expression[pmd-java:typeIs('java.util.ArrayList') or pmd-java:typeIs('java.util.HashMap') or pmd-java:typeIs('java.util.HashSet')]/../..//Name/@Image)
-(: not annotated GuardedBy :)
-)
-and not (../Annotation//Name[@Image='GuardedBy'])
+//FieldDeclaration[
+
+   not(pmd-java:modifiers()=('final','volatile'))
+   (: field not annotated with framework annotation or GuardedBy :)
+   and not(
+     pmd-java:hasAnnotation('org.springframework.beans.factory.annotation.Autowired')
+     or pmd-java:hasAnnotation('javax.persistence.PersistenceContext')
+     or pmd-java:hasAnnotation('javax.ejb.EJB')
+     or pmd-java:hasAnnotation('javax.inject.Inject')
+     or pmd-java:hasAnnotation('org.springframework.beans.factory.annotation.Value')
+     or pmd-java:hasAnnotation('net.jcip.annotations.GuardedBy')
+   )
+   (: not in static inner class :)
+   and not (ancestor::ClassDeclaration[@Nested=true() and @Static=true()])
+   (: field not on accessor method with assignment level annotated with framework annotation :)
+   and not (
+     ./VariableDeclarator/VariableId/@Name = ancestor::ClassDeclaration//MethodDeclaration[
+        pmd-java:hasAnnotation('org.springframework.beans.factory.annotation.Autowired')
+        or pmd-java:hasAnnotation('javax.annotation.PostConstruct')
+        or pmd-java:hasAnnotation('org.springframework.batch.core.annotation.BeforeStep')
+        or pmd-java:hasAnnotation('org.springframework.beans.factory.annotation.Value')
+        or pmd-java:hasAnnotation('javax.inject.Inject')
+      ]//AssignmentExpression/*[1]/@Name
+   )
+   or (
+     (: or non-final or volatile field of known mutable types :)
+     ./ClassType[pmd-java:typeIs('java.util.Date')
+                    or pmd-java:typeIs('java.lang.StringBuilder')
+                    or pmd-java:typeIs('java.lang.StringBuffer')
+                    or pmd-java:typeIs('java.net.URL')
+                    or pmd-java:typeIs('java.io.File')]
+        (: or mutable array :)
+        or (
+          .//ArrayInitializer[@Length > 0]
+        )
+        (: or in-line allocation of known mutable collection types :)
+        or (
+          ./VariableDeclarator/ConstructorCall/ClassType[
+                pmd-java:typeIs('java.util.ArrayList')
+                or pmd-java:typeIs('java.util.HashMap')
+                or pmd-java:typeIs('java.util.HashSet')
+          ]
+        )
+        (: or in-constructor allocation of known mutable collection types :)
+        or (
+           ./VariableDeclarator/VariableId/@Name =
+              ancestor::ClassDeclaration//ConstructorDeclaration//AssignmentExpression[
+                     ConstructorCall/ClassType[
+                            pmd-java:typeIs('java.util.ArrayList')
+                            or pmd-java:typeIs('java.util.HashMap')
+                            or pmd-java:typeIs('java.util.HashSet')
+                                              ]]/VariableAccess/@Name
+        )
+     )
+    (: not annotated GuardedBy :)
+    and not (pmd-java:hasAnnotation('net.jcip.annotations.GuardedBy'))
 ]
 ]]>
                 </value>
             </property>
         </properties>
-    </rule>
+        <example><![CDATA[
+@Component
+@Scope(value = SCOPE_APPLICATION, proxyMode = TARGET_CLASS)
+class AComponent2 {
+    private String _url; // bad, unguarded accessor method
+    public void setUrlBad(final String url) {
+        _url = url;
+    }
+}
 
+@Component
+class Bad {
+    private Map<String, String> map1 = new HashMap<>(); // bad, reference and map is mutable
+    private final Map<String, String> map2 = new HashMap<>(); // bad, map is mutable
+    private final Map<String, String> map3 = new ConcurrentHashMap<>(); // good, concurrenthashmap is thread-safe
+    @GuardedBy("this")
+    private Map<String, String> map4 = new HashMap<>(); // good, guarded
+
+    private Map<String, String> mapCtor1; // bad, reference and map is mutable
+    private final Map<String, String> mapCtor2; // bad, constructed with known mutable type
+    private final Map<String, String> mapCtor3; // good, concurrenthashmap is thread-safe
+    @GuardedBy("this")
+    private Map<String, String> mapCtor4; // good, guarded
+
+    public Bad() {
+        mapCtor1 = new HashMap<>();
+        mapCtor2 = new HashMap<>();
+        mapCtor3 = new ConcurrentHashMap<>();
+        mapCtor4 = new HashMap<>();
+    }
+}
+
+@Service
+class BadMutebleTypes {
+    private final Date date = new Date(); // bad, Date is mutable
+    private volatile StringBuilder strBuilder = new StringBuilder(); // bad, mutable type
+    private final StringBuffer strBuffer = new StringBuffer(); // bad, mutable type
+    private final String strOne = "abc"; // good, String is immutable
+    private final String[] abc = new String[] {"a","b","c"}; // bad, elements can be replaced
+    private final String[] nothing = new String[]{}; // good, no elements; not mutable
+
+}
+        ]]></example>
+    </rule>
+<!--
     <rule name="AvoidUnguardedMutableInheritedFieldsInSharedObjects"
           message="Mutator method called on inherited field. Avoid unguarded mutable inherited fields in objects shared among threads. Make final immutable or access thread-safely AND use @GuardedBy."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
