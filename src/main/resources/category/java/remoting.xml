@@ -623,41 +623,50 @@ void good2() {
         </example>
     </rule>
 
-<!--
-<rule -name="AvoidRecreatingHttpClient"
-class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-language="java"
-message="An HttpClient is created and combined with request-response."
-externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi12">
-<description>Problem: Apache HttpClient with its connection pool and timeouts should be setup once and then used for many requests. It is quite expensive to create and can only provide the benefits of pooling when reused in all requests for that connection.&#13;
-Solution: Create/build HttpClient with proper connection pooling and timeouts once, and then use it for requests. (jpinpoint-rules)</description>
-<priority>2</priority>
-<properties>
-<property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
-<property name="xpath">
-<value><![CDATA[
-//TypeDeclaration/ClassOrInterfaceDeclaration[count(.//Annotation//Name[@Image='Configuration']) = 0]
-//MethodDeclaration//VariableInitializer//Name[
-@Image='HttpClientBuilder.create' or @Image='HttpClients.custom' or @Image='HttpAsyncClientBuilder.create']
-[ancestor::MethodDeclaration//ClassOrInterfaceType[@Image='HttpEntity' or @Image='ResponseEntity']]
-]]>
-</value>
-</property>
-</properties>
-<example>
-<![CDATA[
-class Foo {
-ResponseEntity<Object> connectBad(Object req) {
-HttpEntity<Object> requestEntity = new HttpEntity<>(req);
 
-HttpClient httpClient = HttpClientBuilder.create().setMaxConnPerRoute(10).build(); // bad
-return remoteCall(httpClient, requestEntity);
-}
+    <rule name="AvoidRecreatingHttpClient"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          language="java"
+          message="An HttpClient is created and combined with request-response."
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi12">
+        <description>Problem: Apache HttpClient with its connection pool and timeouts should be setup once and then used
+            for many requests. It is quite expensive to create and can only provide the benefits of pooling when reused
+            in all requests for that connection.&#13;
+            Solution: Create/build HttpClient with proper connection pooling and timeouts once, and then use it for
+            requests. (jpinpoint-rules)
+        </description>
+        <priority>2</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+//ClassDeclaration[count(.//Annotation[pmd-java:typeIs('org.springframework.context.annotation.Configuration')]) = 0]
+//MethodDeclaration//MethodCall[(:@MethodName = ('create', 'custom') or :)
+    pmd-java:matchesSig('org.apache.http.impl.client.HttpClientBuilder#create()')
+    or pmd-java:matchesSig('org.apache.http.impl.client.HttpClients#custom()')
+    or pmd-java:matchesSig('org.apache.http.impl.nio.client.HttpAsyncClientBuilder#create()')
+]
+[ancestor::MethodDeclaration//ClassType[pmd-java:typeIs('org.springframework.http.HttpEntity')
+    or pmd-java:typeIs('org.springframework.http.ResponseEntity')]
+]
+]]>
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+class Foo {
+    ResponseEntity<Object> connectBad(Object req) {
+    HttpEntity<Object> requestEntity = new HttpEntity<>(req);
+
+    HttpClient httpClient = HttpClientBuilder.create().setMaxConnPerRoute(10).build(); // bad
+    return remoteCall(httpClient, requestEntity);
+    }
 }
 ]]>
-</example>
-</rule>
--->
+        </example>
+    </rule>
+
     <rule name="RetryCanCauseOverload"
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           language="java"
