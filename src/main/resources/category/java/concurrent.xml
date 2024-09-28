@@ -570,7 +570,43 @@ class BadMutebleTypes {
             </property>
         </properties>
         <example><![CDATA[
+@Component
+public class MutateInheritedFieldTryout extends SynchronizedTryout {
+    final Map mapField = getMap(); // found by other rule
+    private String removed; // found by other rule
 
+    public String getDateString() {
+        return date.toString();
+    }
+    public void mutateDateBad() {
+        date.setTime(100); // bad - 20
+    }
+
+    public void mutateMap(String key, String val) {
+        Collections.sort(null);
+        map.clear(); // bad - 25
+        if (map.put(key, val)) { // bad - 26
+           removed = "";
+        }
+        removed = map.remove("invalidKey"); // bad - 29
+    }
+    public Object readMap(String key) {
+        return map.get(key);
+    }
+    public synchronized void mutateSyncMap(String key, String val) {
+        map.put(key, val);
+    }
+    public void mutateMapField(String key, String val) {
+        mapField.put(key, val); // good, fields checked in other rule
+    }
+    public void mutateMapParam(Map map, String key, String val) {
+        map.put(key, val); // good, param map shadows inherited field
+    }
+    public void mutateMapLocal(String key, String val) {
+        Map map = new HashMap();
+        map.put(key, val); // good, local map shadows inherited field
+    }
+}
         ]]></example>
     </rule>
     <!--
