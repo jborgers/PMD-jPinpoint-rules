@@ -609,7 +609,7 @@ public class MutateInheritedFieldTryout extends SynchronizedTryout {
 }
         ]]></example>
     </rule>
-    <!--
+
         <rule name="AvoidUnguardedAssignmentToNonFinalFieldsInObjectsUsingSynchronized"
               message="Avoid unguarded assignments to non-final fields in objects using synchronized. Access thread-safely AND use @GuardedBy."
               class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
@@ -623,30 +623,86 @@ public class MutateInheritedFieldTryout extends SynchronizedTryout {
                 (jpinpoint-rules)</description>
             <priority>1</priority>
             <properties>
-                <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-                <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
-                <property name="version" value="2.0"/>
+                <property name="tags" value="jpinpoint-rule,multi-threading" type="String" description="classification"/>
                 <property name="xpath">
-                    <value>
-                        <![CDATA[
-    (: if @NotThreadSafe no checking :)
-    //TypeDeclaration[count(Annotation/MarkerAnnotation/Name[@Image='NotThreadSafe'])=0]
-    (: non-static classes using synchronized :)
-    //ClassOrInterfaceDeclaration[@Static=false()]/ClassOrInterfaceBody[//SynchronizedStatement or //MethodDeclaration[@Synchronized=true()]]
-    (: assignment to a field :)
-    /ClassOrInterfaceBodyDeclaration/MethodDeclaration/Block/BlockStatement/Statement//StatementExpression/AssignmentOperator/../PrimaryExpression//*[@Image=
-    (: non-final, non-volatile, non-GuardedBy fields :)
-    ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Final=false() and @Volatile=false() and not (../Annotation//Name[@Image='GuardedBy'])]/VariableDeclarator/VariableDeclaratorId/@Name
-    (: field not on accessor method with assignment, annotated with framework annotation :)
-    and not (ancestor::ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='Autowired' or @Image='PostConstruct' or @Image='BeforeStep' or @Image='Value' or @Image='Inject']
-    (: field not assigned in non-public accessor method annotated with VisibleForTesting :)
-    or (ancestor::ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='VisibleForTesting'] and ancestor::MethodDeclaration[@Public=false()]))]
-    ]]>
-                    </value>
+                    <value><![CDATA[
+(: if @NotThreadSafe no checking :)
+//ClassDeclaration[
+       not (pmd-java:hasAnnotation('net.jcip.annotations.NotThreadSafe'))
+       (: not in static inner class :)
+       and not (ancestor::ClassDeclaration[@Nested=true() and @Static=true()])
+       and (.//SynchronizedStatement or .//MethodDeclaration[pmd-java:modifiers()='synchronized'])
+   ]
+   (: assignment to a field that is not final or volatile:)
+   //AssignmentExpression/*[1][
+      not(@Name = ancestor::ClassDeclaration//FieldDeclaration[
+            pmd-java:modifiers()=('final','volatile')
+            or pmd-java:hasAnnotation('net.jcip.annotations.GuardedBy')
+        ]/VariableDeclarator/VariableId/@Name)
+       (: field not on accessor method with assignment level annotated with framework annotation :)
+       and not(
+             ancestor::MethodDeclaration[
+                   pmd-java:hasAnnotation('org.springframework.beans.factory.annotation.Autowired')
+                   or pmd-java:hasAnnotation('javax.annotation.PostConstruct')
+                   or pmd-java:hasAnnotation('org.springframework.batch.core.annotation.BeforeStep')
+                   or pmd-java:hasAnnotation('org.springframework.beans.factory.annotation.Value')
+                   or pmd-java:hasAnnotation('javax.inject.Inject')
+                ]
+             (: field not assigned in non-public accessor method annotated with VisibleForTesting :)
+             or (ancestor::MethodDeclaration[pmd-java:hasAnnotation('com.google.common.annotations.VisibleForTesting') and not(@Visibility='public')])
+             (: annotation is not enough? :)
+             or ancestor::MethodDeclaration[@Name='afterPropertiesSet']
+           )
+    ]
+                    ]]></value>
                 </property>
             </properties>
-        </rule>
+            <example><![CDATA[
+public class Bad {
+    private static Map staticMapField = new HashMap();
+    private Date date = new Date();
 
+    public Date getDate() {
+        return date;
+    }
+
+    public void setDate(Date d) {
+        date = d; // bad - synchronized used in class
+    }
+
+    public static synchronized Map getStaticMapField() {
+        return staticMapField;
+    }
+
+    public static void setStaticMapField(Map smf) {
+        staticMapField = smf; // bad - synchronized use in class
+    }
+}
+
+@NotThreadSafe
+public class Good {
+    private static Map staticMapField = new HashMap();
+    private Date date = new Date();
+
+    public Date getDate() {
+        return date;
+    }
+
+    public void setDate(Date d) {
+        date = d; // good - no synchronized in class (marked as @NotThreadSafe)
+    }
+
+    public static  Map getStaticMapField() {
+        return staticMapField;
+    }
+
+    public static  void setStaticMapField(Map smf) {
+        staticMapField = smf; // good - no synchronized in class (marked as @NotThreadSafe)
+    }
+}
+             ]]></example>
+        </rule>
+    <!--
         <rule name="AvoidUnguardedMutableFieldsInObjectsUsingSynchronized"
               message="Avoid unguarded non-final or mutable fields in objects using synchronized. Make final immutable or access thread-safely AND use @GuardedBy."
               class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"

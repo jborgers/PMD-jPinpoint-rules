@@ -11,17 +11,17 @@
 package com.jpinpoint.tryout;
 
 import net.jcip.annotations.GuardedBy;
-import net.jcip.annotations.ThreadSafe;
+import net.jcip.annotations.NotThreadSafe;
 
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.inject.Inject;
+
 //@NotThreadSafe
 public class Bad {
-    //@GuardedBy("this")
     private static Map staticMapField = new HashMap();
-    //@GuardedBy("LOCK")
     private Date date = new Date();
 
     public Date getDate() {
@@ -29,19 +29,18 @@ public class Bad {
     }
 
     public void setDate(Date d) {
-        date = d;
+        date = d; // bad - synchronized in class - 22
     }
 
     public static synchronized Map getStaticMapField() {
         return staticMapField;
     }
 
-    public static  void setStaticMapField(Map smf) {
-        staticMapField = smf;
+    public static void setStaticMapField(Map smf) {
+        staticMapField = smf; // bad - synchronized in class - 30
     }
 }
-
-        ]]></code>
+       ]]></code>
     </test-code>
 
     <test-code>
@@ -55,7 +54,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-public class Bad {
+public class Bad2 {
     private static Map staticMapField = new HashMap();
     private Date date = new Date();
 
@@ -67,7 +66,7 @@ public class Bad {
         synchronized(this) { date = d; }
     }
 
-    public static synchronized Map getStaticMapField() {
+    public static Map getStaticMapField() {
         return staticMapField;
     }
 
@@ -135,7 +134,10 @@ public class Good {
         <expected-problems>0</expected-problems>
         <code><![CDATA[
 package com.jpinpoint.tryout;
+
 import java.util.Date;
+import net.jcip.annotations.GuardedBy;
+import javax.inject.Inject;
 
 public class Good {
     @GuardedBy("this")
