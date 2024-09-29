@@ -706,7 +706,7 @@ public class Good {
 }
              ]]></example>
         </rule>
-    <!--
+
         <rule name="AvoidUnguardedMutableFieldsInObjectsUsingSynchronized"
               message="Avoid unguarded non-final or mutable fields in objects using synchronized. Make final immutable or access thread-safely AND use @GuardedBy."
               class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
@@ -723,40 +723,123 @@ public class Good {
                 (jpinpoint-rules)</description>
             <priority>3</priority>
             <properties>
-                <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-                <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
-                <property name="version" value="2.0"/>
+                <property name="tags" value="jpinpoint-rule,multi-threading" type="String" description="classification"/>
                 <property name="xpath">
                     <value>
                         <![CDATA[
-    (: if @NotThreadSafe no checking :)
-    //TypeDeclaration[count(Annotation/MarkerAnnotation/Name[@Image='NotThreadSafe'])=0]
-    (: non-static classes using synchronized :)
-    //ClassOrInterfaceDeclaration[@Static=false()]/ClassOrInterfaceBody[//SynchronizedStatement or //MethodDeclaration[@Synchronized=true()]]
-    (: non-final and non-volatile fields :)
-    /ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Final=false() and @Volatile=false()
-    (: field not annotated with framework annotation or GuardedBy :)
-    and not (../Annotation//Name[@Image='Autowired' or @Image='PersistenceContext' or @Image='EJB' or @Image='Resource' or @Image='Inject' or @Image='Value' or @Image='GuardedBy'])
-    (: field not on accessor method with assignment, annotated with framework annotation :)
-    and not (../../ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='Autowired' or @Image='PostConstruct' or @Image='BeforeStep' or @Image='Value' or @Image='Inject']
-    /../../..//BlockStatement/Statement//StatementExpression/AssignmentOperator/../PrimaryExpression//@Image=
-    ./VariableDeclarator/VariableDeclaratorId/@Name)
-    (: or field of known mutable types including array :)
-    or ((Type/ReferenceType/ClassOrInterfaceType[(pmd-java:typeIs('java.util.Date') or pmd-java:typeIs('java.lang.StringBuilder') or pmd-java:typeIs('java.lang.StringBuffer') or pmd-java:typeIs('java.net.URL') or pmd-java:typeIs('java.io.File')) or
-    (ancestor::FieldDeclaration/VariableDeclarator/VariableInitializer[ArrayInitializer and count(ArrayInitializer/VariableInitializer) > 0])])
-    (: or in-line allocation of known mutable collection types :)
-    or (VariableDeclarator/VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/AllocationExpression/ClassOrInterfaceType[pmd-java:typeIs('java.util.ArrayList') or pmd-java:typeIs('java.util.HashMap') or pmd-java:typeIs('java.util.HashSet')] )
-    (: or in-constructor allocation of known mutable collection types :)
-    or (VariableDeclarator/VariableDeclaratorId/@Name = ancestor::ClassOrInterfaceBody//ConstructorDeclaration//StatementExpression/Expression[pmd-java:typeIs('java.util.ArrayList') or pmd-java:typeIs('java.util.HashMap') or pmd-java:typeIs('java.util.HashSet')]/../..//Name/@Image)
-    (: mutable types not annotated with GuardedBy :)
-    ) and not (../Annotation//Name[@Image='GuardedBy'])
-    ]
-    ]]>
+(: if @NotThreadSafe no checking :)
+//ClassDeclaration[
+       not (pmd-java:hasAnnotation('net.jcip.annotations.NotThreadSafe'))
+       (: not in static inner class :)
+       and not (ancestor::ClassDeclaration[@Nested=true() and @Static=true()])
+       and (.//SynchronizedStatement or .//MethodDeclaration[pmd-java:modifiers()='synchronized'])
+   ]
+   //FieldDeclaration[
+       (: assignment to a field that is not final or volatile:)
+       not(pmd-java:modifiers()=('final','volatile'))
+
+       (: field not annotated with framework annotation or GuardedBy :)
+       and not(pmd-java:hasAnnotation('org.springframework.beans.factory.annotation.Autowired')
+                    or (pmd-java:hasAnnotation('javax.persistence.PersistenceContext') or pmd-java:hasAnnotation('jakarta.persistence.PersistenceContext'))
+                    or (pmd-java:hasAnnotation('javax.ejb.EJB') or pmd-java:hasAnnotation('jakarta.ejb.EJB'))
+                    or (pmd-java:hasAnnotation('javax.annotation.Resource') or pmd-java:hasAnnotation('jakarta.annotation.Resource'))
+                    or (pmd-java:hasAnnotation('javax.inject.Inject') or pmd-java:hasAnnotation('jakarta.inject.Inject'))
+                    or pmd-java:hasAnnotation('org.springframework.beans.factory.annotation.Value')
+                    or pmd-java:hasAnnotation('net.jcip.annotations.GuardedBy')
+              )
+      (: field not on accessor method with assignment level annotated with framework annotation :)
+      and not (
+           ./VariableDeclarator/VariableId/@Name = ancestor::ClassDeclaration//MethodDeclaration[
+              pmd-java:hasAnnotation('org.springframework.beans.factory.annotation.Autowired')
+                or (pmd-java:hasAnnotation('javax.annotation.PostConstruct') or pmd-java:hasAnnotation('jakarta.annotation.PostConstruct'))
+                or pmd-java:hasAnnotation('org.springframework.batch.core.annotation.BeforeStep')
+                or pmd-java:hasAnnotation('org.springframework.beans.factory.annotation.Value')
+                or (pmd-java:hasAnnotation('javax.inject.Inject') or pmd-java:hasAnnotation('jakarta.inject.Inject'))
+             ]//VariableAccess/@Name
+       )
+       or (
+            (: or field of known mutable types including array :)
+            (./ClassType[pmd-java:typeIs('java.util.Date')
+                    or pmd-java:typeIs('java.lang.StringBuilder')
+                    or pmd-java:typeIs('java.lang.StringBuffer')
+                    or pmd-java:typeIs('java.net.URL')
+                    or pmd-java:typeIs('java.io.File')]
+                    (: or mutable array :)
+                    or (
+                        .//ArrayInitializer[@Length > 0]
+                    )
+             )
+             (: or in-line allocation of known mutable collection types :)
+             or (
+               ./VariableDeclarator/ConstructorCall/ClassType[
+                    pmd-java:typeIs('java.util.ArrayList')
+                    or pmd-java:typeIs('java.util.HashMap')
+                    or pmd-java:typeIs('java.util.HashSet')
+                 ]
+             )
+             (: or in-constructor allocation of known mutable collection types :)
+             or (
+                ./VariableDeclarator/VariableId/@Name =
+                   ancestor::ClassDeclaration//ConstructorDeclaration//AssignmentExpression[
+                         ConstructorCall/ClassType[
+                                pmd-java:typeIs('java.util.ArrayList')
+                                or pmd-java:typeIs('java.util.HashMap')
+                                or pmd-java:typeIs('java.util.HashSet')
+                                                  ]]/VariableAccess/@Name
+             )
+       )
+       (: mutable types not annotated with GuardedBy :)
+       and not(pmd-java:hasAnnotation('net.jcip.annotations.GuardedBy'))
+
+  ]
+                        ]]>
                     </value>
                 </property>
             </properties>
+            <example><![CDATA[
+public class Bad {
+    private static Map staticMapField = new HashMap(); // bad, class has synchronized method
+    private Date date = new Date(); // bad, class has synchronized method
+
+    public Date getDate() {
+        return date;
+    }
+
+    public void setDate(Date d) {
+        date = d;
+    }
+
+    public static synchronized Map getStaticMapField() {
+        return staticMapField;
+    }
+
+    public static  void setStaticMapField(Map smf) {
+        staticMapField = smf;
+    }
+}
+
+public class Good {
+    @GuardedBy("this")
+    private static Map staticMapField = new HashMap(); // good, guarded
+    @GuardedBy("LOCK")
+    private Date date = new Date(); // good, guarded
+
+    public void setDate(Date d) {
+        date = d;
+    }
+
+    public static synchronized Map getStaticMapField() {
+        return staticMapField;
+    }
+
+    public static  void setStaticMapField(Map smf) {
+        staticMapField = smf;
+    }
+}
+            ]]></example>
         </rule>
 
+    <!--
         <rule name="NotProperlySynchronizingOnThisWhileUsingGuardedBy"
               message="Not properly synchronizing access of field while using @GuardedBy('this')"
               class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
