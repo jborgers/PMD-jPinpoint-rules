@@ -839,7 +839,6 @@ public class Good {
             ]]></example>
         </rule>
 
-    <!--
         <rule name="NotProperlySynchronizingOnThisWhileUsingGuardedBy"
               message="Not properly synchronizing access of field while using @GuardedBy('this')"
               class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
@@ -851,22 +850,29 @@ public class Good {
                 (jpinpoint-rules)</description>
             <priority>2</priority>
             <properties>
-                <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-                <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
-                <property name="version" value="2.0"/>
+                <property name="tags" value="jpinpoint-rule,multi-threading" type="String" description="classification"/>
                 <property name="xpath">
                     <value>
-                        <![CDATA[
-    //MethodDeclaration[(@Synchronized=false() or @Static=true())
-    and not (../Annotation//Name[@Image='Autowired' or @Image='PostConstruct' or @Image='BeforeStep' or @Image='Value' or @Image='Inject'])]
-    //PrimaryPrefix/Name[substring-before(concat(@Image,'.'), '.') =
-    (ancestor::ClassOrInterfaceBody|ancestor::EnumBody)//Annotation//Name[@Image='GuardedBy']/..//Literal[@Image='"this"']/
-    ancestor::ClassOrInterfaceBodyDeclaration/FieldDeclaration//VariableDeclaratorId/@Name
-    and (
-    not (ancestor::SynchronizedStatement)
-    or ancestor::SynchronizedStatement/Expression//Name)]
-    ]]>
-                    </value>
+                        <![CDATA[//MethodDeclaration[
+    (: method not synchronized or static :)
+    (not(pmd-java:modifiers() = 'synchronized') or pmd-java:modifiers() = 'static')
+    and not(pmd-java:hasAnnotation('org.springframework.beans.factory.annotation.Autowired')
+        or (pmd-java:hasAnnotation('javax.annotation.PostConstruct') or pmd-java:hasAnnotation('jakarta.annotation.PostConstruct'))
+        or pmd-java:hasAnnotation('org.springframework.batch.core.annotation.BeforeStep')
+        or pmd-java:hasAnnotation('org.springframework.beans.factory.annotation.Value')
+        or (pmd-java:hasAnnotation('javax.inject.Inject') or pmd-java:hasAnnotation('jakarta.inject.Inject'))
+    )
+ ]//(AssignmentExpression/*[1]|VariableAccess)[
+   (: not is synchronized block (with this) or method :)
+   not(ancestor::SynchronizedStatement[./ThisExpression] or ancestor::MethodDeclaration[pmd-java:modifiers()='synchronized'])
+   (: field GuardedBy("this") :)
+   and @Name = (ancestor::ClassDeclaration|ancestor::EnumDeclaration)//FieldDeclaration[./ModifierList/Annotation[
+       pmd-java:typeIs('javax.annotation.concurrent.GuardedBy')
+       or pmd-java:typeIs('com.google.errorprone.annotations.concurrent.GuardedBy')
+       or pmd-java:typeIs('net.jcip.annotations.GuardedBy')
+   ]//MemberValuePair/StringLiteral[@Image='"this"']]/VariableDeclarator/VariableId/@Name
+ ]
+                   ]]></value>
                 </property>
             </properties>
             <example>
@@ -889,7 +895,7 @@ public class Good {
                 ]]>
             </example>
         </rule>
-
+    <!--
         <rule name="NotProperlySynchronizingOnFieldWhileUsingGuardedBy"
               message="Not properly synchronizing access of field while using @GuardedBy(field)"
               class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
