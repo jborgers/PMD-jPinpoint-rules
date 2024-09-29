@@ -242,10 +242,10 @@ class Exporter {
      and not(
           ancestor::MethodDeclaration[
                 pmd-java:hasAnnotation('org.springframework.beans.factory.annotation.Autowired')
-                or pmd-java:hasAnnotation('javax.annotation.PostConstruct')
+                or (pmd-java:hasAnnotation('javax.annotation.PostConstruct') or pmd-java:hasAnnotation('jakarta.annotation.PostConstruct'))
                 or pmd-java:hasAnnotation('org.springframework.batch.core.annotation.BeforeStep')
                 or pmd-java:hasAnnotation('org.springframework.beans.factory.annotation.Value')
-                or pmd-java:hasAnnotation('javax.inject.Inject')
+                or (pmd-java:hasAnnotation('javax.inject.Inject') or pmd-java:hasAnnotation('jakarta.inject.Inject'))
              ]
           (: field not assigned in non-public accessor method annotated with VisibleForTesting :)
           or (ancestor::MethodDeclaration[pmd-java:hasAnnotation('com.google.common.annotations.VisibleForTesting') and not(@Visibility='public')])
@@ -325,7 +325,7 @@ class MyService {
   and not(
      pmd-java:hasAnnotation('org.springframework.beans.factory.annotation.Autowired')
        or pmd-java:hasAnnotation('org.springframework.beans.factory.annotation.Value')
-       or pmd-java:hasAnnotation('javax.inject.Inject')
+       or (pmd-java:hasAnnotation('javax.inject.Inject') or pmd-java:hasAnnotation('jakarta.inject.Inject'))
   )
   (: no innerclass, no static class :)
   and not(ancestor::ClassDeclaration[@Nested=true() or pmd-java:modifiers()='static'])
@@ -400,9 +400,9 @@ public class RootController {
    (: field not annotated with framework annotation or GuardedBy :)
    and not(
      pmd-java:hasAnnotation('org.springframework.beans.factory.annotation.Autowired')
-     or pmd-java:hasAnnotation('javax.persistence.PersistenceContext')
-     or pmd-java:hasAnnotation('javax.ejb.EJB')
-     or pmd-java:hasAnnotation('javax.inject.Inject')
+     or (pmd-java:hasAnnotation('javax.persistence.PersistenceContext') or pmd-java:hasAnnotation('jakarta.persistence.PersistenceContext'))
+     or (pmd-java:hasAnnotation('javax.ejb.EJB') or pmd-java:hasAnnotation('jakarta.ejb.EJB'))
+     or (pmd-java:hasAnnotation('javax.inject.Inject') or pmd-java:hasAnnotation('jakarta.inject.Inject'))
      or pmd-java:hasAnnotation('org.springframework.beans.factory.annotation.Value')
      or pmd-java:hasAnnotation('net.jcip.annotations.GuardedBy')
    )
@@ -412,10 +412,10 @@ public class RootController {
    and not (
      ./VariableDeclarator/VariableId/@Name = ancestor::ClassDeclaration//MethodDeclaration[
         pmd-java:hasAnnotation('org.springframework.beans.factory.annotation.Autowired')
-        or pmd-java:hasAnnotation('javax.annotation.PostConstruct')
+        or (pmd-java:hasAnnotation('javax.annotation.PostConstruct') or pmd-java:hasAnnotation('jakarta.annotation.PostConstruct'))
         or pmd-java:hasAnnotation('org.springframework.batch.core.annotation.BeforeStep')
         or pmd-java:hasAnnotation('org.springframework.beans.factory.annotation.Value')
-        or pmd-java:hasAnnotation('javax.inject.Inject')
+        or (pmd-java:hasAnnotation('javax.inject.Inject') or pmd-java:hasAnnotation('jakarta.inject.Inject'))
       ]//AssignmentExpression/*[1]/@Name
    )
    or (
@@ -558,10 +558,10 @@ class BadMutebleTypes {
     and not(
           ancestor::MethodDeclaration[
                 pmd-java:hasAnnotation('org.springframework.beans.factory.annotation.Autowired')
-                or pmd-java:hasAnnotation('javax.annotation.PostConstruct')
+                or (pmd-java:hasAnnotation('javax.annotation.PostConstruct') or pmd-java:hasAnnotation('jakarta.annotation.PostConstruct'))
                 or pmd-java:hasAnnotation('org.springframework.batch.core.annotation.BeforeStep')
                 or pmd-java:hasAnnotation('org.springframework.beans.factory.annotation.Value')
-                or pmd-java:hasAnnotation('javax.inject.Inject')
+                or (pmd-java:hasAnnotation('javax.inject.Inject') or pmd-java:hasAnnotation('jakarta.inject.Inject'))
              ]
           (: field not assigned in non-public accessor method annotated with VisibleForTesting :)
           or (ancestor::MethodDeclaration[pmd-java:hasAnnotation('com.google.common.annotations.VisibleForTesting') and not(@Visibility='public')])
@@ -647,10 +647,10 @@ public class MutateInheritedFieldTryout extends SynchronizedTryout {
        and not(
              ancestor::MethodDeclaration[
                    pmd-java:hasAnnotation('org.springframework.beans.factory.annotation.Autowired')
-                   or pmd-java:hasAnnotation('javax.annotation.PostConstruct')
+                   or (pmd-java:hasAnnotation('javax.annotation.PostConstruct') or pmd-java:hasAnnotation('jakarta.annotation.PostConstruct'))
                    or pmd-java:hasAnnotation('org.springframework.batch.core.annotation.BeforeStep')
                    or pmd-java:hasAnnotation('org.springframework.beans.factory.annotation.Value')
-                   or pmd-java:hasAnnotation('javax.inject.Inject')
+                   or (pmd-java:hasAnnotation('javax.inject.Inject') or pmd-java:hasAnnotation('jakarta.inject.Inject'))
                 ]
              (: field not assigned in non-public accessor method annotated with VisibleForTesting :)
              or (ancestor::MethodDeclaration[pmd-java:hasAnnotation('com.google.common.annotations.VisibleForTesting') and not(@Visibility='public')])
