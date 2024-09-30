@@ -920,8 +920,8 @@ public class Good {
         or (pmd-java:hasAnnotation('javax.inject.Inject') or pmd-java:hasAnnotation('jakarta.inject.Inject'))
     )
  ]
-(: a variable which should (potentially) be guarded :)
-//(AssignmentExpression/*[1]|VariableAccess[not(parent::SynchronizedStatement)])[
+(: a variable which should (potentially) be guarded, skip synchronized(this) vars :)
+//(AssignmentExpression/*[1]|VariableAccess[not(parent::SynchronizedStatement) and not(ancestor::SynchronizedStatement/ThisExpression)])[
    (: used in a class with guarded-by literal *IS* a field (should be private final) :)
    @Name = ancestor::ClassDeclaration//FieldDeclaration[
         ModifierList/Annotation[pmd-java:typeIs('net.jcip.annotations.GuardedBy') or pmd-java:typeIs('javax.annotation.concurrent.GuardedBy') or pmd-java:typeIs('com.google.errorprone.annotations.concurrent.GuardedBy')]//MemberValuePair/StringLiteral[
@@ -943,8 +943,8 @@ public class Good {
         or (pmd-java:hasAnnotation('javax.inject.Inject') or pmd-java:hasAnnotation('jakarta.inject.Inject'))
     )
  ]
-(: a variable which should (potentially) be guarded :)
-//(AssignmentExpression/*[1]|VariableAccess[not(parent::SynchronizedStatement)])[
+(: a variable which should (potentially) be guarded, skip synchronized(this) vars :)
+//(AssignmentExpression/*[1]|VariableAccess[not(parent::SynchronizedStatement) and not(ancestor::SynchronizedStatement/ThisExpression)])[
    (: used in a class with guarded-by literal *IS NOT* a field (should be private final) :)
    @Name = ancestor::ClassDeclaration//FieldDeclaration[
         ModifierList/Annotation[pmd-java:typeIs('net.jcip.annotations.GuardedBy') or pmd-java:typeIs('javax.annotation.concurrent.GuardedBy') or pmd-java:typeIs('com.google.errorprone.annotations.concurrent.GuardedBy')]//MemberValuePair/StringLiteral[
@@ -956,7 +956,7 @@ public class Good {
     and (concat('"', ancestor::SynchronizedStatement/VariableAccess/@Name, '"') =
        ancestor::ClassDeclaration//FieldDeclaration[pmd-java:hasAnnotation('net.jcip.annotations.GuardedBy') or pmd-java:hasAnnotation('javax.annotation.concurrent.GuardedBy') or pmd-java:hasAnnotation('com.google.errorprone.annotations.concurrent.GuardedBy')]//MemberValuePair/StringLiteral/@Image)
 ]
-                    ]]></value>
+                   ]]></value>
                 </property>
             </properties>
             <example>
