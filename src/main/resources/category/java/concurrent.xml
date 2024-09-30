@@ -985,20 +985,19 @@ public class Good {
                 ]]>
             </example>
         </rule>
-    <!--
+
         <rule name="AvoidStaticXmlFactories" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java" message="Avoid static XML Factories" typeResolution="true"
               externalInfoUrl="${doc_root}/JavaCodePerformance.md#IUOXAR09">
             <description>An XML Factory like DocumentBuilderFactory, TransformerFactory, MessageFactory is used as static field. Problem: These factory objects are typically not thread-safe and rather expensive to create because of class loading. &#13;
                 Solution: Create the Factories as local variables and use command line arguments to specify the implementation class. (jpinpoint-rules)</description>
             <priority>1</priority>
             <properties>
-                <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-                <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
-                <property name="tag" value="performance" type="String" description="for-sonar"/>
-                <property name="version" value="2.0"/>
+                <property name="tags" value="jpinpoint-rule,multi-threading,performance" type="String" description="for-sonar"/>
                 <property name="xpath">
                     <value><![CDATA[
-        //ClassOrInterfaceBodyDeclaration//FieldDeclaration[@Static=true() and (
+//ClassDeclaration//FieldDeclaration[
+    pmd-java:modifiers()='static'
+    and ClassType[
         pmd-java:typeIs('javax.xml.parsers.DocumentBuilderFactory') or
         pmd-java:typeIs('javax.xml.parsers.SAXParserFactory') or
         pmd-java:typeIs('javax.xml.stream.XMLInputFactory') or
@@ -1008,9 +1007,9 @@ public class Good {
         pmd-java:typeIs('javax.xml.validation.SchemaFactory') or
         pmd-java:typeIs('javax.xml.datatype.DatatypeFactory') or
         pmd-java:typeIs('javax.xml.soap.MessageFactory')
-        )]
-                ]]>
-                    </value>
+     ]
+]
+                   ]]></value>
                 </property>
             </properties>
             <example>
@@ -1028,7 +1027,7 @@ public class Good {
                 ]]>
             </example>
         </rule>
-
+    <!--
         <rule name="AvoidIncrementOrDecrementForVolatileField" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java" message="Avoid ++, - -, +=, -= for volatile fields" typeResolution="true"
               externalInfoUrl="${doc_root}/JavaCodePerformance.md#tutc09">
             <description>A compound statement like i++, i- -, i += 1 or i -= 1 may seem one statement and thread-safe for a volatile field. Problem: The operation is actually two separate statements executed non-atomically and therefore not thread-safe. &#13;
