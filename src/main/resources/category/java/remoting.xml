@@ -944,47 +944,48 @@ and use it to replace the bad line in Bad example:
         </example>
     </rule>
 
-    <!--
-<rule -name="BufferingClientHttpRequestFactoryIsMemoryGreedy"
-class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-language="java"
-message="BufferingClientHttpRequestFactory is memory greedy. Only use when multiple reads of the response body cannot be avoided."
-externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi18">
-<description>org.springframework.http.client.BufferingClientHttpRequestFactory is used.
-Problem: It buffers all incoming and outgoing streams fully in memory which may result in high memory usage. &#13;
-Solution: Avoid multiple reads of the response body so it is not needed. (jpinpoint-rules)</description>
-<priority>3</priority>
-<properties>
-<property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
-<property name="xpath">
-<value><![CDATA[
-(: somehow typeIs does not work with spring-web-6.0, do it old school way :)
-//AllocationExpression/ClassOrInterfaceType[@Image='BufferingClientHttpRequestFactory']
-[/CompilationUnit/ImportDeclaration/Name[starts-with(@Image, 'org.springframework.http.client')]]
+
+<rule name="BufferingClientHttpRequestFactoryIsMemoryGreedy"
+      class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+      language="java"
+      message="BufferingClientHttpRequestFactory is memory greedy. Only use when multiple reads of the response body cannot be avoided."
+      externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi18">
+    <description>org.springframework.http.client.BufferingClientHttpRequestFactory is used.
+        Problem: It buffers all incoming and outgoing streams fully in memory which may result in high memory usage.
+        &#13;
+        Solution: Avoid multiple reads of the response body, so it is not needed. (jpinpoint-rules)
+    </description>
+    <priority>3</priority>
+    <properties>
+        <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+        <property name="xpath">
+            <value><![CDATA[
+//ConstructorCall[pmd-java:typeIs('org.springframework.http.client.BufferingClientHttpRequestFactory')]
 ]]>
-</value>
-</property>
-</properties>
-<example>
-<![CDATA[
+            </value>
+        </property>
+    </properties>
+    <example>
+        <![CDATA[
 import org.springframework.http.client.*;
 import org.springframework.web.client.RestTemplate;
 
 public class Foo {
-public RestTemplate createMemoryGreedyRestTemplate(HttpClientConfiguration httpClientConfiguration) {
-ClientHttpRequestFactory factory = getClientHttpRequestFactory(httpClientConfiguration);
-return new RestTemplate(new BufferingClientHttpRequestFactory(factory)); // bad
-}
+    public RestTemplate createMemoryGreedyRestTemplate(HttpClientConfiguration httpClientConfiguration) {
+        ClientHttpRequestFactory factory = getClientHttpRequestFactory(httpClientConfiguration);
+        return new RestTemplate(new BufferingClientHttpRequestFactory(factory)); // bad
+    }
 
-public RestTemplate createStreamTroughRestTemplate(HttpClientConfiguration httpClientConfiguration) {
-ClientHttpRequestFactory factory = getClientHttpRequestFactory(httpClientConfiguration);
-return new RestTemplate(factory); // good
-}
+    public RestTemplate createStreamTroughRestTemplate(HttpClientConfiguration httpClientConfiguration) {
+        ClientHttpRequestFactory factory = getClientHttpRequestFactory(httpClientConfiguration);
+        return new RestTemplate(factory); // good
+    }
 }
 ]]>
-</example>
+    </example>
 </rule>
 
+    <!--
 <rule -name="HttpClientImproperConnectionTimeouts"
 class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
 language="java"
