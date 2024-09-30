@@ -8,6 +8,9 @@
         <expected-problems>2</expected-problems>
         <expected-linenumbers>7, 19</expected-linenumbers>
         <code><![CDATA[
+import org.slf4j.MDC;
+import java.util.HashMap;
+import java.util.Map;
 public class Foo {
     private Map<String, String> mapField;
 
@@ -48,6 +51,18 @@ public class Foo {
       }
       return addHeaders;
     }
+
+   protected Map<String, String> goodWithThis() {
+      Map<String, String> addHeaders = MDC.getCopyOfContextMap();
+
+      synchronized (this) {
+          if (this.mapField == null) {
+              this.mapField = new HashMap<>();
+              addHeaders = new HashMap<>();
+          }
+      }
+      return addHeaders;
+    }
 }
      ]]></code>
     </test-code>
@@ -56,6 +71,8 @@ public class Foo {
         <description>SynchronizingForLocalVars false positive #204</description>
         <expected-problems>0</expected-problems>
         <code><![CDATA[
+import lombok.AllArgsConstructor;
+import lombok.Data;
 @Data
 @AllArgsConstructor
 public class Information {

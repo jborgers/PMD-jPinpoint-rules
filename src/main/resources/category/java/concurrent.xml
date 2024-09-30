@@ -1107,31 +1107,20 @@ public class Good {
                 ]]>
             </example>
         </rule>
-    <!--
+
         <rule name="SynchronizingForLocalVars" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java" message="Local variables don't need synchronization" typeResolution="true"
               externalInfoUrl="${doc_root}/JavaCodePerformance.md#tutc12">
             <description>In the synchronized block, only local variables seem to be accessed. Problem: synchronization has overhead and may introduce lock contention. &#13;
                 Solution: Remove synchronized because local variables are only accessible by the owning thread and are not shared. (jpinpoint-rules)</description>
             <priority>3</priority>
             <properties>
-                <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-                <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
-                <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="tag" value="confusing" type="String" description="for-sonar"/>
-                <property name="version" value="2.0"/>
+                <property name="tags" value="jpinpoint-rule,multi-threading,performance, confusing" type="String" description="classification"/>
                 <property name="xpath">
                     <value><![CDATA[
-    (: var.x() in synchronized block, var in list of local vars and all var.x in synchronized block are local vars:)
-    //SynchronizedStatement[count(./Block//PrimaryPrefix/Name[
-        index-of(ancestor::MethodDeclaration//LocalVariableDeclaration//VariableDeclaratorId/@Name, substring-before(@Image, '.')) >= 0]) =
-    count(./Block//(PrimaryPrefix/Name|PrimarySuffix)[substring-before(@Image, '.')])
-    and
-    (: vars used in synchronized block are all local vars :)
-    count(distinct-values(ancestor::MethodDeclaration//LocalVariableDeclaration//VariableDeclaratorId/@Name |
-         ./Block//(PrimaryPrefix/Name|PrimarySuffix)[@Image != '' and not(contains(@Image, '.'))]/@Image))
-     = count(distinct-values(ancestor::MethodDeclaration//LocalVariableDeclaration//VariableDeclaratorId/@Name ))]
-                            ]]>
-                    </value>
+//SynchronizedStatement[
+   count(./Block//(VariableAccess|FieldAccess)[@Name = ancestor::ClassDeclaration//FieldDeclaration//VariableId/@Name]) = 0
+]
+                     ]]></value>
                 </property>
             </properties>
             <example>
@@ -1164,7 +1153,7 @@ public class Good {
                 ]]>
             </example>
         </rule>
-
+    <!--
         <rule name="AvoidFutureJoinWithoutTimeout"
               message="Avoid future.join without timeout"
               class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
