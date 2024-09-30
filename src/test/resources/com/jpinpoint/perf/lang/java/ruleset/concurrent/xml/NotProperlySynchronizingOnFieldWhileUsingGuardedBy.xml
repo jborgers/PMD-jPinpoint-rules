@@ -7,7 +7,7 @@
         <description>NotProperlySynchronizingOnFieldWhileUsingGuardedBy good</description>
         <expected-problems>0</expected-problems>
         <code><![CDATA[
-     import net.jcip.annotations.GuardedBy;
+   import net.jcip.annotations.GuardedBy;
    public class Good1 {
         @GuardedBy("LOCK")
         private String txt;
@@ -92,13 +92,13 @@
     import net.jcip.annotations.GuardedBy;
     public class Bad1 {
         @GuardedBy("LOCK")
-        private String txt;
+        private String txt1;
         private final Object LOCK = new Object();
         public String getText() {
-                return txt; // bad
+                return txt1; // bad
         }
         public synchronized String setText(String t) {
-                txt = t; // bad
+                txt1 = t; // bad
         }
     }
 ]]></code>
@@ -112,18 +112,18 @@
     import net.jcip.annotations.GuardedBy;
     public class Bad2 {
         @GuardedBy("LOCK")
-        private String txt;
+        private String txt2;
         private final Object LOCK = new Object();
         private final Object WRONG_LOCK = new Object();
 
         public String getText() {
             synchronized(WRONG_LOCK) {
-                return txt; // bad
+                return txt2; // bad
             }
         }
         public String setText(String t) {
             synchronized(this) {
-                txt = t; // bad
+                txt2 = t; // bad
             }
         }
     }
@@ -138,18 +138,18 @@
    import net.jcip.annotations.GuardedBy;
    public class Bad3 {
         @GuardedBy("LOCK")
-        private String txt;
+        private String txt3;
 
         public String getText() {
             final Object LOCK = new Object();
             synchronized(LOCK) {
-                return txt; // bad
+                return txt3; // bad
             }
         }
         public String setText(String t) {
             final Object LOCK = new Object();
             synchronized(LOCK) {
-                txt = t; // bad
+                txt3 = t; // bad
             }
         }
     }
@@ -164,17 +164,17 @@
    import net.jcip.annotations.GuardedBy;
    public class Bad4 {
         @GuardedBy("LOCK")
-        private String txt;
+        private String txt4;
         private final Object LOCK = new Object();
 
         public String getText() {
-            synchronized(txt) { // bad
+            synchronized(txt4) {
                 return txt; // bad
             }
         }
         public String setText(String t) {
             synchronized("LOCK") {
-                txt = t; // bad
+                txt4 = t; // bad
             }
         }
     }

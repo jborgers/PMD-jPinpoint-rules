@@ -895,7 +895,7 @@ public class Good {
                 ]]>
             </example>
         </rule>
-    <!--
+
         <rule name="NotProperlySynchronizingOnFieldWhileUsingGuardedBy"
               message="Not properly synchronizing access of field while using @GuardedBy(field)"
               class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
@@ -907,44 +907,56 @@ public class Good {
                 (jpinpoint-rules)</description>
             <priority>2</priority>
             <properties>
-                <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-                <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
-                <property name="version" value="2.0"/>
+                <property name="tags" value="jpinpoint-rule,multi-threading" type="String" description="classification"/>
                 <property name="xpath">
                     <value>
                         <![CDATA[
-        //MethodDeclaration[
-        not (../Annotation//Name[@Image='Autowired' or @Image='PostConstruct' or @Image='BeforeStep' or @Image='Value' or @Image='Inject'])]
-        (: a variable which should (potentially) be guarded :)
-        //PrimaryPrefix/Name[substring-before(concat(@Image,'.'), '.') =
-        (: used in a class with guarded-by literal *IS* a field (should be private final) :)
-        ancestor::ClassOrInterfaceBody//Annotation//Name[@Image='GuardedBy']/..//Literal[substring(@Image, 2, (string-length(@Image) - 2))=
-        ancestor::ClassOrInterfaceBody//FieldDeclaration//VariableDeclaratorId/@Name
-        ]/
-        (: is defined as field :)
-        ancestor::ClassOrInterfaceBodyDeclaration//FieldDeclaration//VariableDeclaratorId/@Name
-        (: and *IS NOT* in a synchronized block with the GuardedBy literal:)
-        and (not(concat('"', ancestor::SynchronizedStatement/Expression//Name/@Image, '"') =
-        ancestor::ClassOrInterfaceBody//Annotation//Name[@Image='GuardedBy']/..//Literal/@Image)
-        )]
-        ,
-        //MethodDeclaration[
-        not (../Annotation//Name[@Image='Autowired' or @Image='PostConstruct' or @Image='BeforeStep' or @Image='Value' or @Image='Inject'])]
-        (: a variable which should (potentially) be guarded :)
-        //PrimaryPrefix/Name[substring-before(concat(@Image,'.'), '.') =
-        (: used in a class with guarded by literal *IS NOT* a field :)
-        ancestor::ClassOrInterfaceBody//Annotation//Name[@Image='GuardedBy']/..//Literal[not (substring(@Image, 2, (string-length(@Image) - 2)) =
-        ancestor::ClassOrInterfaceBody//FieldDeclaration//VariableDeclaratorId/@Name)
-        ]/
-        (: is defined as field :)
-        ancestor::ClassOrInterfaceBodyDeclaration//FieldDeclaration//VariableDeclaratorId/@Name
-        (: and *IS* in a synchronized block with the GuardedBy literal:)
-        and (
-        (concat('"', ancestor::SynchronizedStatement/Expression//Name/@Image, '"') =
-        ancestor::ClassOrInterfaceBody//Annotation//Name[@Image='GuardedBy']/..//Literal/@Image)
-        )]
-    ]]>
-                    </value>
+//MethodDeclaration[
+    (: method annotated with known frameworks :)
+    not(pmd-java:hasAnnotation('org.springframework.beans.factory.annotation.Autowired')
+        or (pmd-java:hasAnnotation('javax.annotation.PostConstruct') or pmd-java:hasAnnotation('jakarta.annotation.PostConstruct'))
+        or pmd-java:hasAnnotation('org.springframework.batch.core.annotation.BeforeStep')
+        or pmd-java:hasAnnotation('org.springframework.beans.factory.annotation.Value')
+        or (pmd-java:hasAnnotation('javax.inject.Inject') or pmd-java:hasAnnotation('jakarta.inject.Inject'))
+    )
+ ]
+(: a variable which should (potentially) be guarded :)
+//(AssignmentExpression/*[1]|VariableAccess[not(parent::SynchronizedStatement)])[
+   (: used in a class with guarded-by literal *IS* a field (should be private final) :)
+   @Name = ancestor::ClassDeclaration//FieldDeclaration[
+        ModifierList/Annotation[pmd-java:typeIs('net.jcip.annotations.GuardedBy')]//MemberValuePair/StringLiteral[
+             substring(@Image, 2, (string-length(@Image) - 2)) = ancestor::ClassDeclaration//FieldDeclaration/VariableDeclarator/VariableId/@Name]
+          ]/VariableDeclarator/VariableId/@Name
+    (: is defined as field :)
+    /ancestor::ClassDeclaration//FieldDeclaration/VariableDeclarator/VariableId/@Name
+    (: and *IS NOT* in a synchronized block with the GuardedBy literal:)
+    and not(concat('"', ancestor::SynchronizedStatement/VariableAccess/@Name, '"') =
+       ancestor::ClassDeclaration//FieldDeclaration[pmd-java:hasAnnotation('net.jcip.annotations.GuardedBy')]//MemberValuePair/StringLiteral/@Image)
+]
+,
+//MethodDeclaration[
+    (: method annotated with known frameworks :)
+    not(pmd-java:hasAnnotation('org.springframework.beans.factory.annotation.Autowired')
+        or (pmd-java:hasAnnotation('javax.annotation.PostConstruct') or pmd-java:hasAnnotation('jakarta.annotation.PostConstruct'))
+        or pmd-java:hasAnnotation('org.springframework.batch.core.annotation.BeforeStep')
+        or pmd-java:hasAnnotation('org.springframework.beans.factory.annotation.Value')
+        or (pmd-java:hasAnnotation('javax.inject.Inject') or pmd-java:hasAnnotation('jakarta.inject.Inject'))
+    )
+ ]
+(: a variable which should (potentially) be guarded :)
+//(AssignmentExpression/*[1]|VariableAccess[not(parent::SynchronizedStatement)])[
+   (: used in a class with guarded-by literal *IS NOT* a field (should be private final) :)
+   @Name = ancestor::ClassDeclaration//FieldDeclaration[
+        ModifierList/Annotation[pmd-java:typeIs('net.jcip.annotations.GuardedBy')]//MemberValuePair/StringLiteral[
+             not(substring(@Image, 2, (string-length(@Image) - 2)) = ancestor::ClassDeclaration//FieldDeclaration/VariableDeclarator/VariableId/@Name)]
+          ]/VariableDeclarator/VariableId/@Name
+    (: is defined as field :)
+    /ancestor::ClassDeclaration//FieldDeclaration/VariableDeclarator/VariableId/@Name
+    (: and *IS* in a synchronized block with the GuardedBy literal:)
+    and (concat('"', ancestor::SynchronizedStatement/VariableAccess/@Name, '"') =
+       ancestor::ClassDeclaration//FieldDeclaration[pmd-java:hasAnnotation('net.jcip.annotations.GuardedBy')]//MemberValuePair/StringLiteral/@Image)
+]
+                    ]]></value>
                 </property>
             </properties>
             <example>
@@ -973,7 +985,7 @@ public class Good {
                 ]]>
             </example>
         </rule>
-
+    <!--
         <rule name="AvoidStaticXmlFactories" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java" message="Avoid static XML Factories" typeResolution="true"
               externalInfoUrl="${doc_root}/JavaCodePerformance.md#IUOXAR09">
             <description>An XML Factory like DocumentBuilderFactory, TransformerFactory, MessageFactory is used as static field. Problem: These factory objects are typically not thread-safe and rather expensive to create because of class loading. &#13;
@@ -1060,7 +1072,7 @@ public class Good {
         <rule name="AvoidVolatileInPrototypeScope" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java" message="No need for volatile in prototype scope" typeResolution="true"
               externalInfoUrl="${doc_root}/JavaCodePerformance.md#tutc10">
             <description>A field is defined as volatile while the class has prototype scope. Problem: volatile has some overhead, especially for writes. When getting the bean from the Spring applicationContext, prototype scope means that each invocation creates a new object so the field is not shared. &#13;
-                Solution: Since only one thread can access the field, there is no need for violatile and it can be removed. (jpinpoint-rules)</description>
+                Solution: Since only one thread can access the field, there is no need for volatile and it can be removed. (jpinpoint-rules)</description>
             <priority>2</priority>
             <properties>
                 <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
