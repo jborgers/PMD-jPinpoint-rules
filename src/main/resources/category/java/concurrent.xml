@@ -1069,22 +1069,24 @@ public class Good {
                 ]]>
             </example>
         </rule>
-    <!--
+
         <rule name="AvoidVolatileInPrototypeScope" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java" message="No need for volatile in prototype scope" typeResolution="true"
               externalInfoUrl="${doc_root}/JavaCodePerformance.md#tutc10">
             <description>A field is defined as volatile while the class has prototype scope. Problem: volatile has some overhead, especially for writes. When getting the bean from the Spring applicationContext, prototype scope means that each invocation creates a new object so the field is not shared. &#13;
                 Solution: Since only one thread can access the field, there is no need for volatile and it can be removed. (jpinpoint-rules)</description>
             <priority>2</priority>
             <properties>
-                <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-                <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
-                <property name="tag" value="confusing" type="String" description="for-sonar"/>
-                <property name="version" value="2.0"/>
+                <property name="tags" value="jpinpoint-rule,multi-threading,confusing" type="String" description="classification"/>
                 <property name="xpath">
                     <value><![CDATA[
-        //FieldDeclaration[@Volatile = true() and
-        ancestor::TypeDeclaration/Annotation//Name[@Image='Scope']/..//PrimaryPrefix/
-        (Name[ends-with(@Image,'SCOPE_PROTOTYPE')]|Literal[contains(@Image, 'prototype')])]
+ //FieldDeclaration[
+   pmd-java:modifiers()='volatile'
+   and ancestor::ClassDeclaration[
+     pmd-java:hasAnnotation('org.springframework.context.annotation.Scope')and .//AnnotationMemberList/MemberValuePair[
+       StringLiteral[contains(@Image,'prototype')]
+       or FieldAccess[@Name='SCOPE_PROTOTYPE']/TypeExpression[pmd-java:typeIs('org.springframework.beans.factory.config.ConfigurableBeanFactory')]]
+   ]
+]
                             ]]>
                     </value>
                 </property>
@@ -1105,14 +1107,7 @@ public class Good {
                 ]]>
             </example>
         </rule>
-
-        <!- for pmd-7
-        //FieldDeclaration[index-of(pmd-java:explicitModifiers(), 'volatile') > 0 and
-        ancestor::ClassOrInterfaceDeclaration//Annotation[@SimpleName='Scope']//MemberValuePair[
-        FieldAccess[ends-with(@Name,'SCOPE_PROTOTYPE')] | StringLiteral[contains(@Image, 'prototype')]]]
-        ->
-
-
+    <!--
         <rule name="SynchronizingForLocalVars" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java" message="Local variables don't need synchronization" typeResolution="true"
               externalInfoUrl="${doc_root}/JavaCodePerformance.md#tutc12">
             <description>In the synchronized block, only local variables seem to be accessed. Problem: synchronization has overhead and may introduce lock contention. &#13;
