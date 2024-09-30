@@ -924,14 +924,14 @@ public class Good {
 //(AssignmentExpression/*[1]|VariableAccess[not(parent::SynchronizedStatement)])[
    (: used in a class with guarded-by literal *IS* a field (should be private final) :)
    @Name = ancestor::ClassDeclaration//FieldDeclaration[
-        ModifierList/Annotation[pmd-java:typeIs('net.jcip.annotations.GuardedBy')]//MemberValuePair/StringLiteral[
-             substring(@Image, 2, (string-length(@Image) - 2)) = ancestor::ClassDeclaration//FieldDeclaration/VariableDeclarator/VariableId/@Name]
-          ]/VariableDeclarator/VariableId/@Name
+        ModifierList/Annotation[pmd-java:typeIs('net.jcip.annotations.GuardedBy') or pmd-java:typeIs('javax.annotation.concurrent.GuardedBy') or pmd-java:typeIs('com.google.errorprone.annotations.concurrent.GuardedBy')]//MemberValuePair/StringLiteral[
+              substring(@Image, 2, (string-length(@Image) - 2)) = ancestor::ClassDeclaration//FieldDeclaration/VariableDeclarator/VariableId/@Name]
+           ]/VariableDeclarator/VariableId/@Name
     (: is defined as field :)
     /ancestor::ClassDeclaration//FieldDeclaration/VariableDeclarator/VariableId/@Name
     (: and *IS NOT* in a synchronized block with the GuardedBy literal:)
     and not(concat('"', ancestor::SynchronizedStatement/VariableAccess/@Name, '"') =
-       ancestor::ClassDeclaration//FieldDeclaration[pmd-java:hasAnnotation('net.jcip.annotations.GuardedBy')]//MemberValuePair/StringLiteral/@Image)
+       ancestor::ClassDeclaration//FieldDeclaration[pmd-java:hasAnnotation('net.jcip.annotations.GuardedBy') or pmd-java:hasAnnotation('javax.annotation.concurrent.GuardedBy') or pmd-java:hasAnnotation('com.google.errorprone.annotations.concurrent.GuardedBy')]//MemberValuePair/StringLiteral/@Image)
 ]
 ,
 //MethodDeclaration[
@@ -947,14 +947,14 @@ public class Good {
 //(AssignmentExpression/*[1]|VariableAccess[not(parent::SynchronizedStatement)])[
    (: used in a class with guarded-by literal *IS NOT* a field (should be private final) :)
    @Name = ancestor::ClassDeclaration//FieldDeclaration[
-        ModifierList/Annotation[pmd-java:typeIs('net.jcip.annotations.GuardedBy')]//MemberValuePair/StringLiteral[
+        ModifierList/Annotation[pmd-java:typeIs('net.jcip.annotations.GuardedBy') or pmd-java:typeIs('javax.annotation.concurrent.GuardedBy') or pmd-java:typeIs('com.google.errorprone.annotations.concurrent.GuardedBy')]//MemberValuePair/StringLiteral[
              not(substring(@Image, 2, (string-length(@Image) - 2)) = ancestor::ClassDeclaration//FieldDeclaration/VariableDeclarator/VariableId/@Name)]
           ]/VariableDeclarator/VariableId/@Name
     (: is defined as field :)
     /ancestor::ClassDeclaration//FieldDeclaration/VariableDeclarator/VariableId/@Name
     (: and *IS* in a synchronized block with the GuardedBy literal:)
     and (concat('"', ancestor::SynchronizedStatement/VariableAccess/@Name, '"') =
-       ancestor::ClassDeclaration//FieldDeclaration[pmd-java:hasAnnotation('net.jcip.annotations.GuardedBy')]//MemberValuePair/StringLiteral/@Image)
+       ancestor::ClassDeclaration//FieldDeclaration[pmd-java:hasAnnotation('net.jcip.annotations.GuardedBy') or pmd-java:hasAnnotation('javax.annotation.concurrent.GuardedBy') or pmd-java:hasAnnotation('com.google.errorprone.annotations.concurrent.GuardedBy')]//MemberValuePair/StringLiteral/@Image)
 ]
                     ]]></value>
                 </property>

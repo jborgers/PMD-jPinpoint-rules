@@ -109,7 +109,7 @@
         <expected-problems>2</expected-problems>
         <expected-linenumbers>10, 15</expected-linenumbers>
         <code><![CDATA[
-    import net.jcip.annotations.GuardedBy;
+    import javax.annotation.concurrent.GuardedBy;
     public class Bad2 {
         @GuardedBy("LOCK")
         private String txt2;
@@ -135,7 +135,7 @@
         <expected-problems>2</expected-problems>
         <expected-linenumbers>9, 15</expected-linenumbers>
         <code><![CDATA[
-   import net.jcip.annotations.GuardedBy;
+   import com.google.errorprone.annotations.concurrent.GuardedBy;
    public class Bad3 {
         @GuardedBy("LOCK")
         private String txt3;
@@ -158,8 +158,8 @@
 
    <test-code>
         <description>NotProperlySynchronizingOnFieldWhileUsingGuardedBy, synchronized wrongly</description>
-        <expected-problems>3</expected-problems>
-        <expected-linenumbers>8, 9, 14</expected-linenumbers>
+        <expected-problems>2</expected-problems>
+        <expected-linenumbers>9, 14</expected-linenumbers>
         <code><![CDATA[
    import net.jcip.annotations.GuardedBy;
    public class Bad4 {
@@ -169,7 +169,7 @@
 
         public String getText() {
             synchronized(txt4) {
-                return txt; // bad
+                return txt4; // bad
             }
         }
         public String setText(String t) {
