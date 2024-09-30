@@ -1092,52 +1092,56 @@ new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL).write
 ]]>
 </example>
 </rule>
-
-<rule -name="AxualProducerCreatedForEachMethodCall"
-message="An Axual (Kafka) producer is created for each method call, which is expensive and takes resources."
-class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-dfa="false"
-language="java"
-externalInfoUrl="${doc_root}/JavaCodePerformance.md#ia10">
-<description>Problem: each Producer takes threads and memory. If you create it in each method call, and call this frequently, it will result in an explosion of threads and memory used and lead to Out Of Memory Error.  &#13;
-Solution: Since the Axual Producer is thread-safe, it should be shared e.g. from a static field.
-(jpinpoint-rules)</description>
-<priority>1</priority>
-<properties>
-<property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
-<property name="xpath">
-<value><![CDATA[
-//MethodDeclaration//VariableDeclarator[pmd-java:typeIs('io.axual.client.producer.Producer')]
-[ancestor::TypeDeclaration[count(./Annotation//Name[@Image='Configuration'])=0]]
+-->
+    <rule name="AxualProducerCreatedForEachMethodCall"
+          message="An Axual (Kafka) producer is created for each method call, which is expensive and takes resources."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          dfa="false"
+          language="java"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ia10">
+        <description>Problem: each Producer takes threads and memory. If you create it in each method call, and call
+            this frequently, it will result in an explosion of threads and memory used and lead to Out Of Memory Error.
+            &#13;
+            Solution: Since the Axual Producer is thread-safe, it should be shared e.g. from a static field.
+            (jpinpoint-rules)
+        </description>
+        <priority>1</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+//MethodDeclaration//LocalVariableDeclaration/ClassType[pmd-java:typeIs('io.axual.client.producer.Producer')]
+[ancestor::ClassDeclaration[not(pmd-java:hasAnnotation('org.springframework.context.annotation.Configuration'))]]
 ]]></value>
-</property>
-</properties>
-<example>
-<![CDATA[
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
 import io.axual.client.producer.Producer;
 
 public class AxualProducerBad {
-public void publishToEventStream() {
-Producer<String, String> producer = axualClient.buildProducer(producerConfig); // bad
-producer.produce(msg);
-}
-}
+    public void publishToEventStream() {
+        Producer<String, String> producer = axualClient.buildProducer(producerConfig); // bad
+        producer.produce(msg);
+        }
+    }
 
-class AxualProducerGood1{
-private static final Producer<String, String> producer = AxualClient.buildProducer(producerConfig);
-}
+    class AxualProducerGood1 {
+        private static final Producer<String, String> producer = AxualClient.buildProducer(producerConfig);
+    }
 
-@Configuration
-class AxualProducerGood2{
-public Producer<String, String> axualProducer() {
-Producer<String, String> producer = axualClient.buildProducer(producerConfig);
-return producer;
-}
+    @Configuration
+    class AxualProducerGood2 {
+    public Producer<String, String> axualProducer() {
+        Producer<String, String> producer = axualClient.buildProducer(producerConfig);
+        return producer;
+    }
 }
 ]]>
-</example>
-</rule>
+        </example>
+    </rule>
 
+    <!--
 <rule -name="AvoidLeakingRetryEventConsumers"
 message="Avoid leaking of retry event consumers."
 class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
