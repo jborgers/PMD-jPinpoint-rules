@@ -897,383 +897,387 @@ and use it to replace the bad line in Bad example:
         </example>
     </rule>
 
-        <!--
-    <rule -name="SetQueueCapacityForTaskExecutor"
-    class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-    language="java"
-    message="Configure the queue capacity for the ThreadPoolTaskExecutor."
-    externalInfoUrl="${doc_root}/JavaCodePerformance.md#ia05">
-    <description>The org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor queue capacity is not configured.
-    Problem: It has a default queue capacity which is unlimited which can lead to an out of memory situation. &#13;
-    Solution: Call setQueueCapacity, for instance with a value equal to CorePoolSize.
-    Note that the pool will only grow beyond CorePoolSize up to MaxPoolSize when the queue is full. (jpinpoint-rules)</description>
-    <priority>2</priority>
-    <properties>
-    <property name="tags" value="jpinpoint-rule,performance,bad-practice" type="String" description="classification"/>
-    <property name="xpath">
-    <value><![CDATA[
-    //LocalVariableDeclaration//AllocationExpression/ClassOrInterfaceType[@Image='ThreadPoolTaskExecutor']
-    /ancestor::MethodDeclaration[.//Name[ends-with(@Image,'setCorePoolSize') or ends-with(@Image,'setMaxPoolSize')] and not(.//Name[ends-with(@Image,'.setQueueCapacity')])]
-    //AllocationExpression/ClassOrInterfaceType[@Image='ThreadPoolTaskExecutor']
+    <rule name="SetQueueCapacityForTaskExecutor"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          language="java"
+          message="Configure the queue capacity for the ThreadPoolTaskExecutor."
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ia05">
+        <description>The org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor queue capacity is not
+            configured.
+            Problem: It has a default queue capacity which is unlimited which can lead to an out of memory situation.
+            &#13;
+            Solution: Call setQueueCapacity, for instance with a value equal to CorePoolSize.
+            Note that the pool will only grow beyond CorePoolSize up to MaxPoolSize when the queue is full.
+            (jpinpoint-rules)
+        </description>
+        <priority>2</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,performance,bad-practice" type="String"
+                      description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+//LocalVariableDeclaration//ConstructorCall[pmd-java:typeIs('org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor')]
+    [ancestor::MethodDeclaration[.//MethodCall[@MethodName=('setCorePoolSize','setMaxPoolSize')] and not(.//MethodCall[@MethodName='setQueueCapacity'])]]
     ]]>
-    </value>
-    </property>
-    </properties>
-    <example>
-    <![CDATA[
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
     private ThreadPoolTaskExecutor bad() {
-    ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor(); // bad
-    executor.setCorePoolSize(10);
-    executor.setMaxPoolSize(20);
-    executor.initialize();
-    return executor;
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor(); // bad
+        executor.setCorePoolSize(10);
+        executor.setMaxPoolSize(20);
+        executor.initialize();
+        return executor;
     }
 
     private ThreadPoolTaskExecutor good() {
-    ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-    executor.setCorePoolSize(10);
-    executor.setQueueCapacity(10); // good
-    executor.setMaxPoolSize(20);
-    executor.initialize();
-    return executor;
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(10);
+        executor.setQueueCapacity(10); // good
+        executor.setMaxPoolSize(20);
+        executor.initialize();
+        return executor;
     }
     ]]>
-    </example>
+        </example>
     </rule>
 
-    <rule -name="BufferingClientHttpRequestFactoryIsMemoryGreedy"
-    class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-    language="java"
-    message="BufferingClientHttpRequestFactory is memory greedy. Only use when multiple reads of the response body cannot be avoided."
-    externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi18">
-    <description>org.springframework.http.client.BufferingClientHttpRequestFactory is used.
-    Problem: It buffers all incoming and outgoing streams fully in memory which may result in high memory usage. &#13;
-    Solution: Avoid multiple reads of the response body so it is not needed. (jpinpoint-rules)</description>
-    <priority>3</priority>
-    <properties>
-    <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
-    <property name="xpath">
-    <value><![CDATA[
-    (: somehow typeIs does not work with spring-web-6.0, do it old school way :)
-    //AllocationExpression/ClassOrInterfaceType[@Image='BufferingClientHttpRequestFactory']
-    [/CompilationUnit/ImportDeclaration/Name[starts-with(@Image, 'org.springframework.http.client')]]
-    ]]>
-    </value>
-    </property>
-    </properties>
-    <example>
-    <![CDATA[
-    import org.springframework.http.client.*;
-    import org.springframework.web.client.RestTemplate;
+    <!--
+<rule -name="BufferingClientHttpRequestFactoryIsMemoryGreedy"
+class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+language="java"
+message="BufferingClientHttpRequestFactory is memory greedy. Only use when multiple reads of the response body cannot be avoided."
+externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi18">
+<description>org.springframework.http.client.BufferingClientHttpRequestFactory is used.
+Problem: It buffers all incoming and outgoing streams fully in memory which may result in high memory usage. &#13;
+Solution: Avoid multiple reads of the response body so it is not needed. (jpinpoint-rules)</description>
+<priority>3</priority>
+<properties>
+<property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+<property name="xpath">
+<value><![CDATA[
+(: somehow typeIs does not work with spring-web-6.0, do it old school way :)
+//AllocationExpression/ClassOrInterfaceType[@Image='BufferingClientHttpRequestFactory']
+[/CompilationUnit/ImportDeclaration/Name[starts-with(@Image, 'org.springframework.http.client')]]
+]]>
+</value>
+</property>
+</properties>
+<example>
+<![CDATA[
+import org.springframework.http.client.*;
+import org.springframework.web.client.RestTemplate;
 
-    public class Foo {
-    public RestTemplate createMemoryGreedyRestTemplate(HttpClientConfiguration httpClientConfiguration) {
-    ClientHttpRequestFactory factory = getClientHttpRequestFactory(httpClientConfiguration);
-    return new RestTemplate(new BufferingClientHttpRequestFactory(factory)); // bad
-    }
+public class Foo {
+public RestTemplate createMemoryGreedyRestTemplate(HttpClientConfiguration httpClientConfiguration) {
+ClientHttpRequestFactory factory = getClientHttpRequestFactory(httpClientConfiguration);
+return new RestTemplate(new BufferingClientHttpRequestFactory(factory)); // bad
+}
 
-    public RestTemplate createStreamTroughRestTemplate(HttpClientConfiguration httpClientConfiguration) {
-    ClientHttpRequestFactory factory = getClientHttpRequestFactory(httpClientConfiguration);
-    return new RestTemplate(factory); // good
-    }
-    }
-    ]]>
-    </example>
-    </rule>
+public RestTemplate createStreamTroughRestTemplate(HttpClientConfiguration httpClientConfiguration) {
+ClientHttpRequestFactory factory = getClientHttpRequestFactory(httpClientConfiguration);
+return new RestTemplate(factory); // good
+}
+}
+]]>
+</example>
+</rule>
 
-    <rule -name="HttpClientImproperConnectionTimeouts"
-    class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-    language="java"
-    message="ApacheHttpClient RequestConfig connectionRequestTimeout and connectTimeout have values which are typically too high."
-    externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi20">
-    <description>org.apache.http.client.config.RequestConfig is used with connectionRequestTimeout and connectTimeout values above 500 milli seconds.
-    Problem: 1. connectTimeout is for establishing a connection which should be quick, say below 200 ms.
-    2. connectionRequestTimeout is for requesting a connection from the connection manager, which should be almost as quick, say below 250 ms.
-    If timeouts are long, requests will wait long for an unavailable service and cause high thread usage and possibly overload.  &#13;
-    Solution: Set connectTimeout and connectionRequestTimeout to values based om tests, for instance 200 ms and 250 ms. respectively (jpinpoint-rules)</description>
-    <priority>2</priority>
-    <properties>
-    <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
-    <property name="xpath">
-    <value><![CDATA[
-    (: use of field, local var and return statement :)
-    //FieldDeclaration[Type/PrimitiveType[@Image='int' or @Image='long']]//VariableDeclaratorId[@Name =
-    ancestor::ClassOrInterfaceDeclaration[//LocalVariableDeclaration/Type
-    [pmd-java:typeIs('org.apache.http.client.config.RequestConfig')
-    or pmd-java:typeIs('org.springframework.http.client.HttpComponentsClientHttpRequestFactory')
-    or @TypeImage='HttpComponentsClientHttpRequestFactory']/..//VariableInitializer
-    |.//ReturnStatement//PrimaryExpression[.//Name/@Image='RequestConfig.custom']]
-    //(PrimarySuffix[@Image='setConnectionRequestTimeout' or @Image='setConnectTimeout']
-    |PrimaryPrefix[./Name[ends-with(@Image, 'setConnectionRequestTimeout')] or ./Name[ends-with(@Image, 'setConnectTimeout')]])
-    /following-sibling::PrimarySuffix[1]//Name/@Image]
-    /(../VariableInitializer//Literal[number(@Image) > 500]|
-    ancestor::ClassOrInterfaceBodyDeclaration//SingleMemberAnnotation[Name/@Image='Value']//Literal[number(substring-before(substring-after(@Image, ':'), '}')) > 500])
-    ,
-    (: use of literal, local var and return statement : :)
-    //ClassOrInterfaceDeclaration[//LocalVariableDeclaration/Type[pmd-java:typeIs('org.apache.http.client.config.RequestConfig')
-    or pmd-java:typeIs('org.springframework.http.client.HttpComponentsClientHttpRequestFactory')
-    or @TypeImage='HttpComponentsClientHttpRequestFactory'
-    ]/..//VariableInitializer
-    |.//ReturnStatement//PrimaryExpression[.//Name/@Image='RequestConfig.custom']]
-    //(PrimarySuffix[@Image='setConnectionRequestTimeout' or @Image='setConnectTimeout']
-    |PrimaryPrefix[./Name[ends-with(@Image, 'setConnectionRequestTimeout')] or ./Name[ends-with(@Image, 'setConnectTimeout')]])
-    /following-sibling::PrimarySuffix[1]//Literal[number(@Image) > 500]
-    ]]>
-    </value>
-    </property>
-    </properties>
-    <example>
-    <![CDATA[
-    import org.apache.http.client.config.RequestConfig;
+<rule -name="HttpClientImproperConnectionTimeouts"
+class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+language="java"
+message="ApacheHttpClient RequestConfig connectionRequestTimeout and connectTimeout have values which are typically too high."
+externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi20">
+<description>org.apache.http.client.config.RequestConfig is used with connectionRequestTimeout and connectTimeout values above 500 milli seconds.
+Problem: 1. connectTimeout is for establishing a connection which should be quick, say below 200 ms.
+2. connectionRequestTimeout is for requesting a connection from the connection manager, which should be almost as quick, say below 250 ms.
+If timeouts are long, requests will wait long for an unavailable service and cause high thread usage and possibly overload.  &#13;
+Solution: Set connectTimeout and connectionRequestTimeout to values based om tests, for instance 200 ms and 250 ms. respectively (jpinpoint-rules)</description>
+<priority>2</priority>
+<properties>
+<property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+<property name="xpath">
+<value><![CDATA[
+(: use of field, local var and return statement :)
+//FieldDeclaration[Type/PrimitiveType[@Image='int' or @Image='long']]//VariableDeclaratorId[@Name =
+ancestor::ClassOrInterfaceDeclaration[//LocalVariableDeclaration/Type
+[pmd-java:typeIs('org.apache.http.client.config.RequestConfig')
+or pmd-java:typeIs('org.springframework.http.client.HttpComponentsClientHttpRequestFactory')
+or @TypeImage='HttpComponentsClientHttpRequestFactory']/..//VariableInitializer
+|.//ReturnStatement//PrimaryExpression[.//Name/@Image='RequestConfig.custom']]
+//(PrimarySuffix[@Image='setConnectionRequestTimeout' or @Image='setConnectTimeout']
+|PrimaryPrefix[./Name[ends-with(@Image, 'setConnectionRequestTimeout')] or ./Name[ends-with(@Image, 'setConnectTimeout')]])
+/following-sibling::PrimarySuffix[1]//Name/@Image]
+/(../VariableInitializer//Literal[number(@Image) > 500]|
+ancestor::ClassOrInterfaceBodyDeclaration//SingleMemberAnnotation[Name/@Image='Value']//Literal[number(substring-before(substring-after(@Image, ':'), '}')) > 500])
+,
+(: use of literal, local var and return statement : :)
+//ClassOrInterfaceDeclaration[//LocalVariableDeclaration/Type[pmd-java:typeIs('org.apache.http.client.config.RequestConfig')
+or pmd-java:typeIs('org.springframework.http.client.HttpComponentsClientHttpRequestFactory')
+or @TypeImage='HttpComponentsClientHttpRequestFactory'
+]/..//VariableInitializer
+|.//ReturnStatement//PrimaryExpression[.//Name/@Image='RequestConfig.custom']]
+//(PrimarySuffix[@Image='setConnectionRequestTimeout' or @Image='setConnectTimeout']
+|PrimaryPrefix[./Name[ends-with(@Image, 'setConnectionRequestTimeout')] or ./Name[ends-with(@Image, 'setConnectTimeout')]])
+/following-sibling::PrimarySuffix[1]//Literal[number(@Image) > 500]
+]]>
+</value>
+</property>
+</properties>
+<example>
+<![CDATA[
+import org.apache.http.client.config.RequestConfig;
 
-    public class HttpClientStuff {
-    private static final int CONNECTION_TIMEOUTMILLIS = 1000; // bad // timeout until a connection is established
-    private static final int CONNECTIONREQUEST_TIMEOUTMILLIS = 5000; // bad // timeout when requesting a connection from the connection manager
-    private static final int SOCKET_TIMEOUTMILLIS = 5000; // timeout of waiting for data
+public class HttpClientStuff {
+private static final int CONNECTION_TIMEOUTMILLIS = 1000; // bad // timeout until a connection is established
+private static final int CONNECTIONREQUEST_TIMEOUTMILLIS = 5000; // bad // timeout when requesting a connection from the connection manager
+private static final int SOCKET_TIMEOUTMILLIS = 5000; // timeout of waiting for data
 
-    public RequestConfig requestConfigWithTimeouts() {
-    RequestConfig requestConfig = RequestConfig.custom()
-    .setConnectionRequestTimeout(CONNECTIONREQUEST_TIMEOUTMILLIS)
-    .setConnectTimeout(CONNECTION_TIMEOUTMILLIS)
-    .setSocketTimeout(SOCKET_TIMEOUTMILLIS)
-    .build();
-    return requestConfig;
-    }
-    }
-    ]]>
-    </example>
-    </rule>
+public RequestConfig requestConfigWithTimeouts() {
+RequestConfig requestConfig = RequestConfig.custom()
+.setConnectionRequestTimeout(CONNECTIONREQUEST_TIMEOUTMILLIS)
+.setConnectTimeout(CONNECTION_TIMEOUTMILLIS)
+.setSocketTimeout(SOCKET_TIMEOUTMILLIS)
+.build();
+return requestConfig;
+}
+}
+]]>
+</example>
+</rule>
 
-    <rule -name="AvoidObjectMapperAsField"
-    class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-    language="java"
-    message="Avoid ObjectMapper as field, use ObjectReader or ObjectWriter instead."
-    externalInfoUrl="${doc_root}/JavaCodePerformance.md#iuojar02">
-    <description>Problem: Configuring an ObjectMapper is thread-unsafe.  &#13;
-    Solution: Create ObjectReaders and ObjectWriters from ObjectMapper and only share those as field, since they are immutable and therefore thread-safe.
-    Exceptions: A convertValue method is not provided by ObjectReader nor ObjectWriter, therefore in those cases this rule is not applied.
-    Also when used like jaxMsgConverter.setObjectMapper(objectMapper) it is not considered a violation. (jpinpoint-rules)</description>
-    <priority>3</priority>
-    <properties>
-    <property name="tags" value="jpinpoint-rule,multi-threading" type="String" description="classification"/>
-    <property name="xpath">
-    <value><![CDATA[
-    (for $node in (//FieldDeclaration[pmd-java:typeIs('com.fasterxml.jackson.databind.ObjectMapper')
-    (: if class not in classpath, can use following line :)
-    (:or (Type//ClassOrInterfaceType[@Image='ObjectMapper'] and //ImportDeclaration/Name[starts-with(@Image, 'com.fasterxml.jackson.databind.')]):)
-    ]//VariableDeclaratorId)
-    (: exception: do not match if that field name is used in its class with a convertValue method :)
-    return ($node[not(ancestor::ClassOrInterfaceDeclaration//PrimaryPrefix/Name[@Image = concat($node/@Name, '.convertValue')])
-    (: exception: do not match if used with jaxMsgConverter.setObjectMapper(objectMapper) :)
-    and not($node/@Name = ancestor::ClassOrInterfaceDeclaration//PrimaryExpression[PrimaryPrefix/Name[ends-with(@Image, 'setObjectMapper')]]
-    (:[pmd-java:typeIs('org.springframework.http.converter.json.MappingJackson2HttpMessageConverter')] - somehow class resolution fails :)
-    /PrimarySuffix//PrimaryPrefix/Name/@Image)
-    ]))
-    ]]>
-    </value>
-    </property>
-    </properties>
-    <example>
-    <![CDATA[
-    public class BadStyle {
-    private static final ObjectMapper staticObjectMapper = new ObjectMapper(); // bad
-    private final ObjectMapper mapperField = new ObjectMapper(); //bad
-    }
+<rule -name="AvoidObjectMapperAsField"
+class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+language="java"
+message="Avoid ObjectMapper as field, use ObjectReader or ObjectWriter instead."
+externalInfoUrl="${doc_root}/JavaCodePerformance.md#iuojar02">
+<description>Problem: Configuring an ObjectMapper is thread-unsafe.  &#13;
+Solution: Create ObjectReaders and ObjectWriters from ObjectMapper and only share those as field, since they are immutable and therefore thread-safe.
+Exceptions: A convertValue method is not provided by ObjectReader nor ObjectWriter, therefore in those cases this rule is not applied.
+Also when used like jaxMsgConverter.setObjectMapper(objectMapper) it is not considered a violation. (jpinpoint-rules)</description>
+<priority>3</priority>
+<properties>
+<property name="tags" value="jpinpoint-rule,multi-threading" type="String" description="classification"/>
+<property name="xpath">
+<value><![CDATA[
+(for $node in (//FieldDeclaration[pmd-java:typeIs('com.fasterxml.jackson.databind.ObjectMapper')
+(: if class not in classpath, can use following line :)
+(:or (Type//ClassOrInterfaceType[@Image='ObjectMapper'] and //ImportDeclaration/Name[starts-with(@Image, 'com.fasterxml.jackson.databind.')]):)
+]//VariableDeclaratorId)
+(: exception: do not match if that field name is used in its class with a convertValue method :)
+return ($node[not(ancestor::ClassOrInterfaceDeclaration//PrimaryPrefix/Name[@Image = concat($node/@Name, '.convertValue')])
+(: exception: do not match if used with jaxMsgConverter.setObjectMapper(objectMapper) :)
+and not($node/@Name = ancestor::ClassOrInterfaceDeclaration//PrimaryExpression[PrimaryPrefix/Name[ends-with(@Image, 'setObjectMapper')]]
+(:[pmd-java:typeIs('org.springframework.http.converter.json.MappingJackson2HttpMessageConverter')] - somehow class resolution fails :)
+/PrimarySuffix//PrimaryPrefix/Name/@Image)
+]))
+]]>
+</value>
+</property>
+</properties>
+<example>
+<![CDATA[
+public class BadStyle {
+private static final ObjectMapper staticObjectMapper = new ObjectMapper(); // bad
+private final ObjectMapper mapperField = new ObjectMapper(); //bad
+}
 
-    class GoodStyle {
-    private static final ObjectWriter staticObjectWriter =
-    new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL).writer(); // good
-    }
-    ]]>
-    </example>
-    </rule>
+class GoodStyle {
+private static final ObjectWriter staticObjectWriter =
+new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL).writer(); // good
+}
+]]>
+</example>
+</rule>
 
-    <rule -name="AxualProducerCreatedForEachMethodCall"
-    message="An Axual (Kafka) producer is created for each method call, which is expensive and takes resources."
-    class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-    dfa="false"
-    language="java"
-    externalInfoUrl="${doc_root}/JavaCodePerformance.md#ia10">
-    <description>Problem: each Producer takes threads and memory. If you create it in each method call, and call this frequently, it will result in an explosion of threads and memory used and lead to Out Of Memory Error.  &#13;
-    Solution: Since the Axual Producer is thread-safe, it should be shared e.g. from a static field.
-    (jpinpoint-rules)</description>
-    <priority>1</priority>
-    <properties>
-    <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
-    <property name="xpath">
-    <value><![CDATA[
-    //MethodDeclaration//VariableDeclarator[pmd-java:typeIs('io.axual.client.producer.Producer')]
-    [ancestor::TypeDeclaration[count(./Annotation//Name[@Image='Configuration'])=0]]
-    ]]></value>
-    </property>
-    </properties>
-    <example>
-    <![CDATA[
-    import io.axual.client.producer.Producer;
+<rule -name="AxualProducerCreatedForEachMethodCall"
+message="An Axual (Kafka) producer is created for each method call, which is expensive and takes resources."
+class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+dfa="false"
+language="java"
+externalInfoUrl="${doc_root}/JavaCodePerformance.md#ia10">
+<description>Problem: each Producer takes threads and memory. If you create it in each method call, and call this frequently, it will result in an explosion of threads and memory used and lead to Out Of Memory Error.  &#13;
+Solution: Since the Axual Producer is thread-safe, it should be shared e.g. from a static field.
+(jpinpoint-rules)</description>
+<priority>1</priority>
+<properties>
+<property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+<property name="xpath">
+<value><![CDATA[
+//MethodDeclaration//VariableDeclarator[pmd-java:typeIs('io.axual.client.producer.Producer')]
+[ancestor::TypeDeclaration[count(./Annotation//Name[@Image='Configuration'])=0]]
+]]></value>
+</property>
+</properties>
+<example>
+<![CDATA[
+import io.axual.client.producer.Producer;
 
-    public class AxualProducerBad {
-    public void publishToEventStream() {
-    Producer<String, String> producer = axualClient.buildProducer(producerConfig); // bad
-    producer.produce(msg);
-    }
-    }
+public class AxualProducerBad {
+public void publishToEventStream() {
+Producer<String, String> producer = axualClient.buildProducer(producerConfig); // bad
+producer.produce(msg);
+}
+}
 
-    class AxualProducerGood1{
-    private static final Producer<String, String> producer = AxualClient.buildProducer(producerConfig);
-    }
+class AxualProducerGood1{
+private static final Producer<String, String> producer = AxualClient.buildProducer(producerConfig);
+}
 
-    @Configuration
-    class AxualProducerGood2{
-    public Producer<String, String> axualProducer() {
-    Producer<String, String> producer = axualClient.buildProducer(producerConfig);
-    return producer;
-    }
-    }
-    ]]>
-    </example>
-    </rule>
+@Configuration
+class AxualProducerGood2{
+public Producer<String, String> axualProducer() {
+Producer<String, String> producer = axualClient.buildProducer(producerConfig);
+return producer;
+}
+}
+]]>
+</example>
+</rule>
 
-    <rule -name="AvoidLeakingRetryEventConsumers"
-    message="Avoid leaking of retry event consumers."
-    class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-    dfa="false"
-    language="java"
-    externalInfoUrl="${doc_root}/JavaCodePerformance.md#pml06">
-    <description>Problem: A resilience4j retry event consumer is added to a retry event publisher for every method call. Likely a lambda retaining one or more objects.
-    This will result in a growing list of consumers: a memory leak. Besides, the event will be sent to the growing number of consumers, taking more and more CPU time.&#13;
-    Solution: Only call EventPublisher.onRetry (that is, add a consumer) in the same scope as the Retry instance lives. Note there is no way to unregister a consumer.
-    (jpinpoint-rules)</description>
-    <priority>1</priority>
-    <properties>
-    <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
-    <property name="xpath">
-    <value><![CDATA[
-    //MethodDeclaration//PrimaryPrefix/Name[pmd-java:typeIs('io.github.resilience4j.retry.Retry') and ends-with(@Image, '.getEventPublisher')]
-    (: any on-method: onRetry, onError, .. :)
-    [../../PrimarySuffix[starts-with(@Image, 'on')]]
-    (: it is a field :)
-    [exists(index-of((ancestor::ClassOrInterfaceBody//FieldDeclaration[pmd-java:typeIs('io.github.resilience4j.retry.Retry')]
-    /VariableDeclarator/VariableDeclaratorId/@Name), substring-before(@Image,'.')))]
-    ]]></value>
-    </property>
-    </properties>
-    <example>
-    <![CDATA[
-    import io.github.resilience4j.retry.Retry;
+<rule -name="AvoidLeakingRetryEventConsumers"
+message="Avoid leaking of retry event consumers."
+class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+dfa="false"
+language="java"
+externalInfoUrl="${doc_root}/JavaCodePerformance.md#pml06">
+<description>Problem: A resilience4j retry event consumer is added to a retry event publisher for every method call. Likely a lambda retaining one or more objects.
+This will result in a growing list of consumers: a memory leak. Besides, the event will be sent to the growing number of consumers, taking more and more CPU time.&#13;
+Solution: Only call EventPublisher.onRetry (that is, add a consumer) in the same scope as the Retry instance lives. Note there is no way to unregister a consumer.
+(jpinpoint-rules)</description>
+<priority>1</priority>
+<properties>
+<property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+<property name="xpath">
+<value><![CDATA[
+//MethodDeclaration//PrimaryPrefix/Name[pmd-java:typeIs('io.github.resilience4j.retry.Retry') and ends-with(@Image, '.getEventPublisher')]
+(: any on-method: onRetry, onError, .. :)
+[../../PrimarySuffix[starts-with(@Image, 'on')]]
+(: it is a field :)
+[exists(index-of((ancestor::ClassOrInterfaceBody//FieldDeclaration[pmd-java:typeIs('io.github.resilience4j.retry.Retry')]
+/VariableDeclarator/VariableDeclaratorId/@Name), substring-before(@Image,'.')))]
+]]></value>
+</property>
+</properties>
+<example>
+<![CDATA[
+import io.github.resilience4j.retry.Retry;
 
-    public class Foo {
-    Retry retryField;
-    RetryRegistry reg;
-    final AtomicInteger retryCountField = new AtomicInteger();
+public class Foo {
+Retry retryField;
+RetryRegistry reg;
+final AtomicInteger retryCountField = new AtomicInteger();
 
-    Foo() {
-    retryField = reg.retry("one per service");
-    retryField.getEventPublisher().onRetry(event -> retryCountField.getAndIncrement()); // good
-    }
+Foo() {
+retryField = reg.retry("one per service");
+retryField.getEventPublisher().onRetry(event -> retryCountField.getAndIncrement()); // good
+}
 
-    void callService() {
-    AtomicInteger retryCountLocal = new AtomicInteger();
-    retryField.getEventPublisher().onRetry(event -> retryCountLocal.getAndIncrement()); // bad, lambda and AtomicInt leak
+void callService() {
+AtomicInteger retryCountLocal = new AtomicInteger();
+retryField.getEventPublisher().onRetry(event -> retryCountLocal.getAndIncrement()); // bad, lambda and AtomicInt leak
 
-    Retry retryLocal = reg.retry("one per method call");
-    retryLocal.getEventPublisher().onRetry(event -> retryCountLocal.getAndIncrement()); // good, no leak
+Retry retryLocal = reg.retry("one per method call");
+retryLocal.getEventPublisher().onRetry(event -> retryCountLocal.getAndIncrement()); // good, no leak
 
-    // same for onSuccess, onError, onIgnoredError
-    }
-    }
-    ]]>
-    </example>
-    </rule>
+// same for onSuccess, onError, onIgnoredError
+}
+}
+]]>
+</example>
+</rule>
 
-    <rule -name="AvoidHardcodedConnectionConfig"
-    message="Avoid hardcoded connection configuration."
-    class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-    dfa="false"
-    language="java"
-    externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi22">
-    <description>Problem: configuring connection settings like timeouts and pool sizes in code (int values) makes it difficult to manage and tune these settings.&#13;
-    Solution: use property files, e.g. yml, to define the values for these settings for each called service.
-    (jpinpoint-rules)</description>
-    <priority>3</priority>
-    <properties>
-    <property name="tags" value="jpinpoint-rule,performance,bad-practice" type="String" description="classification"/>
-    <property name="xpath">
-    <value><![CDATA[
-    //FieldDeclaration[Type/@TypeImage='int']/VariableDeclarator[VariableDeclaratorId[@Final = true()][contains(upper-case(@Name), 'TIMEOUT') or contains(upper-case(@Name), 'DURATIONOUT')
-    or(contains(upper-case(@Name), 'MAX') and contains(upper-case(@Name), 'ROUTE'))]]
-    [VariableInitializer//Literal or VariableDeclaratorId/@Name=ancestor::ClassOrInterfaceBody//ConstructorDeclaration//StatementExpression[Expression//Literal]//Name/@Image]
-    ]]></value>
-    </property>
-    </properties>
-    <example>
-    <![CDATA[
-    class AvoidHardcodedConnectionConfig {
-    private static final int CONNECTION_TIMEOUT = 50000;// bad
-    private static final int SOCKET_TIMEOUT = 250000;// bad
-    private static final int TRANSACTION_TIMEOUT_SECONDS = 2;// bad
-    private static final int CONNECTION_TIMEOUTMILLIS = 1000;// bad
+<rule -name="AvoidHardcodedConnectionConfig"
+message="Avoid hardcoded connection configuration."
+class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+dfa="false"
+language="java"
+externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi22">
+<description>Problem: configuring connection settings like timeouts and pool sizes in code (int values) makes it difficult to manage and tune these settings.&#13;
+Solution: use property files, e.g. yml, to define the values for these settings for each called service.
+(jpinpoint-rules)</description>
+<priority>3</priority>
+<properties>
+<property name="tags" value="jpinpoint-rule,performance,bad-practice" type="String" description="classification"/>
+<property name="xpath">
+<value><![CDATA[
+//FieldDeclaration[Type/@TypeImage='int']/VariableDeclarator[VariableDeclaratorId[@Final = true()][contains(upper-case(@Name), 'TIMEOUT') or contains(upper-case(@Name), 'DURATIONOUT')
+or(contains(upper-case(@Name), 'MAX') and contains(upper-case(@Name), 'ROUTE'))]]
+[VariableInitializer//Literal or VariableDeclaratorId/@Name=ancestor::ClassOrInterfaceBody//ConstructorDeclaration//StatementExpression[Expression//Literal]//Name/@Image]
+]]></value>
+</property>
+</properties>
+<example>
+<![CDATA[
+class AvoidHardcodedConnectionConfig {
+private static final int CONNECTION_TIMEOUT = 50000;// bad
+private static final int SOCKET_TIMEOUT = 250000;// bad
+private static final int TRANSACTION_TIMEOUT_SECONDS = 2;// bad
+private static final int CONNECTION_TIMEOUTMILLIS = 1000;// bad
 
-    private static final int MAX_CONN_PER_ROUTE = 10;// bad
-    static final int MAX_PER_ROUTE = 100;// bad
-    final int MAX_NUM_ROUTES = 2; // bad
-    int some_timeout_ms = 300; //good, variable
-    private static final String LOGIN_TIMEOUT_PROPERTY_KEY = "loginTimeout"; // good, not an int
-    final int other_timeout_s_blank; // bad, blank final and hard coded
-    private final int connectTimeoutMillis; // good, not hard coded
+private static final int MAX_CONN_PER_ROUTE = 10;// bad
+static final int MAX_PER_ROUTE = 100;// bad
+final int MAX_NUM_ROUTES = 2; // bad
+int some_timeout_ms = 300; //good, variable
+private static final String LOGIN_TIMEOUT_PROPERTY_KEY = "loginTimeout"; // good, not an int
+final int other_timeout_s_blank; // bad, blank final and hard coded
+private final int connectTimeoutMillis; // good, not hard coded
 
-    AvoidHardcodedConnectionConfig(@Value("${connect_timeout:1000}") int connectTimeoutMillis) {
-    this.connectTimeoutMillis = connectTimeoutMillis; // good, not hard coded
-    other_timeout_s_blank = 5; // field bad
-    final int timeout_s_local = 4; // good, method level
-    int otherTimeoutInS = 3; // good, var
-    }
-    }
-    ]]>
-    </example>
-    </rule>
+AvoidHardcodedConnectionConfig(@Value("${connect_timeout:1000}") int connectTimeoutMillis) {
+this.connectTimeoutMillis = connectTimeoutMillis; // good, not hard coded
+other_timeout_s_blank = 5; // field bad
+final int timeout_s_local = 4; // good, method level
+int otherTimeoutInS = 3; // good, var
+}
+}
+]]>
+</example>
+</rule>
 
-    <rule -name="AvoidExcessiveClassloadingWithSaajSoap"
-    message="Avoid excessive class loading with SAAJ SOAP messaging, use alternative Axiom, or system properties."
-    class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-    dfa="false"
-    language="java"
-    externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi23">
-    <description>Problem: SAAJ uses DOM to load the XML document in memory which uses a TransformerFactory. The implementation class of it is loaded on every call which causes lock contention under load. This means long response times.&#13;
-    Solution: If possible, use Axiom SOAP messaging which uses the faster StAX. If you have/want to stick to SAAJ, set the proper system properties to prevent the excessive class loading.
-    (jpinpoint-rules)</description>
-    <priority>2</priority>
-    <properties>
-    <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
-    <property name="xpath">
-    <value><![CDATA[
-    //Type//ClassOrInterfaceType[@Image='SaajSoapMessageFactory'
-    and not (ancestor::ClassOrInterfaceBody//PrimaryExpression[./PrimaryPrefix/Name[@Image='System.setProperty'] and ./PrimarySuffix/Arguments//Literal[@Image = '"javax.xml.transform.TransformerFactory"']])]
-    |
-    //AllocationExpression/ClassOrInterfaceType[@Image='SaajSoapMessageFactory'
-    and not (ancestor::ClassOrInterfaceBody//PrimaryExpression[./PrimaryPrefix/Name[@Image='System.setProperty'] and ./PrimarySuffix/Arguments//Literal[@Image='"javax.xml.transform.TransformerFactory"']])]
-    ]]></value>
-    </property>
-    </properties>
-    <example>
-    <![CDATA[
-    import org.springframework.ws.soap.saaj.SaajSoapMessageFactory;
+<rule -name="AvoidExcessiveClassloadingWithSaajSoap"
+message="Avoid excessive class loading with SAAJ SOAP messaging, use alternative Axiom, or system properties."
+class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+dfa="false"
+language="java"
+externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi23">
+<description>Problem: SAAJ uses DOM to load the XML document in memory which uses a TransformerFactory. The implementation class of it is loaded on every call which causes lock contention under load. This means long response times.&#13;
+Solution: If possible, use Axiom SOAP messaging which uses the faster StAX. If you have/want to stick to SAAJ, set the proper system properties to prevent the excessive class loading.
+(jpinpoint-rules)</description>
+<priority>2</priority>
+<properties>
+<property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+<property name="xpath">
+<value><![CDATA[
+//Type//ClassOrInterfaceType[@Image='SaajSoapMessageFactory'
+and not (ancestor::ClassOrInterfaceBody//PrimaryExpression[./PrimaryPrefix/Name[@Image='System.setProperty'] and ./PrimarySuffix/Arguments//Literal[@Image = '"javax.xml.transform.TransformerFactory"']])]
+|
+//AllocationExpression/ClassOrInterfaceType[@Image='SaajSoapMessageFactory'
+and not (ancestor::ClassOrInterfaceBody//PrimaryExpression[./PrimaryPrefix/Name[@Image='System.setProperty'] and ./PrimarySuffix/Arguments//Literal[@Image='"javax.xml.transform.TransformerFactory"']])]
+]]></value>
+</property>
+</properties>
+<example>
+<![CDATA[
+import org.springframework.ws.soap.saaj.SaajSoapMessageFactory;
 
-    class Foo {
-    private final SaajSoapMessageFactory mfField; // bad, also possibly thread-unsafe
+class Foo {
+private final SaajSoapMessageFactory mfField; // bad, also possibly thread-unsafe
 
-    public WebServiceTemplate getTemplate(final String uri, final HttpClientMessageSender httpClientMessageSender) throws SOAPException {
-    SoapMessageFactory saajSoapMessageFactory = new SaajSoapMessageFactory(MessageFactory.newInstance()); // bad
-    //..
-    }
-    }
+public WebServiceTemplate getTemplate(final String uri, final HttpClientMessageSender httpClientMessageSender) throws SOAPException {
+SoapMessageFactory saajSoapMessageFactory = new SaajSoapMessageFactory(MessageFactory.newInstance()); // bad
+//..
+}
+}
 
-    //To solve, add to the above:
-    static {
-    System.setProperty("javax.xml.transform.TransformerFactory", "com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl");
-    System.setProperty("javax.xml.soap.MessageFactory", "com.sun.xml.internal.messaging.saaj.soap.ver1_1.SOAPMessageFactory1_1Impl");
-    }
-    ]]>
-    </example>
-    </rule>
-    -->
+//To solve, add to the above:
+static {
+System.setProperty("javax.xml.transform.TransformerFactory", "com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl");
+System.setProperty("javax.xml.soap.MessageFactory", "com.sun.xml.internal.messaging.saaj.soap.ver1_1.SOAPMessageFactory1_1Impl");
+}
+]]>
+</example>
+</rule>
+-->
 </ruleset>
