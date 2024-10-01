@@ -6,7 +6,7 @@
     <test-code>
         <description>SynchronizingForLocalVars</description>
         <expected-problems>2</expected-problems>
-        <expected-linenumbers>7, 19</expected-linenumbers>
+        <expected-linenumbers>10, 22</expected-linenumbers>
         <code><![CDATA[
 import org.slf4j.MDC;
 import java.util.HashMap;
