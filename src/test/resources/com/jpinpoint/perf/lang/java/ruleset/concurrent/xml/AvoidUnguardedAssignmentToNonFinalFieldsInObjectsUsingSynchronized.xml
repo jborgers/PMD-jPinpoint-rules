@@ -63,18 +63,18 @@ public class Bad2 {
     }
 
     public void setDate(Date d) {
-        synchronized(this) { date = d; }
+        synchronized(this) { date = d; } // bad - GuardedBy is missing on field - 16
     }
 
     public static Map getStaticMapField() {
         return staticMapField;
     }
 
-    public static  void setStaticMapField(Map smf) {
-        staticMapField = smf;
+    public static synchronized void setStaticMapField(Map smf) {
+        staticMapField = smf; // bad - GuardedBy is missing on field - 24
     }
 }
-        ]]></code>
+       ]]></code>
     </test-code>
 
     <test-code>
