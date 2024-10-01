@@ -222,7 +222,9 @@ class Exporter {
        or (
          (: extends a base class :)
          ancestor::ClassDeclaration//ExtendsList
-         and not (
+         (: and not in constructor - could be final field :)
+         and not (ancestor::ConstructorDeclaration)
+         and not(
            (: var is not a local var :)
            @Name = ancestor::Block//LocalVariableDeclaration//VariableId/@Name
            or
@@ -230,7 +232,7 @@ class Exporter {
            @Name = ancestor::MethodDeclaration//FormalParameter/VariableId/@Name
            or
            (: var is not a field of current class TODO - repeat of line above, can be avoided? :)
-           @Name = ancestor::ClassBody//FieldDeclaration[(pmd-java:modifiers() = ('final','volatile') or pmd-java:hasAnnotation('net.jcip.annotations.GuardedBy'))]//VariableId/@Name
+           @Name = ancestor::ClassDeclaration//FieldDeclaration[(pmd-java:modifiers() = ('final','volatile') or pmd-java:hasAnnotation('net.jcip.annotations.GuardedBy'))]//VariableId/@Name
          )
          and not(
               ancestor::SynchronizedStatement
