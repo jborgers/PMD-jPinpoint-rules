@@ -220,7 +220,7 @@ class Exporter {
                         or pmd-java:hasAnnotation('net.jcip.annotations.GuardedBy')
                    )]//VariableId/@Name
        or (
-         (: not 'this' and extends a base class :)
+         (: extends a base class :)
          ancestor::ClassDeclaration//ExtendsList
          and not (
            (: var is not a local var :)
@@ -551,7 +551,11 @@ class BadMutebleTypes {
     (:  has arguments (a method call), and  a compound like date.setTime, map.put, list.set :)
     and matches(@MethodName,"(set|put|clear|add|remove|replace)")
     (: not a field of this class, no param or local :)
-    and ./AmbiguousName
+    and ./VariableAccess[
+                not (@Name = ancestor::ClassDeclaration//FieldDeclaration/VariableDeclarator/VariableId/@Name
+                  or @Name = ancestor::Block/LocalVariableDeclaration/VariableDeclarator/VariableId/@Name
+                  or @Name = ancestor::MethodDeclaration//FormalParameter/VariableId/@Name
+                )]
     (: not synchronized :)
     and not (ancestor::SynchronizedStatement or ancestor::MethodDeclaration[pmd-java:modifiers()='synchronized'])
     (: field not on accessor method with assignment, annotated with framework annotation :)
@@ -583,16 +587,16 @@ public class MutateInheritedFieldTryout extends SynchronizedTryout {
         return date.toString();
     }
     public void mutateDateBad() {
-        date.setTime(100); // bad - 20
+        date.setTime(100); // bad
     }
 
     public void mutateMap(String key, String val) {
         Collections.sort(null);
         map.clear(); // bad - 25
-        if (map.put(key, val)) { // bad - 26
+        if (map.put(key, val)) { // bad
            removed = "";
         }
-        removed = map.remove("invalidKey"); // bad - 29
+        removed = map.remove("invalidKey"); // bad
     }
     public Object readMap(String key) {
         return map.get(key);
