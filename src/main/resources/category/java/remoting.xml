@@ -640,8 +640,8 @@ void good2() {
             <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
-//ClassDeclaration[count(.//Annotation[pmd-java:typeIs('org.springframework.context.annotation.Configuration')]) = 0]
-//MethodDeclaration//MethodCall[(:@MethodName = ('create', 'custom') or :)
+//ClassDeclaration[not(pmd-java:hasAnnotation('org.springframework.context.annotation.Configuration'))]
+//MethodDeclaration//MethodCall[
     pmd-java:matchesSig('org.apache.http.impl.client.HttpClientBuilder#create()')
     or pmd-java:matchesSig('org.apache.http.impl.client.HttpClients#custom()')
     or pmd-java:matchesSig('org.apache.http.impl.nio.client.HttpAsyncClientBuilder#create()')
@@ -812,7 +812,7 @@ class Good {
             <property name="tags" value="jpinpoint-rule,confusing,suspicious" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
-//ConstructorCall[pmd-java:typeIs("org.apache.http.HttpHost")]/ArgumentList[@Size=1]/..
+//ConstructorCall[pmd-java:typeIs("org.apache.http.HttpHost")][ArgumentList[@Size=1]]
 ]]>
                 </value>
             </property>
