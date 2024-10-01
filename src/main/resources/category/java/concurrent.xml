@@ -169,6 +169,1428 @@ class Exporter {
         ]]></example>
     </rule>
 
+    <rule name="AvoidUnguardedAssignmentToNonFinalFieldsInSharedObjects"
+          message="Avoid unguarded assignments to non-final fields in objects shared among threads. Access thread-safely AND use @GuardedBy."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
+          typeResolution="true" externalInfoUrl="${doc_root}/JavaCodePerformance.md#tutc07">
+        <description>
+            Problem: Multiple threads typically access fields of a singleton or may access fields in session scoped objects. Unguarded assignment to a non-final field is thread-unsafe and may cause corruption or visibility problems. It may also unintentionally mix-up session data. &#13;
+            Solution: Make the fields final and unmodifiable. If they really need to be mutable, make access thread-safe: use synchronized and jcip @GuardedBy or use volatile.&#13;
+            Notes&#13;
+            1. For autowiring/injection, the assignment of the reference is thread safe, so final is not required. The unmodifiable/thread-safe requirement for that field still holds. Also make sure no other thread-unsafe assignment is made to that field.&#13;
+            2. In case you are sure the Component is used in single threaded context only (e.g. a Tasklet), annotate the class with @NotThreadSafe to make this explicit. &#13;
+            3. Use package-private and @VisibleForTesting for methods (e.g. setters) used for JUnit only.
+            4. Use synchronized for accessors to inherited fields, or better: make field private and use proper accessors on base class level using @GuardedBy.
+            (jpinpoint-rules)</description>
+        <priority>1</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,multi-threading,data-mix-up" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+(: annotations that make singleton like components in Spring and EJB :)
+//ClassDeclaration[
+  (
+       pmd-java:hasAnnotation('org.springframework.stereotype.Service')
+    or pmd-java:hasAnnotation('org.springframework.stereotype.Component')
+    or pmd-java:hasAnnotation('org.springframework.stereotype.Controller')
+    or pmd-java:hasAnnotation('org.springframework.stereotype.Repository')
+    or pmd-java:hasAnnotation('org.springframework.web.bind.annotation.RestController')
+    or (pmd-java:hasAnnotation('javax.ejb.Singleton') and ModifierList/Annotation[pmd-java:typeIs('javax.ejb.ConcurrencyManagement')]/AnnotationMemberList/MemberValuePair/FieldAccess[./TypeExpression[pmd-java:typeIs('javax.ejb.ConcurrencyManagementType')] and @Name="BEAN"])
+    or (pmd-java:hasAnnotation('jakarta.ejb.Singleton') and ModifierList/Annotation[pmd-java:typeIs('jakarta.ejb.ConcurrencyManagement')]/AnnotationMemberList/MemberValuePair/FieldAccess[./TypeExpression[pmd-java:typeIs('jakarta.ejb.ConcurrencyManagementType')] and @Name="BEAN"])
+   )
+   (: no @RequestScope annotation :)
+   and not (pmd-java:hasAnnotation('org.springframework.context.annotation.Scope') and .//AnnotationMemberList/MemberValuePair[
+       StringLiteral[contains(@Image,'request') or contains(@Image,'prototype')]
+       or FieldAccess[@Name='SCOPE_REQUEST' or @Name='SCOPE_PROTOTYPE']/TypeExpression[pmd-java:typeIs('org.springframework.beans.factory.config.ConfigurableBeanFactory')]]
+    )
+    (: no request or prototype @Scope, literal or via constant :)
+  and not(pmd-java:hasAnnotation('org.springframework.web.context.annotation.RequestScope'))
+  (: if @NotThreadSafe no checking :)
+  and not(pmd-java:hasAnnotation('net.jcip.annotations.NotThreadSafe'))
+  (: no checking if @ConfigurationProperties and no @Setter :)
+  and not(pmd-java:hasAnnotation('org.springframework.boot.context.properties.ConfigurationProperties'))
+  and not(pmd-java:hasAnnotation('lombok.Setter'))
+]
+(: assignment to a field, get left hand of assignment :)
+//AssignmentExpression/*[1][
+   (
+       (: non-final, non-volatile and non-GuardedBy fields :)
+       @Name = ancestor::ClassBody//FieldDeclaration[
+                   not(pmd-java:modifiers() = ('final','volatile')
+                        or pmd-java:hasAnnotation('net.jcip.annotations.GuardedBy')
+                   )]//VariableId/@Name
+       or (
+         (: extends a base class :)
+         ancestor::ClassDeclaration//ExtendsList
+         and not (
+           (: var is not a local var :)
+           @Name = ancestor::Block//LocalVariableDeclaration//VariableId/@Name
+           or
+           (: var is not a param :)
+           @Name = ancestor::MethodDeclaration//FormalParameter/VariableId/@Name
+           or
+           (: var is not a field of current class TODO - repeat of line above, can be avoided? :)
+           @Name = ancestor::ClassBody//FieldDeclaration[(pmd-java:modifiers() = ('final','volatile') or pmd-java:hasAnnotation('net.jcip.annotations.GuardedBy'))]//VariableId/@Name
+         )
+         and not(
+              ancestor::SynchronizedStatement
+              or ancestor::MethodDeclaration[pmd-java:modifiers() = 'synchronized']
+             )
+       )
+     )
+     (: field not on accessor method with assignment, annotated with framework annotation :)
+     and not(
+          ancestor::MethodDeclaration[
+                pmd-java:hasAnnotation('org.springframework.beans.factory.annotation.Autowired')
+                or (pmd-java:hasAnnotation('javax.annotation.PostConstruct') or pmd-java:hasAnnotation('jakarta.annotation.PostConstruct'))
+                or pmd-java:hasAnnotation('org.springframework.batch.core.annotation.BeforeStep')
+                or pmd-java:hasAnnotation('org.springframework.beans.factory.annotation.Value')
+                or (pmd-java:hasAnnotation('javax.inject.Inject') or pmd-java:hasAnnotation('jakarta.inject.Inject'))
+             ]
+          (: field not assigned in non-public accessor method annotated with VisibleForTesting :)
+          or (ancestor::MethodDeclaration[pmd-java:hasAnnotation('com.google.common.annotations.VisibleForTesting') and not(@Visibility='public')])
+          (: annotation is not enough? :)
+          or ancestor::MethodDeclaration[@Name='afterPropertiesSet']
+        )
+ ]
+]]></value>
+            </property>
+        </properties>
+        <example><![CDATA[
+@Service
+class MyService {
+
+    private final LOCK = new Object();
+
+    @Value("${batchService.http.url}")
+    private String batchUrl;
+
+    @GuardedBy("LOCK")
+    @Value("${otherService.http.url}")
+    private String otherUrl;
+
+    public void setBatchUrl(final String url) {
+        this.batchUrl = url; // bad: unguarded accessor method
+    }
+
+    public void setOtherUrl(final String url) {
+        synchronized(LOCK) {
+            this.batchUrl = url; // good: synchronized accessor method
+        }
+    }
+}
+            ]]></example>
+    </rule>
+
+    <rule name="AvoidNonPrivateFieldsInSharedObjects"
+          message="Avoid non-private objects shared among threads. Make fields private to ensure thread-safety."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
+          typeResolution="true" externalInfoUrl="${doc_root}/JavaCodePerformance.md#tutc11">
+        <description>
+            Problem: A singleton, or more general: an object shared among threads, has a field that is not private.
+            These field can possibly be modified from other classes.&#13;
+            Solution: Make the fields private.
+            Note: fields are excluded when annotated with: @Autowired/@Value/@Inject.
+            (jpinpoint-rules)</description>
+        <priority>1</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,multithreading" type="String" description="classification"/>
+            <property name="xpath">
+                <value>
+                    <![CDATA[
+(: known assumed singleton types by annotation :)
+//ClassDeclaration[
+  (
+       pmd-java:hasAnnotation('org.springframework.stereotype.Service')
+    or pmd-java:hasAnnotation('org.springframework.stereotype.Component')
+    or pmd-java:hasAnnotation('org.springframework.stereotype.Controller')
+    or pmd-java:hasAnnotation('org.springframework.stereotype.Repository')
+    or pmd-java:hasAnnotation('org.springframework.web.bind.annotation.RestController')
+    or (pmd-java:hasAnnotation('javax.ejb.Singleton') and ModifierList/Annotation[pmd-java:typeIs('javax.ejb.ConcurrencyManagement')]/AnnotationMemberList/MemberValuePair/FieldAccess[./TypeExpression[pmd-java:typeIs('javax.ejb.ConcurrencyManagementType')] and @Name="BEAN"])
+    or (pmd-java:hasAnnotation('jakarta.ejb.Singleton') and ModifierList/Annotation[pmd-java:typeIs('jakarta.ejb.ConcurrencyManagement')]/AnnotationMemberList/MemberValuePair/FieldAccess[./TypeExpression[pmd-java:typeIs('jakarta.ejb.ConcurrencyManagementType')] and @Name="BEAN"])
+   )
+   (: not shared when request or prototype scope :)
+   and not(pmd-java:hasAnnotation('org.springframework.context.annotation.Scope') and .//AnnotationMemberList/MemberValuePair[
+       StringLiteral[contains(@Image,'request') or contains(@Image,'prototype')]
+       or FieldAccess[@Name='SCOPE_REQUEST' or @Name='SCOPE_PROTOTYPE']/TypeExpression[pmd-java:typeIs('org.springframework.beans.factory.config.ConfigurableBeanFactory')]]
+    )
+   and not(pmd-java:hasAnnotation('org.springframework.context.annotation.RequestScope'))
+   (: if @NotThreadSafe no checking :)
+   and not(pmd-java:hasAnnotation('net.jcip.annotations.NotThreadSafe'))
+]
+(: non-static, non-final and non-private fields :)
+//FieldDeclaration[
+  not(pmd-java:modifiers()=('private','final'))
+  (: field not injection framework annotated :)
+  and not(
+     pmd-java:hasAnnotation('org.springframework.beans.factory.annotation.Autowired')
+       or pmd-java:hasAnnotation('org.springframework.beans.factory.annotation.Value')
+       or (pmd-java:hasAnnotation('javax.inject.Inject') or pmd-java:hasAnnotation('jakarta.inject.Inject'))
+  )
+  (: no innerclass, no static class :)
+  and not(ancestor::ClassDeclaration[@Nested=true() or pmd-java:modifiers()='static'])
+]
+                  ]]>
+                </value>
+            </property>
+        </properties>
+        <example><![CDATA[
+@Controller
+public class RootController {
+
+    List baskets; // bad, not private
+    protected List baskets2; // bad, not private
+    public List baskets3; // bad, not private
+    final List baskets4; // good, final
+    static List baskets5; // bad, static not private
+    static final List baskets6; // good, static
+    private List baskets7; // good
+
+}
+]]></example>
+
+    </rule>
+
+    <rule name="AvoidUnguardedMutableFieldsInSharedObjects"
+          message="Avoid unguarded non-final or mutable fields in objects shared among threads. Make final immutable or access thread-safely AND use @GuardedBy."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
+          typeResolution="true" externalInfoUrl="${doc_root}/JavaCodePerformance.md#tutc07">
+        <description>
+            Problem: Multiple threads typically access fields of a singleton or may access fields in session scoped objects. If a field or its reference is mutable, access is thread-unsafe and may cause corruption or visibility problems. It may also unintentionally mix-up session data.&#13;
+            Solution: Make the fields final and unmodifiable. If they really need to be mutable, make access thread-safe: use synchronized and jcip @GuardedBy or use volatile.&#13;
+            Notes&#13;
+            1. Instances of Date, StringBuilder, URL and File are examples of mutable objects and should be avoided (or else guarded) as fields of shared objects. In case mutable fields are final and not modified after initialization (read-only) they are thread safe, however any modification to it is thread-unsafe. Since field modification is easily coded, avoid this situation.
+            &#13;2. Instances of classes like ArrayList, HashMap and HashSet are also mutable and should be properly wrapped with e.g. Collections.unmodifiableList after initialization (see TUTC03), or accessed thread-safely with e.g. Collections.synchronizedList or thread-safe implementations like ConcurrentHashMap.
+            &#13;3. For autowiring/injection, the assignment of the reference is thread safe, so final is not required. The unmodifiable/thread-safe requirement for that field still holds. Also make sure no other thread-unsafe assignment is made to that field.
+            &#13;4. In case you are sure the Component is used in single threaded context only (e.g. a Tasklet), annotate the class with @NotThreadSafe to make this explicit.
+            &#13;5. Use package private and @VisibleForTesting for methods used for JUnit only.
+            (jpinpoint-rules)</description>
+        <priority>1</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,multi-threading,data-mix-up" type="String" description="classification"/>
+            <property name="xpath">
+                <value>
+                    <![CDATA[
+(: known assumed singleton types by annotation :)
+//ClassDeclaration[
+   (
+       pmd-java:hasAnnotation('org.springframework.stereotype.Service')
+    or pmd-java:hasAnnotation('org.springframework.stereotype.Component')
+    or pmd-java:hasAnnotation('org.springframework.stereotype.Controller')
+    or pmd-java:hasAnnotation('org.springframework.stereotype.Repository')
+    or pmd-java:hasAnnotation('org.springframework.web.bind.annotation.RestController')
+    or (pmd-java:hasAnnotation('javax.ejb.Singleton') and ModifierList/Annotation[pmd-java:typeIs('javax.ejb.ConcurrencyManagement')]/AnnotationMemberList/MemberValuePair/FieldAccess[./TypeExpression[pmd-java:typeIs('javax.ejb.ConcurrencyManagementType')] and @Name="BEAN"])
+    or (pmd-java:hasAnnotation('jakarta.ejb.Singleton') and ModifierList/Annotation[pmd-java:typeIs('jakarta.ejb.ConcurrencyManagement')]/AnnotationMemberList/MemberValuePair/FieldAccess[./TypeExpression[pmd-java:typeIs('jakarta.ejb.ConcurrencyManagementType')] and @Name="BEAN"])
+   )
+   (: not shared when request or prototype scope :)
+   and not(pmd-java:hasAnnotation('org.springframework.context.annotation.Scope') and .//AnnotationMemberList/MemberValuePair[
+       StringLiteral[contains(@Image,'request') or contains(@Image,'prototype')]
+       or FieldAccess[@Name='SCOPE_REQUEST' or @Name='SCOPE_PROTOTYPE']/TypeExpression[pmd-java:typeIs('org.springframework.beans.factory.config.ConfigurableBeanFactory')]]
+    )
+   and not(pmd-java:hasAnnotation('org.springframework.context.annotation.RequestScope'))
+   (: if @NotThreadSafe no checking :)
+   and not(pmd-java:hasAnnotation('net.jcip.annotations.NotThreadSafe'))
+   (: ConfigurationProperties assumed executed only once, no violation, except if Lombok Setter :)
+   and not(pmd-java:hasAnnotation('org.springframework.boot.context.properties.ConfigurationProperties'))
+   and not(pmd-java:hasAnnotation('lombok.Setter'))]
+(: non-final and non-volatile fields :)
+//FieldDeclaration[
+
+   not(pmd-java:modifiers()=('final','volatile'))
+   (: field not annotated with framework annotation or GuardedBy :)
+   and not(
+     pmd-java:hasAnnotation('org.springframework.beans.factory.annotation.Autowired')
+     or (pmd-java:hasAnnotation('javax.persistence.PersistenceContext') or pmd-java:hasAnnotation('jakarta.persistence.PersistenceContext'))
+     or (pmd-java:hasAnnotation('javax.ejb.EJB') or pmd-java:hasAnnotation('jakarta.ejb.EJB'))
+     or (pmd-java:hasAnnotation('javax.inject.Inject') or pmd-java:hasAnnotation('jakarta.inject.Inject'))
+     or pmd-java:hasAnnotation('org.springframework.beans.factory.annotation.Value')
+     or pmd-java:hasAnnotation('net.jcip.annotations.GuardedBy')
+   )
+   (: not in static inner class :)
+   and not (ancestor::ClassDeclaration[@Nested=true() and @Static=true()])
+   (: field not on accessor method with assignment level annotated with framework annotation :)
+   and not (
+     ./VariableDeclarator/VariableId/@Name = ancestor::ClassDeclaration//MethodDeclaration[
+        pmd-java:hasAnnotation('org.springframework.beans.factory.annotation.Autowired')
+        or (pmd-java:hasAnnotation('javax.annotation.PostConstruct') or pmd-java:hasAnnotation('jakarta.annotation.PostConstruct'))
+        or pmd-java:hasAnnotation('org.springframework.batch.core.annotation.BeforeStep')
+        or pmd-java:hasAnnotation('org.springframework.beans.factory.annotation.Value')
+        or (pmd-java:hasAnnotation('javax.inject.Inject') or pmd-java:hasAnnotation('jakarta.inject.Inject'))
+      ]//AssignmentExpression/*[1]/@Name
+   )
+   or (
+     (: or non-final or volatile field of known mutable types :)
+     ./ClassType[pmd-java:typeIs('java.util.Date')
+                    or pmd-java:typeIs('java.lang.StringBuilder')
+                    or pmd-java:typeIs('java.lang.StringBuffer')
+                    or pmd-java:typeIs('java.net.URL')
+                    or pmd-java:typeIs('java.io.File')]
+        (: or mutable array :)
+        or (
+          .//ArrayInitializer[@Length > 0]
+        )
+        (: or in-line allocation of known mutable collection types :)
+        or (
+          ./VariableDeclarator/ConstructorCall/ClassType[
+                pmd-java:typeIs('java.util.ArrayList')
+                or pmd-java:typeIs('java.util.HashMap')
+                or pmd-java:typeIs('java.util.HashSet')
+          ]
+        )
+        (: or in-constructor allocation of known mutable collection types :)
+        or (
+           ./VariableDeclarator/VariableId/@Name =
+              ancestor::ClassDeclaration//ConstructorDeclaration//AssignmentExpression[
+                     ConstructorCall/ClassType[
+                            pmd-java:typeIs('java.util.ArrayList')
+                            or pmd-java:typeIs('java.util.HashMap')
+                            or pmd-java:typeIs('java.util.HashSet')
+                                              ]]/VariableAccess/@Name
+        )
+     )
+    (: not annotated GuardedBy :)
+    and not (pmd-java:hasAnnotation('net.jcip.annotations.GuardedBy'))
+]
+]]>
+                </value>
+            </property>
+        </properties>
+        <example><![CDATA[
+@Component
+@Scope(value = SCOPE_APPLICATION, proxyMode = TARGET_CLASS)
+class AComponent2 {
+    private String _url; // bad, unguarded accessor method
+    public void setUrlBad(final String url) {
+        _url = url;
+    }
+}
+
+@Component
+class Bad {
+    private Map<String, String> map1 = new HashMap<>(); // bad, reference and map is mutable
+    private final Map<String, String> map2 = new HashMap<>(); // bad, map is mutable
+    private final Map<String, String> map3 = new ConcurrentHashMap<>(); // good, concurrenthashmap is thread-safe
+    @GuardedBy("this")
+    private Map<String, String> map4 = new HashMap<>(); // good, guarded
+
+    private Map<String, String> mapCtor1; // bad, reference and map is mutable
+    private final Map<String, String> mapCtor2; // bad, constructed with known mutable type
+    private final Map<String, String> mapCtor3; // good, concurrenthashmap is thread-safe
+    @GuardedBy("this")
+    private Map<String, String> mapCtor4; // good, guarded
+
+    public Bad() {
+        mapCtor1 = new HashMap<>();
+        mapCtor2 = new HashMap<>();
+        mapCtor3 = new ConcurrentHashMap<>();
+        mapCtor4 = new HashMap<>();
+    }
+}
+
+@Service
+class BadMutebleTypes {
+    private final Date date = new Date(); // bad, Date is mutable
+    private volatile StringBuilder strBuilder = new StringBuilder(); // bad, mutable type
+    private final StringBuffer strBuffer = new StringBuffer(); // bad, mutable type
+    private final String strOne = "abc"; // good, String is immutable
+    private final String[] abc = new String[] {"a","b","c"}; // bad, elements can be replaced
+    private final String[] nothing = new String[]{}; // good, no elements; not mutable
+
+}
+        ]]></example>
+    </rule>
+
+    <rule name="AvoidUnguardedMutableInheritedFieldsInSharedObjects"
+          message="Mutator method called on inherited field. Avoid unguarded mutable inherited fields in objects shared among threads. Make final immutable or access thread-safely AND use @GuardedBy."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
+          typeResolution="true" externalInfoUrl="${doc_root}/JavaCodePerformance.md#tutc07">
+        <description>
+            Problem: Multiple threads typically access fields of a singleton or may access fields in session scoped objects. If a (inherited) field or its reference is mutable, access is thread-unsafe and may cause corruption or visibility problems. It may also unintentionally mix-up session data. &#13;
+            Solution: Make the fields final and unmodifiable. If they really need to be mutable, make access thread-safe: use synchronized and jcip @GuardedBy or use volatile.&#13;
+            Notes&#13;
+            1. Instances of Date, StringBuilder, URL and File are examples of mutable objects and should be avoided (or else guarded) as fields of shared objects. In case mutable fields are final and not modified after initialization (read-only) they are thread safe, however any modification to it is thread-unsafe. Since field modification is easily coded, avoid this situation.
+            &#13;2. Instances of classes like ArrayList, HashMap and HashSet are also mutable and should be properly wrapped with e.g. Collections.unmodifiableList after initialization (see TUTC03), or accessed thread-safely with e.g. Collections.synchronizedList or thread-safe implementations like ConcurrentHashMap.
+            &#13;3. For autowiring/injection, the assignment of the reference is thread safe, so final is not required. The unmodifiable/thread-safe requirement for that field still holds. Also make sure no other thread-unsafe assignment is made to that field.
+            &#13;4. In case you are sure the Component is used in single threaded context only (e.g. a Tasklet), annotate the class with @NotThreadSafe to make this explicit.
+            &#13;5. Use package private and @VisibleForTesting for methods used for JUnit only.
+            (jpinpoint-rules)</description>
+        <priority>1</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,multi-threading,data-mix-up" type="String" description="classification"/>
+            <property name="xpath">
+                <value>
+                    <![CDATA[
+(: known assumed singleton types by annotation :)
+//ClassDeclaration[
+   (
+       pmd-java:hasAnnotation('org.springframework.stereotype.Service')
+    or pmd-java:hasAnnotation('org.springframework.stereotype.Component')
+    or pmd-java:hasAnnotation('org.springframework.stereotype.Controller')
+    or pmd-java:hasAnnotation('org.springframework.stereotype.Repository')
+    or pmd-java:hasAnnotation('org.springframework.web.bind.annotation.RestController')
+    or (pmd-java:hasAnnotation('javax.ejb.Singleton') and ModifierList/Annotation[pmd-java:typeIs('javax.ejb.ConcurrencyManagement')]/AnnotationMemberList/MemberValuePair/FieldAccess[./TypeExpression[pmd-java:typeIs('javax.ejb.ConcurrencyManagementType')] and @Name="BEAN"])
+    or (pmd-java:hasAnnotation('jakarta.ejb.Singleton') and ModifierList/Annotation[pmd-java:typeIs('jakarta.ejb.ConcurrencyManagement')]/AnnotationMemberList/MemberValuePair/FieldAccess[./TypeExpression[pmd-java:typeIs('jakarta.ejb.ConcurrencyManagementType')] and @Name="BEAN"])
+   )
+   (: not shared when request or prototype scope :)
+   and not(pmd-java:hasAnnotation('org.springframework.context.annotation.Scope') and .//AnnotationMemberList/MemberValuePair[
+       StringLiteral[contains(@Image,'request') or contains(@Image,'prototype')]
+       or FieldAccess[@Name='SCOPE_REQUEST' or @Name='SCOPE_PROTOTYPE']/TypeExpression[pmd-java:typeIs('org.springframework.beans.factory.config.ConfigurableBeanFactory')]]
+    )
+   and not(pmd-java:hasAnnotation('org.springframework.context.annotation.RequestScope'))
+   (: if @NotThreadSafe no checking :)
+   and not(pmd-java:hasAnnotation('net.jcip.annotations.NotThreadSafe'))
+   (: ConfigurationProperties assumed executed only once, no violation, except if Lombok Setter :)
+   and not(pmd-java:hasAnnotation('org.springframework.boot.context.properties.ConfigurationProperties'))
+   and not(pmd-java:hasAnnotation('lombok.Setter'))]
+(: any method call:)
+//MethodCall[
+    (: class extends a base class :)
+    ancestor::ClassDeclaration//ExtendsList
+    (: not in static inner class :)
+    and not (ancestor::ClassDeclaration[@Nested=true() and @Static=true()])
+    (:  has arguments (a method call), and  a compound like date.setTime, map.put, list.set :)
+    and matches(@MethodName,"(set|put|clear|add|remove|replace)")
+    (: not a field of this class, no param or local :)
+    and ./VariableAccess[
+                not (@Name = ancestor::ClassDeclaration//FieldDeclaration/VariableDeclarator/VariableId/@Name
+                  or @Name = ancestor::Block/LocalVariableDeclaration/VariableDeclarator/VariableId/@Name
+                  or @Name = ancestor::MethodDeclaration//FormalParameter/VariableId/@Name
+                )]
+    (: not synchronized :)
+    and not (ancestor::SynchronizedStatement or ancestor::MethodDeclaration[pmd-java:modifiers()='synchronized'])
+    (: field not on accessor method with assignment, annotated with framework annotation :)
+    and not(
+          ancestor::MethodDeclaration[
+                pmd-java:hasAnnotation('org.springframework.beans.factory.annotation.Autowired')
+                or (pmd-java:hasAnnotation('javax.annotation.PostConstruct') or pmd-java:hasAnnotation('jakarta.annotation.PostConstruct'))
+                or pmd-java:hasAnnotation('org.springframework.batch.core.annotation.BeforeStep')
+                or pmd-java:hasAnnotation('org.springframework.beans.factory.annotation.Value')
+                or (pmd-java:hasAnnotation('javax.inject.Inject') or pmd-java:hasAnnotation('jakarta.inject.Inject'))
+             ]
+          (: field not assigned in non-public accessor method annotated with VisibleForTesting :)
+          or (ancestor::MethodDeclaration[pmd-java:hasAnnotation('com.google.common.annotations.VisibleForTesting') and not(@Visibility='public')])
+          (: annotation is not enough? :)
+          or ancestor::MethodDeclaration[@Name='afterPropertiesSet']
+        )
+]
+                    ]]>
+                </value>
+            </property>
+        </properties>
+        <example><![CDATA[
+@Component
+public class MutateInheritedFieldTryout extends SynchronizedTryout {
+    final Map mapField = getMap(); // found by other rule
+    private String removed; // found by other rule
+
+    public String getDateString() {
+        return date.toString();
+    }
+    public void mutateDateBad() {
+        date.setTime(100); // bad
+    }
+
+    public void mutateMap(String key, String val) {
+        Collections.sort(null);
+        map.clear(); // bad - 25
+        if (map.put(key, val)) { // bad
+           removed = "";
+        }
+        removed = map.remove("invalidKey"); // bad
+    }
+    public Object readMap(String key) {
+        return map.get(key);
+    }
+    public synchronized void mutateSyncMap(String key, String val) {
+        map.put(key, val);
+    }
+    public void mutateMapField(String key, String val) {
+        mapField.put(key, val); // good, fields checked in other rule
+    }
+    public void mutateMapParam(Map map, String key, String val) {
+        map.put(key, val); // good, param map shadows inherited field
+    }
+    public void mutateMapLocal(String key, String val) {
+        Map map = new HashMap();
+        map.put(key, val); // good, local map shadows inherited field
+    }
+}
+        ]]></example>
+    </rule>
+
+        <rule name="AvoidUnguardedAssignmentToNonFinalFieldsInObjectsUsingSynchronized"
+              message="Avoid unguarded assignments to non-final fields in objects using synchronized. Access thread-safely AND use @GuardedBy."
+              class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
+              typeResolution="true" externalInfoUrl="${doc_root}/JavaCodePerformance.md#tutc07">
+            <description>
+                Problem: Multiple threads typically access fields of an object using synchronized. Unguarded assignment to a non-final field is thread-unsafe and may cause corruption or visibility problems. To make this thread-safe, that is, guard the field e.g. with synchronized methods, may cause contention. &#13;
+                Solution: Make the fields final and unmodifiable.  If they really need to be mutable, make access thread-safe: use synchronized and jcip @GuardedBy or use volatile.&#13;
+                Notes&#13;
+                1. In case you are sure the class is used in single threaded context only, remove current use of synchronized and annotate the class with @NotThreadSafe to make this explicit. &#13;
+                2. Use package-private and @VisibleForTesting for methods (e.g. setters) used for JUnit only.
+                (jpinpoint-rules)</description>
+            <priority>1</priority>
+            <properties>
+                <property name="tags" value="jpinpoint-rule,multi-threading" type="String" description="classification"/>
+                <property name="xpath">
+                    <value><![CDATA[
+(: if @NotThreadSafe no checking :)
+//ClassDeclaration[
+       not (pmd-java:hasAnnotation('net.jcip.annotations.NotThreadSafe'))
+       (: not in static inner class :)
+       and not (ancestor::ClassDeclaration[@Nested=true() and @Static=true()])
+       and (.//SynchronizedStatement or .//MethodDeclaration[pmd-java:modifiers()='synchronized'])
+   ]
+   (: assignment to a field that is not final or volatile:)
+   //AssignmentExpression/*[1][
+      not(@Name = ancestor::ClassDeclaration//FieldDeclaration[
+            pmd-java:modifiers()=('final','volatile')
+            or pmd-java:hasAnnotation('net.jcip.annotations.GuardedBy')
+        ]/VariableDeclarator/VariableId/@Name)
+       (: field not on accessor method with assignment level annotated with framework annotation :)
+       and not(
+             ancestor::MethodDeclaration[
+                   pmd-java:hasAnnotation('org.springframework.beans.factory.annotation.Autowired')
+                   or (pmd-java:hasAnnotation('javax.annotation.PostConstruct') or pmd-java:hasAnnotation('jakarta.annotation.PostConstruct'))
+                   or pmd-java:hasAnnotation('org.springframework.batch.core.annotation.BeforeStep')
+                   or pmd-java:hasAnnotation('org.springframework.beans.factory.annotation.Value')
+                   or (pmd-java:hasAnnotation('javax.inject.Inject') or pmd-java:hasAnnotation('jakarta.inject.Inject'))
+                ]
+             (: field not assigned in non-public accessor method annotated with VisibleForTesting :)
+             or (ancestor::MethodDeclaration[pmd-java:hasAnnotation('com.google.common.annotations.VisibleForTesting') and not(@Visibility='public')])
+             (: annotation is not enough? :)
+             or ancestor::MethodDeclaration[@Name='afterPropertiesSet']
+           )
+    ]
+                    ]]></value>
+                </property>
+            </properties>
+            <example><![CDATA[
+public class Bad {
+    private static Map staticMapField = new HashMap();
+    private Date date = new Date();
+
+    public Date getDate() {
+        return date;
+    }
+
+    public void setDate(Date d) {
+        date = d; // bad - synchronized used in class
+    }
+
+    public static synchronized Map getStaticMapField() {
+        return staticMapField;
+    }
+
+    public static void setStaticMapField(Map smf) {
+        staticMapField = smf; // bad - synchronized use in class
+    }
+}
+
+@NotThreadSafe
+public class Good {
+    private static Map staticMapField = new HashMap();
+    private Date date = new Date();
+
+    public Date getDate() {
+        return date;
+    }
+
+    public void setDate(Date d) {
+        date = d; // good - no synchronized in class (marked as @NotThreadSafe)
+    }
+
+    public static  Map getStaticMapField() {
+        return staticMapField;
+    }
+
+    public static  void setStaticMapField(Map smf) {
+        staticMapField = smf; // good - no synchronized in class (marked as @NotThreadSafe)
+    }
+}
+             ]]></example>
+        </rule>
+    <!--
+        <rule name="AvoidUnguardedMutableFieldsInObjectsUsingSynchronized"
+              message="Avoid unguarded non-final or mutable fields in objects using synchronized. Make final immutable or access thread-safely AND use @GuardedBy."
+              class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
+              typeResolution="true" externalInfoUrl="${doc_root}/JavaCodePerformance.md#tutc07">
+            <description>
+                Problem: Multiple threads typically access fields of an object using synchronized. If a field or its reference is mutable, access is thread-unsafe and may cause corruption or visibility problems. To make this thread-safe, that is, guard the field e.g. with synchronized methods, may cause contention.&#13;
+                Solution: Make the fields final and unmodifiable. If they really need to be mutable, make access thread-safe: use synchronized and jcip @GuardedBy or use volatile.&#13;
+                Notes&#13;
+                1. Instances of Date, StringBuilder, URL and File are examples of mutable objects and should be avoided (or else guarded) as fields of shared objects. In case mutable fields are final and not modified after initialization (read-only) they are thread safe, however any modification to it is thread-unsafe. Since field modification is easily coded, avoid this situation.
+                &#13;2. Instances of classes like ArrayList, HashMap and HashSet are also mutable and should be properly wrapped with e.g. Collections.unmodifiableList after initialization (see TUTC03), or accessed thread-safely with e.g. Collections.synchronizedList or thread-safe implementations like ConcurrentHashMap.
+                &#13;3. For autowiring/injection, the assignment of the reference is thread safe, so final is not required. The unmodifiable/thread-safe requirement for that field still holds. Also make sure no other thread-unsafe assignment is made to that field.
+                &#13;4. In case you are sure the class is used in single threaded context only, annotate the class with @NotThreadSafe to make this explicit.
+                &#13;5. Use package private and @VisibleForTesting for methods used for JUnit only.
+                (jpinpoint-rules)</description>
+            <priority>3</priority>
+            <properties>
+                <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+                <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
+                <property name="version" value="2.0"/>
+                <property name="xpath">
+                    <value>
+                        <![CDATA[
+    (: if @NotThreadSafe no checking :)
+    //TypeDeclaration[count(Annotation/MarkerAnnotation/Name[@Image='NotThreadSafe'])=0]
+    (: non-static classes using synchronized :)
+    //ClassOrInterfaceDeclaration[@Static=false()]/ClassOrInterfaceBody[//SynchronizedStatement or //MethodDeclaration[@Synchronized=true()]]
+    (: non-final and non-volatile fields :)
+    /ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Final=false() and @Volatile=false()
+    (: field not annotated with framework annotation or GuardedBy :)
+    and not (../Annotation//Name[@Image='Autowired' or @Image='PersistenceContext' or @Image='EJB' or @Image='Resource' or @Image='Inject' or @Image='Value' or @Image='GuardedBy'])
+    (: field not on accessor method with assignment, annotated with framework annotation :)
+    and not (../../ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='Autowired' or @Image='PostConstruct' or @Image='BeforeStep' or @Image='Value' or @Image='Inject']
+    /../../..//BlockStatement/Statement//StatementExpression/AssignmentOperator/../PrimaryExpression//@Image=
+    ./VariableDeclarator/VariableDeclaratorId/@Name)
+    (: or field of known mutable types including array :)
+    or ((Type/ReferenceType/ClassOrInterfaceType[(pmd-java:typeIs('java.util.Date') or pmd-java:typeIs('java.lang.StringBuilder') or pmd-java:typeIs('java.lang.StringBuffer') or pmd-java:typeIs('java.net.URL') or pmd-java:typeIs('java.io.File')) or
+    (ancestor::FieldDeclaration/VariableDeclarator/VariableInitializer[ArrayInitializer and count(ArrayInitializer/VariableInitializer) > 0])])
+    (: or in-line allocation of known mutable collection types :)
+    or (VariableDeclarator/VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/AllocationExpression/ClassOrInterfaceType[pmd-java:typeIs('java.util.ArrayList') or pmd-java:typeIs('java.util.HashMap') or pmd-java:typeIs('java.util.HashSet')] )
+    (: or in-constructor allocation of known mutable collection types :)
+    or (VariableDeclarator/VariableDeclaratorId/@Name = ancestor::ClassOrInterfaceBody//ConstructorDeclaration//StatementExpression/Expression[pmd-java:typeIs('java.util.ArrayList') or pmd-java:typeIs('java.util.HashMap') or pmd-java:typeIs('java.util.HashSet')]/../..//Name/@Image)
+    (: mutable types not annotated with GuardedBy :)
+    ) and not (../Annotation//Name[@Image='GuardedBy'])
+    ]
+    ]]>
+                    </value>
+                </property>
+            </properties>
+        </rule>
+
+        <rule name="NotProperlySynchronizingOnThisWhileUsingGuardedBy"
+              message="Not properly synchronizing access of field while using @GuardedBy('this')"
+              class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
+              typeResolution="true" externalInfoUrl="https://jcip.net/annotations/doc/index.html">
+            <description>
+                Problem: The field to which this annotation is applied should only be accessed when holding the built-in 'this' lock by using synchronized.&#13;
+                Solution: Make access thread-safe: synchronize access by method modifier or a synchronized(this) block.&#13;
+                Note that methods with annotations @Autowired, @PostConstruct, @BeforeStep, @Value and @Inject are ignored.
+                (jpinpoint-rules)</description>
+            <priority>2</priority>
+            <properties>
+                <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+                <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
+                <property name="version" value="2.0"/>
+                <property name="xpath">
+                    <value>
+                        <![CDATA[
+    //MethodDeclaration[(@Synchronized=false() or @Static=true())
+    and not (../Annotation//Name[@Image='Autowired' or @Image='PostConstruct' or @Image='BeforeStep' or @Image='Value' or @Image='Inject'])]
+    //PrimaryPrefix/Name[substring-before(concat(@Image,'.'), '.') =
+    (ancestor::ClassOrInterfaceBody|ancestor::EnumBody)//Annotation//Name[@Image='GuardedBy']/..//Literal[@Image='"this"']/
+    ancestor::ClassOrInterfaceBodyDeclaration/FieldDeclaration//VariableDeclaratorId/@Name
+    and (
+    not (ancestor::SynchronizedStatement)
+    or ancestor::SynchronizedStatement/Expression//Name)]
+    ]]>
+                    </value>
+                </property>
+            </properties>
+            <example>
+                <![CDATA[
+        class Bad1 {
+            @GuardedBy("this")
+            private String txt;
+
+            public String getText() { return txt; } // bad
+            public void setText(String t) { txt = t; } // bad
+        }
+
+        class Good1 {
+            @GuardedBy("this")
+            private String txt;
+
+            public synchronized String getText() { return txt; }
+            public synchronized void setText(String t) { txt = t; }
+        }
+                ]]>
+            </example>
+        </rule>
+
+        <rule name="NotProperlySynchronizingOnFieldWhileUsingGuardedBy"
+              message="Not properly synchronizing access of field while using @GuardedBy(field)"
+              class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
+              typeResolution="true" externalInfoUrl="https://jcip.net/annotations/doc/index.html">
+            <description>
+                Problem: The field to which the GuardedBy annotation is applied is not accessed thread-safely as described by GuardedBy.&#13;
+                Solution: Make access thread-safe: synchronize access by a synchronized(LOCK) block with LOCK being a final field.&#13;
+                Note that methods with annotations @Autowired, @PostConstruct, @BeforeStep, @Value and @Inject are ignored.
+                (jpinpoint-rules)</description>
+            <priority>2</priority>
+            <properties>
+                <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+                <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
+                <property name="version" value="2.0"/>
+                <property name="xpath">
+                    <value>
+                        <![CDATA[
+        //MethodDeclaration[
+        not (../Annotation//Name[@Image='Autowired' or @Image='PostConstruct' or @Image='BeforeStep' or @Image='Value' or @Image='Inject'])]
+        (: a variable which should (potentially) be guarded :)
+        //PrimaryPrefix/Name[substring-before(concat(@Image,'.'), '.') =
+        (: used in a class with guarded-by literal *IS* a field (should be private final) :)
+        ancestor::ClassOrInterfaceBody//Annotation//Name[@Image='GuardedBy']/..//Literal[substring(@Image, 2, (string-length(@Image) - 2))=
+        ancestor::ClassOrInterfaceBody//FieldDeclaration//VariableDeclaratorId/@Name
+        ]/
+        (: is defined as field :)
+        ancestor::ClassOrInterfaceBodyDeclaration//FieldDeclaration//VariableDeclaratorId/@Name
+        (: and *IS NOT* in a synchronized block with the GuardedBy literal:)
+        and (not(concat('"', ancestor::SynchronizedStatement/Expression//Name/@Image, '"') =
+        ancestor::ClassOrInterfaceBody//Annotation//Name[@Image='GuardedBy']/..//Literal/@Image)
+        )]
+        ,
+        //MethodDeclaration[
+        not (../Annotation//Name[@Image='Autowired' or @Image='PostConstruct' or @Image='BeforeStep' or @Image='Value' or @Image='Inject'])]
+        (: a variable which should (potentially) be guarded :)
+        //PrimaryPrefix/Name[substring-before(concat(@Image,'.'), '.') =
+        (: used in a class with guarded by literal *IS NOT* a field :)
+        ancestor::ClassOrInterfaceBody//Annotation//Name[@Image='GuardedBy']/..//Literal[not (substring(@Image, 2, (string-length(@Image) - 2)) =
+        ancestor::ClassOrInterfaceBody//FieldDeclaration//VariableDeclaratorId/@Name)
+        ]/
+        (: is defined as field :)
+        ancestor::ClassOrInterfaceBodyDeclaration//FieldDeclaration//VariableDeclaratorId/@Name
+        (: and *IS* in a synchronized block with the GuardedBy literal:)
+        and (
+        (concat('"', ancestor::SynchronizedStatement/Expression//Name/@Image, '"') =
+        ancestor::ClassOrInterfaceBody//Annotation//Name[@Image='GuardedBy']/..//Literal/@Image)
+        )]
+    ]]>
+                    </value>
+                </property>
+            </properties>
+            <example>
+                <![CDATA[
+        class Bad1 {
+            private final Object LOCK = new Object();
+            @GuardedBy("LOCK")
+            private String txt;
+
+            public String getText() { return txt; } // bad
+            public synchronized void setText(String t) { txt = t; } // bad
+        }
+
+        class Good1 {
+            private final Object LOCK = new Object();
+            @GuardedBy("LOCK")
+            private String txt;
+
+            public String getText() {
+                synchronized(LOCK) { return txt; }
+            }
+            public void setText(String t) {
+                synchronized(LOCK) { txt = t; }
+            }
+        }
+                ]]>
+            </example>
+        </rule>
+
+        <rule name="AvoidStaticXmlFactories" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java" message="Avoid static XML Factories" typeResolution="true"
+              externalInfoUrl="${doc_root}/JavaCodePerformance.md#IUOXAR09">
+            <description>An XML Factory like DocumentBuilderFactory, TransformerFactory, MessageFactory is used as static field. Problem: These factory objects are typically not thread-safe and rather expensive to create because of class loading. &#13;
+                Solution: Create the Factories as local variables and use command line arguments to specify the implementation class. (jpinpoint-rules)</description>
+            <priority>1</priority>
+            <properties>
+                <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+                <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
+                <property name="tag" value="performance" type="String" description="for-sonar"/>
+                <property name="version" value="2.0"/>
+                <property name="xpath">
+                    <value><![CDATA[
+        //ClassOrInterfaceBodyDeclaration//FieldDeclaration[@Static=true() and (
+        pmd-java:typeIs('javax.xml.parsers.DocumentBuilderFactory') or
+        pmd-java:typeIs('javax.xml.parsers.SAXParserFactory') or
+        pmd-java:typeIs('javax.xml.stream.XMLInputFactory') or
+        pmd-java:typeIs('javax.xml.stream.XMLOutputFactory') or
+        pmd-java:typeIs('javax.xml.stream.XMLEventFactory') or
+        pmd-java:typeIs('javax.xml.transform.TransformerFactory') or
+        pmd-java:typeIs('javax.xml.validation.SchemaFactory') or
+        pmd-java:typeIs('javax.xml.datatype.DatatypeFactory') or
+        pmd-java:typeIs('javax.xml.soap.MessageFactory')
+        )]
+                ]]>
+                    </value>
+                </property>
+            </properties>
+            <example>
+                <![CDATA[
+     public class Bad {
+        private static final DocumentBuilderFactory DB_FACTORY = DocumentBuilderFactory.newInstance(); // shared, bad
+     }
+
+     public class Good {
+        public build() {
+            DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance(); // local var, good
+            // use dbFactory
+        }
+     }
+                ]]>
+            </example>
+        </rule>
+
+        <rule name="AvoidIncrementOrDecrementForVolatileField" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java" message="Avoid ++, - -, +=, -= for volatile fields" typeResolution="true"
+              externalInfoUrl="${doc_root}/JavaCodePerformance.md#tutc09">
+            <description>A compound statement like i++, i- -, i += 1 or i -= 1 may seem one statement and thread-safe for a volatile field. Problem: The operation is actually two separate statements executed non-atomically and therefore not thread-safe. &#13;
+                Solution: Guard the field properly with synchronized or use atomics like AtomicInteger. (jpinpoint-rules)</description>
+            <priority>1</priority>
+            <properties>
+                <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+                <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
+                <property name="version" value="2.0"/>
+                <property name="xpath">
+                    <value><![CDATA[
+    //StatementExpression/(AssignmentOperator[@Image='+=' or @Image='-=']/..|
+    (PreIncrementExpression|PostfixExpression[@Image='++' or @Image='- -']))/PrimaryExpression/(PrimaryPrefix/Name|PrimarySuffix)[@Image =
+    //FieldDeclaration[@Volatile = true()]/VariableDeclarator/VariableDeclaratorId/@Name]
+                            ]]>
+                    </value>
+                </property>
+            </properties>
+            <example>
+                <![CDATA[
+     public class Foo {
+        private volatile int i;
+        private volatile String str = "";
+
+        public int bad() {
+            i++; // bad
+            - -i; // bad
+            i += 1; // bad
+            str += "a"; // bad
+        }
+        public int good(int v) {
+            i = 5; // good
+            i = v + 5; // good
+            str = "other"; // good
+        }
+    }
+                ]]>
+            </example>
+        </rule>
+
+        <rule name="AvoidVolatileInPrototypeScope" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java" message="No need for volatile in prototype scope" typeResolution="true"
+              externalInfoUrl="${doc_root}/JavaCodePerformance.md#tutc10">
+            <description>A field is defined as volatile while the class has prototype scope. Problem: volatile has some overhead, especially for writes. When getting the bean from the Spring applicationContext, prototype scope means that each invocation creates a new object so the field is not shared. &#13;
+                Solution: Since only one thread can access the field, there is no need for violatile and it can be removed. (jpinpoint-rules)</description>
+            <priority>2</priority>
+            <properties>
+                <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+                <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
+                <property name="tag" value="confusing" type="String" description="for-sonar"/>
+                <property name="version" value="2.0"/>
+                <property name="xpath">
+                    <value><![CDATA[
+        //FieldDeclaration[@Volatile = true() and
+        ancestor::TypeDeclaration/Annotation//Name[@Image='Scope']/..//PrimaryPrefix/
+        (Name[ends-with(@Image,'SCOPE_PROTOTYPE')]|Literal[contains(@Image, 'prototype')])]
+                            ]]>
+                    </value>
+                </property>
+            </properties>
+            <example>
+                <![CDATA[
+    @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+    @Component
+    class Bad {
+        private volatile String id;
+    }
+
+    @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+    @Component
+    class Good {
+        private String id;
+    }
+                ]]>
+            </example>
+        </rule>
+
+        <!- for pmd-7
+        //FieldDeclaration[index-of(pmd-java:explicitModifiers(), 'volatile') > 0 and
+        ancestor::ClassOrInterfaceDeclaration//Annotation[@SimpleName='Scope']//MemberValuePair[
+        FieldAccess[ends-with(@Name,'SCOPE_PROTOTYPE')] | StringLiteral[contains(@Image, 'prototype')]]]
+        ->
+
+
+        <rule name="SynchronizingForLocalVars" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java" message="Local variables don't need synchronization" typeResolution="true"
+              externalInfoUrl="${doc_root}/JavaCodePerformance.md#tutc12">
+            <description>In the synchronized block, only local variables seem to be accessed. Problem: synchronization has overhead and may introduce lock contention. &#13;
+                Solution: Remove synchronized because local variables are only accessible by the owning thread and are not shared. (jpinpoint-rules)</description>
+            <priority>3</priority>
+            <properties>
+                <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+                <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
+                <property name="tag" value="performance" type="String" description="for-sonar"/>
+            <property name="tag" value="confusing" type="String" description="for-sonar"/>
+                <property name="version" value="2.0"/>
+                <property name="xpath">
+                    <value><![CDATA[
+    (: var.x() in synchronized block, var in list of local vars and all var.x in synchronized block are local vars:)
+    //SynchronizedStatement[count(./Block//PrimaryPrefix/Name[
+        index-of(ancestor::MethodDeclaration//LocalVariableDeclaration//VariableDeclaratorId/@Name, substring-before(@Image, '.')) >= 0]) =
+    count(./Block//(PrimaryPrefix/Name|PrimarySuffix)[substring-before(@Image, '.')])
+    and
+    (: vars used in synchronized block are all local vars :)
+    count(distinct-values(ancestor::MethodDeclaration//LocalVariableDeclaration//VariableDeclaratorId/@Name |
+         ./Block//(PrimaryPrefix/Name|PrimarySuffix)[@Image != '' and not(contains(@Image, '.'))]/@Image))
+     = count(distinct-values(ancestor::MethodDeclaration//LocalVariableDeclaration//VariableDeclaratorId/@Name ))]
+                            ]]>
+                    </value>
+                </property>
+            </properties>
+            <example>
+                <![CDATA[
+    public class Foo {
+        private Map<String, String> mapField;
+
+        protected Map<String, String> bad() {
+          Map<String, String> addHeaders = MDC.getCopyOfContextMap();
+
+          synchronized (this) { // bad
+              if (addHeaders == null) {
+                  addHeaders = new HashMap<>();
+              }
+          }
+          return addHeaders;
+        }
+
+      protected Map<String, String> good() {
+          Map<String, String> addHeaders = MDC.getCopyOfContextMap();
+
+          synchronized (this) {
+              if (mapField == null) {
+                  mapField = new HashMap<>();
+                  addHeaders = new HashMap<>();
+              }
+          }
+          return addHeaders;
+        }
+                ]]>
+            </example>
+        </rule>
+
+        <rule name="AvoidFutureJoinWithoutTimeout"
+              message="Avoid future.join without timeout"
+              class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
+              typeResolution="true" externalInfoUrl="${doc_root}/JavaCodePerformance.md#ia07">
+            <description>
+                Problem: Stalls indefinitely in case of hanging thread(s) and consumes a thread.&#13;
+                Solution: Provide a timeout before the join and handle the timeout. For example a future.get(timeout, unit), a orTimeout() or a completeOnTimeout(). You may want to use CompletableFuture.allOf() too.
+                (jpinpoint-rules)</description>
+            <priority>1</priority>
+            <properties>
+                <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+                <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
+                <property name="tag" value="performance" type="String" description="for-sonar"/>
+                <property name="version" value="2.0"/>
+                <property name="xpath">
+                    <value>
+                        <![CDATA[
+    (: future.join method reference without timeout in method :)
+    //PrimaryExpression/PrimaryPrefix[pmd-java:typeIs('java.util.concurrent.Future')
+    and not(ancestor::BlockStatement/preceding-sibling::BlockStatement//PrimaryPrefix/Name[ends-with(@Image, '.get') or ends-with(@Image, 'Timeout')][../../PrimarySuffix//ArgumentList])
+    and not (ancestor::BlockStatement/preceding-sibling::BlockStatement//PrimarySuffix[ends-with(@Image, 'Timeout')])
+    ]
+    /../PrimarySuffix//MethodReference[@Image='join']
+    ,
+    (: future.join in lambda without timeout in method :)
+    //PrimaryExpression/PrimaryPrefix/LambdaExpression//Name[ends-with(@Image, '.join')
+    and not(ancestor::BlockStatement/preceding-sibling::BlockStatement//PrimaryPrefix[pmd-java:typeIs('java.util.concurrent.Future')]
+    /Name[ends-with(@Image, '.get') or ends-with(@Image, 'Timeout')][../../PrimarySuffix//ArgumentList])
+    and not (ancestor::BlockStatement/preceding-sibling::BlockStatement//PrimarySuffix[ends-with(@Image, 'Timeout')])
+    ]
+    (: join has no arguments, #198 :)
+    [../../PrimarySuffix/Arguments[@Size=0]]
+    ,
+    (: CompletableFuture.allOf(futures).join() without timeout :)
+    //PrimaryExpression/PrimaryPrefix[pmd-java:typeIs('java.util.concurrent.Future')]/../PrimarySuffix[@Image='join'
+    (: not bad if has a future.get with (timeout) arguments before the future.join, #300 :)
+    and not(ancestor::BlockStatement/preceding-sibling::BlockStatement//PrimaryExpression[PrimarySuffix/Arguments/ArgumentList]
+    /PrimaryPrefix[pmd-java:typeIs('java.util.concurrent.Future')]/Name[ends-with(@Image, '.get') or ends-with(@Image, 'Timeout')])
+    and not (../PrimarySuffix[ends-with(@Image, 'Timeout')])]
+    (: join has no arguments, #198 :)
+    [../PrimarySuffix/Arguments[@Size=0]]
+    ]]>
+                    </value>
+                </property>
+            </properties>
+            <example>
+                <![CDATA[
+        private List<Order> getOrdersBad(List<CompletableFuture<Order>> getOrdersFutures) {
+
+            List<Order> orders = getOrdersFutures.stream()
+                .map(CompletableFuture::join) // bad, NO timeout provided above
+                .collect(Collectors.toList());
+            return orders;
+        }
+
+        private List<Order> getOrdersGood(List<CompletableFuture<Order>> getOrdersFutures) {
+            // added to deal with timeout
+            CompletableFuture<Void> allFuturesResult = CompletableFuture.allOf(getOrdersFutures.toArray(new CompletableFuture[getOrdersFutures.size()]));
+            try {
+                allFuturesResult.get(5L, TimeUnit.SECONDS); // good
+            } catch (Exception e) { // should make explicit Exceptions
+                //log error
+            }
+            List<Order> orders = getOrdersFutures.stream()
+                    .filter(future -> future.isDone() && !future.isCompletedExceptionally()) // keep only the ones completed - - added to deal with timeout
+                    .map(CompletableFuture::join) // good, timeout provided above
+                    .collect(Collectors.toList());
+            return orders;
+        }
+                ]]>
+            </example>
+        </rule>
+
+        <rule name="AvoidCommonPoolForFutureAsync"
+              message="Avoid using the common thread pool for future.supplyAsync, use a separate pool."
+              class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
+              typeResolution="true" externalInfoUrl="${doc_root}/JavaCodePerformance.md#ia08">
+            <description>
+                Problem: Future.supplyAsync is typically used for remote calls. By default, it uses the common pool.
+                The number of threads in the common pool is equal to the number of CPU's, which is suitable for in-memory processing.
+                For I/O, however, this number is typically not suitable because most time is spent waiting for the response and not in CPU.
+                The common pool must not be used for blocking calls. &#13;
+                Solution: A separate, properly sized, pool of threads (an Executor) should be used for the async calls.
+                (jpinpoint-rules)</description>
+            <priority>1</priority>
+            <properties>
+                <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+                <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
+                <property name="tag" value="performance" type="String" description="for-sonar"/>
+            <property name="tag" value="unpredictable" type="String" description="for-sonar"/>
+                <property name="version" value="2.0"/>
+                <property name="xpath">
+                    <value>
+                        <![CDATA[
+    //PrimaryPrefix/Name[@Image='CompletableFuture.supplyAsync']/../../PrimarySuffix/Arguments/ArgumentList[count(Expression) = 1]
+    ,
+    //PrimaryPrefix/Name[@Image='supplyAsync']/../../PrimarySuffix/Arguments/ArgumentList[count(Expression) = 1]
+    [/CompilationUnit/ImportDeclaration/Name[@Image = 'java.util.concurrent.CompletableFuture.supplyAsync']]
+    ]]>
+                    </value>
+                </property>
+            </properties>
+            <example>
+                <![CDATA[
+    public class Foo {
+        private final ExecutorService asyncPool = Executors.newFixedThreadPool(8);
+
+        void bad() {
+            CompletableFuture<Pair<String, Boolean>>[] futures = accounts.stream()
+             .map(account -> CompletableFuture.supplyAsync(() -> isAccountBlocked(account))) // bad
+             .toArray(CompletableFuture[]::new);
+        }
+
+        void good() {
+            CompletableFuture<Pair<String, Boolean>>[] futures = accounts.stream()
+             .map(account -> CompletableFuture.supplyAsync(() -> isAccountBlocked(account), asyncPool)) // good
+             .toArray(CompletableFuture[]::new);
+        }
+    }
+    ]]>
+            </example>
+        </rule>
+
+        <rule name="AvoidCommonPoolForBlockingCalls" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
+              message="Avoid the ForkJoinPool::commonPool used in parallelStream for blocking calls."
+              typeResolution="true"
+              externalInfoUrl="${doc_root}/JavaCodePerformance.md#ia09">
+            <description>Problem: Blocking calls for instance remote calls, may exhaust the common pool for some time thereby blocking all other use of the common pool.
+                In addition, nested use of the common pool can lead to deadlock. Do not use the common pool for blocking calls. The parallelStream() call uses the common pool.&#13;
+                Solution: Use a dedicated thread pool with enough threads to get proper parallelism. The number of threads in the common pool is equal to the number of CPUs - 1 and meant to utilize all of them.
+                It assumes CPU intensive non-blocking processing of in-memory data.  (jpinpoint-rules)</description>
+            <priority>1</priority>
+            <properties>
+                <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+                <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
+                <property name="tag" value="performance" type="String" description="for-sonar"/>
+            <property name="tag" value="unpredictable" type="String" description="for-sonar"/>
+                <property name="version" value="2.0"/>
+                <property name="xpath">
+                    <value><![CDATA[
+    (: assumption: if import of web client / http client is present, parallelStreaming is for remote calls :)
+    //ImportDeclaration/Name[starts-with(@Image, 'org.springframework.web.client') or starts-with(@Image, 'org.apache.commons.httpclient')]/
+    ancestor::CompilationUnit//PrimaryExpression
+    [(PrimarySuffix/@Image='parallelStream' or ends-with(PrimaryPrefix/Name/@Image, 'parallelStream')
+    and exists(PrimarySuffix/pmd-java:typeIs('java.util.stream.Stream'))
+    and not(ancestor::Block//StatementExpression/PrimaryExpression/PrimaryPrefix/Name[ends-with(@Image, '.submit') and pmd-java:typeIs('java.util.concurrent.ExecutorService')]))
+    ]
+    ]]>
+                    </value>
+                </property>
+            </properties>
+            <example>
+                <![CDATA[
+    import java.util.concurrent.*;
+    import java.util.stream.*;
+    import java.util.*;
+    import org.springframework.web.client.RestTemplate;
+
+    public class Foo {
+        final List<String> list = new ArrayList();
+        final ForkJoinPool myFjPool = new ForkJoinPool(10);
+        final ExecutorService myExePool = Executors.newFixedThreadPool(10);
+
+        void bad1() {
+            list.parallelStream().forEach(elem -> storeDataRemoteCall(elem));
+        }
+
+        void good1() {
+            CompletableFuture[] futures = list.stream().map(elem -> CompletableFuture.supplyAsync(() -> storeDataRemoteCall(elem), myExePool))
+                    .toArray(CompletableFuture[]::new);
+            CompletableFuture.allOf(futures).get(10, TimeUnit.MILLISECONDS));
+        }
+
+        void good2() throws ExecutionException, InterruptedException {
+            myFjPool.submit(() ->
+                    list.parallelStream().forEach(elem -> storeDataRemoteCall(elem))
+            ).get();
+        }
+
+        String storeDataRemoteCall(String elem) {
+            // do remote call, blocking. We don't use the returned value.
+            RestTemplate tmpl;
+            return "";
+        }
+    }
+    ]]>
+            </example>
+        </rule>
+
+        <rule name="AvoidUserDataInSharedObjects" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
+              message="Do *not* use user data in shared objects, it causes user data mix-up."
+              typeResolution="true"
+              externalInfoUrl="${doc_root}/JavaCodeQuality.md#ssc03">
+            <description>The name of the field indicates user data. Problem: the field will be shared among users. If it is different data for each user, it can mix-up: a user may access data of another user, this is really bad.&#13;
+                Solution: Do *not* put the user related data in a shared object e.g. by Spring @Component annotation. Use a POJO. Or, if it is not user data, rename the field. (jpinpoint-rules)</description>
+            <priority>1</priority>
+            <properties>
+                <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+                <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
+                <property name="tag" value="correctness" type="String" description="for-sonar"/>
+                <property name="tag" value="suspicious" type="String" description="for-sonar"/>
+                <property name="tag" value="data-mix-up" type="String" description="for-sonar"/>
+                <property name="version" value="2.0"/>
+                <property name="xpath">
+                    <value><![CDATA[
+    //TypeDeclaration/Annotation//Name[(@Image='Component' or @Image='Service' or @Image='Controller' or @Image='RestController' or @Image='Repository' or
+    (@Image='Singleton' and ancestor::TypeDeclaration/Annotation/NormalAnnotation/MemberValuePairs//Name[@Image='ConcurrencyManagementType.BEAN']))
+    and not (ancestor::TypeDeclaration/Annotation//Name[@Image='Scope']/..//PrimaryPrefix[Literal[@Image='"request"' or @Image='"prototype"']
+    or Name[@Image='ConfigurableBeanFactory.SCOPE_REQUEST' or @Image='ConfigurableBeanFactory.SCOPE_PROTOTYPE']])
+    and not (ancestor::TypeDeclaration/Annotation//Name[@Image='RequestScope'])
+    (: no checking if @ConfigurationProperties and no @Setter :)
+    and not ((ancestor::TypeDeclaration/Annotation//Name[@Image='ConfigurationProperties'])
+             and not (ancestor::TypeDeclaration/Annotation/MarkerAnnotation/Name[@Image='Setter']))]
+    /ancestor::TypeDeclaration//ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Final=false() and @Static=false()][Type/ReferenceType][ancestor::ClassOrInterfaceDeclaration[1][@Static=false()]]/VariableDeclarator/VariableDeclaratorId[matches(@Name,
+    'User[Id|Ref|Reference]*$|Customer[Id|Ref|Reference]*$|Session[Id|Ref|Reference]*$|Order[Id|Ref|Reference|List]*$|Account[Id|Ref|Reference|List]*$|Transaction[Id|Ref|Reference|List]*$|Contract[Id|Ref|Reference|List]*$', 'i')]
+    ]]>
+                    </value>
+                </property>
+            </properties>
+            <example>
+                <![CDATA[
+    @Component
+    @Data
+    public class VMRData {
+        private String channel;
+        private String vmrId;
+        private List<OrderDetails> orderList; // bad
+        private Headers headers;
+        private List<OrderReference> ordersRequiringAdditionalSignature;
+        private String authUser; // bad
+        private String executionDate;
+        private String minimumLevel;
+        private String sessionId; // bad
+        private String payloadData;
+        private String vmrUserId; // bad
+        private String userref; // bad
+        private String customerReference; // bad
+        private String contract; // bad
+    }
+
+    @Component
+    @Setter
+    @Getter
+     class VMROrderDetails {
+        private static final String DESC_OF_ORDER = "order details"; // ok
+        private final VMROrderDetails finalOrder = new VMROrderDetails(); // ok
+        private OrderReference orderReference; // bad
+        private Account originatorAccount; // bad
+        private Amount amount;
+        private String action;
+        private List<CancellationHistory> cancellationHistories;
+        private String modifyType;
+        private String order; // bad
+        private String transactionRef; // bad
+    }
+
+    ]]>
+            </example>
+        </rule>
+
+        <rule name="AvoidParallelStreamWithCommonPool" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
+              message="Beware: parallelStream with the common pool is rarely a good choice."
+              typeResolution="true"
+              externalInfoUrl="${doc_root}/JavaCodePerformance.md#ia11">
+            <description>Problem: Collection.parallelStream uses the common pool, with #threads = #CPUs - 1. It is designed to distribute much CPU work over the cores. It is not for remote calls or other blocking calls.
+                In addition, parallelizing has overhead and risks, should only be used for much pure CPU processing.&#13;
+                Solution: For remote/blocking calls: Use a dedicated thread pool with enough threads to get proper parallelism independent of the number of cores.
+                For pure CPU processing: use ordinary sequential streaming unless the work takes more than about 0,1 ms in sequential form and proves to be faster with parallelization.
+                So only for large collections and much processing without having to wait.   (jpinpoint-rules)</description>
+            <priority>2</priority>
+            <properties>
+                <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+                <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
+                <property name="tag" value="performance" type="String" description="for-sonar"/>
+                <property name="tag" value="unpredictable" type="String" description="for-sonar"/>
+                <property name="version" value="2.0"/>
+                <property name="xpath">
+                    <value><![CDATA[
+    //PrimaryExpression/(PrimarySuffix[@Image='parallelStream' or @Image='parallel']|PrimaryPrefix/Name[ends-with(@Image, '.parallelStream') or ends-with(@Image, '.parallel')])
+    (: and exists(PrimarySuffix[pmd-java:typeIs('java.util.stream.Stream')]) - with 'var' type is lost in typeIs :)
+    (: no arguments :)
+    [following::PrimarySuffix[1][@ArgumentCount = 0]]
+    [not(ancestor::Block//StatementExpression/PrimaryExpression/PrimaryPrefix/Name[ends-with(@Image, '.submit') and pmd-java:typeIs('java.util.concurrent.ExecutorService')])]
+    ]]>
+                    </value>
+                </property>
+            </properties>
+            <example>
+                <![CDATA[
+    import java.util.*;
+    import java.util.concurrent.*;
+    import java.util.stream.*;
+
+    public class Foo {
+        final Map<String, String> map = new HashMap();
+        final List<String> list = new ArrayList();
+        final List<String> hugeList = new ArrayList(); //1000+ elements
+        final ForkJoinPool myFjPool = new ForkJoinPool(10);
+        final ExecutorService myExePool = Executors.newFixedThreadPool(10);
+
+        void bad1() {
+            list.parallelStream().forEach(elem -> someCall(elem)); //bad
+        }
+        void bad2() {
+            map.entrySet().parallelStream().forEach(entry -> someCall(entry.getValue())); //bad
+        }
+        void exceptionalProperUse() {
+           hugeList.parallelStream().forEach(elem -> heavyCalculations(elem)); //flagged but may be good, should suppress when proven to be faster than sequential form
+        }
+
+        void good1() {
+            CompletableFuture[] futures = list.stream().map(elem -> CompletableFuture.supplyAsync(() -> someCall(elem), myExePool))
+                    .toArray(CompletableFuture[]::new);
+            CompletableFuture.allOf(futures).get(3, TimeUnit.SECONDS);
+        }
+        void good2() throws ExecutionException, InterruptedException {
+            myFjPool.submit(() ->
+                    list.parallelStream().forEach(elem -> someCall(elem))
+            ).get();
+        }
+
+        String someCall(String elem) {
+            // do some call, don't know if remote or blocking. We don't use the returned value.
+            return "";
+        }
+
+        String heavyCalculations(String elem) {
+            // calculate a lot
+            return "";
+        }
+    }
+    ]]>
+            </example>
+        </rule>
+
+        <rule name="AvoidParallelFlux"
+              message="Avoid dividing the data and parallel processing because this is typically slower."
+              class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+              dfa="false"
+              language="java"
+              typeResolution="true"
+              externalInfoUrl="${doc_root}/JavaCodePerformance.md#ia12">
+            <description>Problem: With Reactor Flux.parallel.runOn, the data is divided on a number of 'rails' matching the number of CPU cores.
+                This is only useful in case much CPU processing is performed: if the sequential form takes more than 0,1 ms of CPU time.
+                With remote calls this is usually not the case. In addition, it introduces more complexity with risk of failures.&#13;
+                Solution: Remove parallel().runOn. Unless the CPU work takes more than 0,1 ms in sequential form and proves to be faster with parallelization.
+                So only for large collections and much CPU processing.
+                (jpinpoint-rules)</description>
+            <priority>2</priority>
+            <properties>
+                <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+                <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
+                <property name="tag" value="performance" type="String" description="for-sonar"/>
+                <property name="tag" value="bad-practice" type="String" description="for-sonar"/>
+                <property name="version" value="2.0"/>
+                <property name="xpath">
+                    <value><![CDATA[
+    //PrimaryExpression/PrimarySuffix[@Image='parallel' and ../PrimaryPrefix/Name[@Image = 'Flux.fromIterable']
+    and //ImportDeclaration/Name[starts-with(@Image, 'reactor.core.publisher')]]
+                    ]]></value>
+                </property>
+            </properties>
+            <example>
+                <![CDATA[
+    import reactor.core.publisher.*;
+
+    class FooBad {
+        public Flux<Account> getResponseAccounts(List<AccountKey> accountKeys, List<FieldName> requestedFields) {
+            return Flux.fromIterable(accountKeys)
+                    .parallel(schedulerProperties.getParallelism()) //bad
+                    .runOn(scheduler)
+                    .flatMap(accountKey -> constructAccountDetails(accountKey, requestedFields))
+                    .sequential();
+        }
+    }
+
+    class FooGood {
+        public Flux<Account> getResponseAccounts(List<AccountKey> accountKeys, List<FieldName> requestedFields) {
+            return Flux.fromIterable(accountKeys)
+                    .flatMap(accountKey -> constructAccountDetails(accountKey, requestedFields));
+        }
+    }
+                ]]>
+            </example>
+        </rule>
+
+        <rule name="AvoidMDCInReactor"
+              message="Avoid using MDC with Reactor."
+              class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+              dfa="false"
+              language="java"
+              typeResolution="true"
+              externalInfoUrl="${doc_root}/JavaCodePerformance.md#ia13">
+            <description>Problem: Mapped Diagnostic Context (MDC) of logging frameworks uses ThreadLocals to store things like traceIds from headers, userId, correlationId.
+                Reactive programming uses multiple threads to handle a request, and one thread can deal with asynchronous steps of many requests.
+                Therefore, MDC is tricky to use in reactive context and may take much processing time to propagate, likely so for much data in the MDC.&#13;
+                Solution: Propagate by use of deferContextual and use directly from the Context only when and where needed. Avoid MDC propagation mechanisms.
+                (jpinpoint-rules)</description>
+            <priority>2</priority>
+            <properties>
+                <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+                <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
+                <property name="tag" value="performance" type="String" description="for-sonar"/>
+                <property name="version" value="2.0"/>
+                <property name="xpath">
+                    <value><![CDATA[
+    //PrimaryExpression/PrimaryPrefix/Name[@Image='MDC.setContextMap' and
+    (ancestor::MethodDeclaration/ResultType/Type[@TypeImage='Flux' or TypeImage='Mono']
+    or ancestor::MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter[pmd-java:typeIs('reactor.util.context.Context')])]
+                    ]]></value>
+                </property>
+            </properties>
+            <example>
+                <![CDATA[
+    import reactor.core.publisher.*;
+    import reactor.util.context.Context;
+    import org.slf4j.MDC;
+    import net.logstash.logback.argument.StructuredArguments;
+
+    class FooBad {
+      public Flux<ServerResponse> doIt(Map<String,String> contextMap) {
+          return Flux.fromIterable(service.doWork())
+              .doOnNext(s -> MDC.setContextMap(contextMap))
+              .doOnNext(
+                  response -> {
+                      log.info("your log"); // includes trace ids from MDC, put in a ServletFilter, specified by log configuration
+              });
+          }
+    }
+
+    class FooGood {
+        public Flux<ServerResponse> doIt() {
+            // using deferContextual gives access to the read-only ContextView created in the ContextFilter
+            return Flux.deferContextual(contextView -> service.doWork()
+                .doOnNext(response -> {
+                    log.info("your log", StructuredArguments.entries((Map)contextView));
+                }));
+        }
+    }
+                ]]>
+            </example>
+        </rule>
+
+        <rule name="AvoidReactorOnEachOperator"
+              message="Avoid using Reactor Hooks.onEachOperator."
+              class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+              dfa="false"
+              language="java"
+              typeResolution="true"
+              externalInfoUrl="${doc_root}/JavaCodePerformance.md#ia14">
+            <description>Problem: Using Reactor Hooks.onEachOperator means executing the code on every operator in the Reactor flow, for every element. This typically means much processing time.&#13;
+                Solution: Just do processing when and where actually needed. (jpinpoint-rules)</description>
+            <priority>2</priority>
+            <properties>
+                <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+                <property name="tag" value="performance" type="String" description="for-sonar"/>
+                <property name="version" value="2.0"/>
+                <property name="xpath">
+                    <value><![CDATA[
+    //StatementExpression/PrimaryExpression/PrimaryPrefix/Name[@Image='Hooks.onEachOperator']
+                    ]]></value>
+                </property>
+            </properties>
+            <example>
+                <![CDATA[
+    import reactor.core.publisher.*;
+
+    @Configuration
+    public class FooBad {
+        private String MDC_CONTEXT_REACTOR_KEY = "CONTEXT";
+        @PostConstruct
+        private void contextOperatorHook() {
+            Hooks.onEachOperator(MDC_CONTEXT_REACTOR_KEY,
+                    Operators.lift((scannable, coreSubscriber) -> new MdcContextLifter<>(coreSubscriber))
+            );
+        }
+    }
+                ]]>
+            </example>
+        </rule>
+
+        <rule name="AvoidExecutorInvokeWithoutTimeout"
+              message="Avoid using ExecutorService::invokeAll or invokeAny without a timeout."
+              class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+              dfa="false"
+              language="java"
+              typeResolution="true"
+              externalInfoUrl="${doc_root}/JavaCodePerformance.md#ia15">
+            <description>Problem: Stalls indefinitely in case of stalled Callable(s) and consumes threads.&#13;
+                Solution: Provide a timeout to the invokeAll/invokeAny method and handle the timeout. (jpinpoint-rules)</description>
+            <priority>2</priority>
+            <properties>
+                <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+                <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
+                <property name="tag" value="performance" type="String" description="for-sonar"/>
+                <property name="version" value="2.0"/>
+                <property name="xpath">
+                    <value><![CDATA[
+    //PrimaryExpression[PrimarySuffix[@ArgumentCount=1]]/PrimaryPrefix
+    [pmd-java:typeIs('java.util.concurrent.ExecutorService') and ./Name[ends-with(@Image,'.invokeAll') or ends-with(@Image,'.invokeAny')]]
+    /../PrimarySuffix//ArgumentList
+                    ]]></value>
+                </property>
+            </properties>
+            <example>
+                <![CDATA[
+    import java.util.concurrent.*;
+
+    class Foo {
+        private List<Future<ServiceResult>> executeTasksBad(Collection<Callable<ServiceResult>> tasks, ExecutorService executor) throws Exception {
+            return executor.invokeAll(tasks); // bad, no timeout
+        }
+        private List<Future<ServiceResult>> executeTasksGood(Collection<Callable<ServiceResult>> tasks, ExecutorService executor) throws Exception {
+            return executor.invokeAll(tasks, OUR_TIMEOUT_IN_MILLIS, TimeUnit.MILLISECONDS); // good
+        }
+    }
+                ]]>
+            </example>
+        </rule>
+    -->
+
 </ruleset>
-
-

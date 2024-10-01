@@ -6,7 +6,7 @@
     <test-code>
         <description>Avoid unguarded mutable (found mutated) inherited fields in shared objects</description>
         <expected-problems>4</expected-problems>
-        <expected-linenumbers>16, 21,22,23</expected-linenumbers>
+        <expected-linenumbers>21, 26,27,30</expected-linenumbers>
         <code><![CDATA[
 package com.jpinpoint.tryout;
 
@@ -14,23 +14,30 @@ import org.springframework.stereotype.Component;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Date;
+import org.springframework.web.bind.annotation.RestController;
+import com.google.common.annotations.VisibleForTesting;
+import org.springframework.beans.factory.annotation.Autowired;
 
 @Component
 public class MutateInheritedFieldTryout extends SynchronizedTryout {
-    final Map mapField = getMap();
+    final Map mapField = getMap(); // found by other rule
+    private String removed; // found by other rule
 
     public String getDateString() {
         return date.toString();
     }
     public void mutateDateBad() {
-        date.setTime(100); //bad 1
+        date.setTime(100); // bad - 20
     }
 
     public void mutateMap(String key, String val) {
         Collections.sort(null);
-        map.clear(); //bad 2
-        map.put(key, val); //bad 3
-        map.remove("invalidKey"); //bad 4
+        map.clear(); // bad - 25
+        if (map.put(key, val)) { // bad - 26
+           removed = "";
+        }
+        removed = map.remove("invalidKey"); // bad - 29
     }
     public Object readMap(String key) {
         return map.get(key);
@@ -49,21 +56,52 @@ public class MutateInheritedFieldTryout extends SynchronizedTryout {
         map.put(key, val); // good, local map shadows inherited field
     }
 }
+
+class SynchronizedTryout {
+    protected final Date date;
+    protected final Map map;
+}
         ]]></code>
     </test-code>
     <test-code>
-        <description>Avoid unguarded mutable (found mutated) inherited fields in shared objects: @RestController</description>
+        <description>Avoid unguarded mutable (found mutated) inherited fields in shared objects: @RestController and exceptions</description>
         <expected-problems>1</expected-problems>
-        <expected-linenumbers>7</expected-linenumbers>
+        <expected-linenumbers>11</expected-linenumbers>
         <code><![CDATA[
 package com.jpinpoint.tryout;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.beans.factory.annotation.Autowired;
+import com.google.common.annotations.VisibleForTesting;
+import java.util.Map;
 
 @RestController
-public class MutateInheritedFieldTryout extends SynchronizedTryout {
+public class MutateInheritedFieldTryoutController extends SynchronizedTryout {
 
     public void mutateMap(String key, String val) {
-        map.put(key, val); //bad
+        map.put(key, val); // bad
     }
+
+    @Component
+    static class StaticClass extends SynchronizedTryout {
+        String test = map.remove("key"); // assume good: static class
+        public StaticClass() {
+            map.put("key"); // assume good: static class
+        }
+    }
+
+    @VisibleForTesting
+    void prepareTest() {
+        map.put("key","value"); // good, for testing
+    }
+
+    @Autowired
+    void setMap(String key) {
+        map.put(key,"value"); // good, framework annotated
+    }
+}
+
+class SynchronizedTryout {
+    protected final Map map;
 }
         ]]></code>
     </test-code>

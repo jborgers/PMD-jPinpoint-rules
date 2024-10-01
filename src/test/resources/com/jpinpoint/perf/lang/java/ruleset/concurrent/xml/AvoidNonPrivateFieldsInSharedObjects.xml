@@ -6,8 +6,12 @@
     <test-code>
         <description>Avoid non-final non-private fields in shared objects. Shared object.</description>
         <expected-problems>4</expected-problems>
-        <expected-linenumbers>4,5,6,8</expected-linenumbers>
+        <expected-linenumbers>8,9,10,12</expected-linenumbers>
         <code><![CDATA[
+import org.springframework.stereotype.Controller;
+import org.springframework.beans.factory.annotation.Autowired;
+import java.util.List;
+
 @Controller
 public class RootController {
 
@@ -17,6 +21,9 @@ public class RootController {
     final List baskets4; // good, final
     static List baskets5; // bad, static not private
     static final List baskets6; // good, static
+    private List baskets7; // good
+    @Autowired
+    List baskets8; // allowed
 
     @Autowired
     void setBaskets(List baskets) {
@@ -24,12 +31,14 @@ public class RootController {
         log.debug("bla {}", bla.toString());
     }
 }
-        ]]></code>
+       ]]></code>
     </test-code>
     <test-code>
         <description>Avoid non-final non-private fields in shared objects. Not a shared object.</description>
         <expected-problems>0</expected-problems>
         <code><![CDATA[
+import java.util.List;
+
 public class RootController {
     List baskets; // good, not a shared object
 }
@@ -39,6 +48,10 @@ public class RootController {
         <description>Avoid non-final non-private fields in shared objects. Shared object, but NotThreadSafe.</description>
         <expected-problems>0</expected-problems>
         <code><![CDATA[
+import org.springframework.stereotype.Controller;
+import net.jcip.annotations.NotThreadSafe;
+import java.util.List;
+
 @Controller
 @NotThreadSafe
 public class RootController {
@@ -50,6 +63,9 @@ public class RootController {
         <description>Avoid non-final non-private fields in shared objects. Also in inner classes.</description>
         <expected-problems>0</expected-problems>
         <code><![CDATA[
+import org.springframework.stereotype.Controller;
+import java.util.List;
+
 @Controller
 public class RootController {
     private static class Sub {
@@ -66,6 +82,10 @@ public class RootController {
         <description>Avoid non-final non-private fields in shared objects. Not for injected fields, Issue #268</description>
         <expected-problems>0</expected-problems>
         <code><![CDATA[
+import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.annotation.Autowired;
+import my.app.*;
+
 @Component
 public abstract class Issue268 implements Strategy {
 

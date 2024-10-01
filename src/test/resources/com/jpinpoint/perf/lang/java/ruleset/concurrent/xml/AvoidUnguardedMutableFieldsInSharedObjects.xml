@@ -6,10 +6,11 @@
     <test-code>
         <description>Avoid unguarded mutable fields in shared objects</description>
         <expected-problems>6</expected-problems>
-        <expected-linenumbers>83,93,131,154,314,334</expected-linenumbers>
+        <expected-linenumbers>91,101,139,162,322,342</expected-linenumbers>
         <code><![CDATA[
 import com.google.common.annotations.VisibleForTesting;
 import lombok.Data;
+import lombok.Setter;
 import net.jcip.annotations.GuardedBy;
 import net.jcip.annotations.NotThreadSafe;
 import org.slf4j.Logger;
@@ -21,20 +22,30 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Scope;
+import org.springframework.context.annotation.RequestScope;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.annotation.RequestScope;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
-import javax.ejb.*;
+
+import javax.ejb.ConcurrencyManagement;
+import javax.ejb.ConcurrencyManagementType;
+import javax.ejb.Singleton;
+import javax.ejb.EJB;
+
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
+
+import java.util.Date;
+import java.util.HashMap;
 
 //import javax.inject.Inject;
 import static org.springframework.context.annotation.ScopedProxyMode.INTERFACES;
@@ -42,9 +53,6 @@ import static org.springframework.context.annotation.ScopedProxyMode.TARGET_CLAS
 import static org.springframework.web.context.WebApplicationContext.SCOPE_APPLICATION;
 
 
-/**
- * Created by BorgersJM on 25-4-2017.
- */
 public class AvoidUnguardedAssignmentToNonFinalFieldsInSharedObjectsTest {
 
 }
@@ -61,8 +69,8 @@ class AService1 {
     private String url; // violation on next line, of additional unguarded accessor method
 
     public void setUrlViolate(final String url) {
-        this.url = url;
-    } // violation: unguarded accessor method
+        this.url = url; // bad: unguarded accessor method TODO
+    }
 }
 
 // the same for @Singleton, yet only in case ConcurrencyManagementType.BEAN
@@ -76,8 +84,8 @@ class ASingletonContainer {
     private String url; //
 
     public void setUrlOK(final String url) {
-        this.url = url;
-    } // OK: container manages thread-safety
+        this.url = url; // good: container manages thread-safety
+    }
 
 }
 
@@ -90,7 +98,7 @@ class ASingletonBean {
     //private String stringOk = new String(); // same
     private final String string3Ok = new String(); //
 
-    private String url; // bad
+    private String url; // bad - 91
 
     public void setUrlViolate(final String url) {
         this.url = url;
@@ -100,10 +108,10 @@ class ASingletonBean {
 @Component
 @Scope(value = SCOPE_APPLICATION, proxyMode = TARGET_CLASS)
 class AComponent2 {
-    private String _url; // bad
-    public void setUrlViolate(final String url) {
+    private String _url; // bad, unguarded accessor method - 101
+    public void setUrlBad(final String url) {
         _url = url;
-    } // violation: unguarded accessor method
+    }
 }
 
 @Component
@@ -138,7 +146,7 @@ class AComponent5_Ok {
 
 @Component
 class AnotherComponent {
-    private String url; // bad
+    private String url; // bad - 139
     private volatile String volatileOk;
     private String wiredOk;
 
@@ -161,7 +169,7 @@ class AnotherComponent {
 @Scope(value = WebApplicationContext.SCOPE_SESSION, proxyMode = INTERFACES)
         // sessions need to be thread safe, too; they are shared among threads
 class ASessionScopedComponent {
-    private String _url; // bad
+    private String _url; // bad - 162
     public void setUrlViolate(final String url) {
         _url = url;
     } // violation: unguarded accessor method
@@ -321,7 +329,7 @@ class BbEventSender {
 @ConcurrencyManagement(value = ConcurrencyManagementType.BEAN)
 class APayRequestOutSender {
     private int databaseQueryMaxResultsOk;
-    private int databaseQueryMaxResultsViolation; // bad
+    private int databaseQueryMaxResultsViolation; // bad - 322
 
     @PostConstruct
     private void postConstruct() {
@@ -341,7 +349,7 @@ class APayRequestOutSender {
 @Service("InitializeRCDCTaskletViolate")
 abstract class AInitializeTaskletViolate implements Tasklet, InitializingBean {
     // Work directory for this instance only.
-    protected String workDirectoryViolate; // bad
+    protected String workDirectoryViolate; // bad - 342
     public void setWorkDirectory(final String workDirectory) {
         this.workDirectoryViolate = workDirectory;
     }
@@ -385,16 +393,18 @@ class Foo {
     String CONTEXT_PARAMETERS_BEAN_NAME = "contextParameters";
     String CONTEXT_ATTRIBUTES_BEAN_NAME = "contextAttributes";
 */
-
-    ]]></code>
+       ]]></code>
     </test-code>
 
     <test-code>
         <description>Avoid unguarded mutable fields in shared objects, fields of known mutable types initialized in constructor</description>
         <expected-problems>4</expected-problems>
-        <expected-linenumbers>4,5, 10,11</expected-linenumbers>
+        <expected-linenumbers>7,8, 13,14</expected-linenumbers>
         <code><![CDATA[
-    import java.util.*;
+import java.util.*;
+import org.springframework.stereotype.Component;
+import net.jcip.annotations.GuardedBy;
+
 @Component
 class Bad {
     private Map<String, String> map1 = new HashMap<>(); // bad, reference and map is mutable
@@ -403,7 +413,7 @@ class Bad {
     @GuardedBy("this")
     private Map<String, String> map4 = new HashMap<>(); // good, guarded
 
-    private Map<String, String> mapCtor1; // bad, reference and map is mutable
+    private Map<String, String> mapCtor1; // bad, reference and map is mutable - 13
     private final Map<String, String> mapCtor2; // bad, constructed with known mutable type
     private final Map<String, String> mapCtor3; // good, concurrenthashmap is thread-safe
     @GuardedBy("this")
@@ -422,9 +432,12 @@ class Bad {
     <test-code>
         <description>Avoid unguarded mutable fields in shared objects: @RestController</description>
         <expected-problems>4</expected-problems>
-        <expected-linenumbers>4,5, 10,11</expected-linenumbers>
+        <expected-linenumbers>7,8, 13,14</expected-linenumbers>
         <code><![CDATA[
-    import java.util.*;
+import java.util.*;
+import org.springframework.web.bind.annotation.RestController;
+import net.jcip.annotations.GuardedBy;
+
 @RestController
 class Bad {
     private Map<String, String> map1 = new HashMap<>(); // bad, reference and map is mutable
@@ -453,6 +466,10 @@ class Bad {
         <description>Avoid unguarded mutable fields in shared objects: @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE) issue #147</description>
         <expected-problems>0</expected-problems>
         <code><![CDATA[
+import org.springframework.context.annotation.Scope;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.stereotype.Component;
+
 @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Component
 public class Foo {
