@@ -1159,7 +1159,7 @@ public class Good {
                 ]]>
             </example>
         </rule>
-    <!--
+
         <rule name="AvoidFutureJoinWithoutTimeout"
               message="Avoid future.join without timeout"
               class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
@@ -1170,37 +1170,28 @@ public class Good {
                 (jpinpoint-rules)</description>
             <priority>1</priority>
             <properties>
-                <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-                <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
-                <property name="tag" value="performance" type="String" description="for-sonar"/>
-                <property name="version" value="2.0"/>
+                <property name="tags" value="jpinpoint-rule,multi-threading,performance" type="String" description="classification"/>
                 <property name="xpath">
                     <value>
                         <![CDATA[
-    (: future.join method reference without timeout in method :)
-    //PrimaryExpression/PrimaryPrefix[pmd-java:typeIs('java.util.concurrent.Future')
-    and not(ancestor::BlockStatement/preceding-sibling::BlockStatement//PrimaryPrefix/Name[ends-with(@Image, '.get') or ends-with(@Image, 'Timeout')][../../PrimarySuffix//ArgumentList])
-    and not (ancestor::BlockStatement/preceding-sibling::BlockStatement//PrimarySuffix[ends-with(@Image, 'Timeout')])
-    ]
-    /../PrimarySuffix//MethodReference[@Image='join']
-    ,
-    (: future.join in lambda without timeout in method :)
-    //PrimaryExpression/PrimaryPrefix/LambdaExpression//Name[ends-with(@Image, '.join')
-    and not(ancestor::BlockStatement/preceding-sibling::BlockStatement//PrimaryPrefix[pmd-java:typeIs('java.util.concurrent.Future')]
-    /Name[ends-with(@Image, '.get') or ends-with(@Image, 'Timeout')][../../PrimarySuffix//ArgumentList])
-    and not (ancestor::BlockStatement/preceding-sibling::BlockStatement//PrimarySuffix[ends-with(@Image, 'Timeout')])
-    ]
-    (: join has no arguments, #198 :)
-    [../../PrimarySuffix/Arguments[@Size=0]]
-    ,
-    (: CompletableFuture.allOf(futures).join() without timeout :)
-    //PrimaryExpression/PrimaryPrefix[pmd-java:typeIs('java.util.concurrent.Future')]/../PrimarySuffix[@Image='join'
-    (: not bad if has a future.get with (timeout) arguments before the future.join, #300 :)
-    and not(ancestor::BlockStatement/preceding-sibling::BlockStatement//PrimaryExpression[PrimarySuffix/Arguments/ArgumentList]
-    /PrimaryPrefix[pmd-java:typeIs('java.util.concurrent.Future')]/Name[ends-with(@Image, '.get') or ends-with(@Image, 'Timeout')])
-    and not (../PrimarySuffix[ends-with(@Image, 'Timeout')])]
-    (: join has no arguments, #198 :)
-    [../PrimarySuffix/Arguments[@Size=0]]
+(: future.join method reference without timeout in method :)
+//MethodCall[pmd-java:matchesSig('java.util.concurrent.Future#join()') and
+ not (..//preceding-sibling::*[descendant-or-self::MethodCall[
+               pmd-java:matchesSig('java.util.concurrent.Future#get(long,java.util.concurrent.TimeUnit)')
+               or pmd-java:matchesSig('java.util.concurrent.Future#orTimeout(long,java.util.concurrent.TimeUnit)')
+               or pmd-java:matchesSig('java.util.concurrent.Future#completeOnTimeout(_,long,java.util.concurrent.TimeUnit)')
+             ]]
+      )
+]
+,
+//MethodReference[@MethodName='join' and
+ not (../../../../..//preceding-sibling::*[descendant-or-self::MethodCall[
+               pmd-java:matchesSig('java.util.concurrent.Future#get(long,java.util.concurrent.TimeUnit)')
+               or pmd-java:matchesSig('java.util.concurrent.Future#orTimeout(long,java.util.concurrent.TimeUnit)')
+               or pmd-java:matchesSig('java.util.concurrent.Future#completeOnTimeout(_,long,java.util.concurrent.TimeUnit)')
+             ]]
+     )
+]
     ]]>
                     </value>
                 </property>
@@ -1232,7 +1223,7 @@ public class Good {
                 ]]>
             </example>
         </rule>
-
+    <!--
         <rule name="AvoidCommonPoolForFutureAsync"
               message="Avoid using the common thread pool for future.supplyAsync, use a separate pool."
               class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
