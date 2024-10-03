@@ -1317,7 +1317,7 @@ public class Good {
     ]]>
             </example>
         </rule>
-    <!--
+
         <rule name="AvoidUserDataInSharedObjects" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
               message="Do *not* use user data in shared objects, it causes user data mix-up."
               typeResolution="true"
@@ -1326,26 +1326,43 @@ public class Good {
                 Solution: Do *not* put the user related data in a shared object e.g. by Spring @Component annotation. Use a POJO. Or, if it is not user data, rename the field. (jpinpoint-rules)</description>
             <priority>1</priority>
             <properties>
-                <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-                <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
-                <property name="tag" value="correctness" type="String" description="for-sonar"/>
-                <property name="tag" value="suspicious" type="String" description="for-sonar"/>
-                <property name="tag" value="data-mix-up" type="String" description="for-sonar"/>
-                <property name="version" value="2.0"/>
+                <property name="tag" value="jpinpoint-rule,multi-threading,correctness,suspicious,data-mix-up" type="String" description="classification"/>
                 <property name="xpath">
                     <value><![CDATA[
-    //TypeDeclaration/Annotation//Name[(@Image='Component' or @Image='Service' or @Image='Controller' or @Image='RestController' or @Image='Repository' or
-    (@Image='Singleton' and ancestor::TypeDeclaration/Annotation/NormalAnnotation/MemberValuePairs//Name[@Image='ConcurrencyManagementType.BEAN']))
-    and not (ancestor::TypeDeclaration/Annotation//Name[@Image='Scope']/..//PrimaryPrefix[Literal[@Image='"request"' or @Image='"prototype"']
-    or Name[@Image='ConfigurableBeanFactory.SCOPE_REQUEST' or @Image='ConfigurableBeanFactory.SCOPE_PROTOTYPE']])
-    and not (ancestor::TypeDeclaration/Annotation//Name[@Image='RequestScope'])
-    (: no checking if @ConfigurationProperties and no @Setter :)
-    and not ((ancestor::TypeDeclaration/Annotation//Name[@Image='ConfigurationProperties'])
-             and not (ancestor::TypeDeclaration/Annotation/MarkerAnnotation/Name[@Image='Setter']))]
-    /ancestor::TypeDeclaration//ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Final=false() and @Static=false()][Type/ReferenceType][ancestor::ClassOrInterfaceDeclaration[1][@Static=false()]]/VariableDeclarator/VariableDeclaratorId[matches(@Name,
-    'User[Id|Ref|Reference]*$|Customer[Id|Ref|Reference]*$|Session[Id|Ref|Reference]*$|Order[Id|Ref|Reference|List]*$|Account[Id|Ref|Reference|List]*$|Transaction[Id|Ref|Reference|List]*$|Contract[Id|Ref|Reference|List]*$', 'i')]
-    ]]>
-                    </value>
+(: annotations that make singleton like components in Spring and EJB :)
+//ClassDeclaration[
+  (
+       pmd-java:hasAnnotation('org.springframework.stereotype.Service')
+    or pmd-java:hasAnnotation('org.springframework.stereotype.Component')
+    or pmd-java:hasAnnotation('org.springframework.stereotype.Controller')
+    or pmd-java:hasAnnotation('org.springframework.stereotype.Repository')
+    or pmd-java:hasAnnotation('org.springframework.web.bind.annotation.RestController')
+    or (pmd-java:hasAnnotation('javax.ejb.Singleton') and ModifierList/Annotation[pmd-java:typeIs('javax.ejb.ConcurrencyManagement')]/AnnotationMemberList/MemberValuePair/FieldAccess[./TypeExpression[pmd-java:typeIs('javax.ejb.ConcurrencyManagementType')] and @Name="BEAN"])
+    or (pmd-java:hasAnnotation('jakarta.ejb.Singleton') and ModifierList/Annotation[pmd-java:typeIs('jakarta.ejb.ConcurrencyManagement')]/AnnotationMemberList/MemberValuePair/FieldAccess[./TypeExpression[pmd-java:typeIs('jakarta.ejb.ConcurrencyManagementType')] and @Name="BEAN"])
+    (: only check if @ConfigurationProperties *and* @Setter :)
+    or (pmd-java:hasAnnotation('org.springframework.boot.context.properties.ConfigurationProperties') and pmd-java:hasAnnotation('lombok.Setter'))
+   )
+   (: no @RequestScope annotation :)
+   and not (pmd-java:hasAnnotation('org.springframework.context.annotation.Scope') and .//AnnotationMemberList/MemberValuePair[
+       StringLiteral[contains(@Image,'request') or contains(@Image,'prototype')]
+       or FieldAccess[@Name='SCOPE_REQUEST' or @Name='SCOPE_PROTOTYPE']/TypeExpression[pmd-java:typeIs('org.springframework.beans.factory.config.ConfigurableBeanFactory')]]
+    )
+   (: no request or prototype @Scope, literal or via constant :)
+   and not(pmd-java:hasAnnotation('org.springframework.web.context.annotation.RequestScope'))
+]
+(: no final or static fields, and not fields in static inner classes and no primitives :)
+//FieldDeclaration[not(
+                     pmd-java:modifiers()=('static','final')
+                     or ancestor::ClassDeclaration[pmd-java:modifiers()='static']
+                     or ./PrimitiveType
+                   )
+   ]/VariableDeclarator/VariableId[
+     matches(
+         @Name,
+         'User[Id|Ref|Reference]*$|Customer[Id|Ref|Reference]*$|Session[Id|Ref|Reference]*$|Order[Id|Ref|Reference|List]*$|Account[Id|Ref|Reference|List]*$|Transaction[Id|Ref|Reference|List]*$|Contract[Id|Ref|Reference|List]*$'
+         , 'i')
+   ]
+                    ]]></value>
                 </property>
             </properties>
             <example>
@@ -1388,7 +1405,7 @@ public class Good {
     ]]>
             </example>
         </rule>
-
+    <!--
         <rule name="AvoidParallelStreamWithCommonPool" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
               message="Beware: parallelStream with the common pool is rarely a good choice."
               typeResolution="true"
