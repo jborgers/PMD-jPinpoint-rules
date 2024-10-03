@@ -1216,7 +1216,7 @@ public class Good {
                 ]]>
             </example>
         </rule>
-    <!--
+
         <rule name="AvoidCommonPoolForFutureAsync"
               message="Avoid using the common thread pool for future.supplyAsync, use a separate pool."
               class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
@@ -1230,20 +1230,11 @@ public class Good {
                 (jpinpoint-rules)</description>
             <priority>1</priority>
             <properties>
-                <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-                <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
-                <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="tag" value="unpredictable" type="String" description="for-sonar"/>
-                <property name="version" value="2.0"/>
+                <property name="tags" value="jpinpoint-rule,multi-threading,performance,unpredictable" type="String" description="classification"/>
                 <property name="xpath">
-                    <value>
-                        <![CDATA[
-    //PrimaryPrefix/Name[@Image='CompletableFuture.supplyAsync']/../../PrimarySuffix/Arguments/ArgumentList[count(Expression) = 1]
-    ,
-    //PrimaryPrefix/Name[@Image='supplyAsync']/../../PrimarySuffix/Arguments/ArgumentList[count(Expression) = 1]
-    [/CompilationUnit/ImportDeclaration/Name[@Image = 'java.util.concurrent.CompletableFuture.supplyAsync']]
-    ]]>
-                    </value>
+                    <value><![CDATA[
+//MethodCall[pmd-java:matchesSig('java.util.concurrent.CompletableFuture#supplyAsync(_)')]
+                        ]]></value>
                 </property>
             </properties>
             <example>
@@ -1266,7 +1257,7 @@ public class Good {
     ]]>
             </example>
         </rule>
-
+    <!--
         <rule name="AvoidCommonPoolForBlockingCalls" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
               message="Avoid the ForkJoinPool::commonPool used in parallelStream for blocking calls."
               typeResolution="true"
