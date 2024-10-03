@@ -1174,26 +1174,19 @@ public class Good {
                 <property name="xpath">
                     <value>
                         <![CDATA[
-(: future.join method reference without timeout in method :)
-//MethodCall[pmd-java:matchesSig('java.util.concurrent.Future#join()') and
- not (..//preceding-sibling::*[descendant-or-self::MethodCall[
+(: future.join method without timeout or without timeout in preceding methods :)
+//MethodDeclaration/Block/*[not(preceding-sibling::*[descendant-or-self::MethodCall[
                pmd-java:matchesSig('java.util.concurrent.Future#get(long,java.util.concurrent.TimeUnit)')
                or pmd-java:matchesSig('java.util.concurrent.Future#orTimeout(long,java.util.concurrent.TimeUnit)')
                or pmd-java:matchesSig('java.util.concurrent.Future#completeOnTimeout(_,long,java.util.concurrent.TimeUnit)')
              ]]
-      )
-]
-,
-//MethodReference[@MethodName='join' and
- not (../../../../..//preceding-sibling::*[descendant-or-self::MethodCall[
-               pmd-java:matchesSig('java.util.concurrent.Future#get(long,java.util.concurrent.TimeUnit)')
-               or pmd-java:matchesSig('java.util.concurrent.Future#orTimeout(long,java.util.concurrent.TimeUnit)')
-               or pmd-java:matchesSig('java.util.concurrent.Future#completeOnTimeout(_,long,java.util.concurrent.TimeUnit)')
-             ]]
-     )
-]
-    ]]>
-                    </value>
+      )]//(MethodCall|MethodReference)[
+               (pmd-java:matchesSig('java.util.concurrent.Future#join()')
+               or (self::MethodReference and @MethodName='join'))
+               (: no orTimeout(_,_) call in same chained expression :)
+               and not (ancestor::ExpressionStatement//MethodCall[pmd-java:matchesSig('java.util.concurrent.Future#orTimeout(long,java.util.concurrent.TimeUnit)')])
+          ]
+                    ]]></value>
                 </property>
             </properties>
             <example>
