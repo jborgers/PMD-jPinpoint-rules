@@ -1405,7 +1405,7 @@ public class Good {
     ]]>
             </example>
         </rule>
-    <!--
+
         <rule name="AvoidParallelStreamWithCommonPool" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
               message="Beware: parallelStream with the common pool is rarely a good choice."
               typeResolution="true"
@@ -1417,19 +1417,17 @@ public class Good {
                 So only for large collections and much processing without having to wait.   (jpinpoint-rules)</description>
             <priority>2</priority>
             <properties>
-                <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-                <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
-                <property name="tag" value="performance" type="String" description="for-sonar"/>
-                <property name="tag" value="unpredictable" type="String" description="for-sonar"/>
-                <property name="version" value="2.0"/>
+                <property name="tag" value="jpinpoint-rule,multi-threading,performance,unpredictable" type="String" description="classification"/>
                 <property name="xpath">
                     <value><![CDATA[
-    //PrimaryExpression/(PrimarySuffix[@Image='parallelStream' or @Image='parallel']|PrimaryPrefix/Name[ends-with(@Image, '.parallelStream') or ends-with(@Image, '.parallel')])
-    (: and exists(PrimarySuffix[pmd-java:typeIs('java.util.stream.Stream')]) - with 'var' type is lost in typeIs :)
-    (: no arguments :)
-    [following::PrimarySuffix[1][@ArgumentCount = 0]]
-    [not(ancestor::Block//StatementExpression/PrimaryExpression/PrimaryPrefix/Name[ends-with(@Image, '.submit') and pmd-java:typeIs('java.util.concurrent.ExecutorService')])]
-    ]]>
+//MethodCall[
+   (
+    pmd-java:matchesSig('java.util.Collection#parallelStream()')
+    or pmd-java:matchesSig('java.util.stream.BaseStream#parallel()')
+   )
+   and not(ancestor::ExpressionStatement//MethodCall[pmd-java:matchesSig('java.util.concurrent.ExecutorService#submit(_)')])
+]
+                        ]]>
                     </value>
                 </property>
             </properties>
@@ -1480,7 +1478,7 @@ public class Good {
     ]]>
             </example>
         </rule>
-
+    <!--
         <rule name="AvoidParallelFlux"
               message="Avoid dividing the data and parallel processing because this is typically slower."
               class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"

@@ -8,7 +8,6 @@
         <expected-problems>13</expected-problems>
         <expected-linenumbers>56, 88, 97, 140, 143, 165, 220, 243, 299, 300, 346, 356, 414</expected-linenumbers>
         <code><![CDATA[
-
 import com.google.common.annotations.VisibleForTesting;
 import lombok.Data;
 import lombok.Setter;
