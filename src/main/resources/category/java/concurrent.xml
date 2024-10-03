@@ -1445,13 +1445,13 @@ public class Good {
         final ExecutorService myExePool = Executors.newFixedThreadPool(10);
 
         void bad1() {
-            list.parallelStream().forEach(elem -> someCall(elem)); //bad
+            list.parallelStream().forEach(elem -> someCall(elem)); // bad
         }
         void bad2() {
-            map.entrySet().parallelStream().forEach(entry -> someCall(entry.getValue())); //bad
+            map.entrySet().parallelStream().forEach(entry -> someCall(entry.getValue())); // bad
         }
         void exceptionalProperUse() {
-           hugeList.parallelStream().forEach(elem -> heavyCalculations(elem)); //flagged but may be good, should suppress when proven to be faster than sequential form
+           hugeList.parallelStream().forEach(elem -> heavyCalculations(elem)); // flagged but may be good, should suppress when proven to be faster than sequential form
         }
 
         void good1() {
@@ -1478,7 +1478,7 @@ public class Good {
     ]]>
             </example>
         </rule>
-    <!--
+
         <rule name="AvoidParallelFlux"
               message="Avoid dividing the data and parallel processing because this is typically slower."
               class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
@@ -1494,15 +1494,10 @@ public class Good {
                 (jpinpoint-rules)</description>
             <priority>2</priority>
             <properties>
-                <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-                <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
-                <property name="tag" value="performance" type="String" description="for-sonar"/>
-                <property name="tag" value="bad-practice" type="String" description="for-sonar"/>
-                <property name="version" value="2.0"/>
+                <property name="tags" value="jpinpoint-rule,multi-threading,performance,bad-practice" type="String" description="classification"/>
                 <property name="xpath">
                     <value><![CDATA[
-    //PrimaryExpression/PrimarySuffix[@Image='parallel' and ../PrimaryPrefix/Name[@Image = 'Flux.fromIterable']
-    and //ImportDeclaration/Name[starts-with(@Image, 'reactor.core.publisher')]]
+//MethodCall[pmd-java:matchesSig('reactor.core.publisher.Flux#parallel(_)') and ./MethodCall[pmd-java:matchesSig('reactor.core.publisher.Flux#fromIterable(_)')]]
                     ]]></value>
                 </property>
             </properties>
@@ -1529,7 +1524,7 @@ public class Good {
                 ]]>
             </example>
         </rule>
-
+    <!--
         <rule name="AvoidMDCInReactor"
               message="Avoid using MDC with Reactor."
               class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
