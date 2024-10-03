@@ -1257,33 +1257,27 @@ public class Good {
     ]]>
             </example>
         </rule>
-    <!--
+
         <rule name="AvoidCommonPoolForBlockingCalls" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
               message="Avoid the ForkJoinPool::commonPool used in parallelStream for blocking calls."
               typeResolution="true"
               externalInfoUrl="${doc_root}/JavaCodePerformance.md#ia09">
-            <description>Problem: Blocking calls for instance remote calls, may exhaust the common pool for some time thereby blocking all other use of the common pool.
+            <description>Problem: Blocking calls, for instance remote calls, may exhaust the common pool for some time thereby blocking all other use of the common pool.
                 In addition, nested use of the common pool can lead to deadlock. Do not use the common pool for blocking calls. The parallelStream() call uses the common pool.&#13;
                 Solution: Use a dedicated thread pool with enough threads to get proper parallelism. The number of threads in the common pool is equal to the number of CPUs - 1 and meant to utilize all of them.
-                It assumes CPU intensive non-blocking processing of in-memory data.  (jpinpoint-rules)</description>
+                It assumes CPU intensive non-blocking processing of in-memory data. (jpinpoint-rules)</description>
             <priority>1</priority>
             <properties>
-                <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-                <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
-                <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="tag" value="unpredictable" type="String" description="for-sonar"/>
-                <property name="version" value="2.0"/>
+                <property name="tags" value="jpinpoint-rule,multi-threading,performance,unpredictable" type="String" description="classification"/>
                 <property name="xpath">
                     <value><![CDATA[
-    (: assumption: if import of web client / http client is present, parallelStreaming is for remote calls :)
-    //ImportDeclaration/Name[starts-with(@Image, 'org.springframework.web.client') or starts-with(@Image, 'org.apache.commons.httpclient')]/
-    ancestor::CompilationUnit//PrimaryExpression
-    [(PrimarySuffix/@Image='parallelStream' or ends-with(PrimaryPrefix/Name/@Image, 'parallelStream')
-    and exists(PrimarySuffix/pmd-java:typeIs('java.util.stream.Stream'))
-    and not(ancestor::Block//StatementExpression/PrimaryExpression/PrimaryPrefix/Name[ends-with(@Image, '.submit') and pmd-java:typeIs('java.util.concurrent.ExecutorService')]))
-    ]
-    ]]>
-                    </value>
+(: assumption: if import of web client / http client is present, parallelStreaming is for remote calls :)
+//ImportDeclaration[@PackageName='org.springframework.web.client' or @PackageName='org.apache.commons.httpclient']
+/..//MethodCall[
+   pmd-java:matchesSig('java.util.Collection#parallelStream()')
+   and not(ancestor::ExpressionStatement//MethodCall[pmd-java:matchesSig('java.util.concurrent.ExecutorService#submit(_)')])
+]
+                    ]]></value>
                 </property>
             </properties>
             <example>
@@ -1299,7 +1293,7 @@ public class Good {
         final ExecutorService myExePool = Executors.newFixedThreadPool(10);
 
         void bad1() {
-            list.parallelStream().forEach(elem -> storeDataRemoteCall(elem));
+            list.parallelStream().forEach(elem -> storeDataRemoteCall(elem)); // bad
         }
 
         void good1() {
@@ -1323,7 +1317,7 @@ public class Good {
     ]]>
             </example>
         </rule>
-
+    <!--
         <rule name="AvoidUserDataInSharedObjects" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
               message="Do *not* use user data in shared objects, it causes user data mix-up."
               typeResolution="true"
