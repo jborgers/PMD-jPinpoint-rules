@@ -1252,49 +1252,50 @@ class AvoidHardcodedConnectionConfig {
         </example>
     </rule>
 
-        <!--
-    <rule -name="AvoidExcessiveClassloadingWithSaajSoap"
-    message="Avoid excessive class loading with SAAJ SOAP messaging, use alternative Axiom, or system properties."
-    class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-    dfa="false"
-    language="java"
-    externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi23">
-    <description>Problem: SAAJ uses DOM to load the XML document in memory which uses a TransformerFactory. The implementation class of it is loaded on every call which causes lock contention under load. This means long response times.&#13;
-    Solution: If possible, use Axiom SOAP messaging which uses the faster StAX. If you have/want to stick to SAAJ, set the proper system properties to prevent the excessive class loading.
-    (jpinpoint-rules)</description>
-    <priority>2</priority>
-    <properties>
-    <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
-    <property name="xpath">
-    <value><![CDATA[
-    //Type//ClassOrInterfaceType[@Image='SaajSoapMessageFactory'
-    and not (ancestor::ClassOrInterfaceBody//PrimaryExpression[./PrimaryPrefix/Name[@Image='System.setProperty'] and ./PrimarySuffix/Arguments//Literal[@Image = '"javax.xml.transform.TransformerFactory"']])]
-    |
-    //AllocationExpression/ClassOrInterfaceType[@Image='SaajSoapMessageFactory'
-    and not (ancestor::ClassOrInterfaceBody//PrimaryExpression[./PrimaryPrefix/Name[@Image='System.setProperty'] and ./PrimarySuffix/Arguments//Literal[@Image='"javax.xml.transform.TransformerFactory"']])]
+
+    <rule name="AvoidExcessiveClassloadingWithSaajSoap"
+          message="Avoid excessive class loading with SAAJ SOAP messaging, use alternative Axiom, or system properties."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          dfa="false"
+          language="java"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi23">
+        <description>Problem: SAAJ uses DOM to load the XML document in memory which uses a TransformerFactory. The
+            implementation class of it is loaded on every call which causes lock contention under load. This means long
+            response times.&#13;
+            Solution: If possible, use Axiom SOAP messaging which uses the faster StAX. If you have/want to stick to
+            SAAJ, set the proper system properties to prevent the excessive class loading.
+            (jpinpoint-rules)
+        </description>
+        <priority>2</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+//ClassType[pmd-java:typeIs('org.springframework.ws.soap.saaj.SaajSoapMessageFactory')
+    and not (ancestor::ClassBody/Initializer//MethodCall[pmd-java:matchesSig('java.lang.System#setProperty(_,_)') and ArgumentList/*[1][@ConstValue='javax.xml.transform.TransformerFactory']])]
     ]]></value>
-    </property>
-    </properties>
-    <example>
-    <![CDATA[
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
     import org.springframework.ws.soap.saaj.SaajSoapMessageFactory;
 
     class Foo {
-    private final SaajSoapMessageFactory mfField; // bad, also possibly thread-unsafe
+        private final SaajSoapMessageFactory mfField; // bad, also possibly thread-unsafe
 
-    public WebServiceTemplate getTemplate(final String uri, final HttpClientMessageSender httpClientMessageSender) throws SOAPException {
-    SoapMessageFactory saajSoapMessageFactory = new SaajSoapMessageFactory(MessageFactory.newInstance()); // bad
-    //..
-    }
+        public WebServiceTemplate getTemplate(final String uri, final HttpClientMessageSender httpClientMessageSender) throws SOAPException {
+            SoapMessageFactory saajSoapMessageFactory = new SaajSoapMessageFactory(MessageFactory.newInstance()); // bad
+            //..
+        }
     }
 
-    //To solve, add to the above:
+    //To solve, add to the above the proper implementing classes:
     static {
-    System.setProperty("javax.xml.transform.TransformerFactory", "com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl");
-    System.setProperty("javax.xml.soap.MessageFactory", "com.sun.xml.internal.messaging.saaj.soap.ver1_1.SOAPMessageFactory1_1Impl");
+        System.setProperty("javax.xml.transform.TransformerFactory", "com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl");
+        System.setProperty("javax.xml.soap.MessageFactory", "com.sun.xml.internal.messaging.saaj.soap.ver1_1.SOAPMessageFactory1_1Impl");
     }
     ]]>
-    </example>
+        </example>
     </rule>
-    -->
+
 </ruleset>
