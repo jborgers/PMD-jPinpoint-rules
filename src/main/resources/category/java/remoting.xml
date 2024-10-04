@@ -1048,51 +1048,49 @@ return requestConfig;
 ]]>
 </example>
 </rule>
-
-<rule -name="AvoidObjectMapperAsField"
-class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-language="java"
-message="Avoid ObjectMapper as field, use ObjectReader or ObjectWriter instead."
-externalInfoUrl="${doc_root}/JavaCodePerformance.md#iuojar02">
-<description>Problem: Configuring an ObjectMapper is thread-unsafe.  &#13;
-Solution: Create ObjectReaders and ObjectWriters from ObjectMapper and only share those as field, since they are immutable and therefore thread-safe.
-Exceptions: A convertValue method is not provided by ObjectReader nor ObjectWriter, therefore in those cases this rule is not applied.
-Also when used like jaxMsgConverter.setObjectMapper(objectMapper) it is not considered a violation. (jpinpoint-rules)</description>
-<priority>3</priority>
-<properties>
-<property name="tags" value="jpinpoint-rule,multi-threading" type="String" description="classification"/>
-<property name="xpath">
-<value><![CDATA[
-(for $node in (//FieldDeclaration[pmd-java:typeIs('com.fasterxml.jackson.databind.ObjectMapper')
-(: if class not in classpath, can use following line :)
-(:or (Type//ClassOrInterfaceType[@Image='ObjectMapper'] and //ImportDeclaration/Name[starts-with(@Image, 'com.fasterxml.jackson.databind.')]):)
-]//VariableDeclaratorId)
-(: exception: do not match if that field name is used in its class with a convertValue method :)
-return ($node[not(ancestor::ClassOrInterfaceDeclaration//PrimaryPrefix/Name[@Image = concat($node/@Name, '.convertValue')])
-(: exception: do not match if used with jaxMsgConverter.setObjectMapper(objectMapper) :)
-and not($node/@Name = ancestor::ClassOrInterfaceDeclaration//PrimaryExpression[PrimaryPrefix/Name[ends-with(@Image, 'setObjectMapper')]]
-(:[pmd-java:typeIs('org.springframework.http.converter.json.MappingJackson2HttpMessageConverter')] - somehow class resolution fails :)
-/PrimarySuffix//PrimaryPrefix/Name/@Image)
-]))
+-->
+    <rule name="AvoidObjectMapperAsField"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          language="java"
+          message="Avoid ObjectMapper as field, use ObjectReader or ObjectWriter instead."
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#iuojar02">
+        <description>Problem: Configuring an ObjectMapper is thread-unsafe. &#13;
+            Solution: Create ObjectReaders and ObjectWriters from ObjectMapper and only share those as field, since they
+            are immutable and therefore thread-safe.
+            Exceptions: A convertValue method is not provided by ObjectReader nor ObjectWriter, therefore in those cases
+            this rule is not applied.
+            Also when used like jaxMsgConverter.setObjectMapper(objectMapper) it is not considered a violation.
+            (jpinpoint-rules)
+        </description>
+        <priority>3</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,multi-threading" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+//FieldDeclaration[ClassType/pmd-java:typeIs('com.fasterxml.jackson.databind.ObjectMapper')]//VariableId
+    (: exception: do not match if that field name is used in its class with a convertValue method :)
+    [not(@Name = ancestor::ClassBody//MethodCall[pmd-java:matchesSig('com.fasterxml.jackson.databind.ObjectMapper#convertValue(_,_)')]/VariableAccess/@Name)]
+    (: exception: do not match if used with jaxMsgConverter.setObjectMapper(objectMapper) :)
+    [not(@Name = ancestor::ClassBody//MethodCall[pmd-java:matchesSig('org.springframework.http.converter.json.MappingJackson2HttpMessageConverter#setObjectMapper(_)')]/ArgumentList/VariableAccess/@Name)]
 ]]>
-</value>
-</property>
-</properties>
-<example>
-<![CDATA[
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
 public class BadStyle {
-private static final ObjectMapper staticObjectMapper = new ObjectMapper(); // bad
-private final ObjectMapper mapperField = new ObjectMapper(); //bad
+    private static final ObjectMapper staticObjectMapper = new ObjectMapper(); // bad
+    private final ObjectMapper mapperField = new ObjectMapper(); //bad
 }
 
 class GoodStyle {
-private static final ObjectWriter staticObjectWriter =
-new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL).writer(); // good
+    private static final ObjectWriter staticObjectWriter =
+    new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL).writer(); // good
 }
 ]]>
-</example>
-</rule>
--->
+        </example>
+    </rule>
+
     <rule name="AxualProducerCreatedForEachMethodCall"
           message="An Axual (Kafka) producer is created for each method call, which is expensive and takes resources."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
