@@ -1524,7 +1524,7 @@ public class Good {
                 ]]>
             </example>
         </rule>
-    <!--
+
         <rule name="AvoidMDCInReactor"
               message="Avoid using MDC with Reactor."
               class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
@@ -1539,15 +1539,23 @@ public class Good {
                 (jpinpoint-rules)</description>
             <priority>2</priority>
             <properties>
-                <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-                <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
-                <property name="tag" value="performance" type="String" description="for-sonar"/>
-                <property name="version" value="2.0"/>
+                <property name="tags" value="jpinpoint-rule,multi-threading,performance" type="String" description="classification"/>
                 <property name="xpath">
                     <value><![CDATA[
-    //PrimaryExpression/PrimaryPrefix/Name[@Image='MDC.setContextMap' and
-    (ancestor::MethodDeclaration/ResultType/Type[@TypeImage='Flux' or TypeImage='Mono']
-    or ancestor::MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter[pmd-java:typeIs('reactor.util.context.Context')])]
+//MethodCall[
+    pmd-java:matchesSig('org.slf4j.MDC#setContextMap(_)')
+      and
+       (
+         ancestor::MethodDeclaration/ClassType[
+              pmd-java:typeIs('reactor.core.publisher.Flux')
+              or pmd-java:typeIs('reactor.core.publisher.Mono')
+         ]
+         or
+         ancestor::MethodDeclaration/FormalParameters/FormalParameter[
+              pmd-java:typeIs('reactor.util.context.Context')
+         ]
+       )
+]
                     ]]></value>
                 </property>
             </properties>
@@ -1581,7 +1589,7 @@ public class Good {
                 ]]>
             </example>
         </rule>
-
+    <!--
         <rule name="AvoidReactorOnEachOperator"
               message="Avoid using Reactor Hooks.onEachOperator."
               class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
