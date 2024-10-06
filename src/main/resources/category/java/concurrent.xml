@@ -222,7 +222,9 @@ class Exporter {
        or (
          (: extends a base class :)
          ancestor::ClassDeclaration//ExtendsList
-         and not (
+         (: and not in constructor - could be final field :)
+         and not (ancestor::ConstructorDeclaration)
+         and not(
            (: var is not a local var :)
            @Name = ancestor::Block//LocalVariableDeclaration//VariableId/@Name
            or
@@ -230,7 +232,7 @@ class Exporter {
            @Name = ancestor::MethodDeclaration//FormalParameter/VariableId/@Name
            or
            (: var is not a field of current class TODO - repeat of line above, can be avoided? :)
-           @Name = ancestor::ClassBody//FieldDeclaration[(pmd-java:modifiers() = ('final','volatile') or pmd-java:hasAnnotation('net.jcip.annotations.GuardedBy'))]//VariableId/@Name
+           @Name = ancestor::ClassDeclaration//FieldDeclaration[(pmd-java:modifiers() = ('final','volatile') or pmd-java:hasAnnotation('net.jcip.annotations.GuardedBy'))]//VariableId/@Name
          )
          and not(
               ancestor::SynchronizedStatement
@@ -710,7 +712,7 @@ public class Good {
 }
              ]]></example>
         </rule>
-    <!--
+
         <rule name="AvoidUnguardedMutableFieldsInObjectsUsingSynchronized"
               message="Avoid unguarded non-final or mutable fields in objects using synchronized. Make final immutable or access thread-safely AND use @GuardedBy."
               class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
@@ -727,38 +729,120 @@ public class Good {
                 (jpinpoint-rules)</description>
             <priority>3</priority>
             <properties>
-                <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-                <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
-                <property name="version" value="2.0"/>
+                <property name="tags" value="jpinpoint-rule,multi-threading" type="String" description="classification"/>
                 <property name="xpath">
                     <value>
                         <![CDATA[
-    (: if @NotThreadSafe no checking :)
-    //TypeDeclaration[count(Annotation/MarkerAnnotation/Name[@Image='NotThreadSafe'])=0]
-    (: non-static classes using synchronized :)
-    //ClassOrInterfaceDeclaration[@Static=false()]/ClassOrInterfaceBody[//SynchronizedStatement or //MethodDeclaration[@Synchronized=true()]]
-    (: non-final and non-volatile fields :)
-    /ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Final=false() and @Volatile=false()
-    (: field not annotated with framework annotation or GuardedBy :)
-    and not (../Annotation//Name[@Image='Autowired' or @Image='PersistenceContext' or @Image='EJB' or @Image='Resource' or @Image='Inject' or @Image='Value' or @Image='GuardedBy'])
-    (: field not on accessor method with assignment, annotated with framework annotation :)
-    and not (../../ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='Autowired' or @Image='PostConstruct' or @Image='BeforeStep' or @Image='Value' or @Image='Inject']
-    /../../..//BlockStatement/Statement//StatementExpression/AssignmentOperator/../PrimaryExpression//@Image=
-    ./VariableDeclarator/VariableDeclaratorId/@Name)
-    (: or field of known mutable types including array :)
-    or ((Type/ReferenceType/ClassOrInterfaceType[(pmd-java:typeIs('java.util.Date') or pmd-java:typeIs('java.lang.StringBuilder') or pmd-java:typeIs('java.lang.StringBuffer') or pmd-java:typeIs('java.net.URL') or pmd-java:typeIs('java.io.File')) or
-    (ancestor::FieldDeclaration/VariableDeclarator/VariableInitializer[ArrayInitializer and count(ArrayInitializer/VariableInitializer) > 0])])
-    (: or in-line allocation of known mutable collection types :)
-    or (VariableDeclarator/VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/AllocationExpression/ClassOrInterfaceType[pmd-java:typeIs('java.util.ArrayList') or pmd-java:typeIs('java.util.HashMap') or pmd-java:typeIs('java.util.HashSet')] )
-    (: or in-constructor allocation of known mutable collection types :)
-    or (VariableDeclarator/VariableDeclaratorId/@Name = ancestor::ClassOrInterfaceBody//ConstructorDeclaration//StatementExpression/Expression[pmd-java:typeIs('java.util.ArrayList') or pmd-java:typeIs('java.util.HashMap') or pmd-java:typeIs('java.util.HashSet')]/../..//Name/@Image)
-    (: mutable types not annotated with GuardedBy :)
-    ) and not (../Annotation//Name[@Image='GuardedBy'])
-    ]
-    ]]>
+(: if @NotThreadSafe no checking :)
+//ClassDeclaration[
+       not (pmd-java:hasAnnotation('net.jcip.annotations.NotThreadSafe'))
+       (: not in static inner class :)
+       and not (ancestor::ClassDeclaration[@Nested=true() and @Static=true()])
+       and (.//SynchronizedStatement or .//MethodDeclaration[pmd-java:modifiers()='synchronized'])
+   ]
+   //FieldDeclaration[
+       (: assignment to a field that is not final or volatile:)
+       not(pmd-java:modifiers()=('final','volatile'))
+
+       (: field not annotated with framework annotation or GuardedBy :)
+       and not(pmd-java:hasAnnotation('org.springframework.beans.factory.annotation.Autowired')
+                    or (pmd-java:hasAnnotation('javax.persistence.PersistenceContext') or pmd-java:hasAnnotation('jakarta.persistence.PersistenceContext'))
+                    or (pmd-java:hasAnnotation('javax.ejb.EJB') or pmd-java:hasAnnotation('jakarta.ejb.EJB'))
+                    or (pmd-java:hasAnnotation('javax.annotation.Resource') or pmd-java:hasAnnotation('jakarta.annotation.Resource'))
+                    or (pmd-java:hasAnnotation('javax.inject.Inject') or pmd-java:hasAnnotation('jakarta.inject.Inject'))
+                    or pmd-java:hasAnnotation('org.springframework.beans.factory.annotation.Value')
+                    or pmd-java:hasAnnotation('net.jcip.annotations.GuardedBy')
+              )
+      (: field not on accessor method with assignment level annotated with framework annotation :)
+      and not (
+           ./VariableDeclarator/VariableId/@Name = ancestor::ClassDeclaration//MethodDeclaration[
+              pmd-java:hasAnnotation('org.springframework.beans.factory.annotation.Autowired')
+                or (pmd-java:hasAnnotation('javax.annotation.PostConstruct') or pmd-java:hasAnnotation('jakarta.annotation.PostConstruct'))
+                or pmd-java:hasAnnotation('org.springframework.batch.core.annotation.BeforeStep')
+                or pmd-java:hasAnnotation('org.springframework.beans.factory.annotation.Value')
+                or (pmd-java:hasAnnotation('javax.inject.Inject') or pmd-java:hasAnnotation('jakarta.inject.Inject'))
+             ]//VariableAccess/@Name
+       )
+       or (
+            (: or field of known mutable types including array :)
+            (./ClassType[pmd-java:typeIs('java.util.Date')
+                    or pmd-java:typeIs('java.lang.StringBuilder')
+                    or pmd-java:typeIs('java.lang.StringBuffer')
+                    or pmd-java:typeIs('java.net.URL')
+                    or pmd-java:typeIs('java.io.File')]
+                    (: or mutable array :)
+                    or (
+                        .//ArrayInitializer[@Length > 0]
+                    )
+             )
+             (: or in-line allocation of known mutable collection types :)
+             or (
+               ./VariableDeclarator/ConstructorCall/ClassType[
+                    pmd-java:typeIs('java.util.ArrayList')
+                    or pmd-java:typeIs('java.util.HashMap')
+                    or pmd-java:typeIs('java.util.HashSet')
+                 ]
+             )
+             (: or in-constructor allocation of known mutable collection types :)
+             or (
+                ./VariableDeclarator/VariableId/@Name =
+                   ancestor::ClassDeclaration//ConstructorDeclaration//AssignmentExpression[
+                         ConstructorCall/ClassType[
+                                pmd-java:typeIs('java.util.ArrayList')
+                                or pmd-java:typeIs('java.util.HashMap')
+                                or pmd-java:typeIs('java.util.HashSet')
+                                                  ]]/VariableAccess/@Name
+             )
+       )
+       (: mutable types not annotated with GuardedBy :)
+       and not(pmd-java:hasAnnotation('net.jcip.annotations.GuardedBy'))
+
+  ]
+                        ]]>
                     </value>
                 </property>
             </properties>
+            <example><![CDATA[
+public class Bad {
+    private static Map staticMapField = new HashMap(); // bad, class has synchronized method
+    private Date date = new Date(); // bad, class has synchronized method
+
+    public Date getDate() {
+        return date;
+    }
+
+    public void setDate(Date d) {
+        date = d;
+    }
+
+    public static synchronized Map getStaticMapField() {
+        return staticMapField;
+    }
+
+    public static  void setStaticMapField(Map smf) {
+        staticMapField = smf;
+    }
+}
+
+public class Good {
+    @GuardedBy("this")
+    private static Map staticMapField = new HashMap(); // good, guarded
+    @GuardedBy("LOCK")
+    private Date date = new Date(); // good, guarded
+
+    public void setDate(Date d) {
+        date = d;
+    }
+
+    public static synchronized Map getStaticMapField() {
+        return staticMapField;
+    }
+
+    public static  void setStaticMapField(Map smf) {
+        staticMapField = smf;
+    }
+}
+            ]]></example>
         </rule>
 
         <rule name="NotProperlySynchronizingOnThisWhileUsingGuardedBy"
@@ -772,22 +856,29 @@ public class Good {
                 (jpinpoint-rules)</description>
             <priority>2</priority>
             <properties>
-                <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-                <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
-                <property name="version" value="2.0"/>
+                <property name="tags" value="jpinpoint-rule,multi-threading" type="String" description="classification"/>
                 <property name="xpath">
                     <value>
-                        <![CDATA[
-    //MethodDeclaration[(@Synchronized=false() or @Static=true())
-    and not (../Annotation//Name[@Image='Autowired' or @Image='PostConstruct' or @Image='BeforeStep' or @Image='Value' or @Image='Inject'])]
-    //PrimaryPrefix/Name[substring-before(concat(@Image,'.'), '.') =
-    (ancestor::ClassOrInterfaceBody|ancestor::EnumBody)//Annotation//Name[@Image='GuardedBy']/..//Literal[@Image='"this"']/
-    ancestor::ClassOrInterfaceBodyDeclaration/FieldDeclaration//VariableDeclaratorId/@Name
-    and (
-    not (ancestor::SynchronizedStatement)
-    or ancestor::SynchronizedStatement/Expression//Name)]
-    ]]>
-                    </value>
+                        <![CDATA[//MethodDeclaration[
+    (: method not synchronized or static :)
+    (not(pmd-java:modifiers() = 'synchronized') or pmd-java:modifiers() = 'static')
+    and not(pmd-java:hasAnnotation('org.springframework.beans.factory.annotation.Autowired')
+        or (pmd-java:hasAnnotation('javax.annotation.PostConstruct') or pmd-java:hasAnnotation('jakarta.annotation.PostConstruct'))
+        or pmd-java:hasAnnotation('org.springframework.batch.core.annotation.BeforeStep')
+        or pmd-java:hasAnnotation('org.springframework.beans.factory.annotation.Value')
+        or (pmd-java:hasAnnotation('javax.inject.Inject') or pmd-java:hasAnnotation('jakarta.inject.Inject'))
+    )
+ ]//(AssignmentExpression/*[1]|VariableAccess)[
+   (: not is synchronized block (with this) or method :)
+   not(ancestor::SynchronizedStatement[./ThisExpression] or ancestor::MethodDeclaration[pmd-java:modifiers()='synchronized'])
+   (: field GuardedBy("this") :)
+   and @Name = (ancestor::ClassDeclaration|ancestor::EnumDeclaration)//FieldDeclaration[./ModifierList/Annotation[
+       pmd-java:typeIs('javax.annotation.concurrent.GuardedBy')
+       or pmd-java:typeIs('com.google.errorprone.annotations.concurrent.GuardedBy')
+       or pmd-java:typeIs('net.jcip.annotations.GuardedBy')
+   ]//MemberValuePair/StringLiteral[@Image='"this"']]/VariableDeclarator/VariableId/@Name
+ ]
+                   ]]></value>
                 </property>
             </properties>
             <example>
@@ -822,44 +913,59 @@ public class Good {
                 (jpinpoint-rules)</description>
             <priority>2</priority>
             <properties>
-                <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-                <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
-                <property name="version" value="2.0"/>
+                <property name="tags" value="jpinpoint-rule,multi-threading" type="String" description="classification"/>
                 <property name="xpath">
                     <value>
                         <![CDATA[
-        //MethodDeclaration[
-        not (../Annotation//Name[@Image='Autowired' or @Image='PostConstruct' or @Image='BeforeStep' or @Image='Value' or @Image='Inject'])]
-        (: a variable which should (potentially) be guarded :)
-        //PrimaryPrefix/Name[substring-before(concat(@Image,'.'), '.') =
-        (: used in a class with guarded-by literal *IS* a field (should be private final) :)
-        ancestor::ClassOrInterfaceBody//Annotation//Name[@Image='GuardedBy']/..//Literal[substring(@Image, 2, (string-length(@Image) - 2))=
-        ancestor::ClassOrInterfaceBody//FieldDeclaration//VariableDeclaratorId/@Name
-        ]/
-        (: is defined as field :)
-        ancestor::ClassOrInterfaceBodyDeclaration//FieldDeclaration//VariableDeclaratorId/@Name
-        (: and *IS NOT* in a synchronized block with the GuardedBy literal:)
-        and (not(concat('"', ancestor::SynchronizedStatement/Expression//Name/@Image, '"') =
-        ancestor::ClassOrInterfaceBody//Annotation//Name[@Image='GuardedBy']/..//Literal/@Image)
-        )]
-        ,
-        //MethodDeclaration[
-        not (../Annotation//Name[@Image='Autowired' or @Image='PostConstruct' or @Image='BeforeStep' or @Image='Value' or @Image='Inject'])]
-        (: a variable which should (potentially) be guarded :)
-        //PrimaryPrefix/Name[substring-before(concat(@Image,'.'), '.') =
-        (: used in a class with guarded by literal *IS NOT* a field :)
-        ancestor::ClassOrInterfaceBody//Annotation//Name[@Image='GuardedBy']/..//Literal[not (substring(@Image, 2, (string-length(@Image) - 2)) =
-        ancestor::ClassOrInterfaceBody//FieldDeclaration//VariableDeclaratorId/@Name)
-        ]/
-        (: is defined as field :)
-        ancestor::ClassOrInterfaceBodyDeclaration//FieldDeclaration//VariableDeclaratorId/@Name
-        (: and *IS* in a synchronized block with the GuardedBy literal:)
-        and (
-        (concat('"', ancestor::SynchronizedStatement/Expression//Name/@Image, '"') =
-        ancestor::ClassOrInterfaceBody//Annotation//Name[@Image='GuardedBy']/..//Literal/@Image)
-        )]
-    ]]>
-                    </value>
+    //MethodDeclaration[
+    (: method annotated with known frameworks :)
+    not(pmd-java:hasAnnotation('org.springframework.beans.factory.annotation.Autowired')
+        or (pmd-java:hasAnnotation('javax.annotation.PostConstruct') or pmd-java:hasAnnotation('jakarta.annotation.PostConstruct'))
+        or pmd-java:hasAnnotation('org.springframework.batch.core.annotation.BeforeStep')
+        or pmd-java:hasAnnotation('org.springframework.beans.factory.annotation.Value')
+        or (pmd-java:hasAnnotation('javax.inject.Inject') or pmd-java:hasAnnotation('jakarta.inject.Inject'))
+    )
+ ]
+(: -- GuardedBy annotations are matched on SimpleName, so it matches all known GuardedBy annotations :)
+(: -- net.jcip.annotations.GuardedBy, javax.annotation.concurrent.GuardedBy, com.google.errorprone.annotations.concurrent.GuardedBy :)
+(: a variable which should (potentially) be guarded and not var of synchronized statement itself :)
+//(AssignmentExpression/*[1]|VariableAccess[not(parent::SynchronizedStatement)])[
+   (: used in a class with guarded-by literal *IS* a field (should be private final) :)
+   @Name = ancestor::ClassDeclaration//FieldDeclaration[
+        ModifierList/Annotation[@SimpleName='GuardedBy']//MemberValuePair/StringLiteral[
+              @ConstValue = ancestor::ClassDeclaration//FieldDeclaration/VariableDeclarator/VariableId/@Name]
+           ]/VariableDeclarator/VariableId/@Name
+    (: and *IS NOT* in a synchronized block with the GuardedBy literal:)
+    and not(ancestor::SynchronizedStatement/VariableAccess/@Name =
+       ancestor::ClassDeclaration//FieldDeclaration[ModifierList/Annotation[@SimpleName='GuardedBy']]//MemberValuePair/StringLiteral/@ConstValue)
+]
+,
+//MethodDeclaration[
+    (: method annotated with known frameworks :)
+    not(pmd-java:hasAnnotation('org.springframework.beans.factory.annotation.Autowired')
+        or (pmd-java:hasAnnotation('javax.annotation.PostConstruct') or pmd-java:hasAnnotation('jakarta.annotation.PostConstruct'))
+        or pmd-java:hasAnnotation('org.springframework.batch.core.annotation.BeforeStep')
+        or pmd-java:hasAnnotation('org.springframework.beans.factory.annotation.Value')
+        or (pmd-java:hasAnnotation('javax.inject.Inject') or pmd-java:hasAnnotation('jakarta.inject.Inject'))
+    )
+]
+(: a variable which should (potentially) be guarded and not var of synchronized statement itself :)
+//(AssignmentExpression/*[1]|VariableAccess[not(parent::SynchronizedStatement)])[
+   (: used in a class with guarded-by literal *IS NOT* a field (should be private final) :)
+   @Name = ancestor::ClassDeclaration//FieldDeclaration[
+        ModifierList/Annotation[@SimpleName='GuardedBy']//MemberValuePair/StringLiteral[
+             not(@ConstValue = ancestor::ClassDeclaration//FieldDeclaration/VariableDeclarator/VariableId/@Name)]
+          ]/VariableDeclarator/VariableId/@Name
+    (: synchronized statement with 'this' has matching GuardedBy with String literal 'this' :)
+    and not (ancestor::SynchronizedStatement/ThisExpression[
+        ancestor::ClassDeclaration//FieldDeclaration//Annotation[@SimpleName='GuardedBy' and .//StringLiteral[@ConstValue='this']]
+    ])
+    (: synchronized method (non static?) has matching GuardedBy with String literal 'this' :)
+    and not (ancestor::MethodDeclaration[pmd-java:modifiers()='synchronized'][
+        ancestor::ClassDeclaration//FieldDeclaration//Annotation[@SimpleName='GuardedBy' and .//StringLiteral[@ConstValue='this']]
+    ])
+]
+             ]]></value>
                 </property>
             </properties>
             <example>
@@ -895,13 +1001,12 @@ public class Good {
                 Solution: Create the Factories as local variables and use command line arguments to specify the implementation class. (jpinpoint-rules)</description>
             <priority>1</priority>
             <properties>
-                <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-                <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
-                <property name="tag" value="performance" type="String" description="for-sonar"/>
-                <property name="version" value="2.0"/>
+                <property name="tags" value="jpinpoint-rule,multi-threading,performance" type="String" description="classification"/>
                 <property name="xpath">
                     <value><![CDATA[
-        //ClassOrInterfaceBodyDeclaration//FieldDeclaration[@Static=true() and (
+//ClassDeclaration//FieldDeclaration[
+    pmd-java:modifiers()='static'
+    and ClassType[
         pmd-java:typeIs('javax.xml.parsers.DocumentBuilderFactory') or
         pmd-java:typeIs('javax.xml.parsers.SAXParserFactory') or
         pmd-java:typeIs('javax.xml.stream.XMLInputFactory') or
@@ -911,9 +1016,9 @@ public class Good {
         pmd-java:typeIs('javax.xml.validation.SchemaFactory') or
         pmd-java:typeIs('javax.xml.datatype.DatatypeFactory') or
         pmd-java:typeIs('javax.xml.soap.MessageFactory')
-        )]
-                ]]>
-                    </value>
+     ]
+]
+                   ]]></value>
                 </property>
             </properties>
             <example>
@@ -938,14 +1043,16 @@ public class Good {
                 Solution: Guard the field properly with synchronized or use atomics like AtomicInteger. (jpinpoint-rules)</description>
             <priority>1</priority>
             <properties>
-                <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-                <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
-                <property name="version" value="2.0"/>
+                <property name="tags" value="jpinpoint-rule,multi-threading" type="String" description="classification"/>
                 <property name="xpath">
                     <value><![CDATA[
-    //StatementExpression/(AssignmentOperator[@Image='+=' or @Image='-=']/..|
-    (PreIncrementExpression|PostfixExpression[@Image='++' or @Image='- -']))/PrimaryExpression/(PrimaryPrefix/Name|PrimarySuffix)[@Image =
-    //FieldDeclaration[@Volatile = true()]/VariableDeclarator/VariableDeclaratorId/@Name]
+//(
+   AssignmentExpression[@Operator='+=' or @Operator='-=']/*[1]
+     |
+   UnaryExpression/(VariableAccess|FieldAccess)
+  )[
+      @Name = ancestor::ClassDeclaration//FieldDeclaration[pmd-java:modifiers()='volatile']/VariableDeclarator/VariableId/@Name
+   ]
                             ]]>
                     </value>
                 </property>
@@ -975,18 +1082,20 @@ public class Good {
         <rule name="AvoidVolatileInPrototypeScope" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java" message="No need for volatile in prototype scope" typeResolution="true"
               externalInfoUrl="${doc_root}/JavaCodePerformance.md#tutc10">
             <description>A field is defined as volatile while the class has prototype scope. Problem: volatile has some overhead, especially for writes. When getting the bean from the Spring applicationContext, prototype scope means that each invocation creates a new object so the field is not shared. &#13;
-                Solution: Since only one thread can access the field, there is no need for violatile and it can be removed. (jpinpoint-rules)</description>
+                Solution: Since only one thread can access the field, there is no need for volatile and it can be removed. (jpinpoint-rules)</description>
             <priority>2</priority>
             <properties>
-                <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-                <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
-                <property name="tag" value="confusing" type="String" description="for-sonar"/>
-                <property name="version" value="2.0"/>
+                <property name="tags" value="jpinpoint-rule,multi-threading,confusing" type="String" description="classification"/>
                 <property name="xpath">
                     <value><![CDATA[
-        //FieldDeclaration[@Volatile = true() and
-        ancestor::TypeDeclaration/Annotation//Name[@Image='Scope']/..//PrimaryPrefix/
-        (Name[ends-with(@Image,'SCOPE_PROTOTYPE')]|Literal[contains(@Image, 'prototype')])]
+ //FieldDeclaration[
+   pmd-java:modifiers()='volatile'
+   and ancestor::ClassDeclaration[
+     pmd-java:hasAnnotation('org.springframework.context.annotation.Scope')and .//AnnotationMemberList/MemberValuePair[
+       StringLiteral[contains(@Image,'prototype')]
+       or FieldAccess[@Name='SCOPE_PROTOTYPE']/TypeExpression[pmd-java:typeIs('org.springframework.beans.factory.config.ConfigurableBeanFactory')]]
+   ]
+]
                             ]]>
                     </value>
                 </property>
@@ -1008,37 +1117,19 @@ public class Good {
             </example>
         </rule>
 
-        <!- for pmd-7
-        //FieldDeclaration[index-of(pmd-java:explicitModifiers(), 'volatile') > 0 and
-        ancestor::ClassOrInterfaceDeclaration//Annotation[@SimpleName='Scope']//MemberValuePair[
-        FieldAccess[ends-with(@Name,'SCOPE_PROTOTYPE')] | StringLiteral[contains(@Image, 'prototype')]]]
-        ->
-
-
         <rule name="SynchronizingForLocalVars" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java" message="Local variables don't need synchronization" typeResolution="true"
               externalInfoUrl="${doc_root}/JavaCodePerformance.md#tutc12">
             <description>In the synchronized block, only local variables seem to be accessed. Problem: synchronization has overhead and may introduce lock contention. &#13;
                 Solution: Remove synchronized because local variables are only accessible by the owning thread and are not shared. (jpinpoint-rules)</description>
             <priority>3</priority>
             <properties>
-                <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-                <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
-                <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="tag" value="confusing" type="String" description="for-sonar"/>
-                <property name="version" value="2.0"/>
+                <property name="tags" value="jpinpoint-rule,multi-threading,performance, confusing" type="String" description="classification"/>
                 <property name="xpath">
                     <value><![CDATA[
-    (: var.x() in synchronized block, var in list of local vars and all var.x in synchronized block are local vars:)
-    //SynchronizedStatement[count(./Block//PrimaryPrefix/Name[
-        index-of(ancestor::MethodDeclaration//LocalVariableDeclaration//VariableDeclaratorId/@Name, substring-before(@Image, '.')) >= 0]) =
-    count(./Block//(PrimaryPrefix/Name|PrimarySuffix)[substring-before(@Image, '.')])
-    and
-    (: vars used in synchronized block are all local vars :)
-    count(distinct-values(ancestor::MethodDeclaration//LocalVariableDeclaration//VariableDeclaratorId/@Name |
-         ./Block//(PrimaryPrefix/Name|PrimarySuffix)[@Image != '' and not(contains(@Image, '.'))]/@Image))
-     = count(distinct-values(ancestor::MethodDeclaration//LocalVariableDeclaration//VariableDeclaratorId/@Name ))]
-                            ]]>
-                    </value>
+//SynchronizedStatement[
+   count(./Block//(VariableAccess|FieldAccess)[@Name = ancestor::ClassDeclaration//FieldDeclaration//VariableId/@Name]) = 0
+]
+                     ]]></value>
                 </property>
             </properties>
             <example>
@@ -1071,7 +1162,7 @@ public class Good {
                 ]]>
             </example>
         </rule>
-
+    <!--
         <rule name="AvoidFutureJoinWithoutTimeout"
               message="Avoid future.join without timeout"
               class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
