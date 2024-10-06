@@ -6,7 +6,7 @@
     <test-code>
         <description>SynchronizingForLocalVars</description>
         <expected-problems>2</expected-problems>
-        <expected-linenumbers>7, 19</expected-linenumbers>
+        <expected-linenumbers>10, 22</expected-linenumbers>
         <code><![CDATA[
 import org.slf4j.MDC;
 import java.util.HashMap;
@@ -17,7 +17,7 @@ public class Foo {
     protected Map<String, String> bad() {
       Map<String, String> addHeaders = MDC.getCopyOfContextMap();
 
-      synchronized(this) { // bad
+      synchronized(this) { // bad - 10
           if (addHeaders == null) {
               addHeaders = new HashMap<>();
           }
@@ -29,7 +29,7 @@ public class Foo {
       Map<String, String> addHeaders = MDC.getCopyOfContextMap();
       Map<String, String> map2 = new HashMap<>();
       Map<String, String> map3 = new HashMap<>();
-      synchronized (mapField) { //bad
+      synchronized (mapField) { // bad - 22
           if (addHeaders == null) {
               addHeaders = new HashMap<>();
           }
