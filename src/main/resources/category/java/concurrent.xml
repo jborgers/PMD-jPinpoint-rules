@@ -926,6 +926,8 @@ public class Good {
         or (pmd-java:hasAnnotation('javax.inject.Inject') or pmd-java:hasAnnotation('jakarta.inject.Inject'))
     )
  ]
+(: -- GuardedBy annotations are matched on SimpleName, so it matches all known GuardedBy annotations :)
+(: -- net.jcip.annotations.GuardedBy, javax.annotation.concurrent.GuardedBy, com.google.errorprone.annotations.concurrent.GuardedBy :)
 (: a variable which should (potentially) be guarded and not var of synchronized statement itself :)
 //(AssignmentExpression/*[1]|VariableAccess[not(parent::SynchronizedStatement)])[
    (: used in a class with guarded-by literal *IS* a field (should be private final) :)
