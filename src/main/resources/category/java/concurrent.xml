@@ -933,19 +933,9 @@ public class Good {
         ModifierList/Annotation[@SimpleName='GuardedBy']//MemberValuePair/StringLiteral[
               @ConstValue = ancestor::ClassDeclaration//FieldDeclaration/VariableDeclarator/VariableId/@Name]
            ]/VariableDeclarator/VariableId/@Name
-    (: is defined as field :)
-    /ancestor::ClassDeclaration//FieldDeclaration/VariableDeclarator/VariableId/@Name
     (: and *IS NOT* in a synchronized block with the GuardedBy literal:)
     and not(ancestor::SynchronizedStatement/VariableAccess/@Name =
        ancestor::ClassDeclaration//FieldDeclaration[ModifierList/Annotation[@SimpleName='GuardedBy']]//MemberValuePair/StringLiteral/@ConstValue)
-    (: synchronized statement with 'this' has matching GuardedBy with String literal 'this' :)
-    and not (ancestor::SynchronizedStatement/ThisExpression[
-        ancestor::ClassDeclaration//FieldDeclaration//Annotation[@SimpleName='GuardedBy' and .//StringLiteral[@ConstValue='this']]
-    ])
-    (: synchronized method (non static?) has matching GuardedBy with String literal 'this' :)
-    and not (ancestor::MethodDeclaration[pmd-java:modifiers()='synchronized'][
-        ancestor::ClassDeclaration//FieldDeclaration//Annotation[@SimpleName='GuardedBy' and .//StringLiteral[@ConstValue='this']]
-    ])
 ]
 ,
 //MethodDeclaration[
