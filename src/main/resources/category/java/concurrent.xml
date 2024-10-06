@@ -917,7 +917,7 @@ public class Good {
                 <property name="xpath">
                     <value>
                         <![CDATA[
-//MethodDeclaration[
+    //MethodDeclaration[
     (: method annotated with known frameworks :)
     not(pmd-java:hasAnnotation('org.springframework.beans.factory.annotation.Autowired')
         or (pmd-java:hasAnnotation('javax.annotation.PostConstruct') or pmd-java:hasAnnotation('jakarta.annotation.PostConstruct'))
@@ -942,6 +942,10 @@ public class Good {
     and not (ancestor::SynchronizedStatement/ThisExpression[
         ancestor::ClassDeclaration//FieldDeclaration//Annotation[@SimpleName='GuardedBy' and .//StringLiteral[@ConstValue='this']]
     ])
+    (: synchronized method (non static?) has matching GuardedBy with String literal 'this' :)
+    and not (ancestor::MethodDeclaration[pmd-java:modifiers()='synchronized'][
+        ancestor::ClassDeclaration//FieldDeclaration//Annotation[@SimpleName='GuardedBy' and .//StringLiteral[@ConstValue='this']]
+    ])
 ]
 ,
 //MethodDeclaration[
@@ -960,15 +964,16 @@ public class Good {
         ModifierList/Annotation[@SimpleName='GuardedBy']//MemberValuePair/StringLiteral[
              not(@ConstValue = ancestor::ClassDeclaration//FieldDeclaration/VariableDeclarator/VariableId/@Name)]
           ]/VariableDeclarator/VariableId/@Name
-    (: is defined as field :)
-    /ancestor::ClassDeclaration//FieldDeclaration/VariableDeclarator/VariableId/@Name
-    (: and *IS* in a synchronized block with the GuardedBy literal:)
-    and ancestor::SynchronizedStatement/VariableAccess/@Name =
-       ancestor::ClassDeclaration//FieldDeclaration[
-          ModifierList/Annotation[@SimpleName='GuardedBy']
-       ]//MemberValuePair/StringLiteral/@ConstValue
+    (: synchronized statement with 'this' has matching GuardedBy with String literal 'this' :)
+    and not (ancestor::SynchronizedStatement/ThisExpression[
+        ancestor::ClassDeclaration//FieldDeclaration//Annotation[@SimpleName='GuardedBy' and .//StringLiteral[@ConstValue='this']]
+    ])
+    (: synchronized method (non static?) has matching GuardedBy with String literal 'this' :)
+    and not (ancestor::MethodDeclaration[pmd-java:modifiers()='synchronized'][
+        ancestor::ClassDeclaration//FieldDeclaration//Annotation[@SimpleName='GuardedBy' and .//StringLiteral[@ConstValue='this']]
+    ])
 ]
-                   ]]></value>
+             ]]></value>
                 </property>
             </properties>
             <example>
