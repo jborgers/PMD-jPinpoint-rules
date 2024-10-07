@@ -6,9 +6,10 @@
     <test-code>
         <description>Axual (Kafka) Producer is created in a method, it is expensive, instances should be reused</description>
         <expected-problems>1</expected-problems>
-        <expected-linenumbers>5</expected-linenumbers>
+        <expected-linenumbers>6</expected-linenumbers>
         <code><![CDATA[
 import io.axual.client.producer.Producer;
+import org.springframework.context.annotation.Configuration;
 
 public class AxualProducerBad {
     public void publishToEventStream() {

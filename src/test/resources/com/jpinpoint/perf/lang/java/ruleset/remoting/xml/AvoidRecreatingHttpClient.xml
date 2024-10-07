@@ -11,8 +11,9 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.ResponseEntity;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.springframework.context.annotation.Configuration;
 
-class Foo {
+class FooGood {
     Closeable createGood(Object req) {
         HttpClient httpClient = HttpClientBuilder.create().setMaxConnPerRoute(10).build(); // good
         return httpClient;
@@ -25,6 +26,16 @@ class Foo {
     }
 
     private ResponseEntity<Object> remoteCall(Closeable client, HttpEntity<Object> reqEntity) {
+    }
+}
+
+@Configuration
+class FooNotBad {
+    void connectBad(Object req) {
+        HttpEntity<Object> requestEntity = new HttpEntity<>(req);
+        ResponseEntity<Object> responseEntity = null;
+        HttpClient httpClient = HttpClientBuilder.create().setMaxConnPerRoute(10).build(); // not bad, config
+        return remoteCall(httpClient, requestEntity);
     }
 }
 
@@ -43,7 +54,7 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.nio.client.HttpAsyncClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 
-class Foo {
+class FooBad {
     void connectBad(Object req) {
         HttpEntity<Object> requestEntity = new HttpEntity<>(req);
         ResponseEntity<Object> responseEntity = null;

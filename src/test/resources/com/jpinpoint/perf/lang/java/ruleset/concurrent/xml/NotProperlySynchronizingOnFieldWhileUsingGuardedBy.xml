@@ -182,10 +182,11 @@
    </test-code>
 
    <test-code>
-        <description>NotProperlySynchronizingOnFieldWhileUsingGuardedBy not covered</description>
-        <expected-problems>0</expected-problems>
+        <description>NotProperlySynchronizingOnFieldWhileUsingGuardedBy hard to cover in pmd6</description>
+        <expected-problems>2</expected-problems>
+       <expected-linenumbers>30, 35</expected-linenumbers>
         <code><![CDATA[
-    // not covered: don't know how to match on both LOCK and txt
+    import net.jcip.annotations.GuardedBy;
     public class HardToViolate1 {
         @GuardedBy("LOCK1")
         private String txt1;
@@ -206,7 +207,6 @@
         }
     }
 
-    // not covered: guardedBy arg may be other thing than field
     public class HardToViolate2 {
         @GuardedBy("Wrong_LOCK")
         private String txt;

@@ -9,12 +9,12 @@
         <expected-linenumbers>5,7,9</expected-linenumbers>
         <code><![CDATA[
 import io.github.resilience4j.retry.annotation.Retry;
-import io.github.resilience4j.retry.Retry;
+//import io.github.resilience4j.retry.Retry;
 import org.springframework.retry.annotation.Retryable;
 
 @Retry(name = "some-service") // inform
 public class Foo {
-    private final Retry retry; // inform
+    private final io.github.resilience4j.retry.Retry retry; // inform
 
     @Retryable(value = { RuntimeException.class }, maxAttempts = 2, backoff = @Backoff(delay = 1000)) // inform
     public void callService() {}
