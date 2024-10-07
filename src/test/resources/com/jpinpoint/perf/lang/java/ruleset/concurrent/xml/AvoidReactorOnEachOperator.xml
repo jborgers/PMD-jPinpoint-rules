@@ -6,9 +6,12 @@
     <test-code>
         <description>violation: AvoidReactorOnEachOperator examples</description>
         <expected-problems>1</expected-problems>
-        <expected-linenumbers>8</expected-linenumbers>
+        <expected-linenumbers>11</expected-linenumbers>
         <code><![CDATA[
 import reactor.core.publisher.*;
+import org.springframework.context.annotation.Configuration;
+import javax.annotation.PostConstruct;
+import com.example.MdcContextLifter;
 
 @Configuration
 public class FooBad {
