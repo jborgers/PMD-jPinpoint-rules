@@ -1176,7 +1176,7 @@ public class Good {
                 ]]>
             </example>
         </rule>
-    <!--
+
         <rule name="AvoidFutureJoinWithoutTimeout"
               message="Avoid future.join without timeout"
               class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
@@ -1187,39 +1187,23 @@ public class Good {
                 (jpinpoint-rules)</description>
             <priority>1</priority>
             <properties>
-                <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-                <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
-                <property name="tag" value="performance" type="String" description="for-sonar"/>
-                <property name="version" value="2.0"/>
+                <property name="tags" value="jpinpoint-rule,multi-threading,performance" type="String" description="classification"/>
                 <property name="xpath">
                     <value>
                         <![CDATA[
-    (: future.join method reference without timeout in method :)
-    //PrimaryExpression/PrimaryPrefix[pmd-java:typeIs('java.util.concurrent.Future')
-    and not(ancestor::BlockStatement/preceding-sibling::BlockStatement//PrimaryPrefix/Name[ends-with(@Image, '.get') or ends-with(@Image, 'Timeout')][../../PrimarySuffix//ArgumentList])
-    and not (ancestor::BlockStatement/preceding-sibling::BlockStatement//PrimarySuffix[ends-with(@Image, 'Timeout')])
-    ]
-    /../PrimarySuffix//MethodReference[@Image='join']
-    ,
-    (: future.join in lambda without timeout in method :)
-    //PrimaryExpression/PrimaryPrefix/LambdaExpression//Name[ends-with(@Image, '.join')
-    and not(ancestor::BlockStatement/preceding-sibling::BlockStatement//PrimaryPrefix[pmd-java:typeIs('java.util.concurrent.Future')]
-    /Name[ends-with(@Image, '.get') or ends-with(@Image, 'Timeout')][../../PrimarySuffix//ArgumentList])
-    and not (ancestor::BlockStatement/preceding-sibling::BlockStatement//PrimarySuffix[ends-with(@Image, 'Timeout')])
-    ]
-    (: join has no arguments, #198 :)
-    [../../PrimarySuffix/Arguments[@Size=0]]
-    ,
-    (: CompletableFuture.allOf(futures).join() without timeout :)
-    //PrimaryExpression/PrimaryPrefix[pmd-java:typeIs('java.util.concurrent.Future')]/../PrimarySuffix[@Image='join'
-    (: not bad if has a future.get with (timeout) arguments before the future.join, #300 :)
-    and not(ancestor::BlockStatement/preceding-sibling::BlockStatement//PrimaryExpression[PrimarySuffix/Arguments/ArgumentList]
-    /PrimaryPrefix[pmd-java:typeIs('java.util.concurrent.Future')]/Name[ends-with(@Image, '.get') or ends-with(@Image, 'Timeout')])
-    and not (../PrimarySuffix[ends-with(@Image, 'Timeout')])]
-    (: join has no arguments, #198 :)
-    [../PrimarySuffix/Arguments[@Size=0]]
-    ]]>
-                    </value>
+(: future.join method without timeout or without timeout in preceding methods :)
+//MethodDeclaration/Block/*[not(preceding-sibling::*[descendant-or-self::MethodCall[
+               pmd-java:matchesSig('java.util.concurrent.Future#get(long,java.util.concurrent.TimeUnit)')
+               or pmd-java:matchesSig('java.util.concurrent.Future#orTimeout(long,java.util.concurrent.TimeUnit)')
+               or pmd-java:matchesSig('java.util.concurrent.Future#completeOnTimeout(_,long,java.util.concurrent.TimeUnit)')
+             ]]
+      )]//(MethodCall|MethodReference)[
+               (pmd-java:matchesSig('java.util.concurrent.Future#join()')
+               or (self::MethodReference and @MethodName='join'))
+               (: no orTimeout(_,_) call in same chained expression :)
+               and not (ancestor::ExpressionStatement//MethodCall[pmd-java:matchesSig('java.util.concurrent.Future#orTimeout(long,java.util.concurrent.TimeUnit)')])
+          ]
+                    ]]></value>
                 </property>
             </properties>
             <example>
@@ -1263,20 +1247,11 @@ public class Good {
                 (jpinpoint-rules)</description>
             <priority>1</priority>
             <properties>
-                <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-                <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
-                <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="tag" value="unpredictable" type="String" description="for-sonar"/>
-                <property name="version" value="2.0"/>
+                <property name="tags" value="jpinpoint-rule,multi-threading,performance,unpredictable" type="String" description="classification"/>
                 <property name="xpath">
-                    <value>
-                        <![CDATA[
-    //PrimaryPrefix/Name[@Image='CompletableFuture.supplyAsync']/../../PrimarySuffix/Arguments/ArgumentList[count(Expression) = 1]
-    ,
-    //PrimaryPrefix/Name[@Image='supplyAsync']/../../PrimarySuffix/Arguments/ArgumentList[count(Expression) = 1]
-    [/CompilationUnit/ImportDeclaration/Name[@Image = 'java.util.concurrent.CompletableFuture.supplyAsync']]
-    ]]>
-                    </value>
+                    <value><![CDATA[
+//MethodCall[pmd-java:matchesSig('java.util.concurrent.CompletableFuture#supplyAsync(_)')]
+                        ]]></value>
                 </property>
             </properties>
             <example>
@@ -1304,28 +1279,22 @@ public class Good {
               message="Avoid the ForkJoinPool::commonPool used in parallelStream for blocking calls."
               typeResolution="true"
               externalInfoUrl="${doc_root}/JavaCodePerformance.md#ia09">
-            <description>Problem: Blocking calls for instance remote calls, may exhaust the common pool for some time thereby blocking all other use of the common pool.
+            <description>Problem: Blocking calls, for instance remote calls, may exhaust the common pool for some time thereby blocking all other use of the common pool.
                 In addition, nested use of the common pool can lead to deadlock. Do not use the common pool for blocking calls. The parallelStream() call uses the common pool.&#13;
                 Solution: Use a dedicated thread pool with enough threads to get proper parallelism. The number of threads in the common pool is equal to the number of CPUs - 1 and meant to utilize all of them.
-                It assumes CPU intensive non-blocking processing of in-memory data.  (jpinpoint-rules)</description>
+                It assumes CPU intensive non-blocking processing of in-memory data. (jpinpoint-rules)</description>
             <priority>1</priority>
             <properties>
-                <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-                <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
-                <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="tag" value="unpredictable" type="String" description="for-sonar"/>
-                <property name="version" value="2.0"/>
+                <property name="tags" value="jpinpoint-rule,multi-threading,performance,unpredictable" type="String" description="classification"/>
                 <property name="xpath">
                     <value><![CDATA[
-    (: assumption: if import of web client / http client is present, parallelStreaming is for remote calls :)
-    //ImportDeclaration/Name[starts-with(@Image, 'org.springframework.web.client') or starts-with(@Image, 'org.apache.commons.httpclient')]/
-    ancestor::CompilationUnit//PrimaryExpression
-    [(PrimarySuffix/@Image='parallelStream' or ends-with(PrimaryPrefix/Name/@Image, 'parallelStream')
-    and exists(PrimarySuffix/pmd-java:typeIs('java.util.stream.Stream'))
-    and not(ancestor::Block//StatementExpression/PrimaryExpression/PrimaryPrefix/Name[ends-with(@Image, '.submit') and pmd-java:typeIs('java.util.concurrent.ExecutorService')]))
-    ]
-    ]]>
-                    </value>
+(: assumption: if import of web client / http client is present, parallelStreaming is for remote calls :)
+//ImportDeclaration[@PackageName=('org.springframework.web.client','org.apache.commons.httpclient')]
+/..//MethodCall[
+   pmd-java:matchesSig('java.util.Collection#parallelStream()')
+   and not(ancestor::ExpressionStatement//MethodCall[pmd-java:matchesSig('java.util.concurrent.ExecutorService#submit(_)')])
+]
+                    ]]></value>
                 </property>
             </properties>
             <example>
@@ -1341,7 +1310,7 @@ public class Good {
         final ExecutorService myExePool = Executors.newFixedThreadPool(10);
 
         void bad1() {
-            list.parallelStream().forEach(elem -> storeDataRemoteCall(elem));
+            list.parallelStream().forEach(elem -> storeDataRemoteCall(elem)); // bad
         }
 
         void good1() {
@@ -1374,26 +1343,43 @@ public class Good {
                 Solution: Do *not* put the user related data in a shared object e.g. by Spring @Component annotation. Use a POJO. Or, if it is not user data, rename the field. (jpinpoint-rules)</description>
             <priority>1</priority>
             <properties>
-                <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-                <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
-                <property name="tag" value="correctness" type="String" description="for-sonar"/>
-                <property name="tag" value="suspicious" type="String" description="for-sonar"/>
-                <property name="tag" value="data-mix-up" type="String" description="for-sonar"/>
-                <property name="version" value="2.0"/>
+                <property name="tag" value="jpinpoint-rule,multi-threading,correctness,suspicious,data-mix-up" type="String" description="classification"/>
                 <property name="xpath">
                     <value><![CDATA[
-    //TypeDeclaration/Annotation//Name[(@Image='Component' or @Image='Service' or @Image='Controller' or @Image='RestController' or @Image='Repository' or
-    (@Image='Singleton' and ancestor::TypeDeclaration/Annotation/NormalAnnotation/MemberValuePairs//Name[@Image='ConcurrencyManagementType.BEAN']))
-    and not (ancestor::TypeDeclaration/Annotation//Name[@Image='Scope']/..//PrimaryPrefix[Literal[@Image='"request"' or @Image='"prototype"']
-    or Name[@Image='ConfigurableBeanFactory.SCOPE_REQUEST' or @Image='ConfigurableBeanFactory.SCOPE_PROTOTYPE']])
-    and not (ancestor::TypeDeclaration/Annotation//Name[@Image='RequestScope'])
-    (: no checking if @ConfigurationProperties and no @Setter :)
-    and not ((ancestor::TypeDeclaration/Annotation//Name[@Image='ConfigurationProperties'])
-             and not (ancestor::TypeDeclaration/Annotation/MarkerAnnotation/Name[@Image='Setter']))]
-    /ancestor::TypeDeclaration//ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Final=false() and @Static=false()][Type/ReferenceType][ancestor::ClassOrInterfaceDeclaration[1][@Static=false()]]/VariableDeclarator/VariableDeclaratorId[matches(@Name,
-    'User[Id|Ref|Reference]*$|Customer[Id|Ref|Reference]*$|Session[Id|Ref|Reference]*$|Order[Id|Ref|Reference|List]*$|Account[Id|Ref|Reference|List]*$|Transaction[Id|Ref|Reference|List]*$|Contract[Id|Ref|Reference|List]*$', 'i')]
-    ]]>
-                    </value>
+(: annotations that make singleton like components in Spring and EJB :)
+//ClassDeclaration[
+  (
+       pmd-java:hasAnnotation('org.springframework.stereotype.Service')
+    or pmd-java:hasAnnotation('org.springframework.stereotype.Component')
+    or pmd-java:hasAnnotation('org.springframework.stereotype.Controller')
+    or pmd-java:hasAnnotation('org.springframework.stereotype.Repository')
+    or pmd-java:hasAnnotation('org.springframework.web.bind.annotation.RestController')
+    or (pmd-java:hasAnnotation('javax.ejb.Singleton') and ModifierList/Annotation[pmd-java:typeIs('javax.ejb.ConcurrencyManagement')]/AnnotationMemberList/MemberValuePair/FieldAccess[./TypeExpression[pmd-java:typeIs('javax.ejb.ConcurrencyManagementType')] and @Name="BEAN"])
+    or (pmd-java:hasAnnotation('jakarta.ejb.Singleton') and ModifierList/Annotation[pmd-java:typeIs('jakarta.ejb.ConcurrencyManagement')]/AnnotationMemberList/MemberValuePair/FieldAccess[./TypeExpression[pmd-java:typeIs('jakarta.ejb.ConcurrencyManagementType')] and @Name="BEAN"])
+    (: only check if @ConfigurationProperties *and* @Setter :)
+    or (pmd-java:hasAnnotation('org.springframework.boot.context.properties.ConfigurationProperties') and pmd-java:hasAnnotation('lombok.Setter'))
+   )
+   (: no @RequestScope annotation :)
+   and not (pmd-java:hasAnnotation('org.springframework.context.annotation.Scope') and .//AnnotationMemberList/MemberValuePair[
+       StringLiteral[contains(@Image,'request') or contains(@Image,'prototype')]
+       or FieldAccess[@Name='SCOPE_REQUEST' or @Name='SCOPE_PROTOTYPE']/TypeExpression[pmd-java:typeIs('org.springframework.beans.factory.config.ConfigurableBeanFactory')]]
+    )
+   (: no request or prototype @Scope, literal or via constant :)
+   and not(pmd-java:hasAnnotation('org.springframework.web.context.annotation.RequestScope'))
+]
+(: no final or static fields, and not fields in static inner classes and no primitives :)
+//FieldDeclaration[not(
+                     pmd-java:modifiers()=('static','final')
+                     or ancestor::ClassDeclaration[pmd-java:modifiers()='static']
+                     or ./PrimitiveType
+                   )
+   ]/VariableDeclarator/VariableId[
+     matches(
+         @Name,
+         'User[Id|Ref|Reference]*$|Customer[Id|Ref|Reference]*$|Session[Id|Ref|Reference]*$|Order[Id|Ref|Reference|List]*$|Account[Id|Ref|Reference|List]*$|Transaction[Id|Ref|Reference|List]*$|Contract[Id|Ref|Reference|List]*$'
+         , 'i')
+   ]
+                    ]]></value>
                 </property>
             </properties>
             <example>
@@ -1448,19 +1434,17 @@ public class Good {
                 So only for large collections and much processing without having to wait.   (jpinpoint-rules)</description>
             <priority>2</priority>
             <properties>
-                <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-                <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
-                <property name="tag" value="performance" type="String" description="for-sonar"/>
-                <property name="tag" value="unpredictable" type="String" description="for-sonar"/>
-                <property name="version" value="2.0"/>
+                <property name="tag" value="jpinpoint-rule,multi-threading,performance,unpredictable" type="String" description="classification"/>
                 <property name="xpath">
                     <value><![CDATA[
-    //PrimaryExpression/(PrimarySuffix[@Image='parallelStream' or @Image='parallel']|PrimaryPrefix/Name[ends-with(@Image, '.parallelStream') or ends-with(@Image, '.parallel')])
-    (: and exists(PrimarySuffix[pmd-java:typeIs('java.util.stream.Stream')]) - with 'var' type is lost in typeIs :)
-    (: no arguments :)
-    [following::PrimarySuffix[1][@ArgumentCount = 0]]
-    [not(ancestor::Block//StatementExpression/PrimaryExpression/PrimaryPrefix/Name[ends-with(@Image, '.submit') and pmd-java:typeIs('java.util.concurrent.ExecutorService')])]
-    ]]>
+//MethodCall[
+   (
+    pmd-java:matchesSig('java.util.Collection#parallelStream()')
+    or pmd-java:matchesSig('java.util.stream.BaseStream#parallel()')
+   )
+   and not(ancestor::ExpressionStatement//MethodCall[pmd-java:matchesSig('java.util.concurrent.ExecutorService#submit(_)')])
+]
+                        ]]>
                     </value>
                 </property>
             </properties>
@@ -1478,13 +1462,13 @@ public class Good {
         final ExecutorService myExePool = Executors.newFixedThreadPool(10);
 
         void bad1() {
-            list.parallelStream().forEach(elem -> someCall(elem)); //bad
+            list.parallelStream().forEach(elem -> someCall(elem)); // bad
         }
         void bad2() {
-            map.entrySet().parallelStream().forEach(entry -> someCall(entry.getValue())); //bad
+            map.entrySet().parallelStream().forEach(entry -> someCall(entry.getValue())); // bad
         }
         void exceptionalProperUse() {
-           hugeList.parallelStream().forEach(elem -> heavyCalculations(elem)); //flagged but may be good, should suppress when proven to be faster than sequential form
+           hugeList.parallelStream().forEach(elem -> heavyCalculations(elem)); // flagged but may be good, should suppress when proven to be faster than sequential form
         }
 
         void good1() {
@@ -1527,15 +1511,10 @@ public class Good {
                 (jpinpoint-rules)</description>
             <priority>2</priority>
             <properties>
-                <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-                <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
-                <property name="tag" value="performance" type="String" description="for-sonar"/>
-                <property name="tag" value="bad-practice" type="String" description="for-sonar"/>
-                <property name="version" value="2.0"/>
+                <property name="tags" value="jpinpoint-rule,multi-threading,performance,bad-practice" type="String" description="classification"/>
                 <property name="xpath">
                     <value><![CDATA[
-    //PrimaryExpression/PrimarySuffix[@Image='parallel' and ../PrimaryPrefix/Name[@Image = 'Flux.fromIterable']
-    and //ImportDeclaration/Name[starts-with(@Image, 'reactor.core.publisher')]]
+//MethodCall[pmd-java:matchesSig('reactor.core.publisher.Flux#parallel(_)') and ./MethodCall[pmd-java:matchesSig('reactor.core.publisher.Flux#fromIterable(_)')]]
                     ]]></value>
                 </property>
             </properties>
@@ -1577,15 +1556,23 @@ public class Good {
                 (jpinpoint-rules)</description>
             <priority>2</priority>
             <properties>
-                <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-                <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
-                <property name="tag" value="performance" type="String" description="for-sonar"/>
-                <property name="version" value="2.0"/>
+                <property name="tags" value="jpinpoint-rule,multi-threading,performance" type="String" description="classification"/>
                 <property name="xpath">
                     <value><![CDATA[
-    //PrimaryExpression/PrimaryPrefix/Name[@Image='MDC.setContextMap' and
-    (ancestor::MethodDeclaration/ResultType/Type[@TypeImage='Flux' or TypeImage='Mono']
-    or ancestor::MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter[pmd-java:typeIs('reactor.util.context.Context')])]
+//MethodCall[
+    pmd-java:matchesSig('org.slf4j.MDC#setContextMap(_)')
+      and
+       (
+         ancestor::MethodDeclaration/ClassType[
+              pmd-java:typeIs('reactor.core.publisher.Flux')
+              or pmd-java:typeIs('reactor.core.publisher.Mono')
+         ]
+         or
+         ancestor::MethodDeclaration/FormalParameters/FormalParameter[
+              pmd-java:typeIs('reactor.util.context.Context')
+         ]
+       )
+]
                     ]]></value>
                 </property>
             </properties>
@@ -1631,29 +1618,27 @@ public class Good {
                 Solution: Just do processing when and where actually needed. (jpinpoint-rules)</description>
             <priority>2</priority>
             <properties>
-                <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-                <property name="tag" value="performance" type="String" description="for-sonar"/>
-                <property name="version" value="2.0"/>
+                <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
                 <property name="xpath">
                     <value><![CDATA[
-    //StatementExpression/PrimaryExpression/PrimaryPrefix/Name[@Image='Hooks.onEachOperator']
+//MethodCall[pmd-java:matchesSig('reactor.core.publisher.Hooks#onEachOperator(_,_)')]
                     ]]></value>
                 </property>
             </properties>
             <example>
                 <![CDATA[
-    import reactor.core.publisher.*;
+import reactor.core.publisher.*;
 
-    @Configuration
-    public class FooBad {
-        private String MDC_CONTEXT_REACTOR_KEY = "CONTEXT";
-        @PostConstruct
-        private void contextOperatorHook() {
-            Hooks.onEachOperator(MDC_CONTEXT_REACTOR_KEY,
-                    Operators.lift((scannable, coreSubscriber) -> new MdcContextLifter<>(coreSubscriber))
-            );
-        }
+@Configuration
+public class FooBad {
+    private String MDC_CONTEXT_REACTOR_KEY = "CONTEXT";
+    @PostConstruct
+    private void contextOperatorHook() {
+        Hooks.onEachOperator(MDC_CONTEXT_REACTOR_KEY,
+                Operators.lift((scannable, coreSubscriber) -> new MdcContextLifter<>(coreSubscriber)) // bad
+        );
     }
+}
                 ]]>
             </example>
         </rule>
@@ -1669,33 +1654,25 @@ public class Good {
                 Solution: Provide a timeout to the invokeAll/invokeAny method and handle the timeout. (jpinpoint-rules)</description>
             <priority>2</priority>
             <properties>
-                <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-                <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
-                <property name="tag" value="performance" type="String" description="for-sonar"/>
-                <property name="version" value="2.0"/>
+                <property name="tags" value="jpinpoint-rule,multi-threading,performance" type="String" description="classification"/>
                 <property name="xpath">
                     <value><![CDATA[
-    //PrimaryExpression[PrimarySuffix[@ArgumentCount=1]]/PrimaryPrefix
-    [pmd-java:typeIs('java.util.concurrent.ExecutorService') and ./Name[ends-with(@Image,'.invokeAll') or ends-with(@Image,'.invokeAny')]]
-    /../PrimarySuffix//ArgumentList
+//MethodCall[pmd-java:matchesSig('java.util.concurrent.ExecutorService#invokeAll(_)') or pmd-java:matchesSig('java.util.concurrent.ExecutorService#invokeAny(_)')]
                     ]]></value>
                 </property>
             </properties>
-            <example>
-                <![CDATA[
-    import java.util.concurrent.*;
+            <example><![CDATA[
+import java.util.concurrent.*;
 
-    class Foo {
-        private List<Future<ServiceResult>> executeTasksBad(Collection<Callable<ServiceResult>> tasks, ExecutorService executor) throws Exception {
-            return executor.invokeAll(tasks); // bad, no timeout
-        }
-        private List<Future<ServiceResult>> executeTasksGood(Collection<Callable<ServiceResult>> tasks, ExecutorService executor) throws Exception {
-            return executor.invokeAll(tasks, OUR_TIMEOUT_IN_MILLIS, TimeUnit.MILLISECONDS); // good
-        }
+class Foo {
+    private List<Future<ServiceResult>> executeTasksBad(Collection<Callable<ServiceResult>> tasks, ExecutorService executor) throws Exception {
+        return executor.invokeAll(tasks); // bad, no timeout
     }
-                ]]>
-            </example>
+    private List<Future<ServiceResult>> executeTasksGood(Collection<Callable<ServiceResult>> tasks, ExecutorService executor) throws Exception {
+        return executor.invokeAll(tasks, OUR_TIMEOUT_IN_MILLIS, TimeUnit.MILLISECONDS); // good
+    }
+}
+                ]]></example>
         </rule>
-    -->
 
 </ruleset>
