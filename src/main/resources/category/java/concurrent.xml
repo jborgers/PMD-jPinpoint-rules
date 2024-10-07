@@ -1642,7 +1642,7 @@ public class FooBad {
                 ]]>
             </example>
         </rule>
-    <!--
+
         <rule name="AvoidExecutorInvokeWithoutTimeout"
               message="Avoid using ExecutorService::invokeAll or invokeAny without a timeout."
               class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
@@ -1654,33 +1654,25 @@ public class FooBad {
                 Solution: Provide a timeout to the invokeAll/invokeAny method and handle the timeout. (jpinpoint-rules)</description>
             <priority>2</priority>
             <properties>
-                <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-                <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
-                <property name="tag" value="performance" type="String" description="for-sonar"/>
-                <property name="version" value="2.0"/>
+                <property name="tags" value="jpinpoint-rule,multi-threading,performance" type="String" description="classification"/>
                 <property name="xpath">
                     <value><![CDATA[
-    //PrimaryExpression[PrimarySuffix[@ArgumentCount=1]]/PrimaryPrefix
-    [pmd-java:typeIs('java.util.concurrent.ExecutorService') and ./Name[ends-with(@Image,'.invokeAll') or ends-with(@Image,'.invokeAny')]]
-    /../PrimarySuffix//ArgumentList
+//MethodCall[pmd-java:matchesSig('java.util.concurrent.ExecutorService#invokeAll(_)') or pmd-java:matchesSig('java.util.concurrent.ExecutorService#invokeAny(_)')]
                     ]]></value>
                 </property>
             </properties>
-            <example>
-                <![CDATA[
-    import java.util.concurrent.*;
+            <example><![CDATA[
+import java.util.concurrent.*;
 
-    class Foo {
-        private List<Future<ServiceResult>> executeTasksBad(Collection<Callable<ServiceResult>> tasks, ExecutorService executor) throws Exception {
-            return executor.invokeAll(tasks); // bad, no timeout
-        }
-        private List<Future<ServiceResult>> executeTasksGood(Collection<Callable<ServiceResult>> tasks, ExecutorService executor) throws Exception {
-            return executor.invokeAll(tasks, OUR_TIMEOUT_IN_MILLIS, TimeUnit.MILLISECONDS); // good
-        }
+class Foo {
+    private List<Future<ServiceResult>> executeTasksBad(Collection<Callable<ServiceResult>> tasks, ExecutorService executor) throws Exception {
+        return executor.invokeAll(tasks); // bad, no timeout
     }
-                ]]>
-            </example>
+    private List<Future<ServiceResult>> executeTasksGood(Collection<Callable<ServiceResult>> tasks, ExecutorService executor) throws Exception {
+        return executor.invokeAll(tasks, OUR_TIMEOUT_IN_MILLIS, TimeUnit.MILLISECONDS); // good
+    }
+}
+                ]]></example>
         </rule>
-    -->
 
 </ruleset>

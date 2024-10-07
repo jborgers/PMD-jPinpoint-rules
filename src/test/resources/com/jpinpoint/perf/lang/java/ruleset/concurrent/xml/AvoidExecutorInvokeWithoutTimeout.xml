@@ -6,9 +6,11 @@
     <test-code>
         <description>Avoid Executor Invoke Without Timeout</description>
         <expected-problems>1</expected-problems>
-        <expected-linenumbers>5</expected-linenumbers>
+        <expected-linenumbers>7</expected-linenumbers>
         <code><![CDATA[
+import java.util.*;
 import java.util.concurrent.*;
+import com.example.ServiceResult;
 
 class Foo {
     private List<Future<ServiceResult>> executeTasksBad(Collection<Callable<ServiceResult>> tasks, ExecutorService executor) throws Exception {
