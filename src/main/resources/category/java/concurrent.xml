@@ -1606,7 +1606,7 @@ public class Good {
                 ]]>
             </example>
         </rule>
-    <!--
+
         <rule name="AvoidReactorOnEachOperator"
               message="Avoid using Reactor Hooks.onEachOperator."
               class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
@@ -1618,33 +1618,31 @@ public class Good {
                 Solution: Just do processing when and where actually needed. (jpinpoint-rules)</description>
             <priority>2</priority>
             <properties>
-                <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-                <property name="tag" value="performance" type="String" description="for-sonar"/>
-                <property name="version" value="2.0"/>
+                <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
                 <property name="xpath">
                     <value><![CDATA[
-    //StatementExpression/PrimaryExpression/PrimaryPrefix/Name[@Image='Hooks.onEachOperator']
+//MethodCall[pmd-java:matchesSig('reactor.core.publisher.Hooks#onEachOperator(_,_)')]
                     ]]></value>
                 </property>
             </properties>
             <example>
                 <![CDATA[
-    import reactor.core.publisher.*;
+import reactor.core.publisher.*;
 
-    @Configuration
-    public class FooBad {
-        private String MDC_CONTEXT_REACTOR_KEY = "CONTEXT";
-        @PostConstruct
-        private void contextOperatorHook() {
-            Hooks.onEachOperator(MDC_CONTEXT_REACTOR_KEY,
-                    Operators.lift((scannable, coreSubscriber) -> new MdcContextLifter<>(coreSubscriber))
-            );
-        }
+@Configuration
+public class FooBad {
+    private String MDC_CONTEXT_REACTOR_KEY = "CONTEXT";
+    @PostConstruct
+    private void contextOperatorHook() {
+        Hooks.onEachOperator(MDC_CONTEXT_REACTOR_KEY,
+                Operators.lift((scannable, coreSubscriber) -> new MdcContextLifter<>(coreSubscriber)) // bad
+        );
     }
+}
                 ]]>
             </example>
         </rule>
-
+    <!--
         <rule name="AvoidExecutorInvokeWithoutTimeout"
               message="Avoid using ExecutorService::invokeAll or invokeAny without a timeout."
               class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
