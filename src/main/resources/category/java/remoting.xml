@@ -1194,96 +1194,106 @@ public class Foo {
         </example>
     </rule>
 
-    <!--
-<rule -name="AvoidHardcodedConnectionConfig"
-message="Avoid hardcoded connection configuration."
-class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-dfa="false"
-language="java"
-externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi22">
-<description>Problem: configuring connection settings like timeouts and pool sizes in code (int values) makes it difficult to manage and tune these settings.&#13;
-Solution: use property files, e.g. yml, to define the values for these settings for each called service.
-(jpinpoint-rules)</description>
-<priority>3</priority>
-<properties>
-<property name="tags" value="jpinpoint-rule,performance,bad-practice" type="String" description="classification"/>
-<property name="xpath">
-<value><![CDATA[
-//FieldDeclaration[Type/@TypeImage='int']/VariableDeclarator[VariableDeclaratorId[@Final = true()][contains(upper-case(@Name), 'TIMEOUT') or contains(upper-case(@Name), 'DURATIONOUT')
-or(contains(upper-case(@Name), 'MAX') and contains(upper-case(@Name), 'ROUTE'))]]
-[VariableInitializer//Literal or VariableDeclaratorId/@Name=ancestor::ClassOrInterfaceBody//ConstructorDeclaration//StatementExpression[Expression//Literal]//Name/@Image]
+
+    <rule name="AvoidHardcodedConnectionConfig"
+          message="Avoid hardcoded connection configuration."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          dfa="false"
+          language="java"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi22">
+        <description>Problem: configuring connection settings like timeouts and pool sizes in code (int values) makes it
+            difficult to manage and tune these settings.&#13;
+            Solution: use property files, e.g. yml, to define the values for these settings for each called service.
+            (jpinpoint-rules)
+        </description>
+        <priority>3</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,performance,bad-practice" type="String"
+                      description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+//FieldDeclaration[PrimitiveType/@Kind='int']/VariableDeclarator
+    [VariableId[@Final = true()]
+    [matches(upper-case(@Name), 'TIMEOUT|DURATIONOUT|MAX|ROUTE')]
+]
+[NumericLiteral or
+    (VariableId/@Name=ancestor::ClassBody//ConstructorDeclaration//AssignmentExpression/*[1]/@Name
+    and not(VariableId/@Name=ancestor::ClassBody//ConstructorDeclaration//FormalParameter[pmd-java:hasAnnotation('org.springframework.beans.factory.annotation.Value')]/VariableId/@Name))
+]
 ]]></value>
-</property>
-</properties>
-<example>
-<![CDATA[
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
 class AvoidHardcodedConnectionConfig {
-private static final int CONNECTION_TIMEOUT = 50000;// bad
-private static final int SOCKET_TIMEOUT = 250000;// bad
-private static final int TRANSACTION_TIMEOUT_SECONDS = 2;// bad
-private static final int CONNECTION_TIMEOUTMILLIS = 1000;// bad
+    private static final int CONNECTION_TIMEOUT = 50000;// bad
+    private static final int SOCKET_TIMEOUT = 250000;// bad
+    private static final int TRANSACTION_TIMEOUT_SECONDS = 2;// bad
+    private static final int CONNECTION_TIMEOUTMILLIS = 1000;// bad
 
-private static final int MAX_CONN_PER_ROUTE = 10;// bad
-static final int MAX_PER_ROUTE = 100;// bad
-final int MAX_NUM_ROUTES = 2; // bad
-int some_timeout_ms = 300; //good, variable
-private static final String LOGIN_TIMEOUT_PROPERTY_KEY = "loginTimeout"; // good, not an int
-final int other_timeout_s_blank; // bad, blank final and hard coded
-private final int connectTimeoutMillis; // good, not hard coded
+    private static final int MAX_CONN_PER_ROUTE = 10;// bad
+    static final int MAX_PER_ROUTE = 100;// bad
+    final int MAX_NUM_ROUTES = 2; // bad
+    int some_timeout_ms = 300; //good, variable
+    private static final String LOGIN_TIMEOUT_PROPERTY_KEY = "loginTimeout"; // good, not an int
+    final int other_timeout_s_blank; // bad, blank final and hard coded
+    private final int connectTimeoutMillis; // good, not hard coded
 
-AvoidHardcodedConnectionConfig(@Value("${connect_timeout:1000}") int connectTimeoutMillis) {
-this.connectTimeoutMillis = connectTimeoutMillis; // good, not hard coded
-other_timeout_s_blank = 5; // field bad
-final int timeout_s_local = 4; // good, method level
-int otherTimeoutInS = 3; // good, var
-}
-}
-]]>
-</example>
-</rule>
-
-<rule -name="AvoidExcessiveClassloadingWithSaajSoap"
-message="Avoid excessive class loading with SAAJ SOAP messaging, use alternative Axiom, or system properties."
-class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-dfa="false"
-language="java"
-externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi23">
-<description>Problem: SAAJ uses DOM to load the XML document in memory which uses a TransformerFactory. The implementation class of it is loaded on every call which causes lock contention under load. This means long response times.&#13;
-Solution: If possible, use Axiom SOAP messaging which uses the faster StAX. If you have/want to stick to SAAJ, set the proper system properties to prevent the excessive class loading.
-(jpinpoint-rules)</description>
-<priority>2</priority>
-<properties>
-<property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
-<property name="xpath">
-<value><![CDATA[
-//Type//ClassOrInterfaceType[@Image='SaajSoapMessageFactory'
-and not (ancestor::ClassOrInterfaceBody//PrimaryExpression[./PrimaryPrefix/Name[@Image='System.setProperty'] and ./PrimarySuffix/Arguments//Literal[@Image = '"javax.xml.transform.TransformerFactory"']])]
-|
-//AllocationExpression/ClassOrInterfaceType[@Image='SaajSoapMessageFactory'
-and not (ancestor::ClassOrInterfaceBody//PrimaryExpression[./PrimaryPrefix/Name[@Image='System.setProperty'] and ./PrimarySuffix/Arguments//Literal[@Image='"javax.xml.transform.TransformerFactory"']])]
-]]></value>
-</property>
-</properties>
-<example>
-<![CDATA[
-import org.springframework.ws.soap.saaj.SaajSoapMessageFactory;
-
-class Foo {
-private final SaajSoapMessageFactory mfField; // bad, also possibly thread-unsafe
-
-public WebServiceTemplate getTemplate(final String uri, final HttpClientMessageSender httpClientMessageSender) throws SOAPException {
-SoapMessageFactory saajSoapMessageFactory = new SaajSoapMessageFactory(MessageFactory.newInstance()); // bad
-//..
-}
-}
-
-//To solve, add to the above:
-static {
-System.setProperty("javax.xml.transform.TransformerFactory", "com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl");
-System.setProperty("javax.xml.soap.MessageFactory", "com.sun.xml.internal.messaging.saaj.soap.ver1_1.SOAPMessageFactory1_1Impl");
+    AvoidHardcodedConnectionConfig(@Value("${connect_timeout:1000}") int connectTimeoutMillis) {
+        this.connectTimeoutMillis = connectTimeoutMillis; // good, not hard coded
+        other_timeout_s_blank = 5; // field bad
+        final int timeout_s_local = 4; // good, method level
+        int otherTimeoutInS = 3; // good, var
+    }
 }
 ]]>
-</example>
-</rule>
--->
+        </example>
+    </rule>
+
+
+    <rule name="AvoidExcessiveClassloadingWithSaajSoap"
+          message="Avoid excessive class loading with SAAJ SOAP messaging, use alternative Axiom, or system properties."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          dfa="false"
+          language="java"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi23">
+        <description>Problem: SAAJ uses DOM to load the XML document in memory which uses a TransformerFactory. The
+            implementation class of it is loaded on every call which causes lock contention under load. This means long
+            response times.&#13;
+            Solution: If possible, use Axiom SOAP messaging which uses the faster StAX. If you have/want to stick to
+            SAAJ, set the proper system properties to prevent the excessive class loading.
+            (jpinpoint-rules)
+        </description>
+        <priority>2</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+//ClassType[pmd-java:typeIs('org.springframework.ws.soap.saaj.SaajSoapMessageFactory')
+    and not (ancestor::ClassBody/Initializer//MethodCall[pmd-java:matchesSig('java.lang.System#setProperty(_,_)') and ArgumentList/*[1][@ConstValue='javax.xml.transform.TransformerFactory']])]
+    ]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+    import org.springframework.ws.soap.saaj.SaajSoapMessageFactory;
+
+    class Foo {
+        private final SaajSoapMessageFactory mfField; // bad, also possibly thread-unsafe
+
+        public WebServiceTemplate getTemplate(final String uri, final HttpClientMessageSender httpClientMessageSender) throws SOAPException {
+            SoapMessageFactory saajSoapMessageFactory = new SaajSoapMessageFactory(MessageFactory.newInstance()); // bad
+            //..
+        }
+    }
+
+    //To solve, add to the above the proper implementing classes:
+    static {
+        System.setProperty("javax.xml.transform.TransformerFactory", "com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl");
+        System.setProperty("javax.xml.soap.MessageFactory", "com.sun.xml.internal.messaging.saaj.soap.ver1_1.SOAPMessageFactory1_1Impl");
+    }
+    ]]>
+        </example>
+    </rule>
+
 </ruleset>
