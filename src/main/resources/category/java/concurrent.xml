@@ -1289,7 +1289,7 @@ public class Good {
                 <property name="xpath">
                     <value><![CDATA[
 (: assumption: if import of web client / http client is present, parallelStreaming is for remote calls :)
-//ImportDeclaration[@PackageName='org.springframework.web.client' or @PackageName='org.apache.commons.httpclient']
+//ImportDeclaration[@PackageName=('org.springframework.web.client','org.apache.commons.httpclient')]
 /..//MethodCall[
    pmd-java:matchesSig('java.util.Collection#parallelStream()')
    and not(ancestor::ExpressionStatement//MethodCall[pmd-java:matchesSig('java.util.concurrent.ExecutorService#submit(_)')])
