@@ -20,10 +20,10 @@ public class Foo {
     final ExecutorService myExePool = Executors.newFixedThreadPool(10);
 
     void bad1() {
-        list.parallelStream().forEach(elem -> storeDataRemoteCall(elem));
+        list.parallelStream().forEach(elem -> storeDataRemoteCall(elem)); // bad
     }
     void bad2() {
-        map.entrySet().parallelStream().forEach(entry -> storeDataRemoteCall(entry.getValue()));
+        map.entrySet().parallelStream().forEach(entry -> storeDataRemoteCall(entry.getValue())); // bad
     }
 
     void good1() {
@@ -43,8 +43,34 @@ public class Foo {
         return "";
     }
 }
-     ]]></code>
+      ]]></code>
     </test-code>
+    <test-code>
+        <description>violation: parallelStreaming in class without RestTemplate import</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.stream.*;
 
+public class Foo {
+    final Map<String, String> map = new HashMap();
+    final List<String> list = new ArrayList();
+    final ForkJoinPool myFjPool = new ForkJoinPool(10);
+    final ExecutorService myExePool = Executors.newFixedThreadPool(10);
 
+    void bad1() {
+        list.parallelStream().forEach(elem -> calculateDataCall(elem)); // assumed good
+    }
+    void bad2() {
+        map.entrySet().parallelStream().forEach(entry -> calculateDataCall(entry.getValue())); // assumed good
+    }
+
+    String calculateDataCall(String elem) {
+        // do something non-remote
+        return elem.toUpperCase();
+    }
+}
+      ]]></code>
+    </test-code>
 </test-data>
