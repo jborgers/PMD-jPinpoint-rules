@@ -536,71 +536,76 @@ void good2() {
 ]]>
         </example>
     </rule>
-        <!--
-    <rule -name="AvoidModifyingObjectMapper"
-    class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-    language="java"
-    message="ObjectMapper is configured/modified, only initialize it right after construction."
-    externalInfoUrl="${doc_root}/JavaCodePerformance.md#iuojar02">
-    <description>Problem: ObjectMapper is thread-safe only after configuration. Configuring an ObjectMapper is not thread-safe.  &#13;
-    Solution: Avoid configuring objectMappers except when initializing: right after construction. It is recommended to create ObjectReaders and ObjectWriters from ObjectMapper and pass those around since they are immutable and therefore thread-safe. (jpinpoint-rules)</description>
-    <priority>2</priority>
-    <properties>
-    <property name="tags" value="jpinpoint-rule,multi-threading" type="String" description="classification"/>
-    <property name="xpath">
-    <value><![CDATA[
-    (: exclude method annotated with PostConstruct :)
-    //ClassOrInterfaceBodyDeclaration[count(Annotation//Name[@Image='PostConstruct']) = 0]
-    (: exclude factory where config is in method returning 'this' and one method, typically build(), returning objectMapper :)
-    /MethodDeclaration[count(Block//ReturnStatement/Expression/PrimaryExpression/PrimaryPrefix[@ThisModifier=true()])=0
-    or ancestor::ClassOrInterfaceBody[count(.//MethodDeclaration/ResultType/Type[pmd-java:typeIs('com.fasterxml.jackson.databind.ObjectMapper')]) != 1]]
-    (: modify operations on objectMapper in a method where objectMapper is a formal parameter or field :)
-    //Statement//Name[(concat(substring-before(@Image, '.config'), substring-before(@Image, '.set'), substring-before(@Image, '.register')
-    , substring-before(@Image, '.find'), substring-before(@Image, '.disable'), substring-before(@Image, '.enable'), substring-before(@Image, '.activate')
-    , substring-before(@Image, '.deactivate'), substring-before(@Image, '.add'), substring-before(@Image, '.clear'))
-    =
-    (ancestor::MethodDeclaration//FormalParameter|ancestor::ClassOrInterfaceBody//FieldDeclaration)[pmd-java:typeIs('com.fasterxml.jackson.databind.ObjectMapper')]//VariableDeclaratorId/@Name)
-    ]
+
+    <rule
+            name="AvoidModifyingObjectMapper"
+            class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+            language="java"
+            message="ObjectMapper is configured/modified, only initialize it right after construction."
+            externalInfoUrl="${doc_root}/JavaCodePerformance.md#iuojar02">
+        <description>Problem: ObjectMapper is thread-safe only after configuration. Configuring an ObjectMapper is not
+            thread-safe. &#13;
+            Solution: Avoid configuring objectMappers except when initializing: right after construction. It is
+            recommended
+            to create ObjectReaders and ObjectWriters from ObjectMapper and pass those around since they are immutable
+            and
+            therefore thread-safe. (jpinpoint-rules)
+        </description>
+        <priority>2</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,multi-threading" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+   (: exclude method annotated with PostConstruct :)
+    //MethodDeclaration
+         [not (pmd-java:hasAnnotation('javax.annotation.PostConstruct') or pmd-java:hasAnnotation('jakarta.annotation.PostConstruct'))]
+         (: exclude factory where config is in method returning 'this' and one method, typically build(), returning objectMapper :)
+         [not(.//ReturnStatement/ThisExpression)
+            or ancestor::ClassBody[count(.//ReturnStatement/VariableAccess[pmd-java:typeIs('com.fasterxml.jackson.databind.ObjectMapper')]) != 1]]
+        (: modify operations on objectMapper in a method where objectMapper is a formal parameter or field :)
+        //MethodCall
+            [matches(@MethodName, '^config.*|^set.*|^register.*|^find.*|^disable.*|^enable.*|^activate.*|^deactivate.*|^add.*|^clear.*')]
+            [VariableAccess/@Name=
+                (ancestor::MethodDeclaration//FormalParameter|ancestor::ClassBody//FieldDeclaration/ClassType)[pmd-java:typeIs('com.fasterxml.jackson.databind.ObjectMapper')]/..//VariableId/@Name]
     ,
     (: modify operations on objectMapper in a constructor where objectMapper is a formal parameter or static field :)
-    //ConstructorDeclaration//Statement//Name[(concat(substring-before(@Image, '.config'), substring-before(@Image, '.set'), substring-before(@Image, '.register')
-    , substring-before(@Image, '.find'), substring-before(@Image, '.disable'), substring-before(@Image, '.enable'), substring-before(@Image, '.activate')
-    , substring-before(@Image, '.deactivate'), substring-before(@Image, '.add'), substring-before(@Image, '.clear'))
-    =
-    (ancestor::ConstructorDeclaration//FormalParameter|ancestor::ClassOrInterfaceBody//FieldDeclaration[@Static=true()])[pmd-java:typeIs('com.fasterxml.jackson.databind.ObjectMapper')]//VariableDeclaratorId/@Name)
-    ]
+    //ConstructorDeclaration//MethodCall
+            [matches(@MethodName, '^config.*|^set.*|^register.*|^find.*|^disable.*|^enable.*|^activate.*|^deactivate.*|^add.*|^clear.*')]
+            [VariableAccess/@Name=
+                (ancestor::ConstructorDeclaration//FormalParameter|ancestor::ClassBody//FieldDeclaration[pmd-java:modifiers()=('static')]/ClassType)[pmd-java:typeIs('com.fasterxml.jackson.databind.ObjectMapper')]/..//VariableId/@Name]
+
     ]]>
-    </value>
-    </property>
-    </properties>
-    <example>
-    <![CDATA[
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
     public class OldStyle {
-    private static final ObjectMapper staticObjectMapper = new ObjectMapper();
-    private final ObjectMapper mapperField = new ObjectMapper();
+        private static final ObjectMapper staticObjectMapper = new ObjectMapper();
+        private final ObjectMapper mapperField = new ObjectMapper();
 
-    static {
-    staticObjectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL); // good
-    }
+        static {
+            staticObjectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL); // good
+        }
 
-    public OldStyle() {
-    mapperField.setSerializationInclusion(JsonInclude.Include.NON_NULL); // good
-    }
+        public OldStyle() {
+            mapperField.setSerializationInclusion(JsonInclude.Include.NON_NULL); // good
+        }
 
-    ObjectMapper bad(ObjectMapper mapper) {
-    mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL); // bad
-    return mapper;
-    }
+        ObjectMapper bad(ObjectMapper mapper) {
+            mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL); // bad
+            return mapper;
+        }
     }
 
     public class NewStyle {
-    private static final ObjectWriter staticObjectWriter =
-    new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL).writer(); // good
+        private static final ObjectWriter staticObjectWriter =
+            new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL).writer(); // good
     }
     ]]>
-    </example>
+        </example>
     </rule>
-    -->
+
     <rule name="AvoidDeprecatedHystrix"
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           language="java"
