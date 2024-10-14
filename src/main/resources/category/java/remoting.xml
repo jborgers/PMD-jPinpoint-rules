@@ -183,11 +183,13 @@ return JsonMapper.builder().build(); // bad
             <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
-//MethodCall[pmd-java:matchesSig('org.apache.http.impl.client.HttpClientBuilder#create()')][not(ancestor::MethodDeclaration//MethodCall[@MethodName='disableConnectionState'])]
-,
-//MethodCall[pmd-java:matchesSig('org.apache.http.impl.client.HttpClients#custom()')][not(ancestor::MethodDeclaration//MethodCall[@MethodName='disableConnectionState'])]
-,
-//MethodCall[pmd-java:matchesSig('org.apache.http.impl.nio.client.HttpAsyncClientBuilder#build()')][not(ancestor::MethodDeclaration//MethodCall[@MethodName='disableConnectionState'])]
+//MethodCall[
+    pmd-java:matchesSig('org.apache.http.impl.client.HttpClientBuilder#create()')
+    or pmd-java:matchesSig('org.apache.http.impl.client.HttpClients#custom()')
+    or pmd-java:matchesSig('org.apache.http.impl.nio.client.HttpAsyncClientBuilder#build()')
+][
+    not(ancestor::MethodDeclaration//MethodCall[@MethodName='disableConnectionState'])
+]
 ]]>
                 </value>
             </property>
@@ -264,20 +266,21 @@ return HttpClientBuilder.create() // good, setConnectionManager called, pool con
 ]]>
 </example>
 </rule>
-
-<rule -name="HttpClientBuilderPoolSettingsIgnored"
-class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-language="java"
-message="HttpClient builder is used with a ConnectionManager and MaxConn settings on the client are ignored. Remove them."
-externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi09">
-<description>Problem: If you use setConnectionManager, the connection pool must be configured on that Connection Manager. Pool settings on the client are ignored and lost. &#13;
-Solution: HttpClients should either 1. use setConnectionManager and *only* call setMaxTotal and setDefaultMaxPerRoute on that ConnectionManager or
-2. not use a ConnectionManager and call setMaxConnTotal and setMaxConnPerRoute on the client directly (jpinpoint-rules)</description>
-<priority>2</priority>
-<properties>
-<property name="tags" value="jpinpoint-rule,correctness" type="String" description="classification"/>
-<property name="xpath">
-    <value><![CDATA[
+-->
+    <rule name="HttpClientBuilderPoolSettingsIgnored"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          language="java"
+          message="HttpClient builder is used with a ConnectionManager and MaxConn settings on the client are ignored. Remove them."
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi09">
+        <description>Problem: If you use setConnectionManager, the connection pool must be configured on that Connection Manager. Pool settings on the client are ignored and lost. &#13;
+            Solution: HttpClients should either 1. use setConnectionManager and *only* call setMaxTotal and setDefaultMaxPerRoute on that ConnectionManager or
+            2. not use a ConnectionManager and call setMaxConnTotal and setMaxConnPerRoute on the client directly (jpinpoint-rules)
+        </description>
+        <priority>2</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,correctness" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
 (: locally created http client builder with setConnectionManager and at least one of setMaxConnTotal/setMaxConnPerRoute :)
 //MethodDeclaration//PrimaryExpression/PrimaryPrefix/Name[
 (
@@ -298,11 +301,11 @@ or pmd-java:typeIs('org.apache.http.impl.client.HttpClients')
 and (ancestor::MethodDeclaration//(PrimaryPrefix/Name|PrimarySuffix)[ends-with(@Image, 'setConnectionManager')])
 ]/ancestor::MethodDeclaration//(PrimaryPrefix/Name|PrimarySuffix)[ends-with(@Image, 'setMaxConnTotal') or ends-with(@Image, 'setMaxConnPerRoute')]
 ]]>
-    </value>
-</property>
-</properties>
-<example>
-<![CDATA[
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
 return HttpClientBuilder.create()
     .setConnectionManager(conMgr)
     .setMaxConnPerRoute(MAX_CONNECTIONS_TOTAL) // bad, ignored
@@ -317,9 +320,10 @@ return HttpClientBuilder.create() // good
     .setConnectionManager(conMgr)
     .build();
 ]]>
-</example>
-</rule>
+        </example>
+    </rule>
 
+<!--
 <rule -name="HttpClientBuilderWithoutTimeouts"
 class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
 language="java"
