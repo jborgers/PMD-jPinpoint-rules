@@ -82,7 +82,7 @@ class Good {
         <description>Problem: Jackson ObjectMapper/JsonMapper creation is expensive because it does much class loading.
             &#13;
             Solution: Since ObjectMapper/JsonMapper objects are thread-safe after configuration in one thread, they can
-            be shared afterwards between requests and reused. So, reuse created instances, from a static field.
+            be shared afterward between requests and reused. So, reuse created instances, from a static field.
             (jpinpoint-rules)
         </description>
         <priority>2</priority>
@@ -808,7 +808,7 @@ class Good {
             When this HttpHost is then used for a route and stored socketConfig for, port 80 is added for the host and
             the socketConfig is stored with the wrong key and will not be used.
             It is typically difficult to find out if the config is actually used. Note that
-            http://github.com/jborgers/http-client-monitor helps here.&#13;
+            https://github.com/jborgers/http-client-monitor helps here.&#13;
             Solution: Use the HttpHost constructor with 2 (including port) or preferably 3 arguments (including port and
             protocol). (jpinpoint-rules)
         </description>
@@ -990,70 +990,92 @@ public class Foo {
     </example>
 </rule>
 
-    <!--
-<rule -name="HttpClientImproperConnectionTimeouts"
-class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-language="java"
-message="ApacheHttpClient RequestConfig connectionRequestTimeout and connectTimeout have values which are typically too high."
-externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi20">
-<description>org.apache.http.client.config.RequestConfig is used with connectionRequestTimeout and connectTimeout values above 500 milli seconds.
-Problem: 1. connectTimeout is for establishing a connection which should be quick, say below 200 ms.
-2. connectionRequestTimeout is for requesting a connection from the connection manager, which should be almost as quick, say below 250 ms.
-If timeouts are long, requests will wait long for an unavailable service and cause high thread usage and possibly overload.  &#13;
-Solution: Set connectTimeout and connectionRequestTimeout to values based om tests, for instance 200 ms and 250 ms. respectively (jpinpoint-rules)</description>
-<priority>2</priority>
-<properties>
-<property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
-<property name="xpath">
-<value><![CDATA[
+    <rule name="HttpClientImproperConnectionTimeouts"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          language="java"
+          message="ApacheHttpClient RequestConfig connectionRequestTimeout and connectTimeout have values which are typically too high."
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi20">
+        <description>org.apache.http.client.config.RequestConfig is used with connectionRequestTimeout and
+            connectTimeout values above 500 milli seconds.
+            Problem: 1. connectTimeout is for establishing a connection which should be quick, say below 200 ms.
+            2. connectionRequestTimeout is for requesting a connection from the connection manager, which should be
+            almost as quick, say below 250 ms.
+            If timeouts are long, requests will wait long for an unavailable service and cause high thread usage and
+            possibly overload. &#13;
+            Solution: Set connectTimeout and connectionRequestTimeout to values based om tests, for instance 200 ms and
+            250 ms. respectively (jpinpoint-rules)
+        </description>
+        <priority>2</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
 (: use of field, local var and return statement :)
-//FieldDeclaration[Type/PrimitiveType[@Image='int' or @Image='long']]//VariableDeclaratorId[@Name =
-ancestor::ClassOrInterfaceDeclaration[//LocalVariableDeclaration/Type
-[pmd-java:typeIs('org.apache.http.client.config.RequestConfig')
-or pmd-java:typeIs('org.springframework.http.client.HttpComponentsClientHttpRequestFactory')
-or @TypeImage='HttpComponentsClientHttpRequestFactory']/..//VariableInitializer
-|.//ReturnStatement//PrimaryExpression[.//Name/@Image='RequestConfig.custom']]
-//(PrimarySuffix[@Image='setConnectionRequestTimeout' or @Image='setConnectTimeout']
-|PrimaryPrefix[./Name[ends-with(@Image, 'setConnectionRequestTimeout')] or ./Name[ends-with(@Image, 'setConnectTimeout')]])
-/following-sibling::PrimarySuffix[1]//Name/@Image]
-/(../VariableInitializer//Literal[number(@Image) > 500]|
-ancestor::ClassOrInterfaceBodyDeclaration//SingleMemberAnnotation[Name/@Image='Value']//Literal[number(substring-before(substring-after(@Image, ':'), '}')) > 500])
+//FieldDeclaration[PrimitiveType[@Kind='int' or @Kind='long']][.//VariableId[
+    @Name =
+    ancestor::ClassDeclaration[
+        .//LocalVariableDeclaration/ClassType[
+            pmd-java:typeIs('org.apache.http.client.config.RequestConfig')
+            or pmd-java:typeIs('org.springframework.http.client.HttpComponentsClientHttpRequestFactory')
+        ]
+        /..//VariableDeclarator
+        |.//ReturnStatement[
+            .//MethodCall[@MethodName='custom']/TypeExpression/ClassType[
+                pmd-java:typeIs('org.apache.http.client.config.RequestConfig')
+                or pmd-java:typeIs('org.springframework.http.client.HttpComponentsClientHttpRequestFactory')
+            ]
+        ]
+    ]
+    //MethodCall[@MethodName=('setConnectionRequestTimeout','setConnectTimeout')]
+    /ArgumentList/VariableAccess/@Name
+]]
+/(VariableDeclarator//NumericLiteral[@ValueAsLong > 500]
+    |.//Annotation[@SimpleName='Value']//StringLiteral[number(substring-before(substring-after(@Image, ':'), '}')) > 500]
+)
 ,
 (: use of literal, local var and return statement : :)
-//ClassOrInterfaceDeclaration[//LocalVariableDeclaration/Type[pmd-java:typeIs('org.apache.http.client.config.RequestConfig')
-or pmd-java:typeIs('org.springframework.http.client.HttpComponentsClientHttpRequestFactory')
-or @TypeImage='HttpComponentsClientHttpRequestFactory'
-]/..//VariableInitializer
-|.//ReturnStatement//PrimaryExpression[.//Name/@Image='RequestConfig.custom']]
-//(PrimarySuffix[@Image='setConnectionRequestTimeout' or @Image='setConnectTimeout']
-|PrimaryPrefix[./Name[ends-with(@Image, 'setConnectionRequestTimeout')] or ./Name[ends-with(@Image, 'setConnectTimeout')]])
-/following-sibling::PrimarySuffix[1]//Literal[number(@Image) > 500]
+//Block[
+    .//LocalVariableDeclaration/ClassType[
+        pmd-java:typeIs('org.apache.http.client.config.RequestConfig')
+        or pmd-java:typeIs('org.springframework.http.client.HttpComponentsClientHttpRequestFactory')
+    ]
+    /..//VariableDeclarator
+    |.//ReturnStatement[
+        .//MethodCall[@MethodName='custom']/TypeExpression/ClassType[
+            pmd-java:typeIs('org.apache.http.client.config.RequestConfig')
+            or pmd-java:typeIs('org.springframework.http.client.HttpComponentsClientHttpRequestFactory')
+        ]
+    ]
+]
+//MethodCall[@MethodName=('setConnectionRequestTimeout','setConnectTimeout')]
+/ArgumentList/NumericLiteral[@ValueAsLong > 500]
+
 ]]>
-</value>
-</property>
-</properties>
-<example>
-<![CDATA[
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
 import org.apache.http.client.config.RequestConfig;
 
 public class HttpClientStuff {
-private static final int CONNECTION_TIMEOUTMILLIS = 1000; // bad // timeout until a connection is established
-private static final int CONNECTIONREQUEST_TIMEOUTMILLIS = 5000; // bad // timeout when requesting a connection from the connection manager
-private static final int SOCKET_TIMEOUTMILLIS = 5000; // timeout of waiting for data
+    private static final int CONNECTION_TIMEOUTMILLIS = 1000; // bad // timeout until a connection is established
+    private static final int CONNECTIONREQUEST_TIMEOUTMILLIS = 5000; // bad // timeout when requesting a connection from the connection manager
+    private static final int SOCKET_TIMEOUTMILLIS = 5000; // timeout of waiting for data
 
-public RequestConfig requestConfigWithTimeouts() {
-RequestConfig requestConfig = RequestConfig.custom()
-.setConnectionRequestTimeout(CONNECTIONREQUEST_TIMEOUTMILLIS)
-.setConnectTimeout(CONNECTION_TIMEOUTMILLIS)
-.setSocketTimeout(SOCKET_TIMEOUTMILLIS)
-.build();
-return requestConfig;
-}
+    public RequestConfig requestConfigWithTimeouts() {
+        RequestConfig requestConfig = RequestConfig.custom()
+        .setConnectionRequestTimeout(CONNECTIONREQUEST_TIMEOUTMILLIS)
+        .setConnectTimeout(CONNECTION_TIMEOUTMILLIS)
+        .setSocketTimeout(SOCKET_TIMEOUTMILLIS)
+        .build();
+        return requestConfig;
+    }
 }
 ]]>
-</example>
-</rule>
--->
+        </example>
+    </rule>
+
     <rule name="AvoidObjectMapperAsField"
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           language="java"
@@ -1064,7 +1086,7 @@ return requestConfig;
             are immutable and therefore thread-safe.
             Exceptions: A convertValue method is not provided by ObjectReader nor ObjectWriter, therefore in those cases
             this rule is not applied.
-            Also when used like jaxMsgConverter.setObjectMapper(objectMapper) it is not considered a violation.
+            Also, when used like jaxMsgConverter.setObjectMapper(objectMapper) it is not considered a violation.
             (jpinpoint-rules)
         </description>
         <priority>3</priority>
