@@ -226,6 +226,23 @@ class Issue3XX {
 
         return new Orders(orderSearchResults);
     }
+
+    public void doSomething(List<CompletableFuture<T>> workers,
+                            int timeoutSec, String operationName) {
+        try {
+            var allFutures = CompletableFuture.allOf(workers.toArray(new CompletableFuture[workers.size()]));
+
+            CompletableFuture<List<T>> finalResult = allFutures
+                    .orTimeout(timeoutSec, TimeUnit.SECONDS)
+                    .thenApply(v -> workers.stream()
+                                           .map(CompletableFuture::join) // <-- false positive: orTimeout called above
+                                           .collect(Collectors.toCollection(ArrayList::new)));
+            return finalResult.join(); // <-- false positive: orTimeout called above
+        } catch (Exception e) {
+            log.error(e);
+            throw e;
+        }
+    }
 }
 ]]></code>
     </test-code>

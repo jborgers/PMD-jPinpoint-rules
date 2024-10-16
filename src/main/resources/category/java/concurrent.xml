@@ -1201,7 +1201,7 @@ public class Good {
                (pmd-java:matchesSig('java.util.concurrent.Future#join()')
                or (self::MethodReference and @MethodName='join'))
                (: no orTimeout(_,_) call in same chained expression :)
-               and not (ancestor::ExpressionStatement//MethodCall[pmd-java:matchesSig('java.util.concurrent.Future#orTimeout(long,java.util.concurrent.TimeUnit)')])
+               and not (ancestor::Block//(ExpressionStatement|LocalVariableDeclaration)//MethodCall[pmd-java:matchesSig('java.util.concurrent.Future#orTimeout(long,java.util.concurrent.TimeUnit)')])
           ]
                     ]]></value>
                 </property>
