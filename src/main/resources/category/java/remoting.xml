@@ -804,7 +804,7 @@ class Good {
             When this HttpHost is then used for a route and stored socketConfig for, port 80 is added for the host and
             the socketConfig is stored with the wrong key and will not be used.
             It is typically difficult to find out if the config is actually used. Note that
-            https://github.com/jborgers/http-client-monitor helps here.&#13;
+            1. https://github.com/jborgers/http-client-monitor or 2. micrometer and apache http client 4 and 5 metrics with spring boot actuator, help here.&#13;
             Solution: Use the HttpHost constructor with 2 (including port) or preferably 3 arguments (including port and
             protocol). (jpinpoint-rules)
         </description>
