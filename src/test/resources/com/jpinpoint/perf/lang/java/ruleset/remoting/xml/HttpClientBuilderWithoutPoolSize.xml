@@ -24,8 +24,8 @@ class Bad {
         <expected-problems>0</expected-problems>
         <code><![CDATA[
 import org.apache.http.impl.client.HttpClientBuilder;
-class Bad {
-    public HttpClient bad(Object conMgr) {
+class Good {
+    public HttpClient good(Object conMgr) {
         return HttpClientBuilder.create() // good, missing setMaxConnPerRoute and setMaxConnTotal, yet
                 .setConnectionManager(conMgr) // delegated to conMgr, should be set there
                 .build();
@@ -72,7 +72,7 @@ class Bad {
         <expected-problems>0</expected-problems>
         <code><![CDATA[
 import org.apache.http.impl.client.HttpClientBuilder;
-class Bad {
+class Good {
     public HttpClient good(Object conMgr) {
         HttpClient client = HttpClientBuilder.create() // good for this rule (settings ignored, other rule)
                 .setConnectionManager(conMgr)
@@ -141,12 +141,12 @@ class Bad {
         <expected-problems>0</expected-problems>
         <code><![CDATA[
 import org.apache.http.impl.client.HttpClients;
-class Bad {
-    public CloseableHttpClient bad(Object conMgr) {
-    HttpClientBuilder httpClientBuilder = HttpClients.custom(); //bad
-    httpClientBuilder.setMaxConnPerRoute(10);
-    httpClientBuilder.setMaxConnTotal(10);
-    return httpClientBuilder.build();
+class Good {
+    public CloseableHttpClient good(Object conMgr) {
+        HttpClientBuilder httpClientBuilder = HttpClients.custom(); //good
+        httpClientBuilder.setMaxConnPerRoute(10);
+        httpClientBuilder.setMaxConnTotal(10);
+        return httpClientBuilder.build();
     }
  }
      ]]></code>
@@ -169,12 +169,12 @@ class Good {
     <test-code>
         <description>violation: HttpAsyncClientBuilder formal param, built without per route pool size set</description>
         <expected-problems>1</expected-problems>
-        <expected-linenumbers>3</expected-linenumbers>
+        <expected-linenumbers>4</expected-linenumbers>
         <code><![CDATA[
 import org.apache.http.impl.nio.client.HttpAsyncClientBuilder;
 class Bad {
     private HttpAsyncClientBuilder bad(final HttpAsyncClientBuilder clientBuilder) {
-        clientBuilder
+        clientBuilder //build
             .setDefaultCredentialsProvider(CREDENTIALS)
             .setMaxConnTotal(MAX_CONNECTIONS_TOTAL);
         return clientBuilder;
@@ -203,12 +203,12 @@ class Good {
     <test-code>
         <description>violation: HttpAsyncClientBuilder formal param, and return created built without pool sizes set</description>
         <expected-problems>1</expected-problems>
-        <expected-linenumbers>3</expected-linenumbers>
+        <expected-linenumbers>4</expected-linenumbers>
         <code><![CDATA[
 import org.apache.http.impl.nio.client.HttpAsyncClientBuilder;
 class Bad {
-    private HttpAsyncClientBuilder bad(final HttpAsyncClientBuilder clientBuilder) { // bad
-        return clientBuilder
+    private HttpAsyncClientBuilder bad(final HttpAsyncClientBuilder clientBuilder) {
+        return clientBuilder // bad
             .setDefaultCredentialsProvider(CREDENTIALS);
     }
 }
@@ -222,8 +222,8 @@ class Bad {
         <code><![CDATA[
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 class Bad {
-    private PoolingHttpClientConnectionManager bad() { // bad
-        return new PoolingHttpClientConnectionManager();
+    private PoolingHttpClientConnectionManager bad() {
+        return new PoolingHttpClientConnectionManager(); // bad
     }
 }
    ]]></code>
