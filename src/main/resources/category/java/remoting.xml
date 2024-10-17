@@ -82,7 +82,7 @@ class Good {
         <description>Problem: Jackson ObjectMapper/JsonMapper creation is expensive because it does much class loading.
             &#13;
             Solution: Since ObjectMapper/JsonMapper objects are thread-safe after configuration in one thread, they can
-            be shared afterwards between requests and reused. So, reuse created instances, from a static field.
+            be shared afterward between requests and reused. So, reuse created instances, from a static field.
             (jpinpoint-rules)
         </description>
         <priority>2</priority>
@@ -183,11 +183,13 @@ return JsonMapper.builder().build(); // bad
             <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
-//MethodCall[pmd-java:matchesSig('org.apache.http.impl.client.HttpClientBuilder#create()')][not(ancestor::MethodDeclaration//MethodCall[@MethodName='disableConnectionState'])]
-,
-//MethodCall[pmd-java:matchesSig('org.apache.http.impl.client.HttpClients#custom()')][not(ancestor::MethodDeclaration//MethodCall[@MethodName='disableConnectionState'])]
-,
-//MethodCall[pmd-java:matchesSig('org.apache.http.impl.nio.client.HttpAsyncClientBuilder#build()')][not(ancestor::MethodDeclaration//MethodCall[@MethodName='disableConnectionState'])]
+//MethodCall[
+    pmd-java:matchesSig('org.apache.http.impl.client.HttpClientBuilder#create()')
+    or pmd-java:matchesSig('org.apache.http.impl.client.HttpClients#custom()')
+    or pmd-java:matchesSig('org.apache.http.impl.nio.client.HttpAsyncClientBuilder#build()')
+][
+    not(ancestor::MethodDeclaration//MethodCall[@MethodName='disableConnectionState'])
+]
 ]]>
                 </value>
             </property>
@@ -264,45 +266,38 @@ return HttpClientBuilder.create() // good, setConnectionManager called, pool con
 ]]>
 </example>
 </rule>
-
-<rule -name="HttpClientBuilderPoolSettingsIgnored"
-class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-language="java"
-message="HttpClient builder is used with a ConnectionManager and MaxConn settings on the client are ignored. Remove them."
-externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi09">
-<description>Problem: If you use setConnectionManager, the connection pool must be configured on that Connection Manager. Pool settings on the client are ignored and lost. &#13;
-Solution: HttpClients should either 1. use setConnectionManager and *only* call setMaxTotal and setDefaultMaxPerRoute on that ConnectionManager or
-2. not use a ConnectionManager and call setMaxConnTotal and setMaxConnPerRoute on the client directly (jpinpoint-rules)</description>
-<priority>2</priority>
-<properties>
-<property name="tags" value="jpinpoint-rule,correctness" type="String" description="classification"/>
-<property name="xpath">
-    <value><![CDATA[
-(: locally created http client builder with setConnectionManager and at least one of setMaxConnTotal/setMaxConnPerRoute :)
-//MethodDeclaration//PrimaryExpression/PrimaryPrefix/Name[
-(
-(pmd-java:typeIs('org.apache.http.impl.client.HttpClientBuilder') and @Image='HttpClientBuilder.create')
-or (pmd-java:typeIs('org.apache.http.impl.nio.client.HttpAsyncClientBuilder') and @Image='HttpAsyncClientBuilder.create')
-or (pmd-java:typeIs('org.apache.http.impl.client.HttpClients') and @Image='HttpClients.custom')
-)
-and ancestor::MethodDeclaration//(PrimaryPrefix/Name|PrimarySuffix)[ends-with(@Image, 'setConnectionManager')]
-]/ancestor::MethodDeclaration//(PrimaryPrefix/Name|PrimarySuffix)[ends-with(@Image, 'setMaxConnTotal') or ends-with(@Image, 'setMaxConnPerRoute')]
-,
-(: method param http client builder setConnectionManager and at least one of setMaxConnTotal/setMaxConnPerRoute :)
-//MethodDeclaration//FormalParameter//ClassOrInterfaceType[
-(
-pmd-java:typeIs('org.apache.http.impl.client.HttpClient')
-or pmd-java:typeIs('org.apache.http.impl.nio.client.HttpAsyncClientBuilder')
-or pmd-java:typeIs('org.apache.http.impl.client.HttpClients')
-)
-and (ancestor::MethodDeclaration//(PrimaryPrefix/Name|PrimarySuffix)[ends-with(@Image, 'setConnectionManager')])
-]/ancestor::MethodDeclaration//(PrimaryPrefix/Name|PrimarySuffix)[ends-with(@Image, 'setMaxConnTotal') or ends-with(@Image, 'setMaxConnPerRoute')]
+-->
+    <rule name="HttpClientBuilderPoolSettingsIgnored"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          language="java"
+          message="HttpClient builder is used with a ConnectionManager and MaxConn settings on the client are ignored. Remove them."
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi09">
+        <description>Problem: If you use setConnectionManager, the connection pool must be configured on that Connection Manager. Pool settings on the client are ignored and lost. &#13;
+            Solution: HttpClients should either 1. use setConnectionManager and *only* call setMaxTotal and setDefaultMaxPerRoute on that ConnectionManager or
+            2. not use a ConnectionManager and call setMaxConnTotal and setMaxConnPerRoute on the client directly (jpinpoint-rules)
+        </description>
+        <priority>2</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,correctness" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+//MethodDeclaration[
+    .//MethodCall/(TypeExpression|VariableAccess)[
+        pmd-java:typeIs('org.apache.http.impl.client.HttpClientBuilder')
+        or pmd-java:typeIs('org.apache.http.impl.client.HttpClients')
+        or pmd-java:typeIs('org.apache.http.impl.nio.client.HttpAsyncClientBuilder')
+    ]
+][
+    .//MethodCall[@MethodName='setConnectionManager']
+]
+(: trying to get to the right line, unfortunately, the chaining seems to make it not work :)
+//MethodCall[@MethodName=('setMaxConnTotal','setMaxConnPerRoute')]
 ]]>
-    </value>
-</property>
-</properties>
-<example>
-<![CDATA[
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
 return HttpClientBuilder.create()
     .setConnectionManager(conMgr)
     .setMaxConnPerRoute(MAX_CONNECTIONS_TOTAL) // bad, ignored
@@ -317,9 +312,10 @@ return HttpClientBuilder.create() // good
     .setConnectionManager(conMgr)
     .build();
 ]]>
-</example>
-</rule>
+        </example>
+    </rule>
 
+<!--
 <rule -name="HttpClientBuilderWithoutTimeouts"
 class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
 language="java"
@@ -536,71 +532,76 @@ void good2() {
 ]]>
         </example>
     </rule>
-        <!--
-    <rule -name="AvoidModifyingObjectMapper"
-    class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-    language="java"
-    message="ObjectMapper is configured/modified, only initialize it right after construction."
-    externalInfoUrl="${doc_root}/JavaCodePerformance.md#iuojar02">
-    <description>Problem: ObjectMapper is thread-safe only after configuration. Configuring an ObjectMapper is not thread-safe.  &#13;
-    Solution: Avoid configuring objectMappers except when initializing: right after construction. It is recommended to create ObjectReaders and ObjectWriters from ObjectMapper and pass those around since they are immutable and therefore thread-safe. (jpinpoint-rules)</description>
-    <priority>2</priority>
-    <properties>
-    <property name="tags" value="jpinpoint-rule,multi-threading" type="String" description="classification"/>
-    <property name="xpath">
-    <value><![CDATA[
-    (: exclude method annotated with PostConstruct :)
-    //ClassOrInterfaceBodyDeclaration[count(Annotation//Name[@Image='PostConstruct']) = 0]
-    (: exclude factory where config is in method returning 'this' and one method, typically build(), returning objectMapper :)
-    /MethodDeclaration[count(Block//ReturnStatement/Expression/PrimaryExpression/PrimaryPrefix[@ThisModifier=true()])=0
-    or ancestor::ClassOrInterfaceBody[count(.//MethodDeclaration/ResultType/Type[pmd-java:typeIs('com.fasterxml.jackson.databind.ObjectMapper')]) != 1]]
-    (: modify operations on objectMapper in a method where objectMapper is a formal parameter or field :)
-    //Statement//Name[(concat(substring-before(@Image, '.config'), substring-before(@Image, '.set'), substring-before(@Image, '.register')
-    , substring-before(@Image, '.find'), substring-before(@Image, '.disable'), substring-before(@Image, '.enable'), substring-before(@Image, '.activate')
-    , substring-before(@Image, '.deactivate'), substring-before(@Image, '.add'), substring-before(@Image, '.clear'))
-    =
-    (ancestor::MethodDeclaration//FormalParameter|ancestor::ClassOrInterfaceBody//FieldDeclaration)[pmd-java:typeIs('com.fasterxml.jackson.databind.ObjectMapper')]//VariableDeclaratorId/@Name)
-    ]
+
+    <rule
+            name="AvoidModifyingObjectMapper"
+            class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+            language="java"
+            message="ObjectMapper is configured/modified, only initialize it right after construction."
+            externalInfoUrl="${doc_root}/JavaCodePerformance.md#iuojar02">
+        <description>Problem: ObjectMapper is thread-safe only after configuration. Configuring an ObjectMapper is not
+            thread-safe. &#13;
+            Solution: Avoid configuring objectMappers except when initializing: right after construction. It is
+            recommended
+            to create ObjectReaders and ObjectWriters from ObjectMapper and pass those around since they are immutable
+            and
+            therefore thread-safe. (jpinpoint-rules)
+        </description>
+        <priority>2</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,multi-threading" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+   (: exclude method annotated with PostConstruct :)
+    //MethodDeclaration
+         [not (pmd-java:hasAnnotation('javax.annotation.PostConstruct') or pmd-java:hasAnnotation('jakarta.annotation.PostConstruct'))]
+         (: exclude factory where config is in method returning 'this' and one method, typically build(), returning objectMapper :)
+         [not(.//ReturnStatement/ThisExpression)
+            or ancestor::ClassBody[count(.//ReturnStatement/VariableAccess[pmd-java:typeIs('com.fasterxml.jackson.databind.ObjectMapper')]) != 1]]
+        (: modify operations on objectMapper in a method where objectMapper is a formal parameter or field :)
+        //MethodCall
+            [matches(@MethodName, '^config.*|^set.*|^register.*|^find.*|^disable.*|^enable.*|^activate.*|^deactivate.*|^add.*|^clear.*')]
+            [VariableAccess/@Name=
+                (ancestor::MethodDeclaration//FormalParameter|ancestor::ClassBody//FieldDeclaration/ClassType)[pmd-java:typeIs('com.fasterxml.jackson.databind.ObjectMapper')]/..//VariableId/@Name]
     ,
     (: modify operations on objectMapper in a constructor where objectMapper is a formal parameter or static field :)
-    //ConstructorDeclaration//Statement//Name[(concat(substring-before(@Image, '.config'), substring-before(@Image, '.set'), substring-before(@Image, '.register')
-    , substring-before(@Image, '.find'), substring-before(@Image, '.disable'), substring-before(@Image, '.enable'), substring-before(@Image, '.activate')
-    , substring-before(@Image, '.deactivate'), substring-before(@Image, '.add'), substring-before(@Image, '.clear'))
-    =
-    (ancestor::ConstructorDeclaration//FormalParameter|ancestor::ClassOrInterfaceBody//FieldDeclaration[@Static=true()])[pmd-java:typeIs('com.fasterxml.jackson.databind.ObjectMapper')]//VariableDeclaratorId/@Name)
-    ]
+    //ConstructorDeclaration//MethodCall
+            [matches(@MethodName, '^config.*|^set.*|^register.*|^find.*|^disable.*|^enable.*|^activate.*|^deactivate.*|^add.*|^clear.*')]
+            [VariableAccess/@Name=
+                (ancestor::ConstructorDeclaration//FormalParameter|ancestor::ClassBody//FieldDeclaration[pmd-java:modifiers()=('static')]/ClassType)[pmd-java:typeIs('com.fasterxml.jackson.databind.ObjectMapper')]/..//VariableId/@Name]
+
     ]]>
-    </value>
-    </property>
-    </properties>
-    <example>
-    <![CDATA[
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
     public class OldStyle {
-    private static final ObjectMapper staticObjectMapper = new ObjectMapper();
-    private final ObjectMapper mapperField = new ObjectMapper();
+        private static final ObjectMapper staticObjectMapper = new ObjectMapper();
+        private final ObjectMapper mapperField = new ObjectMapper();
 
-    static {
-    staticObjectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL); // good
-    }
+        static {
+            staticObjectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL); // good
+        }
 
-    public OldStyle() {
-    mapperField.setSerializationInclusion(JsonInclude.Include.NON_NULL); // good
-    }
+        public OldStyle() {
+            mapperField.setSerializationInclusion(JsonInclude.Include.NON_NULL); // good
+        }
 
-    ObjectMapper bad(ObjectMapper mapper) {
-    mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL); // bad
-    return mapper;
-    }
+        ObjectMapper bad(ObjectMapper mapper) {
+            mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL); // bad
+            return mapper;
+        }
     }
 
     public class NewStyle {
-    private static final ObjectWriter staticObjectWriter =
-    new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL).writer(); // good
+        private static final ObjectWriter staticObjectWriter =
+            new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL).writer(); // good
     }
     ]]>
-    </example>
+        </example>
     </rule>
-    -->
+
     <rule name="AvoidDeprecatedHystrix"
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           language="java"
@@ -803,7 +804,7 @@ class Good {
             When this HttpHost is then used for a route and stored socketConfig for, port 80 is added for the host and
             the socketConfig is stored with the wrong key and will not be used.
             It is typically difficult to find out if the config is actually used. Note that
-            http://github.com/jborgers/http-client-monitor helps here.&#13;
+            https://github.com/jborgers/http-client-monitor helps here.&#13;
             Solution: Use the HttpHost constructor with 2 (including port) or preferably 3 arguments (including port and
             protocol). (jpinpoint-rules)
         </description>
@@ -985,114 +986,134 @@ public class Foo {
     </example>
 </rule>
 
-    <!--
-<rule -name="HttpClientImproperConnectionTimeouts"
-class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-language="java"
-message="ApacheHttpClient RequestConfig connectionRequestTimeout and connectTimeout have values which are typically too high."
-externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi20">
-<description>org.apache.http.client.config.RequestConfig is used with connectionRequestTimeout and connectTimeout values above 500 milli seconds.
-Problem: 1. connectTimeout is for establishing a connection which should be quick, say below 200 ms.
-2. connectionRequestTimeout is for requesting a connection from the connection manager, which should be almost as quick, say below 250 ms.
-If timeouts are long, requests will wait long for an unavailable service and cause high thread usage and possibly overload.  &#13;
-Solution: Set connectTimeout and connectionRequestTimeout to values based om tests, for instance 200 ms and 250 ms. respectively (jpinpoint-rules)</description>
-<priority>2</priority>
-<properties>
-<property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
-<property name="xpath">
-<value><![CDATA[
+    <rule name="HttpClientImproperConnectionTimeouts"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          language="java"
+          message="ApacheHttpClient RequestConfig connectionRequestTimeout and connectTimeout have values which are typically too high."
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi20">
+        <description>org.apache.http.client.config.RequestConfig is used with connectionRequestTimeout and
+            connectTimeout values above 500 milli seconds.
+            Problem: 1. connectTimeout is for establishing a connection which should be quick, say below 200 ms.
+            2. connectionRequestTimeout is for requesting a connection from the connection manager, which should be
+            almost as quick, say below 250 ms.
+            If timeouts are long, requests will wait long for an unavailable service and cause high thread usage and
+            possibly overload. &#13;
+            Solution: Set connectTimeout and connectionRequestTimeout to values based om tests, for instance 200 ms and
+            250 ms. respectively (jpinpoint-rules)
+        </description>
+        <priority>2</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
 (: use of field, local var and return statement :)
-//FieldDeclaration[Type/PrimitiveType[@Image='int' or @Image='long']]//VariableDeclaratorId[@Name =
-ancestor::ClassOrInterfaceDeclaration[//LocalVariableDeclaration/Type
-[pmd-java:typeIs('org.apache.http.client.config.RequestConfig')
-or pmd-java:typeIs('org.springframework.http.client.HttpComponentsClientHttpRequestFactory')
-or @TypeImage='HttpComponentsClientHttpRequestFactory']/..//VariableInitializer
-|.//ReturnStatement//PrimaryExpression[.//Name/@Image='RequestConfig.custom']]
-//(PrimarySuffix[@Image='setConnectionRequestTimeout' or @Image='setConnectTimeout']
-|PrimaryPrefix[./Name[ends-with(@Image, 'setConnectionRequestTimeout')] or ./Name[ends-with(@Image, 'setConnectTimeout')]])
-/following-sibling::PrimarySuffix[1]//Name/@Image]
-/(../VariableInitializer//Literal[number(@Image) > 500]|
-ancestor::ClassOrInterfaceBodyDeclaration//SingleMemberAnnotation[Name/@Image='Value']//Literal[number(substring-before(substring-after(@Image, ':'), '}')) > 500])
+//FieldDeclaration[PrimitiveType[@Kind='int' or @Kind='long']][.//VariableId[
+    @Name =
+    ancestor::ClassDeclaration[
+        .//LocalVariableDeclaration/ClassType[
+            pmd-java:typeIs('org.apache.http.client.config.RequestConfig')
+            or pmd-java:typeIs('org.springframework.http.client.HttpComponentsClientHttpRequestFactory')
+        ]
+        /..//VariableDeclarator
+        |.//ReturnStatement[
+            .//MethodCall[@MethodName='custom']/TypeExpression/ClassType[
+                pmd-java:typeIs('org.apache.http.client.config.RequestConfig')
+                or pmd-java:typeIs('org.springframework.http.client.HttpComponentsClientHttpRequestFactory')
+            ]
+        ]
+    ]
+    //MethodCall[@MethodName=('setConnectionRequestTimeout','setConnectTimeout')]
+    /ArgumentList/VariableAccess/@Name
+]]
+/(VariableDeclarator//NumericLiteral[@ValueAsLong > 500]
+    |.//Annotation[@SimpleName='Value']//StringLiteral[number(substring-before(substring-after(@Image, ':'), '}')) > 500]
+)
 ,
 (: use of literal, local var and return statement : :)
-//ClassOrInterfaceDeclaration[//LocalVariableDeclaration/Type[pmd-java:typeIs('org.apache.http.client.config.RequestConfig')
-or pmd-java:typeIs('org.springframework.http.client.HttpComponentsClientHttpRequestFactory')
-or @TypeImage='HttpComponentsClientHttpRequestFactory'
-]/..//VariableInitializer
-|.//ReturnStatement//PrimaryExpression[.//Name/@Image='RequestConfig.custom']]
-//(PrimarySuffix[@Image='setConnectionRequestTimeout' or @Image='setConnectTimeout']
-|PrimaryPrefix[./Name[ends-with(@Image, 'setConnectionRequestTimeout')] or ./Name[ends-with(@Image, 'setConnectTimeout')]])
-/following-sibling::PrimarySuffix[1]//Literal[number(@Image) > 500]
+//Block[
+    .//LocalVariableDeclaration/ClassType[
+        pmd-java:typeIs('org.apache.http.client.config.RequestConfig')
+        or pmd-java:typeIs('org.springframework.http.client.HttpComponentsClientHttpRequestFactory')
+    ]
+    /..//VariableDeclarator
+    |.//ReturnStatement[
+        .//MethodCall[@MethodName='custom']/TypeExpression/ClassType[
+            pmd-java:typeIs('org.apache.http.client.config.RequestConfig')
+            or pmd-java:typeIs('org.springframework.http.client.HttpComponentsClientHttpRequestFactory')
+        ]
+    ]
+]
+//MethodCall[@MethodName=('setConnectionRequestTimeout','setConnectTimeout')]
+/ArgumentList/NumericLiteral[@ValueAsLong > 500]
+
 ]]>
-</value>
-</property>
-</properties>
-<example>
-<![CDATA[
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
 import org.apache.http.client.config.RequestConfig;
 
 public class HttpClientStuff {
-private static final int CONNECTION_TIMEOUTMILLIS = 1000; // bad // timeout until a connection is established
-private static final int CONNECTIONREQUEST_TIMEOUTMILLIS = 5000; // bad // timeout when requesting a connection from the connection manager
-private static final int SOCKET_TIMEOUTMILLIS = 5000; // timeout of waiting for data
+    private static final int CONNECTION_TIMEOUTMILLIS = 1000; // bad // timeout until a connection is established
+    private static final int CONNECTIONREQUEST_TIMEOUTMILLIS = 5000; // bad // timeout when requesting a connection from the connection manager
+    private static final int SOCKET_TIMEOUTMILLIS = 5000; // timeout of waiting for data
 
-public RequestConfig requestConfigWithTimeouts() {
-RequestConfig requestConfig = RequestConfig.custom()
-.setConnectionRequestTimeout(CONNECTIONREQUEST_TIMEOUTMILLIS)
-.setConnectTimeout(CONNECTION_TIMEOUTMILLIS)
-.setSocketTimeout(SOCKET_TIMEOUTMILLIS)
-.build();
-return requestConfig;
-}
+    public RequestConfig requestConfigWithTimeouts() {
+        RequestConfig requestConfig = RequestConfig.custom()
+        .setConnectionRequestTimeout(CONNECTIONREQUEST_TIMEOUTMILLIS)
+        .setConnectTimeout(CONNECTION_TIMEOUTMILLIS)
+        .setSocketTimeout(SOCKET_TIMEOUTMILLIS)
+        .build();
+        return requestConfig;
+    }
 }
 ]]>
-</example>
-</rule>
+        </example>
+    </rule>
 
-<rule -name="AvoidObjectMapperAsField"
-class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-language="java"
-message="Avoid ObjectMapper as field, use ObjectReader or ObjectWriter instead."
-externalInfoUrl="${doc_root}/JavaCodePerformance.md#iuojar02">
-<description>Problem: Configuring an ObjectMapper is thread-unsafe.  &#13;
-Solution: Create ObjectReaders and ObjectWriters from ObjectMapper and only share those as field, since they are immutable and therefore thread-safe.
-Exceptions: A convertValue method is not provided by ObjectReader nor ObjectWriter, therefore in those cases this rule is not applied.
-Also when used like jaxMsgConverter.setObjectMapper(objectMapper) it is not considered a violation. (jpinpoint-rules)</description>
-<priority>3</priority>
-<properties>
-<property name="tags" value="jpinpoint-rule,multi-threading" type="String" description="classification"/>
-<property name="xpath">
-<value><![CDATA[
-(for $node in (//FieldDeclaration[pmd-java:typeIs('com.fasterxml.jackson.databind.ObjectMapper')
-(: if class not in classpath, can use following line :)
-(:or (Type//ClassOrInterfaceType[@Image='ObjectMapper'] and //ImportDeclaration/Name[starts-with(@Image, 'com.fasterxml.jackson.databind.')]):)
-]//VariableDeclaratorId)
-(: exception: do not match if that field name is used in its class with a convertValue method :)
-return ($node[not(ancestor::ClassOrInterfaceDeclaration//PrimaryPrefix/Name[@Image = concat($node/@Name, '.convertValue')])
-(: exception: do not match if used with jaxMsgConverter.setObjectMapper(objectMapper) :)
-and not($node/@Name = ancestor::ClassOrInterfaceDeclaration//PrimaryExpression[PrimaryPrefix/Name[ends-with(@Image, 'setObjectMapper')]]
-(:[pmd-java:typeIs('org.springframework.http.converter.json.MappingJackson2HttpMessageConverter')] - somehow class resolution fails :)
-/PrimarySuffix//PrimaryPrefix/Name/@Image)
-]))
+    <rule name="AvoidObjectMapperAsField"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          language="java"
+          message="Avoid ObjectMapper as field, use ObjectReader or ObjectWriter instead."
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#iuojar02">
+        <description>Problem: Configuring an ObjectMapper is thread-unsafe. &#13;
+            Solution: Create ObjectReaders and ObjectWriters from ObjectMapper and only share those as field, since they
+            are immutable and therefore thread-safe.
+            Exceptions: A convertValue method is not provided by ObjectReader nor ObjectWriter, therefore in those cases
+            this rule is not applied.
+            Also, when used like jaxMsgConverter.setObjectMapper(objectMapper) it is not considered a violation.
+            (jpinpoint-rules)
+        </description>
+        <priority>3</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,multi-threading" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+//FieldDeclaration[ClassType/pmd-java:typeIs('com.fasterxml.jackson.databind.ObjectMapper')]//VariableId
+    (: exception: do not match if that field name is used in its class with a convertValue method :)
+    [not(@Name = ancestor::ClassBody//MethodCall[pmd-java:matchesSig('com.fasterxml.jackson.databind.ObjectMapper#convertValue(_,_)')]/VariableAccess/@Name)]
+    (: exception: do not match if used with jaxMsgConverter.setObjectMapper(objectMapper) :)
+    [not(@Name = ancestor::ClassBody//MethodCall[pmd-java:matchesSig('org.springframework.http.converter.json.MappingJackson2HttpMessageConverter#setObjectMapper(_)')]/ArgumentList/VariableAccess/@Name)]
 ]]>
-</value>
-</property>
-</properties>
-<example>
-<![CDATA[
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
 public class BadStyle {
-private static final ObjectMapper staticObjectMapper = new ObjectMapper(); // bad
-private final ObjectMapper mapperField = new ObjectMapper(); //bad
+    private static final ObjectMapper staticObjectMapper = new ObjectMapper(); // bad
+    private final ObjectMapper mapperField = new ObjectMapper(); //bad
 }
 
 class GoodStyle {
-private static final ObjectWriter staticObjectWriter =
-new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL).writer(); // good
+    private static final ObjectWriter staticObjectWriter =
+    new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL).writer(); // good
 }
 ]]>
-</example>
-</rule>
--->
+        </example>
+    </rule>
+
     <rule name="AxualProducerCreatedForEachMethodCall"
           message="An Axual (Kafka) producer is created for each method call, which is expensive and takes resources."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"

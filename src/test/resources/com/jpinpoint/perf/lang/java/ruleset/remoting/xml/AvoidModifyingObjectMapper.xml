@@ -89,11 +89,12 @@
     </test-code>
 
     <test-code>
-        <description>violation: #116: AvoidModifyingObjectMapper - allow @PostConstruct</description>
+        <description>violation: #116: AvoidModifyingObjectMapper - allow @PostConstruct javax</description>
         <expected-problems>1</expected-problems>
-        <expected-linenumbers>13</expected-linenumbers>
+        <expected-linenumbers>14</expected-linenumbers>
         <code><![CDATA[
 import com.fasterxml.jackson.databind.ObjectMapper;
+import javax.annotation.PostConstruct;
 @Component
 public class MyComponent {
 
@@ -110,6 +111,31 @@ public class MyComponent {
 }
      ]]></code>
     </test-code>
+
+    <test-code>
+        <description>violation: #116: AvoidModifyingObjectMapper - allow @PostConstruct - jakarta</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>14</expected-linenumbers>
+        <code><![CDATA[
+import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.annotation.PostConstruct;
+@Component
+public class MyComponent {
+
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
+    @PostConstruct
+    public void setUp() {
+        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL); // good, should not be flagged
+    }
+
+    public void bad() {
+        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL); // bad
+    }
+}
+     ]]></code>
+    </test-code>
+
 
     <test-code>
         <description>violation: #155: Fix request: false positive for AvoidModifyingObjectMapper with a factory</description>

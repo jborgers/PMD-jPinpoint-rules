@@ -77,13 +77,13 @@ public class SomeClient {
     private final RestTemplate restTemplate;
     private final String path;
     int CONN_READ_TIMEOUT_IN_MILLISECONDS = 4000;
-    int CONN_TIMEOUT_IN_MILLISECONDS = 5000; // missed case
+    int CONN_TIMEOUT_IN_MILLISECONDS = 5000; // missed case, bad
 
     private void submitHttpRequest(HttpEntity<SomeRequest> request) {
             HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
             requestFactory.setConnectTimeout(CONN_TIMEOUT_IN_MILLISECONDS);
             requestFactory.setReadTimeout(CONN_READ_TIMEOUT_IN_MILLISECONDS);
-            requestFactory.setConnectionRequestTimeout(6000); // missed case
+            requestFactory.setConnectionRequestTimeout(6000); // missed case, bad
             restTemplate.setRequestFactory(requestFactory);
             ResponseEntity<?> response = restTemplate.exchange(path, HttpMethod.PUT, request, SomeResponse.class);
     }
