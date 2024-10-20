@@ -98,7 +98,7 @@ class Good {
             to use in the render request scope. (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
-            <property name="tags" value="jpinpoint-rule,performance" type="String" description="for-sonar"/>
+            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
 //MethodDeclaration[
@@ -119,34 +119,31 @@ class Good {
             </property>
         </properties>
     </rule>
-    <!--
 
-        <rule name="AvoidSpringApplicationContextRecreation"
-              message="Avoid re-creation of Spring application context"
-              class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
-              typeResolution="true" externalInfoUrl="${doc_root}/JavaCodePerformance.md#euocs01">
-            <description>
-                Problem: When a XXXApplicationContext is created, all Spring beans are initialized, wired and component scanning may take place. Component scanning involves extensive class path scanning which is expensive.&#13;
-                Solution: Create the ApplicationContext only once in the application deployed/live time.
-                (jpinpoint-rules)</description>
-            <priority>2</priority>
-            <properties>
-                <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-                <property name="tag" value="performance" type="String" description="for-sonar"/>
-                <property name="version" value="2.0"/>
-                <property name="xpath">
-                    <value>
-                        <![CDATA[
-       //TypeDeclaration/ClassOrInterfaceDeclaration/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration
-    /MethodDeclaration//PrimaryExpression/PrimaryPrefix/AllocationExpression/ClassOrInterfaceType[ends-with(@Image, 'ApplicationContext')
-    and (
-    //ImportDeclaration/Name[starts-with(@Image, 'org.springframework.context')]
-    )]
-    ]]>
-                    </value>
-                </property>
-            </properties>
-        </rule>
+    <rule name="AvoidSpringApplicationContextRecreation"
+          message="Avoid re-creation of Spring application context"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
+          typeResolution="true" externalInfoUrl="${doc_root}/JavaCodePerformance.md#euocs01">
+        <description>
+            Problem: When a XXXApplicationContext is created, all Spring beans are initialized, wired and component scanning may take place.
+            Component scanning involves extensive class path scanning which is expensive.&#13;
+            Solution: Create the ApplicationContext only once in the application deployed/live time.
+            (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+            <property name="xpath">
+                <value>
+                    <![CDATA[
+//MethodDeclaration//ConstructorCall[
+   (: assume creation of all ApplicationContexts is bad in methods - does not work in designer without proper classpath imports :)
+   ClassType[pmd-java:typeIs('org.springframework.context.ApplicationContext')]
+]
+                   ]]></value>
+            </property>
+        </properties>
+    </rule>
+    <!--
 
         <rule name="AvoidSpringMVCMemoryLeaks" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
               message="Spring Controller returns an additive expression or a ModelAndView object which may cause a MemoryLeak" typeResolution="true"

@@ -6,6 +6,7 @@
     <test-code>
         <description>Avoid Spring ApplicationContext recreation</description>
         <expected-problems>2</expected-problems>
+        <expected-linenumbers>21, 24</expected-linenumbers>
         <code><![CDATA[
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -27,10 +28,10 @@ public class AvoidSpringApplicationContextRecreation {
      */
     private Object getRServiceViolate() {
         final ApplicationContext applicationContext =
-                new ClassPathXmlApplicationContext(new String[]{"t-spring-context.xml"}); // violation
+                new ClassPathXmlApplicationContext(new String[]{"t-spring-context.xml"}); // bad
 
         final ApplicationContext applicationContext2 =
-                new AnnotationConfigApplicationContext(new String[]{"nl.bank.perf"}); // violation
+                new AnnotationConfigApplicationContext(new String[]{"nl.bank.perf"}); // bad
 
         return (Object) applicationContext.getBean("T_SERVICE");
     }
