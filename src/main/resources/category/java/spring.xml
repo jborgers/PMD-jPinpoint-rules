@@ -85,29 +85,41 @@ class Good {
             ]]>
         </example>
     </rule>
+    <rule name="AvoidModelMapAsRenderParameter"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
+          message="A ModelMap or @ModelAttribute is used as parameter of a portlet render method and implicitly put in the session."
+          typeResolution="true"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#tmsu11">
+        <description>Problem: ModelMaps are rather large objects containing explicitly added data and administrative data from Spring.
+            They are added to the Portlet session implicitly.
+            They stay in the session for some time: during session activity and 30 minutes (HTTP timeout) after it,
+            in case the user does not exit explicitly. They occupy heap space during that time, for every user.&#13;
+            Solution: Remove the ModelMap from the render method parameter list and create a new local ModelMap
+            to use in the render request scope. (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,performance" type="String" description="for-sonar"/>
+            <property name="xpath">
+                <value><![CDATA[
+//MethodDeclaration[
+    pmd-java:modifiers() = 'public'
+
+    and .//FormalParameter[
+            pmd-java:typeIs('org.springframework.ui.ModelMap')
+            or
+            pmd-java:hasAnnotation('org.springframework.web.bind.annotation.ModelAttribute')]
+
+    and .//FormalParameter[
+            (pmd-java:typeIs('javax.portlet.RenderRequest') or pmd-java:typeIs('javax.portlet.PortletRequest'))
+            or
+            pmd-java:hasAnnotation('org.springframework.web.portlet.bind.annotation.RenderMapping')
+        ]
+]
+                ]]></value>
+            </property>
+        </properties>
+    </rule>
     <!--
-        <rule name="AvoidModelMapAsRenderParameter" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java" message="A ModelMap or @ModelAttribute is used as parameter of a portlet render method and implicitly put in the session." typeResolution="true"
-              externalInfoUrl="${doc_root}/JavaCodePerformance.md#tmsu11">
-            <description>Problem: ModelMaps are rather large objects containing explicitly added data and administrative data from Spring. They are added to the Portlet session implicitly. They stay in the session for some time: during session activity and 30 minutes (HTTP timeout) after it, in case the user does not exit explicitly. They occupy heap space during that time, for every user.&#13;
-                Solution: Remove the ModelMap from the render method parameter list and create a new local ModelMap to use in the render request scope.
-                (jpinpoint-rules)</description>
-            <priority>2</priority>
-            <properties>
-                <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-                <property name="tag" value="performance" type="String" description="for-sonar"/>
-                <property name="version" value="2.0"/>
-                <property name="xpath">
-                    <value><![CDATA[
-    //ClassOrInterfaceBodyDeclaration
-    [MethodDeclaration[@Public=true()] and
-    (MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter/Type/ReferenceType/ClassOrInterfaceType[pmd-java:typeIs('org.springframework.ui.ModelMap')] or
-    MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter/Annotation/MarkerAnnotation/Name[@Image='ModelAttribute']) and
-    (MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter/Type/ReferenceType/ClassOrInterfaceType[pmd-java:typeIs('javax.portlet.RenderRequest') or pmd-java:typeIs('javax.portlet.PortletRequest')] or
-    Annotation//Name[@Image='RenderMapping'])]
-        ]]></value>
-                </property>
-            </properties>
-        </rule>
 
         <rule name="AvoidSpringApplicationContextRecreation"
               message="Avoid re-creation of Spring application context"
