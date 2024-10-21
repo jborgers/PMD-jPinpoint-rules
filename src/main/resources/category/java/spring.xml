@@ -192,45 +192,67 @@ class Good {
             </property>
         </properties>
     </rule>
-    <!--
-        <rule name="MakeAutoWiredConstructedFieldFinal"
-              message="Make autowired, constructed field final in objects shared among threads."
-              class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
-              typeResolution="true" externalInfoUrl="${doc_root}/JavaCodePerformance.md#tutc07">
-            <description>
-                Problem: Multiple threads typically access fields of a singleton or may access fields in session scoped objects. If a field or its reference is mutable, non-autowired access is thread-unsafe and may cause corruption or visibility problems. To make this thread-safe, that is, guard the field e.g. with synchronized methods, may cause contention. &#13;
-                Solution: Make the fields final and unmodifiable to defend against mutation. If they really need to be mutable (which is strange for autowired fields), make access thread-safe. Thread-safety can be achieved e.g. by proper synchronization and use the @GuardedBy annotation or use of volatile.&#13;
-                Notes&#13;
-                1. Autowiring/injection is thread safe, yet make sure no other thread-unsafe assignment is made to that field.&#13;
-                2. In case you are sure the Component is used in single threaded context only (e.g. a Tasklet), annotate the class with @NotThreadSafe to make this explicit. &#13;
-                3. Use package-private and @VisibleForTesting for methods (e.g. setters) used for JUnit only.
-                (jpinpoint-rules)</description>
-            <priority>3</priority>
-            <properties>
-                <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-                <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
-                <property name="version" value="2.0"/>
-                <property name="xpath">
-                    <value>
-                        <![CDATA[
-        //TypeDeclaration/Annotation//Name[(@Image='Component' or @Image='Service' or @Image='Controller' or @Image='RestController' or @Image='Repository' or
-    (@Image='Singleton' and ancestor::TypeDeclaration/Annotation/NormalAnnotation/MemberValuePairs//Name[@Image='ConcurrencyManagementType.BEAN']))
-    and not (ancestor::TypeDeclaration/Annotation/NormalAnnotation/Name[@Image='Scope']/..//Literal[@Image='"request"' or @Image='"prototype"'])
-    and not (ancestor::TypeDeclaration/Annotation/MarkerAnnotation/Name[@Image='NotThreadSafe'])
-    and not ((ancestor::TypeDeclaration/Annotation/NormalAnnotation/Name[@Image='ConfigurationProperties'])
-                 and not (ancestor::TypeDeclaration/Annotation/MarkerAnnotation/Name[@Image='Setter']))]
-    /../../..//ClassOrInterfaceDeclaration[@Static=false()]/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Final=false() and @Volatile=false()
-    and not (../Annotation//Name[@Image='Autowired' or @Image='PersistenceContext' or @Image='EJB' or @Image='Resource' or @Image='Inject' or @Image='Value' or @Image='GuardedBy'])
-    and  (../../ClassOrInterfaceBodyDeclaration/Annotation//Name[@Image='Autowired']
-    /../../../ConstructorDeclaration//BlockStatement/Statement//StatementExpression/AssignmentOperator/../PrimaryExpression//@Image=
-    ./VariableDeclarator/VariableDeclaratorId/@Name)
-    ]
-    ]]>
-                    </value>
-                </property>
-            </properties>
-        </rule>
 
+    <rule name="MakeAutoWiredConstructedFieldFinal"
+          message="Make autowired, constructed field final in objects shared among threads."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
+          typeResolution="true" externalInfoUrl="${doc_root}/JavaCodePerformance.md#tutc07">
+        <description>
+            Problem: Multiple threads typically access fields of a singleton or may access fields in session scoped objects. If a field or its reference is mutable, non-autowired access is thread-unsafe and may cause corruption or visibility problems. To make this thread-safe, that is, guard the field e.g. with synchronized methods, may cause contention. &#13;
+            Solution: Make the fields final and unmodifiable to defend against mutation. If they really need to be mutable (which is strange for autowired fields), make access thread-safe. Thread-safety can be achieved e.g. by proper synchronization and use the @GuardedBy annotation or use of volatile.&#13;
+            Notes&#13;
+            1. Autowiring/injection is thread safe, yet make sure no other thread-unsafe assignment is made to that field.&#13;
+            2. In case you are sure the Component is used in single threaded context only (e.g. a Tasklet), annotate the class with @NotThreadSafe to make this explicit. &#13;
+            3. Use package-private and @VisibleForTesting for methods (e.g. setters) used for JUnit only.
+            (jpinpoint-rules)</description>
+        <priority>3</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,multi-threading" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+//ClassDeclaration[
+          ( pmd-java:hasAnnotation('org.springframework.stereotype.Component')
+              or pmd-java:hasAnnotation('org.springframework.stereotype.Service')
+              or pmd-java:hasAnnotation('org.springframework.stereotype.Controller')
+              or pmd-java:hasAnnotation('org.springframework.stereotype.RestController')
+              or pmd-java:hasAnnotation('org.springframework.stereotype.Repository')
+              or (pmd-java:hasAnnotation('javax.ejb.Singleton') and ModifierList/Annotation[pmd-java:typeIs('javax.ejb.ConcurrencyManagement')]/AnnotationMemberList/MemberValuePair/FieldAccess[./TypeExpression[pmd-java:typeIs('javax.ejb.ConcurrencyManagementType')] and @Name="BEAN"])
+              or (pmd-java:hasAnnotation('jakarta.ejb.Singleton') and ModifierList/Annotation[pmd-java:typeIs('jakarta.ejb.ConcurrencyManagement')]/AnnotationMemberList/MemberValuePair/FieldAccess[./TypeExpression[pmd-java:typeIs('jakarta.ejb.ConcurrencyManagementType')] and @Name="BEAN"])
+         )
+        (: not shared when request or prototype scope :)
+        and not(pmd-java:hasAnnotation('org.springframework.context.annotation.Scope') and .//AnnotationMemberList/MemberValuePair[
+            StringLiteral[contains(@Image,'request') or contains(@Image,'prototype')]
+            or FieldAccess[@Name='SCOPE_REQUEST' or @Name='SCOPE_PROTOTYPE']/TypeExpression[pmd-java:typeIs('org.springframework.beans.factory.config.ConfigurableBeanFactory')]]
+         )
+        and not(pmd-java:hasAnnotation('org.springframework.context.annotation.RequestScope'))
+        (: if @NotThreadSafe no checking :)
+        and not(pmd-java:hasAnnotation('net.jcip.annotations.NotThreadSafe'))
+        (: no checking if @ConfigurationProperties and no @Setter :)
+        and not(pmd-java:hasAnnotation('org.springframework.boot.context.properties.ConfigurationProperties'))
+        and not(pmd-java:hasAnnotation('lombok.Setter'))
+]
+[not(pmd-java:modifiers()='static')]
+//FieldDeclaration[
+          not(pmd-java:modifiers()=('final','volatile'))
+          and not(
+              pmd-java:hasAnnotation('org.springframework.beans.factory.annotation.Autowired')
+              or (pmd-java:hasAnnotation('javax.persistence.PersistenceContext') or pmd-java:hasAnnotation('jakarta.persistence.PersistenceContext'))
+              or (pmd-java:hasAnnotation('javax.ejb.EJB') or pmd-java:hasAnnotation('jakarta.ejb.EJB'))
+              or (pmd-java:hasAnnotation('javax.inject.Inject') or pmd-java:hasAnnotation('jakarta.inject.Inject'))
+              or (pmd-java:hasAnnotation('javax.annotation.Resource') or pmd-java:hasAnnotation('jakarta.annotation.Resource'))
+              or pmd-java:hasAnnotation('org.springframework.beans.factory.annotation.Value')
+              or ModifierList/Annotation[@SimpleName='GuardedBy']
+          )
+          (: field is accessed in an Autowired annotated method :)
+          and ./VariableDeclarator/VariableId/@Name = ancestor::ClassDeclaration//ConstructorDeclaration[
+                   pmd-java:hasAnnotation('org.springframework.beans.factory.annotation.Autowired')
+              ]//FieldAccess/@Name
+]
+                ]]></value>
+            </property>
+        </properties>
+    </rule>
+    <!--
         <rule name="MinimizeActionModelMapInSession" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java" message="ModelMap in action method is not cleared. This may bloat the session." typeResolution="true"
               externalInfoUrl="${doc_root}/JavaCodePerformance.md#tmsu12">
             <description>A ModelMap is used in an action method typically for form validation and not cleared. Problem: the ModelMap is put in the session by Spring. This is typically a large object which may bloat the session.&#13;
