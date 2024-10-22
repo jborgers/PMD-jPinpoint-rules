@@ -74,12 +74,12 @@ public class AvoidModelMapAsRenderParameterTest {
     public ModelAndView initialOverviewRender2(
         final RenderRequest request,final String viewName) // good, assumed not in session
     {
-	ModelMap modelMap = new ModelMap();
-	modelMap.put("texts", messageSource);
+	   ModelMap modelMap = new ModelMap();
+	   modelMap.put("texts", messageSource);
 
-	// modelmap used during render, in view template. Assumed not to be put
-	// in session, because no need.
-	return new ModelAndView("income/" + viewName, modelMap);
+	   // modelmap used during render, in view template. Assumed not to be put
+	   // in session, because no need.
+	   return new ModelAndView("income/" + viewName, modelMap);
     }
 
 }

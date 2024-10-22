@@ -85,6 +85,7 @@ class Good {
             ]]>
         </example>
     </rule>
+
     <rule name="AvoidModelMapAsRenderParameter"
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
           message="A ModelMap or @ModelAttribute is used as parameter of a portlet render method and implicitly put in the session."
@@ -118,6 +119,25 @@ class Good {
                 ]]></value>
             </property>
         </properties>
+        <example><![CDATA[
+// bad: ModelMap in session between action and render, and after that
+@RenderMapping(params = "flow=view_unsigned")
+public ModelAndView viewDoodle(RenderRequest request, @RequestParam String doodleId,
+                               @RequestParam String modifiedTimeStamp, ModelMap modelMap) {
+    ...
+    return new ModelAndView("FIRST_SCREEN_VIEW", "FIRST_SCREEN_FORM", modelMap);
+}
+
+// good: assumed not in session
+public ModelAndView initialOverviewRender(RenderRequest request, String viewName) {
+   ModelMap modelMap = new ModelMap();
+   modelMap.put("texts", messageSource);
+
+   // ModelMap used during render, in view template. Assumed not to be put
+   // in session, because no need.
+   return new ModelAndView("overview/" + viewName, modelMap);
+}
+        ]]></example>
     </rule>
 
     <rule name="AvoidSpringApplicationContextRecreation"
@@ -142,6 +162,24 @@ class Good {
                    ]]></value>
             </property>
         </properties>
+        <example><![CDATA[
+public class AvoidSpringApplicationContextRecreation {
+
+    private static final ApplicationContext APPLICATION_CONTEXT =
+            new ClassPathXmlApplicationContext(new String[]{ "t-spring-context.xml" }); // good
+
+    private Object getServiceBad() {
+        final ApplicationContext applicationContext =
+                new ClassPathXmlApplicationContext(new String[]{"t-spring-context.xml"}); // bad
+
+        return (Object) applicationContext.getBean("T_SERVICE");
+    }
+
+    private Object getServiceGood() {
+        return (Object) APPLICATION_CONTEXT.getBean("T_SERVICE");
+    }
+}
+        ]]></example>
     </rule>
 
     <rule name="AvoidSpringMVCMemoryLeaks" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
@@ -191,6 +229,19 @@ class Good {
                 ]]></value>
             </property>
         </properties>
+        <example><![CDATA[
+@RequestMapping(method = RequestMethod.GET)
+public ModelAndView getSomeRequestBad(@RequestParam int someValue) {
+    ...
+    return new ModelAndView(someVar); // bad
+}
+
+@RequestMapping(method = RequestMethod.GET)
+public ModelAndView getSomeRequestGood(@RequestParam int someValue) {
+    ...
+    return new ModelAndView(STATIC_FINAL_FIELD); // good
+}
+        ]]></example>
     </rule>
 
     <rule name="MakeAutoWiredConstructedFieldFinal"
@@ -251,12 +302,25 @@ class Good {
                 ]]></value>
             </property>
         </properties>
+        <example><![CDATA[
+@RestController
+public class DoodleController {
+
+    private String name; // bad: autowired constructor, yet non-final
+
+    @Autowired
+    public DoodleController(String name) {
+        this.name = name;
+    }
+}
+        ]]></example>
     </rule>
 
     <rule name="MinimizeActionModelMapInSession" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
           message="ModelMap in action method is not cleared. This may bloat the session." typeResolution="true"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#tmsu12">
-        <description>A ModelMap is used in an action method typically for form validation and not cleared. Problem: the ModelMap is put in the session by Spring. This is typically a large object which may bloat the session.&#13;
+        <description>A ModelMap is used in an action method typically for form validation and not cleared.
+            Problem: the ModelMap is put in the session by Spring. This is typically a large object which may bloat the session.&#13;
             Solution: clear the ModelMap right after the validation in the happy flow.
             (jpinpoint-rules)</description>
         <priority>2</priority>
@@ -276,6 +340,16 @@ class Good {
     ]]></value>
             </property>
         </properties>
+        <example><![CDATA[
+public static final String SAVE_ACTION = "action=saveDetails";
+public static final String SUBMIT_OK = "submit_ok";
+
+@ActionMapping(params = { SAVE_ACTION, SUBMIT_OK })
+public void validateDetails(ActionRequest request, ModelMap modelMap) {
+    validateWith(modelMap);
+    modelMap.clear(); // good
+}
+        ]]></example>
     </rule>
     <!--
         <rule name="AvoidExpressionsInCacheable" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java" message="Avoid SpEL-expression for computing Cacheable key" typeResolution="true"
