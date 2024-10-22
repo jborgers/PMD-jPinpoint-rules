@@ -252,30 +252,32 @@ class Good {
             </property>
         </properties>
     </rule>
-    <!--
-        <rule name="MinimizeActionModelMapInSession" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java" message="ModelMap in action method is not cleared. This may bloat the session." typeResolution="true"
-              externalInfoUrl="${doc_root}/JavaCodePerformance.md#tmsu12">
-            <description>A ModelMap is used in an action method typically for form validation and not cleared. Problem: the ModelMap is put in the session by Spring. This is typically a large object which may bloat the session.&#13;
-                Solution: clear the ModelMap right after the validation in the happy flow.
-                (jpinpoint-rules)</description>
-            <priority>2</priority>
-            <properties>
-                <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-                <property name="tag" value="performance" type="String" description="for-sonar"/>
-                <property name="version" value="2.0"/>
-                <property name="xpath">
-                    <value><![CDATA[
-    //ClassOrInterfaceBodyDeclaration
-    [MethodDeclaration[@Public=true()] and
-    MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter/Type/ReferenceType/ClassOrInterfaceType[pmd-java:typeIs('org.springframework.ui.ModelMap')] and
-    (MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter/Type/ReferenceType/ClassOrInterfaceType[pmd-java:typeIs('javax.portlet.ActionRequest')] or
-    Annotation//Name[@Image='ActionMapping']) and
-    count(.//PrimaryExpression/PrimaryPrefix/Name[ends-with(@Image,'.clear')])=0]
-        ]]></value>
-                </property>
-            </properties>
-        </rule>
 
+    <rule name="MinimizeActionModelMapInSession" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
+          message="ModelMap in action method is not cleared. This may bloat the session." typeResolution="true"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#tmsu12">
+        <description>A ModelMap is used in an action method typically for form validation and not cleared. Problem: the ModelMap is put in the session by Spring. This is typically a large object which may bloat the session.&#13;
+            Solution: clear the ModelMap right after the validation in the happy flow.
+            (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+//MethodDeclaration[
+   pmd-java:modifiers()='public'
+   and .//FormalParameter[pmd-java:typeIs('org.springframework.ui.ModelMap')]
+   and (
+           .//FormalParameter[pmd-java:typeIs('javax.portlet.ActionRequest')]
+           or pmd-java:hasAnnotation('org.springframework.web.portlet.bind.annotation.ActionMapping')
+       )
+   and not(./Block//MethodCall[pmd-java:matchesSig('org.springframework.ui.ModelMap#clear()')])
+]
+    ]]></value>
+            </property>
+        </properties>
+    </rule>
+    <!--
         <rule name="AvoidExpressionsInCacheable" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java" message="Avoid SpEL-expression for computing Cacheable key" typeResolution="true"
               externalInfoUrl="${doc_root}/JavaCodePerformance.md#improper-caching">
             <description>Spring Expression Language (SpEL) expression is used for computing the key dynamically. Problem: evaluating the expression language is expensive, on every call.&#13;

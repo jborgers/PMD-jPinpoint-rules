@@ -4,8 +4,9 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
     <test-code>
-        <description>Minimiz action ModelMap in session</description>
-        <expected-problems>2</expected-problems>
+        <description>Minimize action ModelMap in session</description>
+        <expected-problems>3</expected-problems>
+        <expected-linenumbers>26,35,62</expected-linenumbers>
         <code><![CDATA[
 import org.springframework.ui.ModelMap;
 import org.springframework.validation.BindingResult;
@@ -28,30 +29,29 @@ public class MinimizeActionModelMapInSessionTest {
 			final ModelMap modelMap) {
 		// LOG.trace("Clearing all sprinkle details");
 		// session.clearAll();
-		modelMap.clear(); // OK
+		modelMap.clear(); // good
 	}
 
 	@ActionMapping(params = { SAVE_SPRINKLE_ACTION, MODAL_SUBMIT_RESET_OK })
-	public void clearSprinkleDetails2(final ActionRequest request,
+	public void clearSprinkleDetails2(final ActionRequest request,   // bad: ModelMap not cleared
 			final ModelMap modelMap) {
 		Map otherMap = new HashMap();
 		// LOG.trace("Clearing all sprinkle details");
-		otherMap.clear(); // current shortcoming
-		modelMap.isEmpty(); // Method should flag FAIL
+		otherMap.clear();
+		modelMap.isEmpty();
 	}
 
 	@ActionMapping(params = { SAVE_SPRINKLE_ACTION, MODAL_SUBMIT_RESET_OK })
-	public void clearSprinkleDetails3(final ActionRequest request,
+	public void clearSprinkleDetails3(final ActionRequest request,  // bad
 			final ModelMap modelMap) {
 		Map otherMap = new HashMap();
 		// LOG.trace("Clearing all sprinkle details");
-		modelMap.isEmpty(); // Method should flag FAIL
+		modelMap.isEmpty();
 	}
 
 	// Map cleared in happy flow, only in session while validation error(s)
-	// map.clear() present, should NOT flag
 	@ActionMapping
-	public void action(@ModelAttribute Object form, BindingResult errors,
+	public void action(@ModelAttribute Object form, BindingResult errors,   // good: ModelMap is cleared
 			Object response, final ModelMap map) {
 		// Validate the form, on error fill the BindingResult errors object and
 		// return the name of the render
@@ -68,9 +68,8 @@ public class MinimizeActionModelMapInSessionTest {
 	}
 
 	// Map cleared in happy flow, only in session while validation error(s)
-	// map.clear missing, so should FLAG
 	@ActionMapping
-	public void action2(@ModelAttribute Object form, BindingResult errors,
+	public void action2(@ModelAttribute Object form, BindingResult errors, // bad: map.clear() is missing
 			Object response, final ModelMap map) {
 
 		validator.validate(form, errors);
@@ -80,9 +79,9 @@ public class MinimizeActionModelMapInSessionTest {
 	}
 
 	// Map cleared in happy flow, only in session while validation error(s)
-	// map.clear missing, but non-public so should NOT FLAG
+	// map.clear missing, but non-public
 	@ActionMapping
-	private void action3(@ModelAttribute Object form, BindingResult errors,
+	private void action3(@ModelAttribute Object form, BindingResult errors, // good: non-public
 			Object response, final ModelMap map) {
 
 		validator.validate(form, errors);
@@ -92,6 +91,6 @@ public class MinimizeActionModelMapInSessionTest {
 	}
 
 }
-     ]]></code>
+         ]]></code>
     </test-code>
 </test-data>
