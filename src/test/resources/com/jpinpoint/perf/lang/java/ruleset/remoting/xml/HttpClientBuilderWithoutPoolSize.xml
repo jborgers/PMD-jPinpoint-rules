@@ -174,7 +174,7 @@ class Good {
 import org.apache.http.impl.nio.client.HttpAsyncClientBuilder;
 class Bad {
     private HttpAsyncClientBuilder bad(final HttpAsyncClientBuilder clientBuilder) {
-        clientBuilder //build
+        clientBuilder //bad
             .setDefaultCredentialsProvider(CREDENTIALS)
             .setMaxConnTotal(MAX_CONNECTIONS_TOTAL);
         return clientBuilder;
