@@ -383,42 +383,44 @@ class Good {
             ]]>
         </example>
     </rule>
-    <!--
-        <rule name="SynchronizeForKeyInCacheable" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java" message="Synchronize access for each key in @Cacheable" typeResolution="true"
-              externalInfoUrl="${doc_root}/JavaCodePerformance.md#improper-caching">
-            <description>The cache by default allows multiple threads accessing by the same key. Problem: if the value of the key is not available from the cache, it will be fetched/computed by multiple threads while only one time is needed.&#13;
-                Solution: Let only the first accessing thread fetch/compute the value and block others until the value is in the cache. Add attribute sync = "true" to achieve this. (Assuming the cache implementation supports it.)
-                (jpinpoint-rules)</description>
-            <priority>2</priority>
-            <properties>
-                <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-                <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
-                <property name="tag" value="performance" type="String" description="for-sonar"/>
-                <property name="version" value="2.0"/>
-                <property name="xpath">
-                    <value><![CDATA[
-    (//ClassOrInterfaceBodyDeclaration//Annotation/NormalAnnotation[Name/@Image='Cacheable']
-    ,
-    //ClassOrInterfaceBodyDeclaration//Annotation/MarkerAnnotation[Name/@Image='Cacheable'])[count(MemberValuePairs/MemberValuePair[@MemberName='sync']) = 0]
-        ]]></value>
-                </property>
-            </properties>
-            <example>
-                <![CDATA[
-    public class Bad1 {
-        @Cacheable(value = "Cache1") // bad
-        public String bad1() {
-        }
-    }
-    class Good1 {
-        @Cacheable(value = "Cache1", sync = "true")
-        public String good1() {
-        }
-    }
-                ]]>
-            </example>
-        </rule>
 
+    <rule name="SynchronizeForKeyInCacheable" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java" message="Synchronize access for each key in @Cacheable" typeResolution="true"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#improper-caching">
+        <description>The cache by default allows multiple threads accessing by the same key.
+            Problem: if the value of the key is not available from the cache, it will be fetched/computed by multiple threads while only one time is needed.&#13;
+            Solution: Let only the first accessing thread fetch/compute the value and block others until the value is in the cache.
+            Add attribute sync = "true" to achieve this. (Assuming the cache implementation supports it.)
+            (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,multi-threading,performance" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+//Annotation[
+  pmd-java:typeIs('org.springframework.cache.annotation.Cacheable')
+  and not(exists(AnnotationMemberList/MemberValuePair[@Name='sync']))
+]
+    ]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+public class Bad {
+    @Cacheable(value = "Cache1") // bad
+    public String bad() {
+      ...
+    }
+}
+class Good {
+    @Cacheable(value = "Cache1", sync = "true") // good
+    public String good() {
+       ...
+    }
+}
+            ]]>
+        </example>
+    </rule>
+    <!--
         <rule name="AvoidSimpleCaches" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java" message="Avoid simple caching in production" typeResolution="true"
               externalInfoUrl="${doc_root}/JavaCodePerformance.md#ic08">
             <description>Simple caches are used. Problem: Simple caching is meant for testing and prototyping and it lacks manageability and monitorability.&#13;
