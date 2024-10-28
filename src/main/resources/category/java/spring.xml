@@ -420,45 +420,45 @@ class Good {
             ]]>
         </example>
     </rule>
+
+    <rule name="AvoidSimpleCaches" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java" message="Avoid simple caching in production" typeResolution="true"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ic08">
+        <description>Simple caches are used. Problem: Simple caching is meant for testing and prototyping plus it lacks manageability and monitorability.&#13;
+            Solution: Use a proper cache implementation like ehcache or a cloud cache.
+            (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,bad-practice,bad-practice" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+//ConstructorCall[
+       pmd-java:typeIs('org.springframework.cache.support.SimpleCacheManager')
+    or pmd-java:typeIs('org.springframework.cache.concurrent.ConcurrentMapCache')
+]
+                 ]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+@EnableCaching
+@Configuration
+class Bad {
+    @Bean public CacheManager cacheManager() {
+        return new SimpleCacheManager().setCaches(Arrays.asList(new ConcurrentMapCache("ourCache"))); // bad
+    }
+}
+
+@EnableCaching
+@Configuration
+class Good {
+    @Bean public CacheManager cacheManager() {
+        return new EhCacheCacheManager(ehCacheCacheManagerFactory().getObject()); // good
+    }
+}
+            ]]>
+        </example>
+    </rule>
     <!--
-        <rule name="AvoidSimpleCaches" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java" message="Avoid simple caching in production" typeResolution="true"
-              externalInfoUrl="${doc_root}/JavaCodePerformance.md#ic08">
-            <description>Simple caches are used. Problem: Simple caching is meant for testing and prototyping and it lacks manageability and monitorability.&#13;
-                Solution: Use a proper cache implementation like ehcache or a cloud cache.
-                (jpinpoint-rules)</description>
-            <priority>2</priority>
-            <properties>
-                <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-                <property name="tag" value="bad-practice" type="String" description="for-sonar"/>
-                <property name="tag" value="performance" type="String" description="for-sonar"/>
-                <property name="version" value="2.0"/>
-                <property name="xpath">
-                    <value><![CDATA[
-        //AllocationExpression/ClassOrInterfaceType[pmd-java:typeIs('org.springframework.cache.support.SimpleCacheManager') or pmd-java:typeIs('org.springframework.cache.concurrent.ConcurrentMapCache')]
-        ]]></value>
-                </property>
-            </properties>
-            <example>
-                <![CDATA[
-    @EnableCaching
-    @Configuration
-    class Bad {
-        @Bean public CacheManager cacheManager() {
-            return new SimpleCacheManager().setCaches(Arrays.asList(new ConcurrentMapCache("ourCache")));
-        }
-    }
-
-    @EnableCaching
-    @Configuration
-    class Good {
-        @Bean public CacheManager cacheManager() {
-            return new EhCacheCacheManager(ehCacheCacheManagerFactory().getObject());
-        }
-    }
-                ]]>
-            </example>
-        </rule>
-
         <rule name="AvoidIdentityCacheKeys" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
               message="Avoid identity cache keys by casting the generate method parameters" typeResolution="true"
               externalInfoUrl="${doc_root}/JavaCodePerformance.md#ic13">
