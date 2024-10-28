@@ -527,46 +527,46 @@ public class Good implements KeyGenerator {
             ]]>
         </example>
     </rule>
-    <!--
-        <rule name="UseExplicitKeyGeneratorForCacheable" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
-              message="Use a KeyGenerator to generate a correct and unique key per cached value, do not rely on the implicit default key generation." typeResolution="true"
-              externalInfoUrl="${doc_root}/JavaCodePerformance.md#ic14">
-            <description>
-                Problem: With default key generation, an object of Spring's SimpleKey class is used and its value is composed of just the method parameter(s). It does not include the method, which is unclear and risky.&#13;
-                Solution: Create a KeyGenerator and make it generate a unique key for the cache per cached value, by use of SimpleKey composed of method object and the parameters.
-                (jpinpoint-rules)</description>
-            <priority>2</priority>
-            <properties>
-                <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-                <property name="tag" value="performance" type="String" description="for-sonar"/>
-                <property name="tag" value="bad-practice" type="String" description="for-sonar"/>
-                <property name="version" value="2.0"/>
-                <property name="xpath">
-                    <value><![CDATA[
-    //Annotation//Name[@Image='Cacheable']
-    /../MemberValuePairs[count(MemberValuePair[@Image='keyGenerator']) = 0]
-        ]]></value>
-                </property>
-            </properties>
-            <example>
-                <![CDATA[
-    import org.springframework.cache.annotation.Cacheable;
-    class Foo {
 
-        @Cacheable(cacheNames = {"DATA"}, sync = true, keyGenerator = "cacheKeyGenerator")
-        public Object getDataGood(String id) {
-            return fetchFromBackend(id);
-        }
+    <rule name="UseExplicitKeyGeneratorForCacheable" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
+          message="Use a KeyGenerator to generate a correct and unique key per cached value, do not rely on the implicit default key generation." typeResolution="true"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ic14">
+        <description>
+            Problem: With default key generation, an object of Spring's SimpleKey class is used and its value is composed of just the method parameter(s).
+            It does not include the method, which is unclear and risky.&#13;
+            Solution: Create a KeyGenerator and make it generate a unique key for the cache per cached value, by use of SimpleKey composed of method object and the parameters.
+            (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="tag" value="jpinpoint-rule,performance,bad-practice" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+//Annotation[
+  pmd-java:typeIs('org.springframework.cache.annotation.Cacheable')
+  and not(exists(AnnotationMemberList/MemberValuePair[@Name='keyGenerator']))
+]
+    ]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+import org.springframework.cache.annotation.Cacheable;
+class Foo {
 
-        @Cacheable(value="DATA", sync = true) // bad, keyGenerator missing
-        public Object getDataBad(String id) {
-            return fetchFromBackend(id);
-        }
+    @Cacheable(cacheNames = {"DATA"}, sync = true, keyGenerator = "cacheKeyGenerator") // good, keyGenerator present
+    public Object getDataGood(String id) {
+        return fetchFromBackend(id);
     }
-                ]]>
-            </example>
-        </rule>
 
+    @Cacheable(value="DATA", sync = true) // bad, keyGenerator missing
+    public Object getDataBad(String id) {
+        return fetchFromBackend(id);
+    }
+}
+            ]]>
+        </example>
+    </rule>
+    <!--
         <rule name="AvoidSimpleKeyCollisions" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
               message="Generate a unique SimpleKey by using both method and parameters as composites." typeResolution="true"
               externalInfoUrl="${doc_root}/JavaCodePerformance.md#ic15">
