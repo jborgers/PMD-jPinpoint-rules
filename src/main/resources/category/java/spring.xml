@@ -351,35 +351,39 @@ public void validateDetails(ActionRequest request, ModelMap modelMap) {
 }
         ]]></example>
     </rule>
-    <!--
-        <rule name="AvoidExpressionsInCacheable" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java" message="Avoid SpEL-expression for computing Cacheable key" typeResolution="true"
-              externalInfoUrl="${doc_root}/JavaCodePerformance.md#improper-caching">
-            <description>Spring Expression Language (SpEL) expression is used for computing the key dynamically. Problem: evaluating the expression language is expensive, on every call.&#13;
-                Solution: use a custom KeyGenerator: keyGenerator=... instead of key=...
-                (jpinpoint-rules)</description>
-            <priority>2</priority>
-            <properties>
-                <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-                <property name="tag" value="performance" type="String" description="for-sonar"/>
-                <property name="version" value="2.0"/>
-                <property name="xpath">
-                    <value><![CDATA[
-    //ClassOrInterfaceBodyDeclaration//Annotation/NormalAnnotation[Name/@Image='Cacheable']/MemberValuePairs/MemberValuePair[@MemberName='key']
-        ]]></value>
-                </property>
-            </properties>
-            <example>
-                <![CDATA[
-    class Bad1 {
-        @Cacheable(value = "Cache1", key = "#key1") // bad
-        public String bad1(final String key1) {
-            return getRemote(key1);
-        }
-    }
-                ]]>
-            </example>
-        </rule>
 
+    <rule name="AvoidExpressionsInCacheable" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java" message="Avoid SpEL-expression for computing Cacheable key" typeResolution="true"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#improper-caching">
+        <description>Spring Expression Language (SpEL) expression is used for computing the key dynamically. Problem: evaluating the expression language is expensive, on every call.&#13;
+            Solution: use a custom KeyGenerator: keyGenerator=... instead of key=...
+            (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+//Annotation[pmd-java:typeIs('org.springframework.cache.annotation.Cacheable')]/AnnotationMemberList/MemberValuePair[@Name='key']
+                ]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+class Bad {
+    @Cacheable(value = "Cache1", key = "#key1") // bad
+    public String bad(final String key1) {
+        return getRemote(key1);
+    }
+}
+class Good {
+    @Cacheable(value = "Cache1", keyGenerator = "keyGen") // good
+    public String good(final String key1) {
+        return getRemote(key1);
+    }
+}
+            ]]>
+        </example>
+    </rule>
+    <!--
         <rule name="SynchronizeForKeyInCacheable" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java" message="Synchronize access for each key in @Cacheable" typeResolution="true"
               externalInfoUrl="${doc_root}/JavaCodePerformance.md#improper-caching">
             <description>The cache by default allows multiple threads accessing by the same key. Problem: if the value of the key is not available from the cache, it will be fetched/computed by multiple threads while only one time is needed.&#13;
