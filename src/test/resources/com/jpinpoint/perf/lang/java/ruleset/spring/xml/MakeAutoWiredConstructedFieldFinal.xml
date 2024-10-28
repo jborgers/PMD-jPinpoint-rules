@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class MakeAutoWiredConstructedFieldFinalTest {
 
-    private FeatureTogglesMessageSource featuresViolate; // autowired constructor, yet non-final
+    private FeatureTogglesMessageSource featuresViolate; // bad: autowired constructor, yet non-final
 
     @Autowired
     public MakeAutoWiredConstructedFieldFinalTest(FeatureTogglesMessageSource featureTogglesMessageSource) {
@@ -41,7 +41,7 @@ import org.springframework.stereotype.RestController;
 @RestController
 public class MakeAutoWiredConstructedFieldFinalTest {
 
-    private String name; // autowired constructor, yet non-final
+    private String name; // bad: autowired constructor, yet non-final
 
     @Autowired
     public MakeAutoWiredConstructedFieldFinalTest(String name) {
