@@ -618,61 +618,57 @@ class GoodCacheKeyGenerator implements KeyGenerator {
             ]]>
         </example>
     </rule>
+
+    <rule name="EnsureProperCacheableParams" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
+          message="Info: Make sure that the parameters that make up the cache key implement the required methods properly." typeResolution="true"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ic16">
+        <description>
+            Problem: When (1) concatenating or joining parameters in a KeyGenerator: they need to properly implement toString().
+            (2) using SimpleKey (recommended): the parameters need to properly implement equals() and hashCode(). Failing to do so may lead to caching data mix-up.&#13;
+            Solution: Create a SimpleKey composed of both the method object and the params Object[] and make sure the params properly implement equals and hashCode.
+            Note: This rule is just informational, because it cannot actually check if it is implemented correctly or not.
+            (jpinpoint-rules)</description>
+        <priority>5</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,performance,suspicious,data-mix-up" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+//MethodDeclaration[pmd-java:hasAnnotation('org.springframework.cache.annotation.Cacheable')]
+//FormalParameter/ClassType
+  [(: common safe reference types :)
+    not (pmd-java:typeIs('java.lang.String')
+        or pmd-java:typeIs('java.lang.Integer')
+        or pmd-java:typeIs('java.time.LocalDate')
+        or pmd-java:typeIs('org.joda.time.LocalDate')
+    )
+  ]
+    ]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+import org.springframework.cache.annotation.Cacheable;
+import java.time.*;
+import java.lang.*;
+
+class Foo {
+    @Cacheable(value = "myCache", keyGenerator = "myGenerator")
+    public String getDataGood(String str, LocalDate date) {
+        return service.getData(input);
+    }
+    @Cacheable(value = "myCache", keyGenerator = "myGenerator")
+    public String getDataInform(MyObject input, String str, LocalDate date) { // inform
+        return service.getData(input);
+    }
+}
+class MyObject {
+    String field;
+    // equals, hashCode, toString missing
+}
+            ]]>
+        </example>
+    </rule>
     <!--
-        <rule name="EnsureProperCacheableParams" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
-              message="Info: Make sure that the parameters that make up the cache key implement the required methods properly." typeResolution="true"
-              externalInfoUrl="${doc_root}/JavaCodePerformance.md#ic16">
-            <description>
-                Problem: When (1) concatenating or joining parameters in a KeyGenerator: they need to properly implement toString().
-                (2) using SimpleKey (recommended): the parameters need to properly implement equals() and hashCode(). Failing to do so may lead to caching data mix-up.&#13;
-                Solution: Create a SimpleKey composed of both the method object and the params Object[] and make sure the params properly implement equals and hashCode.
-                Note: This rule is just informational, because it cannot actually check if it is implemented correctly or not.
-                (jpinpoint-rules)</description>
-            <priority>5</priority>
-            <properties>
-                <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-                <property name="tag" value="performance" type="String" description="for-sonar"/>
-                <property name="tag" value="suspicious" type="String" description="for-sonar"/>
-                <property name="tag" value="data-mix-up" type="String" description="for-sonar"/>
-                <property name="version" value="2.0"/>
-                <property name="xpath">
-                    <value><![CDATA[
-    //ClassOrInterfaceBodyDeclaration[.//NormalAnnotation/Name[@Image='Cacheable']]
-    /MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter/Type/ReferenceType
-      [(: common safe reference types:)
-        not (pmd-java:typeIs('java.lang.String')
-            or pmd-java:typeIs('java.lang.Integer')
-            or pmd-java:typeIs('java.time.LocalDate')
-            or pmd-java:typeIs('org.joda.time.LocalDate')
-        )
-      ]
-        ]]></value>
-                </property>
-            </properties>
-            <example>
-                <![CDATA[
-    import org.springframework.cache.annotation.Cacheable;
-    import java.time.*;
-    import java.lang.*;
-
-    class Foo {
-        @Cacheable(value = "myCache", keyGenerator = "myGenerator")
-        public String getDataGood(String str, LocalDate date) {
-            return service.getData(input);
-        }
-        @Cacheable(value = "myCache", keyGenerator = "myGenerator")
-        public String getDataInform(MyObject input, String str, LocalDate date) { // inform
-            return service.getData(input);
-        }
-    }
-    class MyObject {
-        String field;
-        // equals, hashCode, toString missing
-    }
-                ]]>
-            </example>
-        </rule>
-
         <rule name="UseClearKeyGeneratorName" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
               message="Use a specific name for this KeyGenerator class which makes clear where to use it." typeResolution="true"
               externalInfoUrl="${doc_root}/JavaCodePerformance.md#ic17">
