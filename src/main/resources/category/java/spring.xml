@@ -668,40 +668,38 @@ class MyObject {
             ]]>
         </example>
     </rule>
-    <!--
-        <rule name="UseClearKeyGeneratorName" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
-              message="Use a specific name for this KeyGenerator class which makes clear where to use it." typeResolution="true"
-              externalInfoUrl="${doc_root}/JavaCodePerformance.md#ic17">
-            <description>This class implementing Spring's KeyGenerator uses a generic name, CacheKeyGenerator.
-                Problem: It is unclear where this KeyGenerator should be used, for which cache and/or for which methods.
-                If used on the wrong caches or methods, it may lead to cache key mix-up and user data mix-up.
-                Solution: Make the name specific so that it is clear where to apply this KeyGenerator in @Cacheable.
-                (jpinpoint-rules)</description>
-            <priority>3</priority>
-            <properties>
-                <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-                <property name="tag" value="confusing" type="String" description="for-sonar"/>
-                <property name="tag" value="bad-practice" type="String" description="for-sonar"/>
-                <property name="tag" value="data-mix-up" type="String" description="for-sonar"/>
-                <property name="version" value="2.0"/>
-                <property name="xpath">
-                    <value><![CDATA[
-    //ClassOrInterfaceDeclaration[@SimpleName = 'CacheKeyGenerator' and @Interface = false() and @Abstract = false()]
-    /ImplementsList/ClassOrInterfaceType[@Image='KeyGenerator']
-        ]]></value>
-                </property>
-            </properties>
-            <example>
-                <![CDATA[
-    import org.springframework.cache.interceptor.KeyGenerator;
 
-    public class CacheKeyGenerator implements KeyGenerator { // bad, unclear name
-       public Object generate(Object target, Method method, Object... params) {
-            // build key and return it
-       }
-    }
-                ]]>
-            </example>
-        </rule>
-        -->
+    <rule name="UseClearKeyGeneratorName" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
+          message="Use a specific name for this KeyGenerator class which makes clear where to use it." typeResolution="true"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ic17">
+        <description>This class implementing Spring's KeyGenerator uses a generic name, CacheKeyGenerator.
+            Problem: It is unclear where this KeyGenerator should be used, for which cache and/or for which methods.
+            If used on the wrong caches or methods, it may lead to cache key mix-up and user data mix-up.
+            Solution: Make the name specific so that it is clear where to apply this KeyGenerator in @Cacheable.
+            (jpinpoint-rules)</description>
+        <priority>3</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,confusing,bad-practice,data-mix-up" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+//ClassDeclaration[
+   pmd-java:typeIs('org.springframework.cache.interceptor.KeyGenerator')
+   and not(pmd-java:modifiers()='abstract')
+]
+    ]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+import org.springframework.cache.interceptor.KeyGenerator;
+
+public class CacheKeyGenerator implements KeyGenerator { // bad, unclear name
+   public Object generate(Object target, Method method, Object... params) {
+        // build key and return it
+   }
+}
+            ]]>
+        </example>
+    </rule>
+
 </ruleset>
