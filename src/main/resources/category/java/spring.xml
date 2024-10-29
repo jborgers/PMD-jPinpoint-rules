@@ -566,64 +566,59 @@ class Foo {
             ]]>
         </example>
     </rule>
+
+    <rule name="AvoidSimpleKeyCollisions" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
+          message="Generate a unique SimpleKey by using both method and parameters as composites." typeResolution="true"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ic15">
+        <description>
+            Problem: Spring's SimpleKey creation lacks either the method or the method parameters, which may cause cache data mix-up.&#13;
+            Solution: Create a SimpleKey composed of both the method object and the params Object[].
+            Make sure the params properly implement equals and hashCode.
+            (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,performance,bad-practice,data-mix-up" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+//ImplementsList/ClassType[pmd-java:typeIs("org.springframework.cache.interceptor.KeyGenerator")]
+/../..//MethodDeclaration[@Name='generate']
+//(ConstructorCall|MethodCall)[
+    pmd-java:matchesSig('org.springframework.cache.interceptor.SimpleKey#new(_)')
+    or pmd-java:matchesSig('org.springframework.cache.interceptor.SimpleKeyGenerator#generateKey(_)')
+    (: and parameter of constructor is a direct use of one of method params :)
+    and not(
+      (: 'method' param is used :)
+      ./ArgumentList/VariableAccess[@Name = ancestor::MethodDeclaration//FormalParameter[2]/VariableId/@Name]
+      and
+      (: 'params' param is used :)
+      ./ArgumentList/VariableAccess[@Name = ancestor::MethodDeclaration//FormalParameter[3]/VariableId/@Name])
+    ]
+                ]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+import org.springframework.cache.interceptor.KeyGenerator;
+import org.springframework.cache.interceptor.SimpleKey;
+import java.lang.reflect.Method;
+
+class BadCacheKeyGenerator implements KeyGenerator {
+    @Override
+    public Object generate(Object target, Method method, Object... params) {
+        return new SimpleKey(params); // bad
+    }
+}
+
+class GoodCacheKeyGenerator implements KeyGenerator {
+    @Override
+    public Object generate(Object target, Method method, Object... params) {
+        return new SimpleKey(method, params); // good
+    }
+}
+            ]]>
+        </example>
+    </rule>
     <!--
-        <rule name="AvoidSimpleKeyCollisions" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
-              message="Generate a unique SimpleKey by using both method and parameters as composites." typeResolution="true"
-              externalInfoUrl="${doc_root}/JavaCodePerformance.md#ic15">
-            <description>
-                Problem: Spring's SimpleKey creation lacks either the method or the method parameters, which may cause cache data mix-up.&#13;
-                Solution: Create a SimpleKey composed of both the method object and the params Object[]. Make sure the params properly implement equals and hashCode.
-                (jpinpoint-rules)</description>
-            <priority>2</priority>
-            <properties>
-                <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-                <property name="tag" value="performance" type="String" description="for-sonar"/>
-                <property name="tag" value="bad-practice" type="String" description="for-sonar"/>
-                <property name="tag" value="data-mix-up" type="String" description="for-sonar"/>
-                <property name="version" value="2.0"/>
-                <property name="xpath">
-                    <value><![CDATA[
-    //ClassOrInterfaceDeclaration[ImplementsList/ClassOrInterfaceType[pmd-java:typeIs('org.springframework.cache.interceptor.KeyGenerator')]]
-    //MethodDeclaration[@Name='generate']//ClassOrInterfaceType[pmd-java:typeIs('org.springframework.cache.interceptor.SimpleKey')]
-    [not
-      ( (: a method object as 1 arg (preferred) :)
-        exists(..//Expression[pmd-java:typeIs('java.lang.reflect.Method')])
-        (: or (method.getName and target.getClass) :)
-        or(
-          exists(..//PrimaryExpression[PrimaryPrefix[pmd-java:typeIs('java.lang.Object')]][PrimarySuffix[pmd-java:typeIs('java.lang.Class')]])
-          and
-          exists(..//PrimaryExpression[PrimaryPrefix[pmd-java:typeIs('java.lang.reflect.Method')]])
-        )
-      )
-      (: params included :)
-      or not(exists(..//Expression[pmd-java:typeIs('java.lang.Object[]')]))
-    ]/../Arguments
-        ]]></value>
-                </property>
-            </properties>
-            <example>
-                <![CDATA[
-    import org.springframework.cache.interceptor.KeyGenerator;
-    import org.springframework.cache.interceptor.SimpleKey;
-    import java.lang.reflect.Method;
-
-    class BadCacheKeyGenerator implements KeyGenerator {
-        @Override
-        public Object generate(Object target, Method method, Object... params) {
-            return new SimpleKey(params); // bad
-        }
-    }
-
-    class GoodCacheKeyGenerator implements KeyGenerator {
-        @Override
-        public Object generate(Object target, Method method, Object... params) {
-            return new SimpleKey(method, params); // good
-        }
-    }
-                ]]>
-            </example>
-        </rule>
-
         <rule name="EnsureProperCacheableParams" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
               message="Info: Make sure that the parameters that make up the cache key implement the required methods properly." typeResolution="true"
               externalInfoUrl="${doc_root}/JavaCodePerformance.md#ic16">
