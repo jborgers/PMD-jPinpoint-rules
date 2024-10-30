@@ -113,33 +113,33 @@ ancestor::BlockStatement//PrimaryExpression/PrimaryPrefix/Name[ends-with(@Image,
             ]]>
         </example>
     </rule>
-
+-->
     <rule name="AvoidFetchingWholeList"
           message="Avoid fetching the whole list of entities for the query, while only one entity is used"
-          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
-          typeResolution="true" externalInfoUrl="${doc_root}/JavaDataAccessPerformance.md#ida-trr04">
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          language="java"
+          externalInfoUrl="${doc_root}/JavaDataAccessPerformance.md#ida-trr04">
         <description>
             Problem: Unused rows are fetched and transported, and unused jdbc buffer is allocated.&#13;
             Solution: Use query.getSingleResult() in stead of query.getResultList().
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
-            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
+            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
             <property name="xpath">
                 <value>
                     <![CDATA[
-(: if getResultList is used to fetsch entities and entities(0) is returned :)
-//ReturnStatement//PrimaryExpression[./PrimarySuffix/Arguments//Literal[@Image='0']][./PrimaryPrefix/Name/@Image=
-concat(ancestor::MethodDeclaration//VariableDeclarator[./VariableInitializer//Name[ends-with(@Image,'.getResultList')]]/VariableDeclaratorId/@Name,'.get')
-(: not when also the whole list of entities is returnd :)
-and not(ancestor::MethodDeclaration//ReturnStatement//PrimaryExpression[./PrimaryPrefix/Name/@Image=
-ancestor::MethodDeclaration//VariableDeclarator[./VariableInitializer//Name[ends-with(@Image,'.getResultList')]]/VariableDeclaratorId/@Name])
-(: not when also another elem of entities is returned :)
-and not (ancestor::MethodDeclaration//ReturnStatement//PrimaryExpression[./PrimarySuffix/Arguments//Literal[@Image!='0']][./PrimaryPrefix/Name/@Image=
-concat(ancestor::MethodDeclaration//VariableDeclarator[./VariableInitializer//Name[ends-with(@Image,'.getResultList')]]/VariableDeclaratorId/@Name,'.get')])
-]/ancestor::MethodDeclaration//VariableDeclarator[./VariableInitializer//Name[ends-with(@Image,'.getResultList')]]
+(: if getResultList is used to fetch entities and entities(0) is returned :)
+//ReturnStatement//MethodCall[pmd-java:matchesSig('java.util.List#get(int)')][./ArgumentList/NumericLiteral[@ValueAsInt=0]]/VariableAccess[
+    @Name = ancestor::MethodDeclaration//VariableDeclarator[MethodCall[pmd-java:matchesSig('javax.persistence.TypedQuery#getResultList()')]]/VariableId/@Name
+    and not(
+        (: not when also another elem of entities is used in the method :)
+        @Name = ancestor::MethodDeclaration//MethodCall[pmd-java:matchesSig('java.util.List#get(int)')][./ArgumentList/NumericLiteral[@ValueAsInt!=0]]/VariableAccess/@Name
+        or
+        (: not when also the whole list of entities is returned :)
+        @Name = ancestor::MethodDeclaration//ReturnStatement//(ConditionalExpression|.)/VariableAccess[not(parent::MethodCall)]/@Name
+    )
+]
 ]]>
                 </value>
             </property>
@@ -156,5 +156,5 @@ concat(ancestor::MethodDeclaration//VariableDeclarator[./VariableInitializer//Na
             ]]>
         </example>
     </rule>
-    -->
+
 </ruleset>
