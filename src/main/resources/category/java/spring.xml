@@ -351,348 +351,355 @@ public void validateDetails(ActionRequest request, ModelMap modelMap) {
 }
         ]]></example>
     </rule>
-    <!--
-        <rule name="AvoidExpressionsInCacheable" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java" message="Avoid SpEL-expression for computing Cacheable key" typeResolution="true"
-              externalInfoUrl="${doc_root}/JavaCodePerformance.md#improper-caching">
-            <description>Spring Expression Language (SpEL) expression is used for computing the key dynamically. Problem: evaluating the expression language is expensive, on every call.&#13;
-                Solution: use a custom KeyGenerator: keyGenerator=... instead of key=...
-                (jpinpoint-rules)</description>
-            <priority>2</priority>
-            <properties>
-                <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-                <property name="tag" value="performance" type="String" description="for-sonar"/>
-                <property name="version" value="2.0"/>
-                <property name="xpath">
-                    <value><![CDATA[
-    //ClassOrInterfaceBodyDeclaration//Annotation/NormalAnnotation[Name/@Image='Cacheable']/MemberValuePairs/MemberValuePair[@MemberName='key']
-        ]]></value>
-                </property>
-            </properties>
-            <example>
-                <![CDATA[
-    class Bad1 {
-        @Cacheable(value = "Cache1", key = "#key1") // bad
-        public String bad1(final String key1) {
-            return getRemote(key1);
-        }
-    }
-                ]]>
-            </example>
-        </rule>
 
-        <rule name="SynchronizeForKeyInCacheable" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java" message="Synchronize access for each key in @Cacheable" typeResolution="true"
-              externalInfoUrl="${doc_root}/JavaCodePerformance.md#improper-caching">
-            <description>The cache by default allows multiple threads accessing by the same key. Problem: if the value of the key is not available from the cache, it will be fetched/computed by multiple threads while only one time is needed.&#13;
-                Solution: Let only the first accessing thread fetch/compute the value and block others until the value is in the cache. Add attribute sync = "true" to achieve this. (Assuming the cache implementation supports it.)
-                (jpinpoint-rules)</description>
-            <priority>2</priority>
-            <properties>
-                <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-                <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
-                <property name="tag" value="performance" type="String" description="for-sonar"/>
-                <property name="version" value="2.0"/>
-                <property name="xpath">
-                    <value><![CDATA[
-    (//ClassOrInterfaceBodyDeclaration//Annotation/NormalAnnotation[Name/@Image='Cacheable']
-    ,
-    //ClassOrInterfaceBodyDeclaration//Annotation/MarkerAnnotation[Name/@Image='Cacheable'])[count(MemberValuePairs/MemberValuePair[@MemberName='sync']) = 0]
-        ]]></value>
-                </property>
-            </properties>
-            <example>
-                <![CDATA[
-    public class Bad1 {
-        @Cacheable(value = "Cache1") // bad
-        public String bad1() {
-        }
+    <rule name="AvoidExpressionsInCacheable" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java" message="Avoid SpEL-expression for computing Cacheable key" typeResolution="true"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#improper-caching">
+        <description>Spring Expression Language (SpEL) expression is used for computing the key dynamically. Problem: evaluating the expression language is expensive, on every call.&#13;
+            Solution: use a custom KeyGenerator: keyGenerator=... instead of key=...
+            (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+//Annotation[pmd-java:typeIs('org.springframework.cache.annotation.Cacheable')]/AnnotationMemberList/MemberValuePair[@Name='key']
+                ]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+class Bad {
+    @Cacheable(value = "Cache1", key = "#key1") // bad
+    public String bad(final String key1) {
+        return getRemote(key1);
     }
-    class Good1 {
-        @Cacheable(value = "Cache1", sync = "true")
-        public String good1() {
-        }
+}
+class Good {
+    @Cacheable(value = "Cache1", keyGenerator = "keyGen") // good
+    public String good(final String key1) {
+        return getRemote(key1);
     }
-                ]]>
-            </example>
-        </rule>
+}
+            ]]>
+        </example>
+    </rule>
 
-        <rule name="AvoidSimpleCaches" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java" message="Avoid simple caching in production" typeResolution="true"
-              externalInfoUrl="${doc_root}/JavaCodePerformance.md#ic08">
-            <description>Simple caches are used. Problem: Simple caching is meant for testing and prototyping and it lacks manageability and monitorability.&#13;
-                Solution: Use a proper cache implementation like ehcache or a cloud cache.
-                (jpinpoint-rules)</description>
-            <priority>2</priority>
-            <properties>
-                <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-                <property name="tag" value="bad-practice" type="String" description="for-sonar"/>
-                <property name="tag" value="performance" type="String" description="for-sonar"/>
-                <property name="version" value="2.0"/>
-                <property name="xpath">
-                    <value><![CDATA[
-        //AllocationExpression/ClassOrInterfaceType[pmd-java:typeIs('org.springframework.cache.support.SimpleCacheManager') or pmd-java:typeIs('org.springframework.cache.concurrent.ConcurrentMapCache')]
-        ]]></value>
-                </property>
-            </properties>
-            <example>
-                <![CDATA[
-    @EnableCaching
-    @Configuration
-    class Bad {
-        @Bean public CacheManager cacheManager() {
-            return new SimpleCacheManager().setCaches(Arrays.asList(new ConcurrentMapCache("ourCache")));
+    <rule name="SynchronizeForKeyInCacheable" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java" message="Synchronize access for each key in @Cacheable" typeResolution="true"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#improper-caching">
+        <description>The cache by default allows multiple threads accessing by the same key.
+            Problem: if the value of the key is not available from the cache, it will be fetched/computed by multiple threads while only one time is needed.&#13;
+            Solution: Let only the first accessing thread fetch/compute the value and block others until the value is in the cache.
+            Add attribute sync = "true" to achieve this. (Assuming the cache implementation supports it.)
+            (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,multi-threading,performance" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+//Annotation[
+  pmd-java:typeIs('org.springframework.cache.annotation.Cacheable')
+  and not(exists(AnnotationMemberList/MemberValuePair[@Name='sync']))
+]
+    ]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+public class Bad {
+    @Cacheable(value = "Cache1") // bad
+    public String bad() {
+      ...
+    }
+}
+class Good {
+    @Cacheable(value = "Cache1", sync = "true") // good
+    public String good() {
+       ...
+    }
+}
+            ]]>
+        </example>
+    </rule>
+
+    <rule name="AvoidSimpleCaches" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java" message="Avoid simple caching in production" typeResolution="true"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ic08">
+        <description>Simple caches are used. Problem: Simple caching is meant for testing and prototyping plus it lacks manageability and monitorability.&#13;
+            Solution: Use a proper cache implementation like ehcache or a cloud cache.
+            (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,bad-practice,bad-practice" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+//ConstructorCall[
+       pmd-java:typeIs('org.springframework.cache.support.SimpleCacheManager')
+    or pmd-java:typeIs('org.springframework.cache.concurrent.ConcurrentMapCache')
+]
+                 ]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+@EnableCaching
+@Configuration
+class Bad {
+    @Bean public CacheManager cacheManager() {
+        return new SimpleCacheManager().setCaches(Arrays.asList(new ConcurrentMapCache("ourCache"))); // bad
+    }
+}
+
+@EnableCaching
+@Configuration
+class Good {
+    @Bean public CacheManager cacheManager() {
+        return new EhCacheCacheManager(ehCacheCacheManagerFactory().getObject()); // good
+    }
+}
+            ]]>
+        </example>
+    </rule>
+
+    <rule name="AvoidIdentityCacheKeys" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
+          message="Avoid identity cache keys by casting the generate method parameters" typeResolution="true"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ic13">
+        <description>A non-overridden Object.toString may be called on a spring KeyGenerator.generate method parameter.
+            Problem: The non-overridden Object.toString returns a String representing the identity of the object.
+            Because this is different for two objects with the same value, cache keys will be different and the cache will only have misses and no hits.&#13;
+            Solution: Cast the parameters each to the type used at call site and also check the expected number of params.
+            Or better: return a SimpleKey composed typically of class and method name and the params.
+            (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,performance,bad-practice" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+//ImplementsList/ClassType[pmd-java:typeIs("org.springframework.cache.interceptor.KeyGenerator")]
+/../..//MethodDeclaration[@Name='generate']
+(: select all variables in block, *[2] to select part after assignment :)
+/Block//
+
+  (ReturnStatement|LocalVariableDeclaration/VariableDeclarator/*[2])
+  (: where name matches the third Object... parameter name of generate method :)
+  //VariableAccess[
+     @Name = ancestor::MethodDeclaration//FormalParameter[3]/VariableId/@Name
+     and not(
+        (: without an explicit cast :)
+        exists(../../..//CastExpression)
+        (: - exclude if in an if-block checking params.length to do error logging or so - :)
+        or exists(ancestor::IfStatement//FieldAccess[@Name = 'length'])
+     )
+]
+,
+//ImplementsList/ClassType[pmd-java:typeIs("org.springframework.cache.interceptor.KeyGenerator")]
+/../..//MethodDeclaration[@Name='generate']
+//ForeachStatement[
+    VariableAccess[@Name = ancestor::MethodDeclaration//FormalParameter[3]/VariableId/@Name]
+]
+//Block//VariableAccess[
+   @Name = ancestor::ForeachStatement/LocalVariableDeclaration//VariableId/@Name
+   and ../../MethodCall[@MethodName = 'toString']
+]
+    ]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+import org.springframework.cache.interceptor.KeyGenerator;
+import org.springframework.util.StringUtils;
+
+public class Bad implements KeyGenerator {
+    public Object generate(Object target, Method method, Object... params) {
+        List<Object> objArray = Arrays.asList(params);
+        return target.getClass().getName() + "_" + method.getName() + "_"
+                + StringUtils.arrayToDelimitedString(params, "_");  // bad, do not concatenate without casting
+    }
+}
+
+public class Good implements KeyGenerator {
+    public Object generate(Object target, Method method, Object... params) {
+        if (params.length != 1) {
+            throw new IllegalArgumentException("KeyGenerator for GetProfileCache assumes 1 parameter 'profileId', found: " + params);
         }
+        String profileId = (String) params[0]; // good: includes cast
+        return profileId;
+    }
+}
+            ]]>
+        </example>
+    </rule>
+
+    <rule name="UseExplicitKeyGeneratorForCacheable" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
+          message="Use a KeyGenerator to generate a correct and unique key per cached value, do not rely on the implicit default key generation." typeResolution="true"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ic14">
+        <description>
+            Problem: With default key generation, an object of Spring's SimpleKey class is used and its value is composed of just the method parameter(s).
+            It does not include the method, which is unclear and risky.&#13;
+            Solution: Create a KeyGenerator and make it generate a unique key for the cache per cached value, by use of SimpleKey composed of method object and the parameters.
+            (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="tag" value="jpinpoint-rule,performance,bad-practice" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+//Annotation[
+  pmd-java:typeIs('org.springframework.cache.annotation.Cacheable')
+  and not(exists(AnnotationMemberList/MemberValuePair[@Name='keyGenerator']))
+]
+    ]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+import org.springframework.cache.annotation.Cacheable;
+class Foo {
+
+    @Cacheable(cacheNames = {"DATA"}, sync = true, keyGenerator = "cacheKeyGenerator") // good, keyGenerator present
+    public Object getDataGood(String id) {
+        return fetchFromBackend(id);
     }
 
-    @EnableCaching
-    @Configuration
-    class Good {
-        @Bean public CacheManager cacheManager() {
-            return new EhCacheCacheManager(ehCacheCacheManagerFactory().getObject());
-        }
+    @Cacheable(value="DATA", sync = true) // bad, keyGenerator missing
+    public Object getDataBad(String id) {
+        return fetchFromBackend(id);
     }
-                ]]>
-            </example>
-        </rule>
+}
+            ]]>
+        </example>
+    </rule>
 
-        <rule name="AvoidIdentityCacheKeys" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
-              message="Avoid identity cache keys by casting the generate method parameters" typeResolution="true"
-              externalInfoUrl="${doc_root}/JavaCodePerformance.md#ic13">
-            <description>A non-overridden Object.toString may be called on a spring KeyGenerator.generate method parameter. Problem: The non-overridden Object.toString returns a String representing the identity of the object.
-                Because this is different for two objects with the same value, cache keys will be different and the cache will only have misses and no hits.&#13;
-                Solution: Cast the parameters each to the type used at call site and also check the expected number of params. Or better: return a SimpleKey composed typically of class and method name and the params.
-                (jpinpoint-rules)</description>
-            <priority>2</priority>
-            <properties>
-                <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-                <property name="tag" value="performance" type="String" description="for-sonar"/>
-                <property name="tag" value="bad-practice" type="String" description="for-sonar"/>
-                <property name="version" value="2.0"/>
-                <property name="xpath">
-                    <value><![CDATA[
-    //ImplementsList/ClassOrInterfaceType[pmd-java:typeIs("org.springframework.cache.interceptor.KeyGenerator")]
-    /../..//MethodDeclaration[@Name='generate']
-    /Block//BlockStatement//(
-    (ReturnStatement|LocalVariableDeclaration//VariableInitializer)
-    (: - - exclude if in an if-block checking params.length to do error logging or so - - :)
-    [count(ancestor::IfStatement//Name[ends-with(@Image, '.length')]) = 0]
-    /Expression[count(.//CastExpression)=0 and count(.//AllocationExpression/ClassOrInterfaceType[@Image='SimpleKey'])=0]
-    //PrimaryExpression[PrimaryPrefix/Name/@Image
-    = ancestor::MethodDeclaration//FormalParameter[3]/VariableDeclaratorId/@Name]
-    |
-    ForStatement[./Expression//Name[@Image = ancestor::MethodDeclaration//FormalParameter[3]/VariableDeclaratorId/@Name]]
-    //Arguments//Name[@Image = concat(ancestor::ForStatement/LocalVariableDeclaration//VariableDeclaratorId/@Name, '.toString')]
+    <rule name="AvoidSimpleKeyCollisions" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
+          message="Generate a unique SimpleKey by using both method and parameters as composites." typeResolution="true"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ic15">
+        <description>
+            Problem: Spring's SimpleKey creation lacks either the method or the method parameters, which may cause cache data mix-up.&#13;
+            Solution: Create a SimpleKey composed of both the method object and the params Object[].
+            Make sure the params properly implement equals and hashCode.
+            (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,performance,bad-practice,data-mix-up" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+//ImplementsList/ClassType[pmd-java:typeIs("org.springframework.cache.interceptor.KeyGenerator")]
+/../..//MethodDeclaration[@Name='generate']
+//(ConstructorCall|MethodCall)[
+    pmd-java:matchesSig('org.springframework.cache.interceptor.SimpleKey#new(_)')
+    or pmd-java:matchesSig('org.springframework.cache.interceptor.SimpleKeyGenerator#generateKey(_)')
+    (: and parameter of constructor is a direct use of one of method params :)
+    and not(
+      (: 'method' param is used :)
+      ./ArgumentList/VariableAccess[@Name = ancestor::MethodDeclaration//FormalParameter[2]/VariableId/@Name]
+      and
+      (: 'params' param is used :)
+      ./ArgumentList/VariableAccess[@Name = ancestor::MethodDeclaration//FormalParameter[3]/VariableId/@Name])
+    ]
+                ]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+import org.springframework.cache.interceptor.KeyGenerator;
+import org.springframework.cache.interceptor.SimpleKey;
+import java.lang.reflect.Method;
+
+class BadCacheKeyGenerator implements KeyGenerator {
+    @Override
+    public Object generate(Object target, Method method, Object... params) {
+        return new SimpleKey(params); // bad
+    }
+}
+
+class GoodCacheKeyGenerator implements KeyGenerator {
+    @Override
+    public Object generate(Object target, Method method, Object... params) {
+        return new SimpleKey(method, params); // good
+    }
+}
+            ]]>
+        </example>
+    </rule>
+
+    <rule name="EnsureProperCacheableParams" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
+          message="Info: Make sure that the parameters that make up the cache key implement the required methods properly." typeResolution="true"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ic16">
+        <description>
+            Problem: When (1) concatenating or joining parameters in a KeyGenerator: they need to properly implement toString().
+            (2) using SimpleKey (recommended): the parameters need to properly implement equals() and hashCode(). Failing to do so may lead to caching data mix-up.&#13;
+            Solution: Create a SimpleKey composed of both the method object and the params Object[] and make sure the params properly implement equals and hashCode.
+            Note: This rule is just informational, because it cannot actually check if it is implemented correctly or not.
+            (jpinpoint-rules)</description>
+        <priority>5</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,performance,suspicious,data-mix-up" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+//MethodDeclaration[pmd-java:hasAnnotation('org.springframework.cache.annotation.Cacheable')]
+//FormalParameter/ClassType
+  [(: common safe reference types :)
+    not (pmd-java:typeIs('java.lang.String')
+        or pmd-java:typeIs('java.lang.Integer')
+        or pmd-java:typeIs('java.time.LocalDate')
+        or pmd-java:typeIs('org.joda.time.LocalDate')
     )
-        ]]></value>
-                </property>
-            </properties>
-            <example>
-                <![CDATA[
-    import org.springframework.cache.interceptor.KeyGenerator;
-    import org.springframework.util.StringUtils;
+  ]
+    ]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+import org.springframework.cache.annotation.Cacheable;
+import java.time.*;
+import java.lang.*;
 
-    public class Bad implements KeyGenerator {
-        public Object generate(Object target, Method method, Object... params) {
-            List<Object> objArray = Arrays.asList(params);
-            return target.getClass().getName() + "_" + method.getName() + "_"
-                    + StringUtils.arrayToDelimitedString(params, "_");  // bad, do not concatenate without casting
-        }
+class Foo {
+    @Cacheable(value = "myCache", keyGenerator = "myGenerator")
+    public String getDataGood(String str, LocalDate date) {
+        return service.getData(input);
     }
-
-    public class Good implements KeyGenerator {
-        public Object generate(Object target, Method method, Object... params) {
-            if (params.length != 1) {
-                throw new IllegalArgumentException("KeyGenerator for GetProfileCache assumes 1 parameter 'profileId', found: " + params);
-            }
-            String profileId = (String)params[0];
-            return profileId;
-        }
+    @Cacheable(value = "myCache", keyGenerator = "myGenerator")
+    public String getDataInform(MyObject input, String str, LocalDate date) { // inform
+        return service.getData(input);
     }
-                ]]>
-            </example>
-        </rule>
+}
+class MyObject {
+    String field;
+    // equals, hashCode, toString missing
+}
+            ]]>
+        </example>
+    </rule>
 
-        <rule name="UseExplicitKeyGeneratorForCacheable" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
-              message="Use a KeyGenerator to generate a correct and unique key per cached value, do not rely on the implicit default key generation." typeResolution="true"
-              externalInfoUrl="${doc_root}/JavaCodePerformance.md#ic14">
-            <description>
-                Problem: With default key generation, an object of Spring's SimpleKey class is used and its value is composed of just the method parameter(s). It does not include the method, which is unclear and risky.&#13;
-                Solution: Create a KeyGenerator and make it generate a unique key for the cache per cached value, by use of SimpleKey composed of method object and the parameters.
-                (jpinpoint-rules)</description>
-            <priority>2</priority>
-            <properties>
-                <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-                <property name="tag" value="performance" type="String" description="for-sonar"/>
-                <property name="tag" value="bad-practice" type="String" description="for-sonar"/>
-                <property name="version" value="2.0"/>
-                <property name="xpath">
-                    <value><![CDATA[
-    //Annotation//Name[@Image='Cacheable']
-    /../MemberValuePairs[count(MemberValuePair[@Image='keyGenerator']) = 0]
-        ]]></value>
-                </property>
-            </properties>
-            <example>
-                <![CDATA[
-    import org.springframework.cache.annotation.Cacheable;
-    class Foo {
+    <rule name="UseClearKeyGeneratorName" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
+          message="Use a specific name for this KeyGenerator class which makes clear where to use it." typeResolution="true"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ic17">
+        <description>This class implementing Spring's KeyGenerator uses a generic name, CacheKeyGenerator.
+            Problem: It is unclear where this KeyGenerator should be used, for which cache and/or for which methods.
+            If used on the wrong caches or methods, it may lead to cache key mix-up and user data mix-up.
+            Solution: Make the name specific so that it is clear where to apply this KeyGenerator in @Cacheable.
+            (jpinpoint-rules)</description>
+        <priority>3</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,confusing,bad-practice,data-mix-up" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+//ClassDeclaration[
+   pmd-java:typeIs('org.springframework.cache.interceptor.KeyGenerator')
+   and not(pmd-java:modifiers()='abstract')
+]
+    ]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+import org.springframework.cache.interceptor.KeyGenerator;
 
-        @Cacheable(cacheNames = {"DATA"}, sync = true, keyGenerator = "cacheKeyGenerator")
-        public Object getDataGood(String id) {
-            return fetchFromBackend(id);
-        }
+public class CacheKeyGenerator implements KeyGenerator { // bad, unclear name
+   public Object generate(Object target, Method method, Object... params) {
+        // build key and return it
+   }
+}
+            ]]>
+        </example>
+    </rule>
 
-        @Cacheable(value="DATA", sync = true) // bad, keyGenerator missing
-        public Object getDataBad(String id) {
-            return fetchFromBackend(id);
-        }
-    }
-                ]]>
-            </example>
-        </rule>
-
-        <rule name="AvoidSimpleKeyCollisions" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
-              message="Generate a unique SimpleKey by using both method and parameters as composites." typeResolution="true"
-              externalInfoUrl="${doc_root}/JavaCodePerformance.md#ic15">
-            <description>
-                Problem: Spring's SimpleKey creation lacks either the method or the method parameters, which may cause cache data mix-up.&#13;
-                Solution: Create a SimpleKey composed of both the method object and the params Object[]. Make sure the params properly implement equals and hashCode.
-                (jpinpoint-rules)</description>
-            <priority>2</priority>
-            <properties>
-                <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-                <property name="tag" value="performance" type="String" description="for-sonar"/>
-                <property name="tag" value="bad-practice" type="String" description="for-sonar"/>
-                <property name="tag" value="data-mix-up" type="String" description="for-sonar"/>
-                <property name="version" value="2.0"/>
-                <property name="xpath">
-                    <value><![CDATA[
-    //ClassOrInterfaceDeclaration[ImplementsList/ClassOrInterfaceType[pmd-java:typeIs('org.springframework.cache.interceptor.KeyGenerator')]]
-    //MethodDeclaration[@Name='generate']//ClassOrInterfaceType[pmd-java:typeIs('org.springframework.cache.interceptor.SimpleKey')]
-    [not
-      ( (: a method object as 1 arg (preferred) :)
-        exists(..//Expression[pmd-java:typeIs('java.lang.reflect.Method')])
-        (: or (method.getName and target.getClass) :)
-        or(
-          exists(..//PrimaryExpression[PrimaryPrefix[pmd-java:typeIs('java.lang.Object')]][PrimarySuffix[pmd-java:typeIs('java.lang.Class')]])
-          and
-          exists(..//PrimaryExpression[PrimaryPrefix[pmd-java:typeIs('java.lang.reflect.Method')]])
-        )
-      )
-      (: params included :)
-      or not(exists(..//Expression[pmd-java:typeIs('java.lang.Object[]')]))
-    ]/../Arguments
-        ]]></value>
-                </property>
-            </properties>
-            <example>
-                <![CDATA[
-    import org.springframework.cache.interceptor.KeyGenerator;
-    import org.springframework.cache.interceptor.SimpleKey;
-    import java.lang.reflect.Method;
-
-    class BadCacheKeyGenerator implements KeyGenerator {
-        @Override
-        public Object generate(Object target, Method method, Object... params) {
-            return new SimpleKey(params); // bad
-        }
-    }
-
-    class GoodCacheKeyGenerator implements KeyGenerator {
-        @Override
-        public Object generate(Object target, Method method, Object... params) {
-            return new SimpleKey(method, params); // good
-        }
-    }
-                ]]>
-            </example>
-        </rule>
-
-        <rule name="EnsureProperCacheableParams" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
-              message="Info: Make sure that the parameters that make up the cache key implement the required methods properly." typeResolution="true"
-              externalInfoUrl="${doc_root}/JavaCodePerformance.md#ic16">
-            <description>
-                Problem: When (1) concatenating or joining parameters in a KeyGenerator: they need to properly implement toString().
-                (2) using SimpleKey (recommended): the parameters need to properly implement equals() and hashCode(). Failing to do so may lead to caching data mix-up.&#13;
-                Solution: Create a SimpleKey composed of both the method object and the params Object[] and make sure the params properly implement equals and hashCode.
-                Note: This rule is just informational, because it cannot actually check if it is implemented correctly or not.
-                (jpinpoint-rules)</description>
-            <priority>5</priority>
-            <properties>
-                <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-                <property name="tag" value="performance" type="String" description="for-sonar"/>
-                <property name="tag" value="suspicious" type="String" description="for-sonar"/>
-                <property name="tag" value="data-mix-up" type="String" description="for-sonar"/>
-                <property name="version" value="2.0"/>
-                <property name="xpath">
-                    <value><![CDATA[
-    //ClassOrInterfaceBodyDeclaration[.//NormalAnnotation/Name[@Image='Cacheable']]
-    /MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter/Type/ReferenceType
-      [(: common safe reference types:)
-        not (pmd-java:typeIs('java.lang.String')
-            or pmd-java:typeIs('java.lang.Integer')
-            or pmd-java:typeIs('java.time.LocalDate')
-            or pmd-java:typeIs('org.joda.time.LocalDate')
-        )
-      ]
-        ]]></value>
-                </property>
-            </properties>
-            <example>
-                <![CDATA[
-    import org.springframework.cache.annotation.Cacheable;
-    import java.time.*;
-    import java.lang.*;
-
-    class Foo {
-        @Cacheable(value = "myCache", keyGenerator = "myGenerator")
-        public String getDataGood(String str, LocalDate date) {
-            return service.getData(input);
-        }
-        @Cacheable(value = "myCache", keyGenerator = "myGenerator")
-        public String getDataInform(MyObject input, String str, LocalDate date) { // inform
-            return service.getData(input);
-        }
-    }
-    class MyObject {
-        String field;
-        // equals, hashCode, toString missing
-    }
-                ]]>
-            </example>
-        </rule>
-
-        <rule name="UseClearKeyGeneratorName" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
-              message="Use a specific name for this KeyGenerator class which makes clear where to use it." typeResolution="true"
-              externalInfoUrl="${doc_root}/JavaCodePerformance.md#ic17">
-            <description>This class implementing Spring's KeyGenerator uses a generic name, CacheKeyGenerator.
-                Problem: It is unclear where this KeyGenerator should be used, for which cache and/or for which methods.
-                If used on the wrong caches or methods, it may lead to cache key mix-up and user data mix-up.
-                Solution: Make the name specific so that it is clear where to apply this KeyGenerator in @Cacheable.
-                (jpinpoint-rules)</description>
-            <priority>3</priority>
-            <properties>
-                <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-                <property name="tag" value="confusing" type="String" description="for-sonar"/>
-                <property name="tag" value="bad-practice" type="String" description="for-sonar"/>
-                <property name="tag" value="data-mix-up" type="String" description="for-sonar"/>
-                <property name="version" value="2.0"/>
-                <property name="xpath">
-                    <value><![CDATA[
-    //ClassOrInterfaceDeclaration[@SimpleName = 'CacheKeyGenerator' and @Interface = false() and @Abstract = false()]
-    /ImplementsList/ClassOrInterfaceType[@Image='KeyGenerator']
-        ]]></value>
-                </property>
-            </properties>
-            <example>
-                <![CDATA[
-    import org.springframework.cache.interceptor.KeyGenerator;
-
-    public class CacheKeyGenerator implements KeyGenerator { // bad, unclear name
-       public Object generate(Object target, Method method, Object... params) {
-            // build key and return it
-       }
-    }
-                ]]>
-            </example>
-        </rule>
-        -->
 </ruleset>

@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>AvoidSimpleKeyCollisions</description>
+        <expected-problems>4</expected-problems>
+        <expected-linenumbers>17, 23, 36, 67</expected-linenumbers>
+        <code><![CDATA[
+import org.springframework.cache.interceptor.KeyGenerator;
+import org.springframework.cache.interceptor.SimpleKey;
+import org.springframework.cache.interceptor.SimpleKeyGenerator;
+
+import java.lang.reflect.Method;
+import java.util.Arrays;
+
+class GoodCacheKeyGenerator implements KeyGenerator {
+    @Override
+    public Object generate(Object target, Method method, Object... params) {
+        return new SimpleKey(method, params); // good, includes params
+    }
+}
+class BadCacheKeyGenerator implements KeyGenerator {
+    @Override
+    public Object generate(Object target, Method method, Object... params) {
+        return new SimpleKey(params); // bad
+    }
+}
+class BadCacheKeyGenerator2 implements KeyGenerator {
+    @Override
+    public Object generate(Object target, Method method, Object... params) {
+        return new SimpleKey(method); // bad
+    }
+}
+class BadCacheKeyGenerator3 implements KeyGenerator {
+    @Override
+    public Object generate(Object target, Method method, Object... params) {
+        return new SimpleKey(method, target); // bad -- params not used
+    }
+}
+
+class BadCacheKeyGenerator4 implements KeyGenerator {
+    @Override
+    public Object generate(Object target, Method method, Object... params) {
+        return new SimpleKey("a"); // bad -- params not used
+    }
+}
+
+class GoodCacheKeyGenerator2 implements KeyGenerator {
+    @Override
+    public Object generate(Object target, Method method, Object... params) {
+        return new SimpleKey(target.getClass().getName(), method.getName(), params); // good
+    }
+}
+class GoodCacheKeyGenerator3 implements KeyGenerator {
+    @Override
+    public Object generate(Object target, Method method, Object... params) {
+        return SimpleKeyGenerator.generateKey(method, params); // good
+    }
+}
+class GoodCacheKeyGenerator4 implements KeyGenerator {
+    @Override
+    public Object generate(Object target, Method method, Object... params) {
+        String partialKey = someSmartParamsProcessing(params);
+        return SimpleKeyGenerator.generateKey(method, partialKey); // good
+    }
+    private String someSmartParamsProcessing(Object[] params) {
+        String[] strings = Arrays.stream(params).map(Object::toString).toArray(String[]::new);
+        return String.join("-", strings);
+    }
+}
+
+class BadCacheKeyGenerator5 implements KeyGenerator {
+    @Override
+    public Object generate(Object target, Method method, Object... params) {
+        return SimpleKeyGenerator.generateKey(method); // bad, no use of params
+    }
+}
+]]></code>
+    </test-code>
+</test-data>
