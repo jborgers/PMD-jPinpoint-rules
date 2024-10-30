@@ -6,24 +6,29 @@
     <test-code>
         <description>violation: Avoid huge query setFetchSize</description>
         <expected-problems>8</expected-problems>
-        <expected-linenumbers>22,23,35,36,39,42,51,52</expected-linenumbers>
+        <expected-linenumbers>41,42,45,48,57,58,73,74</expected-linenumbers>
         <code><![CDATA[
 import org.apache.openjpa.persistence.OpenJPAPersistence;
 import org.apache.openjpa.persistence.OpenJPAQuery;
 import org.apache.openjpa.persistence.jdbc.JDBCFetchPlan;
-import org.hibernate.Query;
+import org.hibernate.query.Query;
 import org.hibernate.Session;
+//import org.hibernate.Criteria;
 
 import javax.persistence.EntityManager;
 import java.util.ArrayList;
 import java.util.List;
+import java.sql.Statement;
+import java.sql.PreparedStatement;
 
 public class Foo {
 
     private static final int FETCH_SIZE_HUGE = 1000;
     private static final int FETCH_SIZE_LARGE = 100;
 
-    public void sendStatusUpdateinitiationForOutgoingIce(Object itg, String newStatus) {
+    /*    org.hibernate.Criteria removed/re-designed in hibernate 6, to be supported again
+
+        public void sendStatusUpdateinitiationForOutgoingIce(Object itg, String newStatus) {
         Object param = "outgoingIceKey" +  ", itg.getEntityKey()";
         List params = new ArrayList(1);
         params.add(param);
@@ -35,6 +40,7 @@ public class Foo {
         c.setFetchSize(FETCH_SIZE_LARGE); //good
         c.setFetchSize(80); //good
     }
+*/
 
     public void jdbcFetchSize() {
         Statement statement = new Statement();
@@ -54,7 +60,7 @@ public class Foo {
 
     public List hibernateFetchSize() {
         Session session = null;
-        Query q = session.getNamedQuery("yourQuery");
+        org.hibernate.query.Query q = session.getNamedQuery("yourQuery");
         q.setFirstResult(20);
         q.setMaxResults(30);
         q.setFetchSize(100); //good
@@ -68,28 +74,16 @@ public class Foo {
         javax.persistence.Query q = entityManager.createQuery("SELECT reas FROM Information info WHERE reas.code = :code", Object.class);
         q.setParameter("code", code);
         q.setMaxResults(1); //added JB
-        q.setHint("org.hibernate.fetchSize", "1000"); // bad: added JB option 1 - should violate
-        q.setHint("org.hibernate.fetchSize", FETCH_SIZE_HUGE); // bad: added JB option 1 - should violate
+        q.setHint("org.hibernate.fetchSize", "1000"); // bad: added JB option 1 - should violate @TODO
+        q.setHint("org.hibernate.fetchSize", FETCH_SIZE_HUGE); // bad: added JB option 1 - should violate @TODO
 
         OpenJPAQuery ojpaQuery = OpenJPAPersistence.cast(q);
-        JDBCFetchPlan plan = (JDBCFetchPlan) ojpaQuery.getFetchPlan();
+        org.apache.openjpa.persistence.jdbc.JDBCFetchPlan plan = (JDBCFetchPlan) ojpaQuery.getFetchPlan();
         plan.setFetchBatchSize(10); //good
         plan.setFetchBatchSize(1000); // bad
         plan.setFetchBatchSize(FETCH_SIZE_HUGE); // bad
         List results = q.getResultList();
         return null;
-    }
-
-    class Criteria {
-        Criteria(Object namedQuery, Object params) { }
-        void setFetchSize(int size) { }
-    }
-
-    class Statement {
-        void setFetchSize(int size) { }
-    }
-
-    class PreparedStatement extends Statement {
     }
 }
      ]]></code>
@@ -154,17 +148,6 @@ public class Foo {
         return null;
     }
 
-    class Criteria {
-        Criteria(Object namedQuery, Object params) { }
-        void setFetchSize(int size) { }
-    }
-
-    class Statement {
-        void setFetchSize(int size) { }
-    }
-
-    class PreparedStatement extends Statement {
-    }
 }
      ]]></code>
     </test-code>

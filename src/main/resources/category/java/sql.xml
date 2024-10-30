@@ -1,36 +1,39 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ruleset name="jpinpoint-sql-rules" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 https://pmd.sourceforge.io/ruleset_2_0_0.xsd" xmlns="http://pmd.sourceforge.net/ruleset/2.0.0">
     <description>jPinpoint rule set for performance aware Java coding, sponsored by Rabobank.</description>
-    <!--
+
     <rule name="AvoidHugeQueryFetchSize"
           message="Avoid a huge query fetch size, it consumes much memory."
-          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
-          typeResolution="true" externalInfoUrl="${doc_root}/JavaDataAccessPerformance.md#ida-trm03">
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          language="java"
+          externalInfoUrl="${doc_root}/JavaDataAccessPerformance.md#ida-trm03">
         <description>
             Problem: if huge numbers of result rows are fetched these are all stored in memory and this may introduce long gc times and out of memory risk.&#13;
-            Solution: Set fetch size to 100 maximally. Only set it higher than 100 yet still max 500, if you are sure there is only little data returned per row, like 3 rather short columns.
+            Solution: Set fetch size to 100 maximally. Only set it higher than 100 yet still max 500, if you are sure there is only little data returned per row, for instance 3 rather short columns.
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
-            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
+            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
             <property name="xpath">
                 <value>
                     <![CDATA[
-//MethodDeclaration//PrimaryExpression[PrimaryPrefix/Name[ends-with(@Image, '.setFetchSize')]
-[../..//ArgumentList//Literal[number(@Image) > 500]]]
-|
-//MethodDeclaration//PrimaryExpression[PrimaryPrefix/Name[ends-with(@Image, '.setFetchSize')]]
-[PrimarySuffix//ArgumentList//Name[@Image =
-ancestor::ClassOrInterfaceBody//VariableDeclarator/VariableDeclaratorId/@Name
-[../../VariableInitializer//Literal[number(@Image) > 500]]]]
+//MethodCall[
+    pmd-java:matchesSig('java.sql.Statement#setFetchSize(int)')
+    or pmd-java:matchesSig('org.hibernate.Query#setFetchSize(int)') (:hibernate <6 :)
+    or pmd-java:matchesSig('org.hibernate.query.Query#setFetchSize(int)') (:hibernate 6 :)
+    or pmd-java:matchesSig('org.apache.openjpa.persistence.jdbc.JDBCFetchPlan#setFetchBatchSize(int)')
+]/ArgumentList[
+        NumericLiteral[@ValueAsInt > 500]
+        or
+        VariableAccess/@Name = (ancestor::ClassBody//FieldDeclaration|ancestor::MethodDeclaration)//VariableDeclarator[NumericLiteral[@ValueAsInt > 500]]/VariableId/@Name
+]
 ]]>
                 </value>
             </property>
         </properties>
     </rule>
 
+    <!--
     <rule name="AvoidMultipleRoundtripsForQuery"
           message="Avoid multiple roundtrips for the same query"
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
