@@ -33,35 +33,34 @@
         </properties>
     </rule>
 
-    <!--
     <rule name="AvoidMultipleRoundtripsForQuery"
           message="Avoid multiple roundtrips for the same query"
-          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
-          typeResolution="true" externalInfoUrl="${doc_root}/JavaDataAccessPerformance.md#ida-trr05">
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          language="java"
+          externalInfoUrl="${doc_root}/JavaDataAccessPerformance.md#ida-trr05">
         <description>
-            Problem: Time is taken by the unnecessary roundtrip(s). Unnecessary work is performed.&#13;
+            Problem: Time is taken by the unnecessary round trip(s). Unnecessary work is performed.&#13;
             Solution: Execute the query only once.
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
-            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
+            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
             <property name="xpath">
                 <value>
                     <![CDATA[
-//MethodDeclaration/Block//PrimaryExpression/PrimaryPrefix/Name[ends-with(@Image, '.getSingleResult')]
-[ancestor::MethodDeclaration[count(.//VariableInitializer/Expression/PrimaryExpression/PrimarySuffix[@Image='createQuery']) = 1
-and
-count(.//PrimaryExpression/PrimaryPrefix/Name[ends-with(@Image, '.getResultList')]) +
-count(.//PrimaryExpression/PrimaryPrefix/Name[ends-with(@Image, '.getSingleResult')])
-> 1]]
+//MethodCall[pmd-java:matchesSig('javax.persistence.Query#getSingleResult()') or pmd-java:matchesSig('jakarta.persistence.Query#getSingleResult()')][
+    ancestor::MethodDeclaration[
+        count(.//MethodCall[@MethodName='createQuery']) = 1
+        and count(.//MethodCall[@MethodName='getResultList' or @MethodName='getSingleResult']) > 1
+    ]
+]
 ]]>
                 </value>
             </property>
         </properties>
     </rule>
 
+    <!--
         <rule name="AvoidSqlInExpression"
               message="Avoid a SQL IN-Expression, it fails for > 1000 arguments and pollutes the query plan cache / statement cache"
               class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
