@@ -26,7 +26,7 @@ public class Foo {
     private static final int FETCH_SIZE_HUGE = 1000;
     private static final int FETCH_SIZE_LARGE = 100;
 
-    /*    org.hibernate.Criteria removed/re-designed in hibernate 6, to be supported again
+    /*    org.hibernate.Criteria removed/re-designed in hibernate 6, to be supported again, TODO See #375
 
         public void sendStatusUpdateinitiationForOutgoingIce(Object itg, String newStatus) {
         Object param = "outgoingIceKey" +  ", itg.getEntityKey()";
@@ -74,8 +74,8 @@ public class Foo {
         javax.persistence.Query q = entityManager.createQuery("SELECT reas FROM Information info WHERE reas.code = :code", Object.class);
         q.setParameter("code", code);
         q.setMaxResults(1); //added JB
-        q.setHint("org.hibernate.fetchSize", "1000"); // bad: added JB option 1 - should violate @TODO
-        q.setHint("org.hibernate.fetchSize", FETCH_SIZE_HUGE); // bad: added JB option 1 - should violate @TODO
+        q.setHint("org.hibernate.fetchSize", "1000"); // bad: added JB option 1 - should violate TODO see #375
+        q.setHint("org.hibernate.fetchSize", FETCH_SIZE_HUGE); // bad: added JB option 1 - should violate TODO see #375
 
         OpenJPAQuery ojpaQuery = OpenJPAPersistence.cast(q);
         org.apache.openjpa.persistence.jdbc.JDBCFetchPlan plan = (JDBCFetchPlan) ojpaQuery.getFetchPlan();
