@@ -60,7 +60,6 @@ import java.util.List;
                 + " GROUP BY pcp.doodleOriginator.doodleType"), // subselect in IN clause: OK
 })
 
-
 class PolicyEggStatementRepository {
     public List<Object> retrieveOk() {
         EntityManager entityManager = null;
@@ -101,7 +100,6 @@ class PolicyEggStatementRepository {
 
         return query.getResultList();
     }
-
 }
 
 @Entity
@@ -223,7 +221,6 @@ public class SomeSQLProcessor {
         query3.setParameter("kinds", kinds);
     }
 }
-
      ]]></code>
     </test-code>
 
