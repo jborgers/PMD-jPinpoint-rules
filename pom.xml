@@ -15,7 +15,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <spring.version>6.1.10</spring.version>
-        <pmd.version>7.2.0</pmd.version>
+        <pmd.version>7.7.0</pmd.version>
         <!--pmd.kotlin.version>7.0.0-rc4</pmd.kotlin.version-->
     </properties>
 
@@ -243,7 +243,7 @@
                 <activeByDefault>true</activeByDefault>
             </activation>
             <properties>
-                <pmd.version>7.2.0</pmd.version>
+                <pmd.version>7.7.0</pmd.version>
             </properties>
             <build>
                 <plugins>
@@ -262,8 +262,8 @@
         <profile>
             <id>kotlin-pmd7</id>
             <properties>
-                <pmd.kotlin.version>7.2.0</pmd.kotlin.version>
-                <pmd.version>7.2.0</pmd.version>
+                <pmd.kotlin.version>7.7.0</pmd.kotlin.version>
+                <pmd.version>7.7.0</pmd.version>
             </properties>
             <dependencies>
                 <dependency>
