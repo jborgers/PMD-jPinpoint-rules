@@ -4,26 +4,16 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
     <test-code>
-        <description>violation: Avoid sql in expressions</description>
-        <expected-problems>9</expected-problems>
-        <expected-linenumbers>7,32,35,44,68,70,72,74,100</expected-linenumbers>
+        <description>violation: Avoid sql in expressions - hibernate </description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>6</expected-linenumbers>
         <code><![CDATA[
-import javax.persistence.*;
-import java.util.Arrays;
-import java.util.List;
+import org.hibernate.criterion.Restrictions;
+import org.hibernate.criterion.Expression;
 
 public class Foo {
     private void updateSampleStatusViolateO(List<Long> txnKeys) {
-        Expression exp = CompositeLogicalExpression.compose(InExpression.in("oKey", txnKeys)); //violation
-    }
-}
-
-class Expression {
-}
-
-class InExpression extends Expression {
-    public static Expression in(String id, List<Long> keys){
-        return null;
+        Expression exp = CompositeLogicalExpression.compose(Restrictions.in("oKey", txnKeys)); //violation
     }
 }
 
@@ -32,6 +22,17 @@ class CompositeLogicalExpression extends Expression {
         return null;
     }
 }
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>violation: Avoid sql in expressions - javax.persistence</description>
+        <expected-problems>8</expected-problems>
+        <expected-linenumbers>11,14,23,47,49,51,53,79</expected-linenumbers>
+        <code><![CDATA[
+import javax.persistence.*;
+import java.util.Arrays;
+import java.util.List;
 
 @Entity
 @Table(name = "B_EVENT_SOURCE")
@@ -58,7 +59,6 @@ class CompositeLogicalExpression extends Expression {
                 + " WHERE pcp.doodleOriginator.id IN ( SELECT po.id FROM DoodleOriginator po WHERE po.processingDate = :date AND po.currentStatus.status = STANDING AND po.doodleGroupIn.doodleRequestIn.requestor.requestorName= :requestorName) "
                 + " GROUP BY pcp.doodleOriginator.doodleType"), // subselect in IN clause: OK
 })
-
 
 class PolicyEggStatementRepository {
     public List<Object> retrieveOk() {
@@ -100,7 +100,6 @@ class PolicyEggStatementRepository {
 
         return query.getResultList();
     }
-
 }
 
 @Entity
@@ -117,27 +116,10 @@ class BasedOnOFinding{
         <description>no violation: Avoid sql in expressions</description>
         <expected-problems>0</expected-problems>
         <code><![CDATA[
-import javax.persistence.*;
 import java.util.Arrays;
 import java.util.List;
-
-public class Foo {
-}
-
-class Expression {
-}
-
-class InExpression extends Expression {
-    public static Expression in(String id, List<Long> keys){
-        return null;
-    }
-}
-
-class CompositeLogicalExpression extends Expression {
-    public static Expression compose(Expression exp) {
-        return null;
-    }
-}
+import javax.persistence.TypedQuery;
+import javax.persistence.Query;
 
 @Entity
 @Table(name = "B_EVENT_SOURCE")
@@ -188,9 +170,11 @@ class PolicyEggStatementRepository {
     <test-code>
         <description>violation: Avoid sql in expressions with Criteria API</description>
         <expected-problems>4</expected-problems>
-        <expected-linenumbers>5, 8, 11, 18</expected-linenumbers>
+        <expected-linenumbers>7, 10, 13, 20</expected-linenumbers>
         <code><![CDATA[
 import javax.persistence.criteria.*;
+import java.util.*;
+
 public class Tryout {
     private void bad1(Root<Object> root, List<Long> ids) {
         List<Predicate> predicateList = new ArrayList<Predicate>();
@@ -218,18 +202,23 @@ public class Tryout {
 
     <test-code>
         <description>violation: Avoid sql in expressions with multiple params, no processing error, issue #302</description>
-        <expected-problems>1</expected-problems>
-        <expected-linenumbers>6</expected-linenumbers>
+        <expected-problems>2</expected-problems>
+        <expected-linenumbers>8,10</expected-linenumbers>
         <code><![CDATA[
 import javax.persistence.TypedQuery;
+import javax.persistence.Query;
 
-public class PmdProcessingError {
-    void example() {
-        String number = "", kinds = "";
+public class SomeSQLProcessor {
+    String fieldQueryString = "SELECT M FROM MessageEntity m WHERE m.kind IN :kinds"; // should violate TODO see #378
+    void example(EntityManager em) {
+        String kinds = "";
         String queryStr = "SELECT M FROM MessageEntity m WHERE m.kind IN :kinds"; // bad
-        final TypedQuery<Object> query = null;
-        query.setParameter("num", number);
-        query.setParameter("kinds", kinds);
+        final TypedQuery<Object> query1 = em.createQuery(queryStr, Object.class);
+        final TypedQuery<Object> query2 = em.createQuery("SELECT M FROM MessageEntity m WHERE m.kind IN :kinds", Object.class); // bad
+        final Query query3 = em.createQuery(fieldQueryString);
+        query1.setParameter("kinds", kinds);
+        query2.setParameter("kinds", kinds);
+        query3.setParameter("kinds", kinds);
     }
 }
      ]]></code>
