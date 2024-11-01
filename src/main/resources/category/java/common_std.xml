@@ -16,7 +16,7 @@
         </description>
         <priority>2</priority>
         <properties>
-            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+            <property name="tags" value="io,jpinpoint-rule,memory,performance,sustainability-medium" type="String" description="classification"/>
             <property name="xpath">
                 <value>
                     <![CDATA[
@@ -51,7 +51,7 @@
         </description>
         <priority>2</priority>
         <properties>
-            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+            <property name="tags" value="cpu,jpinpoint-rule,memory,performance,sustainability-medium" type="String" description="classification"/>
             <property name="xpath">
                 <value>
                     <![CDATA[
@@ -98,7 +98,7 @@ public class DateStuff {
         </description>
         <priority>2</priority>
         <properties>
-            <property name="tag" value="jpinpoint-rule,performance" type="String" description="classification"/>
+            <property name="tags" value="cpu,jpinpoint-rule,performance,sustainability-medium" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
 (//ForeachStatement | //WhileStatement | //DoStatement)//AssignmentExpression[
@@ -145,7 +145,7 @@ public class StringStuff {
         </description>
         <priority>2</priority>
         <properties>
-            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+            <property name="tags" value="cpu,jpinpoint-rule,performance,sustainability-low" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
 //(ReturnStatement|ExpressionStatement|LocalVariableDeclaration)
@@ -187,7 +187,7 @@ public class StringStuff {
         </description>
         <priority>2</priority>
         <properties>
-            <property name="tags" value="jpinpoint-rule,pitfall,confusing,replaces-sonar-rule" type="String" description="classification"/>
+            <property name="tags" value="confusing,jpinpoint-rule,pitfall,replaces-sonar-rule" type="String" description="classification"/>
             <property name="param-max" value="3" type="String" description="Maximum number of allowed static imports with wildcard"/>
             <property name="xpath">
                 <value><![CDATA[
@@ -285,7 +285,7 @@ class Baz extends RemoteException {
         </description>
         <priority>3</priority>
         <properties>
-            <property name="tags" value="jpinpoint-rule,brain-overload,replaces-sonar-rule" type="String" description="classification"/>
+            <property name="tags" value="brain-overload,jpinpoint-rule,replaces-sonar-rule" type="String" description="classification"/>
             <property name="param-max" value="5" type="String" description="Maximum number of allowed non-setter statements"/>
             <property name="xpath">
                 <value><![CDATA[
@@ -338,7 +338,7 @@ class Foo {
         </description>
         <priority>3</priority>
         <properties>
-            <property name="tags" value="jpinpoint-rule,brain-overload,replaces-sonar-rule" type="String" description="classification"/>
+            <property name="tags" value="brain-overload,jpinpoint-rule,replaces-sonar-rule" type="String" description="classification"/>
             <property name="param-block-max" value="1" type="String" description="Maximum allowed depth of lambda-with-code-block nesting"/>
             <property name="param-single-max" value="4" type="String" description="Maximum allowed depth of lambda-single-expression nesting"/>
             <property name="xpath">
@@ -388,7 +388,7 @@ class Foo {
         </description>
         <priority>4</priority>
         <properties>
-            <property name="tags" value="jpinpoint-rule,bad-practice" type="String" description="classification"/>
+            <property name="tags" value="bad-practice,jpinpoint-rule" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
 (: should match java.lang.Iterable#forEach(java.util.function.Consumer) but also others like java.util.stream.IntStream#forEach(java.util.function.IntConsumer) :)
