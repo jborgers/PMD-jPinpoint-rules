@@ -12,7 +12,6 @@
         </description>
         <priority>1</priority>
         <properties>
-            <property name="pmd-version" value="7" type="String" description="for-compatibility"/>
             <property name="tags" value="jpinpoint-rule,memory,performance,sustainability-low" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
@@ -58,7 +57,6 @@ public class CDIStuff {
             (jpinpoint-rules)</description>
         <priority>3</priority>
         <properties>
-            <property name="pmd-version" value="7" type="String" description="for-compatibility"/>
             <property name="tags" value="jpinpoint-rule,bad-practice" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
@@ -93,7 +91,6 @@ public enum Animal {
         </description>
         <priority>1</priority>
         <properties>
-            <property name="pmd-version" value="7" type="String" description="for-compatibility"/>
             <property name="tags" value="jpinpoint-rule,multi-threading" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
