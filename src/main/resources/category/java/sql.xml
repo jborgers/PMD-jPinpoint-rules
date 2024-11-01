@@ -34,7 +34,7 @@
     </rule>
 
     <rule name="AvoidMultipleRoundtripsForQuery"
-          message="Avoid multiple roundtrips for the same query"
+          message="Avoid multiple round trips for the same query"
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           language="java"
           externalInfoUrl="${doc_root}/JavaDataAccessPerformance.md#ida-trr05">
@@ -60,62 +60,67 @@
         </properties>
     </rule>
 
-    <!--
-        <rule name="AvoidSqlInExpression"
-              message="Avoid a SQL IN-Expression, it fails for > 1000 arguments and pollutes the query plan cache / statement cache"
-              class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
-              typeResolution="true" externalInfoUrl="${doc_root}/JavaDataAccessPerformance.md#ida-ino01">
-            <description>
-                Problem: The number of values for the IN-argument list is limited, in Oracle to 1000. An error occurs when exceeding this limit. Additionally, a large IN list takes much time to transport to the database and be parsed. Moreover, each number of IN values used in a query results in a separate cache entry in e.g. the Prepared Statement Cache of the application server and in the Hibernate Query Plan Cache, resulting in higher memory usage and/or low cache hit ratio.&#13;
-                Solution: Rewrite the query by replacing the IN-argument list by a sub query using the criteria used to fetch the IN arguments. Or often even better performing, an inner join using these criteria (depending on indexes etc. - recommended to test to be sure.) This way, the select and update are combined into one, which will also save one roundtrip.
-                (jpinpoint-rules)</description>
-            <priority>2</priority>
-            <properties>
-                <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-                <property name="tag" value="performance" type="String" description="for-sonar"/>
-                <property name="version" value="2.0"/>
-                <property name="xpath">
-                    <value>
-                        <![CDATA[
-    //ClassOrInterfaceDeclaration/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDeclaration/Block
-    //Expression/PrimaryExpression/PrimaryPrefix/Name[@Image='InExpression.in']
-    |
-    //TypeDeclaration/Annotation/SingleMemberAnnotation/Name[@Image='NamedQueries']
-    /../MemberValue//PrimaryExpression/PrimaryPrefix/Literal[contains(@Image, 'WHERE') and
-    (contains(@Image, ' IN(:') or contains(@Image, ' IN (:') or contains(@Image, ' IN :') or contains(@Image, ' IN ( :')) ]
-    |
-    //LocalVariableDeclaration/VariableDeclarator/VariableInitializer//PrimaryPrefix/Literal[
-    contains(@Image, ' IN') and contains(@Image, ':')]
-    [replace(@Image, '^.+\s+(IN|in)[\s\(]*:([A-z0-9_]+).*$', '"$2"')
+
+    <rule name="AvoidSqlInExpression"
+          message="Avoid a SQL IN-Expression, it fails for > 1000 arguments and pollutes the query plan cache / statement cache"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
+          typeResolution="true" externalInfoUrl="${doc_root}/JavaDataAccessPerformance.md#ida-ino01">
+        <description>
+            Problem: The number of values for the IN-argument list is limited, in Oracle to 1000. An error occurs when exceeding this limit. Additionally, a large IN list takes much time to transport to the database and be parsed. Moreover, each number of IN values used in a query results in a separate cache entry in e.g. the Prepared Statement Cache of the application server and in the Hibernate Query Plan Cache, resulting in higher memory usage and/or low cache hit ratio.&#13;
+            Solution: Rewrite the query by replacing the IN-argument list by a sub query using the criteria used to fetch the IN arguments. Or often even better performing, an inner join using these criteria (depending on indexes etc. - recommended to test to be sure.) This way, the select and update are combined into one, which will also save one roundtrip.
+            (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+            <property name="xpath">
+                <value>
+                    <![CDATA[
+//MethodCall[(
+        @MethodName='in' and (
+            ./TypeExpression[pmd-java:typeIs('org.hibernate.criterion.Restrictions')]
+            or ./VariableAccess[pmd-java:typeIs('javax.persistence.criteria.CriteriaBuilder') or pmd-java:typeIs('jakarta.persistence.criteria.CriteriaBuilder')]
+        )
+    )
+    or pmd-java:matchesSig('javax.persistence.criteria.Expression#in(_*)')
+    (:or pmd-java:matchesSig('javax.persistence.criteria.CriteriaBuilder.<T>#in(_*)') -how to match <T>? :)
+    or pmd-java:matchesSig('jakarta.persistence.criteria.Expression#in(_*)')
+    or pmd-java:matchesSig('org.apache.openjpa.persistence.query.Expression#in(_*)')
+    or pmd-java:matchesSig('org.hibernate.CriteriaBuilder#in(_*)')
+    or pmd-java:matchesSig('org.hibernate.criterion.Restrictions#in(_*)')
+][
+    (: in with a subquery is a solution :)
+    not(ancestor::ArgumentList//MethodCall[@MethodName='value']/ArgumentList/VariableAccess[
+        pmd-java:typeIs('javax.persistence.criteria.Subquery') or pmd-java:typeIs('jakarta.persistence.criteria.Subquery')
+    ])
+]
+|
+//ClassDeclaration[pmd-java:hasAnnotation('javax.persistence.NamedQueries') or pmd-java:hasAnnotation('jakarta.persistence.NamedQueries')]
+//Annotation[@SimpleName='NamedQueries']//StringLiteral[matches(@ConstValue, '\s+(IN|in)\s*\(?\s?:\w+')]
+|
+//StringLiteral[matches(@ConstValue, '\s+(IN|in)\s*\(?\s?:\w+')][
+    replace(@ConstValue, '^.+\s+(IN|in)\s*\(?\s?:(\w+).*$', '$2')
     =
-    ancestor::MethodDeclaration//BlockStatement//PrimaryPrefix/Name[ends-with(@Image, '.setParameter')]
+    ancestor::MethodDeclaration//MethodCall[
+        pmd-java:matchesSig('javax.persistence.Query#setParameter(_*)') or pmd-java:matchesSig('jakarta.persistence.Query#setParameter(_*)')
     (: Arrays.asList is typically used with just a few parameter values, so no problem :)
-    /../../PrimarySuffix/Arguments/ArgumentList[Expression/PrimaryExpression/PrimaryPrefix/Name[@Image != 'Arrays.asList']]
-    /Expression/PrimaryExpression/PrimaryPrefix/Literal/@Image],
-    (: Criteria API: cust.get("postalCode").in(codes) :)
-    //PrimaryExpression/PrimaryPrefix[pmd-java:typeIs('javax.persistence.criteria.Root')]/..//PrimarySuffix//ArgumentList/ancestor::Expression//PrimarySuffix[@Image='in']
-    ,
-    (: criteria API: builder.in(cust.get("postalCode") :)
-    //Expression//PrimarySuffix//Expression//PrimaryPrefix[pmd-java:typeIs('javax.persistence.criteria.Root')]/..//PrimarySuffix//ArgumentList/
-    ancestor::BlockStatement//PrimaryExpression/PrimaryPrefix/Name[ends-with(@Image, '.in') and
-    (: good: builder.in(cust.get("postalCode")).value(subquery) :)
-    (not(exists(ancestor::PrimaryExpression/PrimarySuffix/Arguments//Expression[pmd-java:typeIs('javax.persistence.criteria.Subquery')])))]
-    ]]>
-                    </value>
-                </property>
-            </properties>
-            <example>
-                <![CDATA[
-        private void bad(CriteriaQuery cq, Root<Customer> cust) {
-            cq.select(cust).where(cust.get("postalCode").in(codes)); // bad
-        }
-        private void good(CriteriaBuilder builder, CriteriaQuery cq, Root<Customer> cust, SubQuery<PostalCode> subquery) {
-            cq.select(cust).where(builder.in(cust.get("postalCode")).value(subquery));
-        }
-                ]]>
-            </example>
-        </rule>
--->
+    ]/ArgumentList[not(./MethodCall[pmd-java:matchesSig('java.util.Arrays#asList(_*)')])]/StringLiteral/@ConstValue
+]
+                    ]]>
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+    private void bad(CriteriaQuery cq, Root<Customer> cust) {
+        cq.select(cust).where(cust.get("postalCode").in(codes)); // bad
+    }
+    private void good(CriteriaBuilder builder, CriteriaQuery cq, Root<Customer> cust, SubQuery<PostalCode> subquery) {
+        cq.select(cust).where(builder.in(cust.get("postalCode")).value(subquery));
+    }
+            ]]>
+        </example>
+    </rule>
+
     <rule name="AvoidFetchingWholeList"
           message="Avoid fetching the whole list of entities for the query, while only one entity is used"
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
