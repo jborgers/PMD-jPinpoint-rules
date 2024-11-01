@@ -82,7 +82,6 @@
         )
     )
     or pmd-java:matchesSig('javax.persistence.criteria.Expression#in(_*)')
-    (:or pmd-java:matchesSig('javax.persistence.criteria.CriteriaBuilder.<T>#in(_*)') -how to match <T>? :)
     or pmd-java:matchesSig('jakarta.persistence.criteria.Expression#in(_*)')
     or pmd-java:matchesSig('org.apache.openjpa.persistence.query.Expression#in(_*)')
     or pmd-java:matchesSig('org.hibernate.CriteriaBuilder#in(_*)')
