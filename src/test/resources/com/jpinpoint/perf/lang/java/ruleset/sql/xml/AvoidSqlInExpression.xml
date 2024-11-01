@@ -28,7 +28,7 @@ class CompositeLogicalExpression extends Expression {
     <test-code>
         <description>violation: Avoid sql in expressions - javax.persistence</description>
         <expected-problems>8</expected-problems>
-        <expected-linenumbers>11,14,23,47,49,51,53,79</expected-linenumbers>
+        <expected-linenumbers>11,14,23,46,48,50,52,77</expected-linenumbers>
         <code><![CDATA[
 import javax.persistence.*;
 import java.util.Arrays;
