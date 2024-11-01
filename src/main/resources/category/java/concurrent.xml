@@ -12,7 +12,7 @@
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
-            <property name="tags" value="jpinpoint-rule,multi-threading,performance" type="String" description="classification"/>
+            <property name="tags" value="jpinpoint-rule,multi-threading,performance,pitfall" type="String" description="classification"/>
             <property name="xpath">
                 <value>
                     <![CDATA[
@@ -74,7 +74,7 @@ public static String good(CompletableFuture<String> complFuture) throws Exceptio
             (jpinpoint-rules)</description>
         <priority>3</priority>
         <properties>
-            <property name="tags" value="jpinpoint-rule" type="String" description="classification"/>
+            <property name="tags" value="jpinpoint-rule,multi-threading" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
 (: -- GuardedBy annotations are matched on SimpleName, so it matches all known GuardedBy annotations :)
@@ -186,7 +186,7 @@ class Exporter {
             (jpinpoint-rules)</description>
         <priority>1</priority>
         <properties>
-            <property name="tags" value="jpinpoint-rule,multi-threading,data-mix-up" type="String" description="classification"/>
+            <property name="tags" value="data-mix-up,jpinpoint-rule,multi-threading" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
 (: annotations that make singleton like components in Spring and EJB :)
@@ -303,7 +303,7 @@ class MyService {
             (jpinpoint-rules)</description>
         <priority>1</priority>
         <properties>
-            <property name="tags" value="jpinpoint-rule,multithreading" type="String" description="classification"/>
+            <property name="tags" value="jpinpoint-rule,multi-threading" type="String" description="classification"/>
             <property name="xpath">
                 <value>
                     <![CDATA[
@@ -527,7 +527,7 @@ class BadMutebleTypes {
             (jpinpoint-rules)</description>
         <priority>1</priority>
         <properties>
-            <property name="tags" value="jpinpoint-rule,multi-threading,data-mix-up" type="String" description="classification"/>
+            <property name="tags" value="data-mix-up,jpinpoint-rule,multi-threading" type="String" description="classification"/>
             <property name="xpath">
                 <value>
                     <![CDATA[
@@ -1015,7 +1015,7 @@ public class Good {
                 Solution: Create the Factories as local variables and use command line arguments to specify the implementation class. (jpinpoint-rules)</description>
             <priority>1</priority>
             <properties>
-                <property name="tags" value="jpinpoint-rule,multi-threading,performance" type="String" description="classification"/>
+                <property name="tags" value="jpinpoint-rule,multi-threading,pitfall" type="String" description="classification"/>
                 <property name="xpath">
                     <value><![CDATA[
 //ClassDeclaration//FieldDeclaration[
@@ -1099,7 +1099,7 @@ public class Good {
                 Solution: Since only one thread can access the field, there is no need for volatile and it can be removed. (jpinpoint-rules)</description>
             <priority>2</priority>
             <properties>
-                <property name="tags" value="jpinpoint-rule,multi-threading,confusing" type="String" description="classification"/>
+                <property name="tags" value="confusing,jpinpoint-rule,multi-threading" type="String" description="classification"/>
                 <property name="xpath">
                     <value><![CDATA[
  //FieldDeclaration[
@@ -1137,7 +1137,7 @@ public class Good {
                 Solution: Remove synchronized because local variables are only accessible by the owning thread and are not shared. (jpinpoint-rules)</description>
             <priority>3</priority>
             <properties>
-                <property name="tags" value="jpinpoint-rule,multi-threading,performance, confusing" type="String" description="classification"/>
+                <property name="tags" value="confusing,cpu,jpinpoint-rule,multi-threading,performance,sustainability-low" type="String" description="classification"/>
                 <property name="xpath">
                     <value><![CDATA[
 //SynchronizedStatement[
@@ -1187,7 +1187,7 @@ public class Good {
                 (jpinpoint-rules)</description>
             <priority>1</priority>
             <properties>
-                <property name="tags" value="jpinpoint-rule,multi-threading,performance" type="String" description="classification"/>
+                <property name="tags" value="jpinpoint-rule,multi-threading,performance,pitfall" type="String" description="classification"/>
                 <property name="xpath">
                     <value>
                         <![CDATA[
@@ -1247,7 +1247,7 @@ public class Good {
                 (jpinpoint-rules)</description>
             <priority>1</priority>
             <properties>
-                <property name="tags" value="jpinpoint-rule,multi-threading,performance,unpredictable" type="String" description="classification"/>
+                <property name="tags" value="jpinpoint-rule,multi-threading,performance,pitfall,unpredictable" type="String" description="classification"/>
                 <property name="xpath">
                     <value><![CDATA[
 //MethodCall[pmd-java:matchesSig('java.util.concurrent.CompletableFuture#supplyAsync(_)')]
@@ -1343,7 +1343,7 @@ public class Good {
                 Solution: Do *not* put the user related data in a shared object e.g. by Spring @Component annotation. Use a POJO. Or, if it is not user data, rename the field. (jpinpoint-rules)</description>
             <priority>1</priority>
             <properties>
-                <property name="tag" value="jpinpoint-rule,multi-threading,correctness,suspicious,data-mix-up" type="String" description="classification"/>
+                <property name="tags" value="correctness,data-mix-up,jpinpoint-rule,multi-threading,suspicious" type="String" description="classification"/>
                 <property name="xpath">
                     <value><![CDATA[
 (: annotations that make singleton like components in Spring and EJB :)
@@ -1434,7 +1434,7 @@ public class Good {
                 So only for large collections and much processing without having to wait.   (jpinpoint-rules)</description>
             <priority>2</priority>
             <properties>
-                <property name="tag" value="jpinpoint-rule,multi-threading,performance,unpredictable" type="String" description="classification"/>
+                <property name="tags" value="cpu,jpinpoint-rule,multi-threading,performance,sustainability-low,unpredictable" type="String" description="classification"/>
                 <property name="xpath">
                     <value><![CDATA[
 //MethodCall[
@@ -1511,7 +1511,7 @@ public class Good {
                 (jpinpoint-rules)</description>
             <priority>2</priority>
             <properties>
-                <property name="tags" value="jpinpoint-rule,multi-threading,performance,bad-practice" type="String" description="classification"/>
+                <property name="tags" value="bad-practice,cpu,jpinpoint-rule,multi-threading,performance,sustainability-low" type="String" description="classification"/>
                 <property name="xpath">
                     <value><![CDATA[
 //MethodCall[pmd-java:matchesSig('reactor.core.publisher.Flux#parallel(_)') and ./MethodCall[pmd-java:matchesSig('reactor.core.publisher.Flux#fromIterable(_)')]]
@@ -1556,7 +1556,7 @@ public class Good {
                 (jpinpoint-rules)</description>
             <priority>2</priority>
             <properties>
-                <property name="tags" value="jpinpoint-rule,multi-threading,performance" type="String" description="classification"/>
+                <property name="tags" value="cpu,jpinpoint-rule,multi-threading,performance,sustainability-medium" type="String" description="classification"/>
                 <property name="xpath">
                     <value><![CDATA[
 //MethodCall[
@@ -1618,7 +1618,7 @@ public class Good {
                 Solution: Just do processing when and where actually needed. (jpinpoint-rules)</description>
             <priority>2</priority>
             <properties>
-                <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+                <property name="tags" value="cpu,jpinpoint-rule,performance,sustainability-high" type="String" description="classification"/>
                 <property name="xpath">
                     <value><![CDATA[
 //MethodCall[pmd-java:matchesSig('reactor.core.publisher.Hooks#onEachOperator(_,_)')]
@@ -1654,7 +1654,7 @@ public class FooBad {
                 Solution: Provide a timeout to the invokeAll/invokeAny method and handle the timeout. (jpinpoint-rules)</description>
             <priority>2</priority>
             <properties>
-                <property name="tags" value="jpinpoint-rule,multi-threading,performance" type="String" description="classification"/>
+                <property name="tags" value="jpinpoint-rule,multi-threading,performance,pitfall" type="String" description="classification"/>
                 <property name="xpath">
                     <value><![CDATA[
 //MethodCall[pmd-java:matchesSig('java.util.concurrent.ExecutorService#invokeAll(_)') or pmd-java:matchesSig('java.util.concurrent.ExecutorService#invokeAny(_)')]

@@ -17,7 +17,7 @@
             (jpinpoint-rules)</description>
         <priority>3</priority>
         <properties>
-            <property name="tags" value="jpinpoint-rule,confusing,suspicious,data-mix-up" type="String" description="classification"/>
+            <property name="tags" value="confusing,data-mix-up,jpinpoint-rule,suspicious" type="String" description="classification"/>
             <property name="xpath">
                 <value>
                     <![CDATA[
@@ -99,7 +99,7 @@ class Good {
             to use in the render request scope. (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
-            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+            <property name="tags" value="jpinpoint-rule,memory,performance,sustainability-medium" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
 //MethodDeclaration[
@@ -151,7 +151,7 @@ public ModelAndView initialOverviewRender(RenderRequest request, String viewName
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
-            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+            <property name="tags" value="cpu,jpinpoint-rule,performance,sustainability-medium" type="String" description="classification"/>
             <property name="xpath">
                 <value>
                     <![CDATA[
@@ -193,7 +193,7 @@ public class AvoidSpringApplicationContextRecreation {
             redirect:/redirectUrl?someAttribute={someAttribute}.</description>
         <priority>1</priority>
         <properties>
-            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+            <property name="tags" value="jpinpoint-rule,memory,performance,sustainability-low" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
 //ReturnStatement//InfixExpression[@Operator = "+"]
@@ -325,7 +325,7 @@ public class DoodleController {
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
-            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+            <property name="tags" value="jpinpoint-rule,memory,performance,sustainability-medium" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
 //MethodDeclaration[
@@ -359,7 +359,7 @@ public void validateDetails(ActionRequest request, ModelMap modelMap) {
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
-            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+            <property name="tags" value="cpu,jpinpoint-rule,performance,sustainability-medium" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
 //Annotation[pmd-java:typeIs('org.springframework.cache.annotation.Cacheable')]/AnnotationMemberList/MemberValuePair[@Name='key']
@@ -393,7 +393,7 @@ class Good {
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
-            <property name="tags" value="jpinpoint-rule,multi-threading,performance" type="String" description="classification"/>
+            <property name="tags" value="cpu,jpinpoint-rule,multi-threading,performance,sustainability-low" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
 //Annotation[
@@ -428,7 +428,7 @@ class Good {
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
-            <property name="tags" value="jpinpoint-rule,bad-practice,bad-practice" type="String" description="classification"/>
+            <property name="tags" value="bad-practice,jpinpoint-rule,performance" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
 //ConstructorCall[
@@ -470,7 +470,7 @@ class Good {
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
-            <property name="tags" value="jpinpoint-rule,performance,bad-practice" type="String" description="classification"/>
+            <property name="tags" value="bad-practice,cpu,jpinpoint-rule,performance,sustainability-low" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
 //ImplementsList/ClassType[pmd-java:typeIs("org.springframework.cache.interceptor.KeyGenerator")]
@@ -538,7 +538,7 @@ public class Good implements KeyGenerator {
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
-            <property name="tag" value="jpinpoint-rule,performance,bad-practice" type="String" description="classification"/>
+            <property name="tags" value="bad-practice,jpinpoint-rule,performance" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
 //Annotation[
@@ -577,7 +577,7 @@ class Foo {
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
-            <property name="tags" value="jpinpoint-rule,performance,bad-practice,data-mix-up" type="String" description="classification"/>
+            <property name="tags" value="bad-practice,data-mix-up,jpinpoint-rule" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
 //ImplementsList/ClassType[pmd-java:typeIs("org.springframework.cache.interceptor.KeyGenerator")]
@@ -630,7 +630,7 @@ class GoodCacheKeyGenerator implements KeyGenerator {
             (jpinpoint-rules)</description>
         <priority>5</priority>
         <properties>
-            <property name="tags" value="jpinpoint-rule,performance,suspicious,data-mix-up" type="String" description="classification"/>
+            <property name="tags" value="data-mix-up,jpinpoint-rule,suspicious" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
 //MethodDeclaration[pmd-java:hasAnnotation('org.springframework.cache.annotation.Cacheable')]
@@ -679,7 +679,7 @@ class MyObject {
             (jpinpoint-rules)</description>
         <priority>3</priority>
         <properties>
-            <property name="tags" value="jpinpoint-rule,confusing,bad-practice,data-mix-up" type="String" description="classification"/>
+            <property name="tags" value="bad-practice,confusing,data-mix-up,jpinpoint-rule" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
 //ClassDeclaration[

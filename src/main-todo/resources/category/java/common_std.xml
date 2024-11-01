@@ -15,11 +15,7 @@
         </description>
         <priority>3</priority>
         <properties>
-            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="tag" value="unused" type="String" description="for-sonar"/>
-            <property name="tag" value="suspicious" type="String" description="for-sonar"/>
-            <property name="tag" value="replaces-sonar-rule" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
+            <property name="tags" value="jpinpoint-rule,replaces-sonar-rule,suspicious,unused" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
 (: for each assignment node :)

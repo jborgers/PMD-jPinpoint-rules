@@ -13,7 +13,7 @@
         (jpinpoint-rules)</description>
     <priority>3</priority>
     <properties>
-        <property name="tags" value="jpinpoint-rule, confusing, multi-threading,performance" type="String" description="classification"/>
+        <property name="tags" value="confusing,cpu,jpinpoint-rule,multi-threading,performance,sustainability-low" type="String" description="classification"/>
         <property name="xpath">
             <value>
                 <![CDATA[

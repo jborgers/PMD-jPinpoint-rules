@@ -11,7 +11,7 @@
         Solutions: Upgrade to httpclient-4.5+ and use org.apache.http.impl.conn.PoolingHttpClientConnectionManager and e.g. org.apache.http.impl.client.HttpClientBuilder. (jpinpoint-rules)</description>
     <priority>2</priority>
     <properties>
-        <property name="tags" value="jpinpoint-rule,multi-threading,deprecated,data-mix-up" type="String" description="classification"/>
+        <property name="tags" value="data-mix-up,deprecated,jpinpoint-rule,multi-threading" type="String" description="classification"/>
         <property name="xpath">
             <value><![CDATA[
 //ImportDeclaration[starts-with(@ImportedName, 'org.apache.commons.httpclient')
@@ -64,7 +64,7 @@ class Good {
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
-            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+            <property name="tags" value="cpu,jpinpoint-rule,performance,sustainability-high" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
 //MethodDeclaration[not(pmd-java:hasAnnotation('javax.annotation.PostConstruct') or pmd-java:hasAnnotation('jakarta.annotation.PostConstruct'))]
@@ -87,7 +87,7 @@ class Good {
         </description>
         <priority>2</priority>
         <properties>
-            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+            <property name="tags" value="cpu,jpinpoint-rule,performance,sustainability-high" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
 (: ObjectMapper constructor called in a method :)
@@ -130,7 +130,7 @@ return JsonMapper.builder().build(); // bad
         </description>
         <priority>2</priority>
         <properties>
-            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+            <property name="tags" value="cpu,jpinpoint-rule,performance,sustainability-high" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
 //ClassDeclaration[not (pmd-java:hasAnnotation('org.springframework.context.annotation.Configuration'))]//MethodDeclaration/(
@@ -155,7 +155,7 @@ return JsonMapper.builder().build(); // bad
         </description>
         <priority>2</priority>
         <properties>
-            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+            <property name="tags" value="cpu,jpinpoint-rule,performance,sustainability-medium" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
 //ClassType[pmd-java:typeIs('javax.xml.datatype.XMLGregorianCalendar')]
@@ -180,7 +180,7 @@ return JsonMapper.builder().build(); // bad
         </description>
         <priority>2</priority>
         <properties>
-            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+            <property name="tags" value="cpu,jpinpoint-rule,performance,sustainability-high" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
 //MethodCall[
@@ -211,7 +211,7 @@ return JsonMapper.builder().build(); // bad
         </description>
         <priority>2</priority>
         <properties>
-            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+            <property name="tags" value="jpinpoint-rule,performance,resilience" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
 //MethodDeclaration
@@ -274,7 +274,7 @@ return HttpClientBuilder.create() // good, setConnectionManager called, pool con
         </description>
         <priority>2</priority>
         <properties>
-            <property name="tags" value="jpinpoint-rule,correctness" type="String" description="classification"/>
+            <property name="tags" value="correctness,jpinpoint-rule,resilience" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
 //MethodDeclaration[
@@ -326,8 +326,7 @@ return HttpClientBuilder.create() // good
         </description>
         <priority>2</priority>
         <properties>
-            <property name="tags" value="jpinpoint-rule,performance,suspicious" type="String"
-                      description="classification"/>
+            <property name="tags" value="io,jpinpoint-rule,performance,pitfall,resilience" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
 //MethodDeclaration
@@ -397,7 +396,7 @@ return HttpClientBuilder.create() // good
         </description>
         <priority>2</priority>
         <properties>
-            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+            <property name="tags" value="cpu,jpinpoint-rule,performance,sustainability-high" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
 (: default client constructor with sslSocketFactory :)
@@ -442,7 +441,7 @@ public class MyFeignClient {
         </description>
         <priority>2</priority>
         <properties>
-            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+            <property name="tags" value="cpu,jpinpoint-rule,performance,sustainability-high" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
 //ClassType[pmd-java:typeIs('javax.xml.bind.JAXB') or pmd-java:typeIs('jakarta.xml.bind.JAXB')]
@@ -591,7 +590,7 @@ void good2() {
         </description>
         <priority>3</priority>
         <properties>
-            <property name="tags" value="jpinpoint-rule,deprecated" type="String" description="classification"/>
+            <property name="tags" value="deprecated,jpinpoint-rule" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
 //ImportDeclaration[starts-with(@ImportedName, "com.netflix.hystrix")]
@@ -617,7 +616,7 @@ void good2() {
         </description>
         <priority>2</priority>
         <properties>
-            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+            <property name="tags" value="cpu,jpinpoint-rule,performance,sustainability-high" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
 //ClassDeclaration[not(pmd-java:hasAnnotation('org.springframework.context.annotation.Configuration'))]
@@ -660,8 +659,7 @@ class Foo {
         </description>
         <priority>5</priority>
         <properties>
-            <property name="tags" value="jpinpoint-rule,performance,resilience,suspicious" type="String"
-                      description="classification"/>
+            <property name="tags" value="cpu,jpinpoint-rule,performance,resilience,suspicious,sustainability-low" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
 //Annotation[@SimpleName='Retry']
@@ -699,7 +697,7 @@ public class Foo {
         </description>
         <priority>2</priority>
         <properties>
-            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+            <property name="tags" value="cpu,jpinpoint-rule,performance,sustainability-high" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
 //MethodCall[pmd-java:matchesSig('reactor.core.publisher.Hooks#onOperatorDebug()')]
@@ -735,7 +733,7 @@ public class Foo {
         </description>
         <priority>2</priority>
         <properties>
-            <property name="tags" value="jpinpoint-rule,confusing" type="String" description="classification"/>
+            <property name="tags" value="confusing,jpinpoint-rule" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
 //MethodCall[pmd-java:matchesSig('org.springframework.http.client.HttpComponentsClientHttpRequestFactory#setHttpClient(_)')][VariableAccess/@Name =
@@ -789,7 +787,7 @@ class Good {
         </description>
         <priority>2</priority>
         <properties>
-            <property name="tags" value="jpinpoint-rule,confusing,suspicious" type="String" description="classification"/>
+            <property name="tags" value="confusing,jpinpoint-rule,suspicious" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
 //ConstructorCall[pmd-java:typeIs("org.apache.http.HttpHost")][ArgumentList[@Size=1]]
@@ -829,8 +827,7 @@ class Foo {
         </description>
         <priority>2</priority>
         <properties>
-            <property name="tags" value="jpinpoint-rule,performance,confusing,suspicious" type="String"
-                      description="classification"/>
+            <property name="tags" value="confusing,jpinpoint-rule,performance,suspicious" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
 //ConstructorCall[pmd-java:typeIs("org.springframework.boot.web.client.ClientHttpRequestFactorySupplier")]
@@ -892,8 +889,7 @@ and use it to replace the bad line in Bad example:
         </description>
         <priority>2</priority>
         <properties>
-            <property name="tags" value="jpinpoint-rule,performance,bad-practice" type="String"
-                      description="classification"/>
+            <property name="tags" value="bad-practice,jpinpoint-rule,memory,performance,sustainability-low" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
 //LocalVariableDeclaration//ConstructorCall[pmd-java:typeIs('org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor')]
@@ -937,7 +933,7 @@ and use it to replace the bad line in Bad example:
     </description>
     <priority>3</priority>
     <properties>
-        <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+        <property name="tags" value="cpu,jpinpoint-rule,memory,performance,sustainability-high" type="String" description="classification"/>
         <property name="xpath">
             <value><![CDATA[
 //ConstructorCall[pmd-java:typeIs('org.springframework.http.client.BufferingClientHttpRequestFactory')]
@@ -982,7 +978,7 @@ public class Foo {
         </description>
         <priority>2</priority>
         <properties>
-            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+            <property name="tags" value="io,jpinpoint-rule,performance,sustainability-low,resilience" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
 (: use of field, local var and return statement :)
@@ -1107,7 +1103,7 @@ class GoodStyle {
         </description>
         <priority>1</priority>
         <properties>
-            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+            <property name="tags" value="cpu,jpinpoint-rule,performance,sustainability-high" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
 //MethodDeclaration//LocalVariableDeclaration/ClassType[pmd-java:typeIs('io.axual.client.producer.Producer')]
@@ -1158,7 +1154,7 @@ public class AxualProducerBad {
         </description>
         <priority>1</priority>
         <properties>
-            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+            <property name="tags" value="jpinpoint-rule,memory,performance,sustainability-high" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
 (: any on-method: onRetry, onError, .. :)
@@ -1210,8 +1206,7 @@ public class Foo {
         </description>
         <priority>3</priority>
         <properties>
-            <property name="tags" value="jpinpoint-rule,performance,bad-practice" type="String"
-                      description="classification"/>
+            <property name="tags" value="bad-practice,jpinpoint-rule,performance" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
 //FieldDeclaration[PrimitiveType/@Kind='int']/VariableDeclarator
@@ -1268,7 +1263,7 @@ class AvoidHardcodedConnectionConfig {
         </description>
         <priority>2</priority>
         <properties>
-            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+            <property name="tags" value="cpu,jpinpoint-rule,performance,sustainability-high" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
 //ClassType[pmd-java:typeIs('org.springframework.ws.soap.saaj.SaajSoapMessageFactory')

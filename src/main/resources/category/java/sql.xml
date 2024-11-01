@@ -13,7 +13,7 @@
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
-            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+            <property name="tags" value="jpinpoint-rule,memory,performance,sustainability-medium" type="String" description="classification"/>
             <property name="xpath">
                 <value>
                     <![CDATA[
@@ -44,7 +44,7 @@
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
-            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+            <property name="tags" value="cpu,io,jpinpoint-rule,performance,sustainability-medium" type="String" description="classification"/>
             <property name="xpath">
                 <value>
                     <![CDATA[
@@ -131,7 +131,7 @@
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
-            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+            <property name="tags" value="cpu,io,jpinpoint-rule,memory,performance,sustainability-high" type="String" description="classification"/>
             <property name="xpath">
                 <value>
                     <![CDATA[

@@ -13,7 +13,7 @@
         <priority>1</priority>
         <properties>
             <property name="pmd-version" value="7" type="String" description="for-compatibility"/>
-            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+            <property name="tags" value="jpinpoint-rule,memory,performance,sustainability-low" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
 //MethodCall[@MethodName='select']/MethodCall[@MethodName='current']/TypeExpression/ClassType[@SimpleName='CDI'
@@ -160,7 +160,7 @@ and not (preceding-sibling::SwitchLabel[@Default=true()])]
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
-            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+            <property name="tags" value="cpu,jpinpoint-rule,performance,sustainability-medium" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
 (:- method calls for non-short regex literals and used fields defined with non-short regex literal, or not defined as field -:)
@@ -206,7 +206,7 @@ String good_replaceInnerLineBreakBySpace() {
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
-            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+            <property name="tags" value="cpu,jpinpoint-rule,performance,sustainability-medium" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
 //ConstructorCall[pmd-java:matchesSig('java.io.ByteArrayOutputStream#new()') or pmd-java:matchesSig('java.io.StringWriter#new()')
@@ -249,7 +249,7 @@ class Good {
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
-            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+            <property name="tags" value="cpu,jpinpoint-rule,performance,sustainability-low" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
 //AssignmentExpression[@Operator='+='][VariableAccess/@Name=ancestor::Block//VariableDeclarator/VariableId[pmd-java:typeIs('java.lang.String')]/@Name]
@@ -290,7 +290,7 @@ class ConcatsExample {
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
-            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+            <property name="tags" value="cpu,jpinpoint-rule,performance,sustainability-medium" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
 //MethodDeclaration//MethodCall[pmd-java:matchesSig('java.util.regex.Pattern#compile(java.lang.String)')
@@ -329,7 +329,7 @@ class Good {
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
-            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+            <property name="tags" value="cpu,jpinpoint-rule,performance,sustainability-medium" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
 //MethodDeclaration//MethodCall[pmd-java:matchesSig('javax.xml.xpath.XPath#compile(java.lang.String)') or
@@ -383,7 +383,7 @@ class Good {
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
-            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+            <property name="tags" value="cpu,jpinpoint-rule,performance,sustainability-medium" type="String" description="classification"/>
             <property name="xpath">
                 <value>
                     <![CDATA[
@@ -418,7 +418,7 @@ class Good {
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
-            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+            <property name="tags" value="cpu,jpinpoint-rule,performance,sustainability-high" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
 //MethodCall[starts-with(@MethodName, 'reflection')][(TypeExpression|ConstructorCall)
@@ -460,7 +460,7 @@ class Good {
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
-            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+            <property name="tags" value="cpu,jpinpoint-rule,performance,sustainability-medium" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
 //ConstructorCall/ClassType[pmd-java:typeIs('java.text.SimpleDateFormat')
@@ -496,7 +496,7 @@ public class Foo {
             Solution: Replace StringBuffer by StringBuilder.  (jpinpoint-rules)</description>
         <priority>3</priority>
         <properties>
-            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+            <property name="tags" value="cpu,jpinpoint-rule,performance,sustainability-low" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
 //ConstructorCall/ClassType[pmd-java:typeIs('java.lang.StringBuffer')]
@@ -526,7 +526,7 @@ class Foo {
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
-            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+            <property name="tags" value="cpu,jpinpoint-rule,performance,sustainability-low" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
 //MethodCall
@@ -583,7 +583,7 @@ class Foo {
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
-            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+            <property name="tags" value="cpu,jpinpoint-rule,performance,sustainability-medium" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
 //MethodCall[pmd-java:matchesSig('javax.xml.xpath.XPath#compile(java.lang.String)')]/ArgumentList/StringLiteral[starts-with(@Image, '"//')]
@@ -616,7 +616,7 @@ public class Foo {
             (jpinpoint-rules)</description>
         <priority>3</priority>
         <properties>
-            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+            <property name="tags" value="cpu,jpinpoint-rule,performance,sustainability-medium" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
 //MethodCall/TypeExpression/ClassType[pmd-java:typeIs('org.apache.xpath.XPathAPI')]
@@ -635,7 +635,7 @@ public class Foo {
             (jpinpoint-rules)</description>
         <priority>3</priority>
         <properties>
-            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+            <property name="tags" value="cpu,jpinpoint-rule,performance,sustainability-medium" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
 //MethodCall[pmd-java:matchesSig('javax.xml.xpath.XPathFactory#newInstance()')]
@@ -656,7 +656,7 @@ public class Foo {
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
-            <property name="tags" value="jpinpoint-rule,performance,correctness" type="String" description="classification"/>
+            <property name="tags" value="correctness,jpinpoint-rule,performance" type="String" description="classification"/>
             <property name="xpath">
                 <value>
                     <![CDATA[
@@ -706,7 +706,7 @@ class Good {
             Solution: Use SLF4J formatting with {}-placeholders or log and format conditionally.  (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
-            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+            <property name="tags" value="cpu,jpinpoint-rule,performance,sustainability-low" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
 //MethodCall
@@ -741,7 +741,7 @@ class Foo {
             Solution: Execute the operation only conditionally and utilize SLF4J formatting with {}-placeholders.  (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
-            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+            <property name="tags" value="cpu,jpinpoint-rule,performance,sustainability-low" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
 //MethodCall
@@ -781,7 +781,7 @@ class Foo {
             Solution: Suppress warnings judiciously based on full knowledge and report reasons to suppress (false positives) to the rule maintainers so the rule can be fixed. (jpinpoint-rules)</description>
         <priority>4</priority>
         <properties>
-            <property name="tags" value="jpinpoint-rule,suspicious,data-mix-up" type="String" description="classification"/>
+            <property name="tags" value="data-mix-up,jpinpoint-rule,suspicious" type="String" description="classification"/>
             <property name="ruleIdMatches" type="String" value="AvoidUserDataInSharedObjects|AvoidUnguardedMutableFieldsInSharedObjects|AvoidUnguardedAssignmentToNonFinalFieldsInSharedObjects|AvoidMutableStaticFields|[^\w]ALL[^\w]|[^\w]all[^\w]|PMD[^\.]|pmd[^:]"
                       description="Regex for inclusion of high risk rules"/>
             <property name="ruleIdNotMatches" type="String" value="^$"
@@ -837,7 +837,7 @@ class VMRData {
         </description>
         <priority>2</priority>
         <properties>
-            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+            <property name="tags" value="cpu,jpinpoint-rule,performance,sustainability-medium" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
 //MethodCall
@@ -886,7 +886,7 @@ class Foo {
             Solution: Specify the time unit in the identifier, like connectTimeoutMillis. (jpinpoint-rules)</description>
         <priority>3</priority>
         <properties>
-            <property name="tags" value="jpinpoint-rule,confusing" type="String" description="classification"/>
+            <property name="tags" value="confusing,jpinpoint-rule" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
 (: for fields, formal parameters and local variables :)
@@ -1028,7 +1028,7 @@ class LombokGetterGood {
         </description>
         <priority>1</priority>
         <properties>
-            <property name="tags" value="jpinpoint-rule,correctness" type="String" description="classification"/>
+            <property name="tags" value="correctness,jpinpoint-rule" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
 (: the number of toLowerCase on a field used in equals should not be larger than that of hashCode :)
@@ -1121,7 +1121,6 @@ class Good {
         </example>
     </rule>
 
-
     <rule name="FieldOfHashCodeMissingInEquals"
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           language="java"
@@ -1131,7 +1130,7 @@ class Good {
             Solution: When objects are equal, hashCode needs to be equal, too. Use the same fields in equals and hashCode. (jpinpoint-rules)</description>
         <priority>1</priority>
         <properties>
-            <property name="tags" value="jpinpoint-rule,correctness" type="String" description="classification"/>
+            <property name="tags" value="correctness,jpinpoint-rule" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
 //FieldDeclaration/VariableDeclarator[
@@ -1373,7 +1372,7 @@ public class Good {
         </description>
         <priority>3</priority>
         <properties>
-            <property name="tags" value="jpinpoint-rule,bad-practice" type="String" description="classification"/>
+            <property name="tags" value="bad-practice,jpinpoint-rule" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
 (: append used in one chained statement on constructor of StringBuilder and with chained toString :)
@@ -1429,7 +1428,7 @@ class Foo {
         </description>
         <priority>3</priority>
         <properties>
-            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+            <property name="tags" value="cpu,jpinpoint-rule,memory,performance,sustainability-medium" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
 //(FieldDeclaration|LocalVariableDeclaration)[
@@ -1542,7 +1541,7 @@ record GoodRecord(String name, List<String> list) {
         </description>
         <priority>3</priority>
         <properties>
-            <property name="tags" value="jpinpoint-rule,bad-practice,confusing" type="String" description="classification"/>
+            <property name="tags" value="bad-practice,confusing,jpinpoint-rule" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
 //VariableId[matches(@Name, 'VALUE|VAL|INTEGER|INT|LONG|NUMBER|NUM|[0-9]+|ZERO|ONE|TWO|THREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|TEN|TWENTY', 'i')
@@ -1582,7 +1581,7 @@ class Foo {
         </description>
         <priority>3</priority>
         <properties>
-            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+            <property name="tags" value="cpu,jpinpoint-rule,performance,sustainability-medium" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
 //EnumDeclaration/EnumBody[count(EnumConstant) > 3]//MethodDeclaration/Block
@@ -1646,7 +1645,7 @@ public enum Fruit {
         </description>
         <priority>3</priority>
         <properties>
-            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+            <property name="tags" value="cpu,jpinpoint-rule,performance,sustainability-low" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
 (: check key type in declaration :)
@@ -1699,7 +1698,7 @@ public enum Fruit {
         </description>
         <priority>3</priority>
         <properties>
-            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+            <property name="tags" value="cpu,jpinpoint-rule,performance,sustainability-low" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
 (: declared variable used in Set by-element access :)
@@ -1755,7 +1754,7 @@ class Foo {
         </description>
         <priority>3</priority>
         <properties>
-            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+            <property name="tags" value="cpu,io,jpinpoint-rule,performance,sustainability-high" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
 //Resource//ConstructorCall[pmd-java:typeIs('java.io.FileInputStream') or pmd-java:typeIs('java.io.FileOutputStream')]
@@ -1796,7 +1795,7 @@ class BufferFileStreaming {
         </description>
         <priority>3</priority>
         <properties>
-            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+            <property name="tags" value="cpu,io,jpinpoint-rule,performance,sustainability-high" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
 //MethodCall[TypeExpression[pmd-java:typeIs('java.nio.file.Files')]
@@ -1835,7 +1834,7 @@ class Foo {
         </description>
         <priority>2</priority>
         <properties>
-            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+            <property name="tags" value="jpinpoint-rule,memory,performance,sustainability-medium" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
 //MethodDeclaration//MethodCall[pmd-java:matchesSig('java.nio.file.Files#readAllBytes(java.nio.file.Path)')
@@ -1879,7 +1878,7 @@ class Good {
         </description>
         <priority>1</priority>
         <properties>
-            <property name="tags" value="jpinpoint-rule,correctness" type="String" description="classification"/>
+            <property name="tags" value="correctness,jpinpoint-rule" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
 //MethodDeclaration[@Name='equals' and FormalParameters/@Size=1 and @Static=false() and ModifierList/@ExplicitModifiers='public']
@@ -1932,7 +1931,7 @@ class Good {
         </description>
         <priority>2</priority>
         <properties>
-            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
+            <property name="tags" value="cpu,io,jpinpoint-rule,performance,sustainability-high" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
 //MethodDeclaration
