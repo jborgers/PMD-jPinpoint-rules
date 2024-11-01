@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>violation: JAXB utility class used javax</description>
+        <expected-problems>2</expected-problems>
+        <expected-linenumbers>4,7</expected-linenumbers>
+        <code><![CDATA[
+import javax.xml.bind.JAXB;
+public class Foo {
+    public <T> T bad1(Source response, Class<T> clazz) {
+        return JAXB.unmarshal(response, clazz); // bad
+    }
+    public void bad2(Object response, StringWriter stringWriter) {
+        javax.xml.bind.JAXB.marshal(response, stringWriter); // bad
+    }
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>violation: JAXB utility class used jakarta</description>
+        <expected-problems>2</expected-problems>
+        <expected-linenumbers>4,7</expected-linenumbers>
+        <code><![CDATA[
+import jakarta.xml.bind.JAXB;
+public class Foo {
+    public <T> T bad1(Source response, Class<T> clazz) {
+        return JAXB.unmarshal(response, clazz); // bad
+    }
+    public void bad2(Object response, StringWriter stringWriter) {
+        javax.xml.bind.JAXB.marshal(response, stringWriter); // bad
+    }
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>no violation: other JAXB class</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import my.other.JAXB;
+public class Foo {
+    public void good(Object response, StringWriter stringWriter) {
+        JAXB.marshal(response, stringWriter); // good: other class
+    }
+    public void good2(Object response, StringWriter stringWriter) {
+        my.other.JAXB.marshal(response, stringWriter); // good: other class
+    }
+}
+     ]]></code>
+    </test-code>
+</test-data>

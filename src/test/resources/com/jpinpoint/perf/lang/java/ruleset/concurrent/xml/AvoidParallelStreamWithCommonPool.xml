@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>violation: parallelStreaming</description>
+        <expected-problems>3</expected-problems>
+        <expected-linenumbers>13, 16, 19</expected-linenumbers>
+        <code><![CDATA[
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.stream.*;
+
+public class FooParallelStream {
+    final Map<String, String> map = new HashMap();
+    final List<String> list = new ArrayList();
+    final List<String> hugeList = new ArrayList(); //1000+ elements
+    final ForkJoinPool myFjPool = new ForkJoinPool(10);
+    final ExecutorService myExePool = Executors.newFixedThreadPool(10);
+
+    void bad1() {
+        list.parallelStream().forEach(elem -> someCall(elem)); //bad
+    }
+    void bad2() {
+        map.entrySet().parallelStream().forEach(entry -> someCall(entry.getValue())); //bad
+    }
+    void exceptionalProperUse() {
+        hugeList.parallelStream().forEach(elem -> heavyCalculations(elem)); //flagged but may be good, should suppress when proven to be faster than sequential form
+    }
+
+    void good1() throws Exception {
+        CompletableFuture[] futures = list.stream().map(elem -> CompletableFuture.supplyAsync(() -> someCall(elem), myExePool))
+                .toArray(CompletableFuture[]::new);
+        CompletableFuture.allOf(futures).get(3, TimeUnit.SECONDS);
+    }
+    void good2() throws ExecutionException, InterruptedException {
+        myFjPool.submit(() ->
+                list.parallelStream().forEach(elem -> someCall(elem))
+        ).get();
+    }
+
+    String someCall(String elem) {
+        // do some call, don't know if remote or blocking. We don't use the returned value.
+        return "";
+    }
+
+    String heavyCalculations(String elem) {
+        // calculate a lot
+        return "";
+    }
+}
+       ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>violation: Fix Request: IA11 AvoidParallelStreamWithCommonPool false negative on stream().parallel() #243</description>
+        <expected-problems>8</expected-problems>
+        <expected-linenumbers>6, 7, 9, 13, 15, 17, 19, 21</expected-linenumbers>
+        <code><![CDATA[
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.stream.*;
+
+class Issue243 {
+    private final Stream str1step = List.of(1,2).parallelStream(); // bad
+    private final Stream str2steps = List.of(1,2).stream().parallel(); // bad, missing case
+    private final Stream str = List.of(1,2).stream();
+    private final Stream strPar = str.parallel(); // bad, missing case
+
+    public void bar() {
+    	var varList = List.of(1,2);
+        Stream str1 = varList.parallelStream(); //bad
+        List list = List.of(1,2);
+        Stream str2 = list.parallelStream(); //bad
+        // triggers, as expected
+        list.parallelStream().forEach(System.out::println); //bad
+        // no trigger, false negative
+        list.stream().parallel().forEach(System.out::println); // bad, missing case
+        var map = new HashMap();
+        Stream str3 = map.entrySet().stream().parallel(); // bad, missing case
+    }
+}
+             ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>violation: Fix Request: AvoidParallelStreamWithCommonPool false positive for use in Flux or Mono #244</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Scheduler;
+class Foo {
+    private Mono<SomeResponse> handle() {
+        return
+                //call alerts in parallel
+                Mono
+                        //execute on different rails in parallel
+                        .parallel(props.getParallelism())
+                        .runOn(someScheduler);
+    }
+}
+             ]]></code>
+    </test-code>
+</test-data>

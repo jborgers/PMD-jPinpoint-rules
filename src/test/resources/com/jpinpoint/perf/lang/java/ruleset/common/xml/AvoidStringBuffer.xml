@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>violation: Avoid StringBuffer. Use for instance StringBuilder instead</description>
+        <expected-problems>3</expected-problems>
+        <expected-linenumbers>3,6,7</expected-linenumbers>
+        <code><![CDATA[
+public class Foo {
+
+	private StringBuffer buffer = new StringBuffer(); // bad
+
+    public void bad() {
+        StringBuffer sb = new StringBuffer(); // bad
+        var sb2 = new StringBuffer(); // bad
+    }
+    public void good() {
+        StringBuilder sb = new StringBuilder(); // good
+    }
+}
+     ]]></code>
+    </test-code>
+</test-data>

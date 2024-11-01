@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>violation: AvoidParallelFlux</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>9</expected-linenumbers>
+        <code><![CDATA[
+import java.util.*;
+import reactor.core.publisher.Flux;
+import reactor.core.scheduler.Scheduler;
+
+class FooBad {
+    private final Scheduler scheduler;
+    private final SchedulerProperties schedulerProperties;
+    public Flux<Account> getResponseAccounts(List<AccountDetails> accountKeys, List<FieldName> requestedFields) {
+        return Flux.fromIterable(accountKeys)
+                .parallel(schedulerProperties.getParallelism()) // bad
+                .runOn(scheduler)
+                .flatMap(accountKey -> constructAccountDetails(accountKey, requestedFields))
+                .sequential();
+    }
+
+    public static AccountDetails constructAccountDetails(AccountDetails accountKey, List<FieldName> requestedFields) {
+        // do something
+        return null;
+    }
+
+}
+
+class FooGood {
+    public Flux<Account> getResponseAccounts(List<AccountDetails> accountKeys, List<FieldName> requestedFields) {
+        return Flux.fromIterable(accountKeys)
+                .flatMap(accountKey -> constructAccountDetails(accountKey, requestedFields));
+    }
+    public static AccountDetails constructAccountDetails(AccountDetails accountKey, List<FieldName> requestedFields) {
+        // do something
+        return null;
+    }
+}
+
+class AccountDetails {
+}
+
+class FieldName {
+}
+
+class Account {
+}
+       ]]></code>
+    </test-code>
+
+</test-data>

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>Avoid XMLGregorianCalendar</description>
+        <expected-problems>4</expected-problems>
+        <expected-linenumbers>7,8,10,11</expected-linenumbers>
+        <code><![CDATA[
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.XMLGregorianCalendar;
+
+public class AvoidXMLGregorianCalendar {
+
+	private XMLGregorianCalendar sprinkleDatum; // bad
+	protected XMLGregorianCalendar sparkleDatum; // bad
+
+	public XMLGregorianCalendar getSparkleDatum2() { // bad
+		XMLGregorianCalendar cal = sprinkleDatum;  // bad
+		try {
+			cal = DatatypeFactory.newInstance().newXMLGregorianCalendar();
+		} catch (DatatypeConfigurationException e) {
+			// huh?
+			assert false;
+		}
+		return cal;
+	}
+}
+      ]]></code>
+    </test-code>
+</test-data>

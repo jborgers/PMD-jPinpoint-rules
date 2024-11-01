@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>violation: MDC Values should be removed to avoid problems leaking to other transactions and log incorrect information</description>
+        <expected-problems>4</expected-problems>
+        <expected-linenumbers>12,15,16,20</expected-linenumbers>
+        <code><![CDATA[
+import org.slf4j.MDC;
+
+public class Foo {
+    private static final String USER_TYPE_KEY1 = "userTypeKey1Field";
+    private static final String USER_TYPE_KEY2 = "userTypeKey2Field";
+
+    public void bad() {
+
+        try {
+            if (true) {
+                MDC.put("levelKey1", "levelName1");
+                MDC.put("levelKey2", "levelName2"); // bad: not removed in finally
+                MDC.put(USER_TYPE_KEY1, "userTypeNameField");
+
+                MDC.put("userTypeKey2", "userTypeName2"); //bad: never removed
+                MDC.put(USER_TYPE_KEY2, "userTypeNameField2"); //bad: never removed
+
+                if (true) {
+                    MDC.put("focusIdKey1", "focusIdValue");
+                    MDC.put("focusIdKey2", "focusIdValue2"); //bad: never removed
+                }
+            }
+            MDC.remove("levelKey2"); // wrong, not in finally
+
+        } finally {
+            MDC.remove("focusIdKey1");
+            MDC.remove("levelKey1");
+            MDC.remove(USER_TYPE_KEY1);
+        }
+        MDC.remove("levelKey2"); // wrong, not in finally
+    }
+
+    public void good(Object arg) {
+        try {
+            MDC.put("sessionId", arg); // good, cleared in finally
+            MDC.put(USER_TYPE_KEY1, arg); // good
+        } finally {
+            MDC.clear();
+        }
+    }
+}
+     ]]></code>
+    </test-code>
+    <test-code>
+        <description>no violation: MDC Values should be removed to avoid problems leaking to other transactions and log incorrect information</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import org.slf4j.MDC;
+
+public class Foo {
+    private static final String USER_TYPE_KEY1 = "userTypeKey1Field";
+
+    public void good() {
+        try {
+            if (true) {
+                MDC.put("levelKey1", "levelName");
+                MDC.put(USER_TYPE_KEY1, "userTypeNameField");
+                MDC.put("levelKey2", "levelName2");
+
+                if (true) {
+                    MDC.put("focusIdKey1", "focusIdValue");
+                }
+            }
+
+        } finally {
+            MDC.remove("focusIdKey1");
+            MDC.remove("levelKey1");
+            MDC.remove(USER_TYPE_KEY1);
+            MDC.remove("levelKey2"); // violation, not in finally
+        }
+    }
+}     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>no violation: MDC Values are removed with a clear in afterCompletion for Spring WebRequestInterceptor </description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import org.slf4j.MDC;
+import org.springframework.web.context.request.*;
+
+public class Foo implements WebRequestInterceptor {
+    private static final String USER_TYPE_KEY1 = "userTypeKey1Field";
+
+    public void good() {
+        MDC.put("levelKey1", "levelName");
+        MDC.put(USER_TYPE_KEY1, "userTypeNameField");
+        MDC.put("levelKey2", "levelName2");
+        MDC.put("focusIdKey1", "focusIdValue");
+    }
+    public void afterCompletion(WebRequest webRequest, Exception e) {
+        MDC.clear();
+    }
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>no violation: MDC Value is removed in afterCompletion for Spring WebRequestInterceptor </description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>10</expected-linenumbers>
+        <code><![CDATA[
+import org.slf4j.MDC;
+import org.springframework.web.context.request.*;
+
+public class Foo implements WebRequestInterceptor {
+    private static final String USER_TYPE_KEY1 = "userTypeKey1Field";
+
+    public void good() {
+        MDC.put("levelKey1", "levelName");
+        MDC.put(USER_TYPE_KEY1, "userTypeNameField");
+        MDC.put("levelKey2", "levelName2"); // bad
+    }
+    public void afterCompletion(WebRequest webRequest, Exception e) {
+        MDC.remove("levelKey1");
+        MDC.remove(USER_TYPE_KEY1);
+    }
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>no violation: MDC Values are removed with a postHandle for Spring HandlerInterceptorAdapter </description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>7</expected-linenumbers>
+        <code><![CDATA[
+import org.slf4j.MDC;
+public class TracingInterceptor extends HandlerInterceptorAdapter {
+    @Override
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
+        MDC.put("sessionId", request.getSession().getId());
+        Optional.ofNullable(request.getHeader(Y_REQUEST_ID)).ifPresent(id -> MDC.put(REQUEST_ID, id));
+        Optional.ofNullable(request.getHeader(REQUESTOR_ID)).ifPresent(id -> MDC.put(MDC_REQUESTOR_ID, id)); // bad
+        return true;
+    }
+
+    @Override
+    public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler,
+                           @Nullable ModelAndView modelAndView) {
+        MDC.remove("sessionId");
+        //MDC.clear();
+        Optional.ofNullable(MDC.get(REQUEST_ID)).ifPresent(id -> MDC.remove(REQUEST_ID));
+        //Optional.ofNullable(MDC.get(MDC_REQUESTOR_ID)).ifPresent(id -> MDC.remove(MDC_REQUESTOR_ID));
+    }
+}
+     ]]></code>
+    </test-code>
+
+</test-data>

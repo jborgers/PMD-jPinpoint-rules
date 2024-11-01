@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>violation: avoid discarding httpClient config</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>10</expected-linenumbers>
+        <code><![CDATA[
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+
+class Bad {
+    ClientHttpRequestFactory getFactory(HttpClientConfiguration config) {
+        HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory(HttpClientBuilder.create()
+                .setMaxConnTotal(config.getMaxTotalConnections())
+                .setMaxConnPerRoute(config.getMaxConnPerRoute())
+                .build());
+
+        factory.setHttpClient(createHttpClient(config)); // bad
+        return factory;
+   }
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>no violation: returning HttpClient built with disableConnectionState</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+
+class Good {
+    ClientHttpRequestFactory getFactory(HttpClientConfiguration config) {
+        HttpComponentsClientHttpRequestFactory factory =
+            new HttpComponentsClientHttpRequestFactory(createFullyConfiguredHttpClient(config));
+        return factory;
+   }
+}
+     ]]></code>
+    </test-code>
+
+
+</test-data>

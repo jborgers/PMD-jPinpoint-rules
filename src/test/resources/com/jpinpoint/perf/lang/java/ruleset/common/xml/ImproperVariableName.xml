@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>Improper Variable Name</description>
+        <expected-problems>15</expected-problems>
+        <expected-linenumbers>2, 3, 4, 6, 10, 11, 12, 13, 14, 15, 16, 17, 18, 26, 29</expected-linenumbers>
+        <code><![CDATA[
+class Foo {
+    private static final int FOUR_ZERO_NINE_SIX = 4096; // bad
+    private static int six = 6; // bad
+    private int five = 6; // fire this guy ;-)
+    private static final int SIXTIES_START = 1960; // good
+    long three; // bad - missing case #240
+    String tree; //good - false positive #240
+    String HIGH_FIVE; // good
+
+    int VAL_127 = 127; //bad #323
+    String VALUE_127 = "127"; //bad #323
+    int VAL_ONE_TWO_SEVEN; // bad #323
+    int INT_5 = 5; //bad #323
+    int INTEGER_5 = 5; //bad #323
+    long long_7 = 7; //bad #323
+    int NUMBER_7 = 7; //bad #323
+    int NUM_7 = 7; // bad #323
+    int TWENTY_EIGHT; // bad #323 - line 18
+
+    int MAX_INT; // good
+    int MIN_VAL = 3; // good
+    int IN_5 = 5; // good
+    int INTEG_FIVE; // good
+    int MAMBO_NUMBER_FIVE; // good
+
+    static final int VALUE_5 = 5; // bad - line 26
+
+    void bar() {
+        String var1 = "baz"; // bad - line 29
+    }
+}
+class Mapper {
+    String key; // good
+    String value; // good
+    int val; // good
+}
+     ]]></code>
+    </test-code>
+
+</test-data>

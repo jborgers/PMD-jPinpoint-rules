@@ -494,10 +494,10 @@ class FooGood {
         <priority>3</priority>
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="version" value="3.1"/>
             <property name="xpath">
                 <value><![CDATA[
-//ImportHeader[starts-with(@joinTokenText, 'importcom.netflix.hystrix')]
+(: check if javax.xml.xpath imports exists as filter for same named classes in other packages :)
+//ImportHeader[.//T-Identifier[@Text='com'] and .//T-Identifier[@Text='netflix'] and .//T-Identifier[@Text='hystrix']][1]/../..
 ]]>
                 </value>
             </property>
@@ -521,7 +521,6 @@ class FooGood {
         <priority>2</priority>
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="version" value="3.1"/>
             <property name="xpath">
                 <value><![CDATA[
 (:locally created http client builder without disableConnectionState :)

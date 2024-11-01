@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>Avoid unguarded mutable (found mutated) inherited fields in shared objects</description>
+        <expected-problems>4</expected-problems>
+        <expected-linenumbers>21, 26,27,30</expected-linenumbers>
+        <code><![CDATA[
+package com.jpinpoint.tryout;
+
+import org.springframework.stereotype.Component;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Date;
+import org.springframework.web.bind.annotation.RestController;
+import com.google.common.annotations.VisibleForTesting;
+import org.springframework.beans.factory.annotation.Autowired;
+
+@Component
+public class MutateInheritedFieldTryout extends SynchronizedTryout {
+    final Map mapField = getMap(); // found by other rule
+    private String removed; // found by other rule
+
+    public String getDateString() {
+        return date.toString();
+    }
+    public void mutateDateBad() {
+        date.setTime(100); // bad - 20
+    }
+
+    public void mutateMap(String key, String val) {
+        Collections.sort(null);
+        map.clear(); // bad - 25
+        if (map.put(key, val)) { // bad - 26
+           removed = "";
+        }
+        removed = map.remove("invalidKey"); // bad - 29
+    }
+    public Object readMap(String key) {
+        return map.get(key);
+    }
+    public synchronized void mutateSyncMap(String key, String val) {
+        map.put(key, val);
+    }
+    public void mutateMapField(String key, String val) {
+        mapField.put(key, val); // good, fields checked in other rule
+    }
+    public void mutateMapParam(Map map, String key, String val) {
+        map.put(key, val); // good, param map shadows inherited field
+    }
+    public void mutateMapLocal(String key, String val) {
+        Map map = new HashMap();
+        map.put(key, val); // good, local map shadows inherited field
+    }
+}
+
+class SynchronizedTryout {
+    protected final Date date;
+    protected final Map map;
+}
+        ]]></code>
+    </test-code>
+    <test-code>
+        <description>Avoid unguarded mutable (found mutated) inherited fields in shared objects: @RestController and exceptions</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>11</expected-linenumbers>
+        <code><![CDATA[
+package com.jpinpoint.tryout;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.beans.factory.annotation.Autowired;
+import com.google.common.annotations.VisibleForTesting;
+import java.util.Map;
+
+@RestController
+public class MutateInheritedFieldTryoutController extends SynchronizedTryout {
+
+    public void mutateMap(String key, String val) {
+        map.put(key, val); // bad
+    }
+
+    @Component
+    static class StaticClass extends SynchronizedTryout {
+        String test = map.remove("key"); // assume good: static class
+        public StaticClass() {
+            map.put("key"); // assume good: static class
+        }
+    }
+
+    @VisibleForTesting
+    void prepareTest() {
+        map.put("key","value"); // good, for testing
+    }
+
+    @Autowired
+    void setMap(String key) {
+        map.put(key,"value"); // good, framework annotated
+    }
+}
+
+class SynchronizedTryout {
+    protected final Map map;
+}
+        ]]></code>
+    </test-code>
+</test-data>

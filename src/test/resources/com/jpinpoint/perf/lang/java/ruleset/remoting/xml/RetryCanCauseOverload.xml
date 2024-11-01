@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>informative violation: Using some form of Retry</description>
+        <expected-problems>3</expected-problems>
+        <expected-linenumbers>5,7,9</expected-linenumbers>
+        <code><![CDATA[
+import io.github.resilience4j.retry.annotation.Retry;
+//import io.github.resilience4j.retry.Retry;
+import org.springframework.retry.annotation.Retryable;
+
+@Retry(name = "some-service") // inform
+public class Foo {
+    private final io.github.resilience4j.retry.Retry retry; // inform
+
+    @Retryable(value = { RuntimeException.class }, maxAttempts = 2, backoff = @Backoff(delay = 1000)) // inform
+    public void callService() {}
+}
+     ]]></code>
+    </test-code>
+</test-data>

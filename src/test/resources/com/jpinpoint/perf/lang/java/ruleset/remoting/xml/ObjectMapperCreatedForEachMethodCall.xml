@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>Jackson ObjectMapper creation is expensive instances should be reused</description>
+        <expected-problems>3</expected-problems>
+        <expected-linenumbers>16,20,21</expected-linenumbers>
+        <code><![CDATA[
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+import java.io.IOException;
+
+public class ObjectMapperReuse {
+	private static final ObjectMapper sharedMapper;
+
+	static {
+		sharedMapper = new ObjectMapper();
+	}
+
+	public static ObjectMapper createMapper() {
+		return new ObjectMapper(); // bad
+	}
+
+	public void myMethod() throws IOException, JsonMappingException {
+		final ObjectMapper mapper = new ObjectMapper(); // bad
+		String json = new ObjectMapper().writeValueAsString("authorizations"); // bad
+
+	}
+
+	public void myMethodOk() throws IOException, JsonMappingException {
+		final ObjectMapper mapper = sharedMapper; // OK
+		String json = mapper.writeValueAsString("authorizations"); // OK
+
+	}
+
+}
+
+@Configuration
+class BankSpringRootConfig {
+
+	@Bean
+	public ObjectMapper objectMapper() {
+		return new ObjectMapper(); // OK because configuration is only executed once
+	}
+}
+     ]]></code>
+    </test-code>
+    <test-code>
+        <description>Jackson JsonMapper.builder().build() creation is expensive instances should be reused</description>
+        <expected-problems>8</expected-problems>
+        <expected-linenumbers>18,18,24,24,25,25,26,27</expected-linenumbers>
+        <code><![CDATA[
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
+import com.fasterxml.jackson.databind.Module;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+import java.io.IOException;
+
+public class JsonMapperReuse {
+	private static final JsonMapper sharedMapper;
+
+	static {
+	        sharedMapper = JsonMapper.builder().build();
+	}
+
+	public static JsonMapper createMapper() {
+	        return JsonMapper.builder() // bad 2x
+                        .enable(JsonParser.Feature.ALLOW_SINGLE_QUOTES)
+                        .build();
+	}
+
+	public void myMethod() throws IOException, JsonMappingException {
+	    final JsonMapper mapper = JsonMapper.builder().build(); // bad 2x
+		String json = JsonMapper.builder().build().writeValueAsString("authorizations"); // bad 2x
+		JsonMapper.Builder builder = JsonMapper.builder(); // bad
+        JsonMapper myMapper = builder.build(); // bad
+	}
+
+	public void myMethodOk() throws IOException, JsonMappingException {
+		final JsonMapper mapper = sharedMapper; // OK
+		String json = mapper.writeValueAsString("authorizations"); // OK
+        List<Module> modules = JsonMapper.findModules(this.getClass().getClassLoader()); // OK
+	}
+}
+
+@Configuration
+class BankSpringRootConfig {
+	@Bean
+	public JsonMapper jsonMapper() {
+		return JsonMapper.builder().build(); // OK because configuration is only executed once
+	}
+}
+     ]]></code>
+    </test-code>
+</test-data>

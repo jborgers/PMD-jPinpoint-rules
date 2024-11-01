@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>violation: Avoid huge query setFetchSize</description>
+        <expected-problems>8</expected-problems>
+        <expected-linenumbers>41,42,45,48,57,58,73,74</expected-linenumbers>
+        <code><![CDATA[
+import org.apache.openjpa.persistence.OpenJPAPersistence;
+import org.apache.openjpa.persistence.OpenJPAQuery;
+import org.apache.openjpa.persistence.jdbc.JDBCFetchPlan;
+import org.hibernate.query.Query;
+import org.hibernate.Session;
+//import org.hibernate.Criteria;
+
+import javax.persistence.EntityManager;
+import java.util.ArrayList;
+import java.util.List;
+import java.sql.Statement;
+import java.sql.PreparedStatement;
+
+public class Foo {
+
+    private static final int FETCH_SIZE_HUGE = 1000;
+    private static final int FETCH_SIZE_LARGE = 100;
+
+    /*    org.hibernate.Criteria removed/re-designed in hibernate 6, to be supported again, TODO See #375
+
+        public void sendStatusUpdateinitiationForOutgoingIce(Object itg, String newStatus) {
+        Object param = "outgoingIceKey" +  ", itg.getEntityKey()";
+        List params = new ArrayList(1);
+        params.add(param);
+        Criteria c = new Criteria("NAMED_QUERY_WORK_KEYS_TO_STATUS_UPDATE", params);
+
+        c.setFetchSize(FETCH_SIZE_HUGE); //bad
+        c.setFetchSize(501); //bad
+
+        c.setFetchSize(FETCH_SIZE_LARGE); //good
+        c.setFetchSize(80); //good
+    }
+*/
+
+    public void jdbcFetchSize() {
+        Statement statement = new Statement();
+
+        statement.setFetchSize(FETCH_SIZE_LARGE); //good
+        statement.setFetchSize(80); //good
+
+        statement.setFetchSize(600); //bad
+        statement.setFetchSize(FETCH_SIZE_HUGE); //bad
+
+        PreparedStatement prepStatmt = new PreparedStatement();
+        prepStatmt.setFetchSize(1000); //bad
+
+        int huge = 10000;
+        prepStatmt.setFetchSize(huge); //bad
+    }
+
+    public List hibernateFetchSize() {
+        Session session = null;
+        org.hibernate.query.Query q = session.getNamedQuery("yourQuery");
+        q.setFirstResult(20);
+        q.setMaxResults(30);
+        q.setFetchSize(100); //good
+        q.setFetchSize(1000); //bad
+        q.setFetchSize(FETCH_SIZE_HUGE); //bad
+        return q.list();
+    }
+
+    public Object findInformationByCode(String code) {
+        EntityManager entityManager = null;
+        javax.persistence.Query q = entityManager.createQuery("SELECT reas FROM Information info WHERE reas.code = :code", Object.class);
+        q.setParameter("code", code);
+        q.setMaxResults(1); //added JB
+        q.setHint("org.hibernate.fetchSize", "1000"); // bad: added JB option 1 - should violate TODO see #375
+        q.setHint("org.hibernate.fetchSize", FETCH_SIZE_HUGE); // bad: added JB option 1 - should violate TODO see #375
+
+        OpenJPAQuery ojpaQuery = OpenJPAPersistence.cast(q);
+        org.apache.openjpa.persistence.jdbc.JDBCFetchPlan plan = (JDBCFetchPlan) ojpaQuery.getFetchPlan();
+        plan.setFetchBatchSize(10); //good
+        plan.setFetchBatchSize(1000); // bad
+        plan.setFetchBatchSize(FETCH_SIZE_HUGE); // bad
+        List results = q.getResultList();
+        return null;
+    }
+}
+     ]]></code>
+    </test-code>
+    <test-code>
+        <description>no violation: Avoid huge query setFetchSize</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import org.apache.openjpa.persistence.OpenJPAPersistence;
+import org.apache.openjpa.persistence.OpenJPAQuery;
+import org.apache.openjpa.persistence.jdbc.JDBCFetchPlan;
+import org.hibernate.Query;
+import org.hibernate.Session;
+
+import javax.persistence.EntityManager;
+import java.util.ArrayList;
+import java.util.List;
+
+public class Foo {
+
+    private static final int FETCH_SIZE_HUGE = 1000;
+    private static final int FETCH_SIZE_LARGE = 100;
+
+    public void sendStatusUpdateinitiationForOutgoingIce(Object itg, String newStatus) {
+        Object param = "outgoingIceKey" +  ", itg.getEntityKey()";
+        List params = new ArrayList(1);
+        params.add(param);
+        Criteria c = new Criteria("NAMED_QUERY_WORK_KEYS_TO_STATUS_UPDATE", params);
+
+        c.setFetchSize(FETCH_SIZE_LARGE); //good
+        c.setFetchSize(80); //good
+    }
+
+    public void jdbcFetchSize() {
+        Statement statement = new Statement();
+
+        statement.setFetchSize(FETCH_SIZE_LARGE); //good
+        statement.setFetchSize(80); //good
+
+        PreparedStatement prepStatmt = new PreparedStatement();
+    }
+
+    public List hibernateFetchSize() {
+        Session session = null;
+        Query q = session.getNamedQuery("yourQuery");
+        q.setFirstResult(20);
+        q.setMaxResults(30);
+        q.setFetchSize(100); //good
+        return q.list();
+    }
+
+    public Object findInformationByCode(String code) {
+        EntityManager entityManager = null;
+        javax.persistence.Query q = entityManager.createQuery("SELECT reas FROM Information info WHERE reas.code = :code", Object.class);
+        q.setParameter("code", code);
+        q.setMaxResults(1); //added JB
+
+        OpenJPAQuery ojpaQuery = OpenJPAPersistence.cast(q);
+        JDBCFetchPlan plan = (JDBCFetchPlan) ojpaQuery.getFetchPlan();
+        plan.setFetchBatchSize(10); //good
+        List results = q.getResultList();
+        return null;
+    }
+
+}
+     ]]></code>
+    </test-code>
+</test-data>

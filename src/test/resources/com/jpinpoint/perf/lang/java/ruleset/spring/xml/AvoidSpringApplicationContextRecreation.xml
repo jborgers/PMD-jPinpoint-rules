@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>Avoid Spring ApplicationContext recreation</description>
+        <expected-problems>2</expected-problems>
+        <expected-linenumbers>21, 24</expected-linenumbers>
+        <code><![CDATA[
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+
+public class AvoidSpringApplicationContextRecreation {
+
+    private static final ApplicationContext APPLICATION_CONTEXT2;
+    private static final ApplicationContext APPLICATION_CONTEXT =
+            new ClassPathXmlApplicationContext(new String[]{ "t-spring-context.xml" }); // good
+
+    static {
+        APPLICATION_CONTEXT2 = new ClassPathXmlApplicationContext(new String[]{ "t-spring-context.xml" }); // good
+    }
+
+    /**
+     * Hotspot: does jaxb context re-creation, classloading, unzipping.
+     * @return
+     */
+    private Object getRServiceBad() {
+        final ApplicationContext applicationContext =
+                new ClassPathXmlApplicationContext(new String[]{"t-spring-context.xml"}); // bad
+
+        final ApplicationContext applicationContext2 =
+                new AnnotationConfigApplicationContext(new String[]{"nl.pinpoint.perf"}); // bad
+
+        return (Object) applicationContext.getBean("T_SERVICE");
+    }
+
+
+    private Object getRServiceGood() {
+        return (Object) APPLICATION_CONTEXT.getBean("T_SERVICE");
+    }
+}
+     ]]></code>
+    </test-code>
+</test-data>

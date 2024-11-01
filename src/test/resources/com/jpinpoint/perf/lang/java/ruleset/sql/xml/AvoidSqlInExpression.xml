@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>violation: Avoid sql in expressions - hibernate </description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>6</expected-linenumbers>
+        <code><![CDATA[
+import org.hibernate.criterion.Restrictions;
+import org.hibernate.criterion.Expression;
+
+public class Foo {
+    private void updateSampleStatusViolateO(List<Long> txnKeys) {
+        Expression exp = CompositeLogicalExpression.compose(Restrictions.in("oKey", txnKeys)); //violation
+    }
+}
+
+class CompositeLogicalExpression extends Expression {
+    public static Expression compose(Expression exp) {
+        return null;
+    }
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>violation: Avoid sql in expressions - javax.persistence</description>
+        <expected-problems>8</expected-problems>
+        <expected-linenumbers>11,14,23,47,49,51,53,79</expected-linenumbers>
+        <code><![CDATA[
+import javax.persistence.*;
+import java.util.Arrays;
+import java.util.List;
+
+@Entity
+@Table(name = "B_EVENT_SOURCE")
+@NamedQueries({
+        @NamedQuery(
+                name = "BEventSource.deleteViolation",
+                query = "DELETE BEventSource " +
+                        "WHERE id IN (:idsOfEventsSent)"), // violation
+        @NamedQuery(
+                name = "AuthorisationHistoryDoodleGroup.getAuthIdsViolation",
+                query = "SELECT ah FROM AuthorisationHistoryDoodleGroup ah WHERE ah.doodleGroupId IN :doodleGroupIds "), //violation
+        @NamedQuery(
+                name = "DoodleDeskDinner.findCountDoodleTypeExecutingForRequestorAndGivenDateOk",
+                query = "SELECT pcp.doodleOriginator.doodleType, COUNT(pcp) FROM DoodleDeskDinner pcp"
+                + " WHERE pcp.doodleOriginator.id IN (SELECT po.id FROM DoodleOriginator po WHERE po.processingDate = :date AND po.currentStatus.status = STANDING AND po.doodleGroupIn.doodleRequestIn.requestor.requestorName= :requestorName) "
+                + " GROUP BY pcp.doodleOriginator.doodleType"), // subselect in IN clause: OK
+        @NamedQuery(
+                name = "DoodleDeskDinner.findCountViolation",
+                query = "SELECT pcp.doodleOriginator.doodleType, COUNT(pcp) FROM DoodleDeskDinner pcp"
+                + " WHERE pcp.doodleOriginator.id IN ( SELECT po.id FROM DoodleOriginator po WHERE ah.doodleGroupId IN :doodleGroupIds"), // violation, subselect in IN clause with problematic inner IN
+        @NamedQuery(
+                name = "DoodleDeskDinner.findCount2OK",
+                query = "SELECT pcp.doodleOriginator.doodleType, COUNT(pcp) FROM DoodleDeskDinner pcp"
+                + " WHERE pcp.doodleOriginator.id IN ( SELECT po.id FROM DoodleOriginator po WHERE po.processingDate = :date AND po.currentStatus.status = STANDING AND po.doodleGroupIn.doodleRequestIn.requestor.requestorName= :requestorName) "
+                + " GROUP BY pcp.doodleOriginator.doodleType"), // subselect in IN clause: OK
+})
+
+class PolicyEggStatementRepository {
+    public List<Object> retrieveOk() {
+        EntityManager entityManager = null;
+        String sqlOk = "select h from CeilingProces a, PolicyEggStatement h where a.eggstatementId = h.id AND a.processtatusCd = :procesStatus "
+                + "AND a.ceilingReceiptsstuff.receiptsstuffStatusCd IN :statusCds"; // OK because a limited set, list of 2 elements
+
+        Query query = entityManager.createQuery(sqlOk);
+        query.setParameter("procesStatus", "AFHANDELEN");
+        query.setParameter("statusCds", Arrays.asList("CEILING_IN_BEHANDELING", "ERROR_INTERPOLIS"));
+
+        return query.getResultList();
+    }
+    public List<Object> retrieveViolation(List statuses) {
+        EntityManager entityManager = null;
+        String sqlViolation1 = "select h from CeilingProces a, PolicyEggStatement h where a.eggstatementId = h.id AND a.processtatusCd = :procesStatus "
+                + "AND a.ceilingReceiptsstuff.receiptsstuffStatusCd IN :statusCds"; // Violation because unknown number of elements
+        String sqlViolation2 = "select h from CeilingProces a, PolicyEggStatement h where a.eggstatementId = h.id AND a.processtatusCd = :procesStatus "
+                + " AND a.ceilingReceiptsstuff.receiptsstuffStatusCd IN (:statusCds)"; // Violation because unknown number of elements
+        String sqlViolation3 = "select h from CeilingProces a, PolicyEggStatement h where a.eggstatementId = h.id AND a.processtatusCd = :procesStatus "
+                + " AND a.ceilingReceiptsstuff.receiptsstuffStatusCd IN ( :statusCds )"; // Violation because unknown number of elements
+        String sqlViolation4 = "select h from CeilingProces a, PolicyEggStatement h where a.eggstatementId = h.id AND a.processtatusCd = :procesStatus "
+                + " AND a.ceilingReceiptsstuff.receiptsstuffStatusCd IN(:statusCds)"; // Violation because unknown number of elements
+
+        Query query = entityManager.createQuery(sqlViolation1);
+        query.setParameter("procesStatus", "JUSTDOIT");
+        query.setParameter("statusCds", statuses);
+
+        return query.getResultList();
+    }
+    public List retrieveActievePolicyEggStatementenForStatusCeilingReceiptsstuffOk() {
+        String sql = "select h from CeilingProces a, PolicyEggStatement h where a.eggstatementId = h.id AND a.processtatusCd = :procesStatus "
+                + "AND a.ceilingReceiptsstuff.receiptsstuffStatusCd IN :statusCds";
+        EntityManager entityManager = null;
+        List list = Arrays.asList("CEILING_IN_BEHANDELING", "ERROR_4");
+        Query query = entityManager.createQuery(sql);
+        query.setParameter("procesStatus", "DOIT");
+        query.setParameter("statusCds", Arrays.asList("CEILING_IN_BEHANDELING", "ERROR_TABLE"));
+
+        return query.getResultList();
+    }
+}
+
+@Entity
+@Table(name = "OP_BASED")
+@NamedQueries({
+        @NamedQuery(name = "BEventSource.deleteViolation", query =
+                "DELETE BEventSource WHERE id IN(:idsOfEventsSent)"), // violation
+})
+class BasedOnOFinding{
+}
+     ]]></code>
+    </test-code>
+    <test-code>
+        <description>no violation: Avoid sql in expressions</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import java.util.Arrays;
+import java.util.List;
+import javax.persistence.TypedQuery;
+import javax.persistence.Query;
+
+@Entity
+@Table(name = "B_EVENT_SOURCE")
+@NamedQueries({
+        @NamedQuery(
+                name = "DoodleDeskDinner.findCountDoodleTypeExecutingForRequestorAndGivenDateOk",
+                query = "SELECT pcp.doodleOriginator.doodleType, COUNT(pcp) FROM DoodleDeskDinner pcp"
+                + " WHERE pcp.doodleOriginator.id IN (SELECT po.id FROM DoodleOriginator po WHERE po.processingDate = :date AND po.currentStatus.status = STANDING AND po.doodleGroupIn.doodleRequestIn.requestor.requestorName= :requestorName) "
+                + " GROUP BY pcp.doodleOriginator.doodleType"), // subselect in IN clause: OK
+        @NamedQuery(
+                name = "DoodleDeskDinner.findCount2OK",
+                query = "SELECT pcp.doodleOriginator.doodleType, COUNT(pcp) FROM DoodleDeskDinner pcp"
+                + " WHERE pcp.doodleOriginator.id IN ( SELECT po.id FROM DoodleOriginator po WHERE po.processingDate = :date AND po.currentStatus.status = STANDING AND po.doodleGroupIn.doodleRequestIn.requestor.requestorName= :requestorName) "
+                + " GROUP BY pcp.doodleOriginator.doodleType"), // subselect in IN clause: OK
+})
+
+class PolicyEggStatementRepository {
+    public List<Object> retrieveOk() {
+        EntityManager entityManager = null;
+        String sqlOk = "select h from CeilingProces a, PolicyEggStatement h where a.eggstatementId = h.id AND a.processtatusCd = :procesStatus "
+                + "AND a.ceilingReceiptsstuff.receiptsstuffStatusCd IN :statusCds"; // OK because a limited set, list of 2 elements
+
+        Query query = entityManager.createQuery(sqlOk);
+        query.setParameter("procesStatus", "AFHANDELEN");
+        query.setParameter("statusCds", Arrays.asList("CEILING_IN_BEHANDELING", "ERROR_INTERPOLIS"));
+
+        return query.getResultList();
+    }
+    public List<Object> retrieveViolation(List statuses) {
+        EntityManager entityManager = null;
+        String sql = "select h from CeilingProces a, PolicyEggStatement h where a.eggstatementId = h.id";
+        return query.getResultList();
+    }
+    public List retrieveActievePolicyEggStatementenForStatusCeilingReceiptsstuffOk() {
+        String sql = "select h from CeilingProces a, PolicyEggStatement h where a.eggstatementId = h.id AND a.processtatusCd = :procesStatus "
+                + "AND a.ceilingReceiptsstuff.receiptsstuffStatusCd IN :statusCds";
+        EntityManager entityManager = null;
+        List list = Arrays.asList("CEILING_IN_BEHANDELING", "ERROR_4");
+        Query query = entityManager.createQuery(sql);
+        query.setParameter("procesStatus", "DOIT");
+        query.setParameter("statusCds", Arrays.asList("CEILING_IN_BEHANDELING", "ERROR_TABLE"));
+
+        return query.getResultList();
+    }
+}
+     ]]></code>
+    </test-code>
+    <test-code>
+        <description>violation: Avoid sql in expressions with Criteria API</description>
+        <expected-problems>4</expected-problems>
+        <expected-linenumbers>7, 10, 13, 20</expected-linenumbers>
+        <code><![CDATA[
+import javax.persistence.criteria.*;
+import java.util.*;
+
+public class Tryout {
+    private void bad1(Root<Object> root, List<Long> ids) {
+        List<Predicate> predicateList = new ArrayList<Predicate>();
+        predicateList.add(root.<Information>get("current").<Long>get("id").in(ids)); // bad
+    }
+    private void bad2(Root<Customer> cust, List<Long> ids) {
+        Predicate p = cust.<Customer>get("current").<Long>get("id").in(ids); // bad
+    }
+    private void bad3(CriteriaBuilder builder, Root<Book> book, List<String> titles) {
+        In<String> inClause = builder.in(book.get("title")); // bad
+        for (String title : titles) {
+            inClause.value(title);
+        }
+        criteriaQuery.select(book).where(inClause);
+    }
+    private void bad4(CriteriaQuery cq, Root<Book> book, List<String> titles) {
+        cq.select(book).where(book.get("title").in(titles)); // bad
+    }
+    private void good(CriteriaBuilder builder, CriteriaQuery cq, Root<Customer> cust, Subquery<PostalCode> subquery) {
+        cq.select(cust).where(builder.in(cust.get("postalCode")).value(subquery));
+    }
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>violation: Avoid sql in expressions with multiple params, no processing error, issue #302</description>
+        <expected-problems>2</expected-problems>
+        <expected-linenumbers>8,10</expected-linenumbers>
+        <code><![CDATA[
+import javax.persistence.TypedQuery;
+import javax.persistence.Query;
+
+public class SomeSQLProcessor {
+    String fieldQueryString = "SELECT M FROM MessageEntity m WHERE m.kind IN :kinds"; // should violate TODO see #378
+    void example(EntityManager em) {
+        String kinds = "";
+        String queryStr = "SELECT M FROM MessageEntity m WHERE m.kind IN :kinds"; // bad
+        final TypedQuery<Object> query1 = em.createQuery(queryStr, Object.class);
+        final TypedQuery<Object> query2 = em.createQuery("SELECT M FROM MessageEntity m WHERE m.kind IN :kinds", Object.class); // bad
+        final Query query3 = em.createQuery(fieldQueryString);
+        query1.setParameter("kinds", kinds);
+        query2.setParameter("kinds", kinds);
+        query3.setParameter("kinds", kinds);
+    }
+}
+     ]]></code>
+    </test-code>
+
+</test-data>

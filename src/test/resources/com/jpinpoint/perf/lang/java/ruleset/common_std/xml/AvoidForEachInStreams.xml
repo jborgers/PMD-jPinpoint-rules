@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>violation: forEach in streams</description>
+        <expected-problems>2</expected-problems>
+        <expected-linenumbers>14,30</expected-linenumbers>
+        <code><![CDATA[
+import java.util.*;
+import java.util.stream.IntStream;
+
+import static java.util.stream.Collectors.toMap;
+
+class AvoidForEachInStreams {
+
+    Logger log;
+
+    List<String> letters = Arrays.asList("a", "b", "c");
+    Map<String, Integer> map;
+    void forEachInStream() {
+        map = new HashMap<>();
+        letters.forEach(l -> map.put(l, 0)); // bad, side effect, modifies map
+    }
+    void forEachInLogging() {
+        letters.forEach(Log::info); // good, logging is okay
+    }
+    void forEachLoop() {
+        map = new HashMap<>();
+        for (String l : letters) {  // good, meant for modifying state
+            map.put(l, 0);
+        }
+    }
+    Map pureFunctional() {
+        return letters.stream().collect(toMap(l -> l, v -> 0)); // good, no side effects, no state used nor modified
+    }
+    void forEachInRange() {
+        map = new HashMap<>();
+        IntStream.range(0, letters.size()).forEach(i -> map.put(letters.get(i), 0)); // bad, side effect, modifies map
+    }
+    void loggingForms() { // all good
+        letters.forEach(this::log);
+        letters.forEach(l -> {
+            log.info(l);
+        });
+        letters.forEach(Log::info);
+    }
+    void log(String l) {
+        System.out.println(l);
+    }
+}
+        ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>no violation: forEach in streams Issue258</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import java.util.*;
+
+class Issue258 {
+    Iterable values = new ArrayList();
+    void bad() {
+        values.forEach(Log::debug); // good
+    }
+}
+     ]]></code>
+    </test-code>
+
+</test-data>

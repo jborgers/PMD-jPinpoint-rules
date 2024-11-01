@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>Avoid volatile field in Spring prototype scope</description>
+        <expected-problems>3</expected-problems>
+        <expected-linenumbers>8, 14, 20</expected-linenumbers>
+        <code><![CDATA[
+import org.springframework.stereotype.Component;
+import org.springframework.context.annotation.Scope;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+
+@Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+@Component
+public class Bad1 {
+    private volatile String id; // bad
+}
+
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+@Component
+class Bad2 {
+    private volatile String id; // bad
+}
+
+@Scope("prototype")
+@Component
+class Bad3 {
+    private volatile String id; // bad
+}
+
+@Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+@Component
+class Good1 {
+    private String id;
+}
+
+@Scope(value = ConfigurableBeanFactory.SCOPE_SINGLETON)
+@Component
+class Good2 {
+    private volatile String id;
+}
+
+            ]]></code>
+    </test-code>
+</test-data>

@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>no violation: no simple caching found</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+import org.springframework.cache.ehcache.EhCacheCacheManager;
+
+@EnableCaching
+@Configuration
+class Good {
+    @Bean public CacheManager cacheManager() {
+		return new EhCacheCacheManager(ehCacheCacheManagerFactory().getObject()); // good
+	}
+}
+    ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>violation: simple caching</description>
+        <expected-problems>2</expected-problems>
+        <expected-linenumbers>13,13</expected-linenumbers>
+        <code><![CDATA[
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+import org.springframework.cache.support.SimpleCacheManager;
+import org.springframework.cache.concurrent.ConcurrentMapCache;
+
+@EnableCaching
+@Configuration
+class Bad {
+    @Bean public CacheManager cacheManager() {
+        return new SimpleCacheManager().setCaches(Arrays.asList(new ConcurrentMapCache("ourCache"))); // bad
+    }
+}
+    ]]></code>
+    </test-code>
+
+</test-data>

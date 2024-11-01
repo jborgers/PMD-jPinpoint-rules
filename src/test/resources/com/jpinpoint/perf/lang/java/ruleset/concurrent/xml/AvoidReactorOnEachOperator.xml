@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>violation: AvoidReactorOnEachOperator examples</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>11</expected-linenumbers>
+        <code><![CDATA[
+import reactor.core.publisher.*;
+import org.springframework.context.annotation.Configuration;
+import javax.annotation.PostConstruct;
+import com.example.MdcContextLifter;
+
+@Configuration
+public class FooBad {
+    private String MDC_CONTEXT_REACTOR_KEY = "CONTEXT";
+    @PostConstruct
+    private void contextOperatorHook() {
+        Hooks.onEachOperator(MDC_CONTEXT_REACTOR_KEY,
+                Operators.lift((scannable, coreSubscriber) -> new MdcContextLifter<>(coreSubscriber))
+        );
+    }
+}
+     ]]></code>
+    </test-code>
+
+</test-data>

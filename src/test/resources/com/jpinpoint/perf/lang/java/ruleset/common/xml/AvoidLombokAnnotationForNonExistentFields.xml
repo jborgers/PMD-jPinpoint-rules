@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>no violation: Lombok annotations for fields used properly</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import lombok.*;
+
+@Getter
+@Setter
+ class RefineTechnicalExceptionGood1 extends RuntimeException {
+    public RefineTechnicalExceptionGood(String message) {
+        super(message);
+    }
+    String strField;
+}
+
+@Data
+ class RefineTechnicalExceptionGood2 extends RuntimeException {
+    public RefineTechnicalExceptionGood(String message) {
+        super(message);
+    }
+    @Value
+    String strField;
+
+    @Value
+    static class InnerGood {
+        String strField;
+    }
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>violation: Lombok annotation for fields used while class has no fields</description>
+        <expected-problems>5</expected-problems>
+        <expected-linenumbers>3,4,11,18,33</expected-linenumbers>
+        <code><![CDATA[
+import lombok.*;
+
+@Getter // bad
+@Setter // bad
+public class RefineTechnicalException1 extends RuntimeException {
+    public RefineTechnicalException(String message) {
+        super(message);
+    }
+}
+
+@Data //bad
+ class RefineTechnicalException2 extends RuntimeException {
+    public RefineTechnicalException(String message) {
+        super(message);
+    }
+}
+
+@EqualsAndHashCode //bad
+ class RefineTechnicalException3 extends RuntimeException {
+    public RefineTechnicalException(String message) {
+        super(message);
+    }
+}
+
+@Data
+ class RefineTechnicalException4 extends RuntimeException {
+    public RefineTechnicalExceptionGood(String message) {
+        super(message);
+    }
+    @Value
+    String strField;
+
+    @Value // bad
+    static class InnerBad {}
+
+}
+     ]]></code>
+    </test-code>
+
+</test-data>

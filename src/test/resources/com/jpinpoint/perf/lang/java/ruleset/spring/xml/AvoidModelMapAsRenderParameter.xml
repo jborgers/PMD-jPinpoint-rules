@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>Avoid ModelMap as render parameter</description>
+        <expected-problems>4</expected-problems>
+        <expected-linenumbers>20, 38, 47, 57</expected-linenumbers>
+        <code><![CDATA[
+import org.springframework.ui.ModelMap;
+import org.springframework.validation.Validator;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.portlet.bind.annotation.RenderMapping;
+import org.springframework.web.portlet.bind.annotation.ResourceMapping;
+import org.springframework.web.servlet.ModelAndView;
+
+import javax.portlet.PortletRequest;
+import javax.portlet.RenderRequest;
+
+public class AvoidModelMapAsRenderParameterTest {
+
+	protected Object messageSource;
+	private Validator validator;
+
+	// ModelMap in session between action and render, and after that
+	// render in method name, no RenderRequest param
+	@ResourceMapping("subview-init") // bad [--> NOT, see JPCC-88?]
+	public String initialOverviewRender0(final PortletRequest request,
+			final ModelMap modelMap, @RequestParam("viewName") final String viewName) {
+		modelMap.put("texts", messageSource);
+		// modelmap used during render
+		return "/" + viewName;
+	}
+
+	// ModelMap in session between action and render, and after that
+	// render in method name, no RenderRequest param
+	@ResourceMapping("subview-init") // good: non-public
+	private String initialOverviewRender01(final PortletRequest request,
+			final ModelMap modelMap, @RequestParam("viewName") final String viewName) {
+		modelMap.put("texts", messageSource);
+		return "/" + viewName;
+	}
+
+	// ModelMap in session between action and render, and after that
+	@ResourceMapping("subview-init") // bad [--> NOT, see JPCC-88?]
+	public String initialOverviewRender1(final RenderRequest request,
+			final ModelMap modelMap, @RequestParam("viewName") final String viewName) {
+		modelMap.put("texts", messageSource);
+		// modelmap used during render
+		return "/" + viewName;
+	}
+
+	// ModelMap in session between action and render, and after that
+    @RenderMapping(params = "flow=view_unsigned") // bad
+    public ModelAndView viewUnsignedDoodle(final RenderRequest request, @RequestParam final String doodleId,
+                                            @RequestParam final String modifiedTimeStamp, ModelMap modelMap,
+                                            final Object flow)
+    {
+    	//Object doodleForm = new Object();
+    	return new ModelAndView("FIRST_SCREEN_VIEW", "FIRST_SCREEN_FORM", modelMap);
+    }
+
+    // @ModelAttribute creates an implicit ModelMap in session
+    @RenderMapping(params = "RENDER=SECOND_SCREEN_FIRST_TIME") // bad
+    public ModelAndView renderSecondScreenFirstTime(final RenderRequest request,
+                                                    final @ModelAttribute Object firstScreenForm)
+    {
+        final Object secondScreenForm = new Object();
+    	return new ModelAndView("SECOND_SCREEN_VIEW", "SECOND_SCREEN_FORM", new Object[]{firstScreenForm, secondScreenForm});
+    }
+
+    public ModelAndView initialOverviewRender2(
+        final RenderRequest request,final String viewName) // good, assumed not in session
+    {
+	   ModelMap modelMap = new ModelMap();
+	   modelMap.put("texts", messageSource);
+
+	   // modelmap used during render, in view template. Assumed not to be put
+	   // in session, because no need.
+	   return new ModelAndView("income/" + viewName, modelMap);
+    }
+
+}
+        ]]></code>
+    </test-code>
+</test-data>

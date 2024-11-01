@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>Avoid multiple concat statements</description>
+        <expected-problems>5</expected-problems>
+        <expected-linenumbers>11,12, 28,29, 67</expected-linenumbers>
+        <code><![CDATA[
+import java.util.Arrays;
+import java.util.List;
+
+public class AvoidMultipleConcatStatementsTest {
+
+	public void testMultipleConcatDefect() {
+		String logStatement = "";
+		List<String> values = Arrays.asList(new String[] { "tic", "tac", "toe" });
+
+		logStatement += values.get(0);
+		logStatement += values.get(1); // bad
+        logStatement += values.get(2); // bad
+        otherCall();
+	}
+
+	public void testMultipleConcatCorrect() {
+		int log = 0;
+		List<Integer> values = Arrays.asList(new Integer[] { 1, 2, 3 });
+		log += values.get(0);
+		log += values.get(1);
+	}
+
+	public void testMultipleConcatDefect2() {
+		String logStatement = "";
+		List<String> values = Arrays.asList(new String[] { "tic", "tac", "toe" });
+
+		logStatement = logStatement + values.get(0);
+		logStatement = logStatement + values.get(1); // bad
+        logStatement = logStatement + values.get(2); // bad
+        otherCall();
+	}
+
+	public void testMultipleConcatCorrect2() {
+		int log = 0;
+		List<Integer> values = Arrays.asList(new Integer[] { 1, 2, 3 });
+		log = log + values.get(0);
+		log = log + values.get(1);
+	}
+
+	public void testMultipleConcatCorrect3() {
+		int log = 0;
+		int i = 0;
+		while (i++ < 3) {
+			List<Integer> values = Arrays.asList(new Integer[] { 1, 2, 3 });
+			log = log + values.get(0);
+			log = log + values.get(1);
+		}
+	}
+
+    public void testMultipleConcatCorrect4() {
+		String log1 = "";
+		String log2 = "";
+        int log3 = 0;
+        log3 += 1;
+		log1 += values.get(0); // good
+        log2 += values(1); // good
+	}
+}
+
+class ConcatsExample {
+
+    private String[] values = {"tic", "tac"};
+
+    String bad() {
+        String logStatement = "";
+        logStatement += values[0];
+        return logStatement += values[1]; // bad
+    }
+    String good() {
+        StringBuilder logStmtBuilder = new StringBuilder();
+        return logStmtBuilder.append(values[0]).append(values[1]).toString(); // good
+    }
+}
+
+     ]]></code>
+    </test-code>
+</test-data>

@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ruleset name="jpinpoint-enterprise-rules" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 https://pmd.sourceforge.io/ruleset_2_0_0.xsd" xmlns="http://pmd.sourceforge.net/ruleset/2.0.0">
+    <description>jPinpoint rule set for performance aware Java coding, sponsored by Rabobank.</description>
+
+    <rule name="DefineConcurrencyForJavaEESingleton"
+          message="For JavaEE @Singleton, make @ConcurrencyManagement explicit and define @Lock on class level or for all public methods."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          language="java"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#tutc13">
+    <description>
+        Problem: A JavaEE @Singleton has default @ConcurrencyManagement CONTAINER and write locks. Using defaults is unclear and write locks typically cause much more contention than read locks. &#13;
+        Solution: Make @ConcurrencyManagement and @Lock-s explicit, @Lock on class level or on all public methods. Or use BEAN managed for full control using e.g. synchronized or volatile.&#13;
+        (jpinpoint-rules)</description>
+    <priority>3</priority>
+    <properties>
+        <property name="tags" value="jpinpoint-rule, confusing, multi-threading,performance" type="String" description="classification"/>
+        <property name="xpath">
+            <value>
+                <![CDATA[
+//ClassDeclaration[pmd-java:hasAnnotation('javax.ejb.Singleton')]
+    (: @Singleton without @ConcurrencyManagement :)
+    [not(pmd-java:hasAnnotation('javax.ejb.ConcurrencyManagement'))
+    (: or @Singleton with @ConcurrencyManagement CONTAINER and not a class level @Lock or has public methods without @Lock :)
+    or pmd-java:hasAnnotation('javax.ejb.ConcurrencyManagement') and .//Annotation[@SimpleName='ConcurrencyManagement']//(FieldAccess|VariableAccess)[@Name='CONTAINER']
+        and (not(pmd-java:hasAnnotation('javax.ejb.Lock')))
+        and (count(.//MethodDeclaration[@Visibility='public' and not(exists(.//Annotation[@SimpleName='Lock']))]) > 0)
+]
+,
+//ClassDeclaration[pmd-java:hasAnnotation('jakarta.ejb.Singleton')]
+    (: @Singleton without @ConcurrencyManagement :)
+    [not(pmd-java:hasAnnotation('jakarta.ejb.ConcurrencyManagement'))
+    (: or @Singleton with @ConcurrencyManagement CONTAINER and not a class level @Lock or has public methods without @Lock :)
+    or pmd-java:hasAnnotation('jakarta.ejb.ConcurrencyManagement') and .//Annotation[@SimpleName='ConcurrencyManagement']//(FieldAccess|VariableAccess)[@Name='CONTAINER']
+        and (not(pmd-java:hasAnnotation('jakarta.ejb.Lock')))
+        and (count(.//MethodDeclaration[@Visibility='public' and not(exists(.//Annotation[@SimpleName='Lock']))]) > 0)
+]
+                ]]>
+            </value>
+        </property>
+    </properties>
+    <example>
+        <![CDATA[
+@Singleton // bad - 1. @ConcurrencyManagement missing 2. @Lock missing on public method
+class SingletonBad {
+    private String state;
+    public String getState() {
+        return state;
+    }
+    @Lock(LockType.WRITE)
+    public void setState(String newState) {
+        state = newState;
+    }
+}
+@Singleton
+@ConcurrencyManagement(ConcurrencyManagementType.CONTAINER)
+class SingletonGood {
+    private String state;
+    @Lock(LockType.READ)
+    public String getState() {
+        return state;
+    }
+    @Lock(LockType.WRITE)
+    public void setState(String newState) {
+        state = newState;
+    }
+}
+]]>
+    </example>
+</rule>
+
+</ruleset>

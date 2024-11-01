@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>Avoid improper annotation combinations</description>
+        <expected-problems>11</expected-problems>
+        <expected-linenumbers>20, 25, 38, 45, 56, 66, 71, 76, 88, 93, 107</expected-linenumbers>
+        <code><![CDATA[
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Value;
+import lombok.ToString;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Controller;
+import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RestController;
+
+import javax.persistence.Entity;
+
+import org.aspectj.lang.annotation.Aspect;
+
+@Controller
+@Repository // bad 1
+public class AvoidImproperAnnotationCombinations {
+
+    // Spring: Don't combine any of: @Component, @Service, @Configuration, @Repository, @Controller, @RestController
+    @Component
+    @Configuration // bad 2
+    class StringAnnotationsViolation1 {
+    }
+
+    @Component
+    class StringAnnotationsOk1 {
+    }
+
+    @Configuration
+    class StringAnnotationsOk2 {
+    }
+
+    @Component
+    @Service // bad 3
+    @Repository
+    class StringAnnotationsViolation2 {
+    }
+
+    // JPA with Spring: Don't combine @Entity with one of: @Component, @Service, @Configuration, @Repository, @Controller
+    @Entity
+    @Component // bad 4
+    class JPASpringAnnotationsViolation1 {
+    }
+
+    @Entity
+    class JPASpringAnnotationsOk1 {
+    }
+
+    // Lombok: Don't combine 1. @Data with @Value;
+    // 2. @Data or @Value with bare/marker annotation one of: @EqualsAndHashCode, @ToString, @Getter, @Setter and @RequiredArgsConstructor
+    @Data
+    @Value // bad 5
+    class LombokAnnotationsViolation1 {
+    }
+
+    @ToString(includeFieldNames=true) // only bare/marker annotations are a violation
+    @Data
+    class LombokAnnotationsOk1 {
+    }
+
+    @ToString
+    @Data // bad 6
+    class LombokAnnotationsViolation2 {
+    }
+
+    @Getter
+    @Value // bad 7
+    class LombokAnnotationsViolation3 {
+    }
+
+    @EqualsAndHashCode
+    @Data// bad 8,9
+    @Value
+    class LombokAnnotationsViolation4 {
+    }
+
+    // AspectJ: Don't combine @Aspect with one of [@Service, @Configuration, @Repository, @Controller, @Entity]
+    @Aspect // good
+    @Component
+    class AspectAnnotationViolation1 {
+    }
+
+    @Aspect
+    @Configuration // bad 10
+    class AspectAnnotationViolation1 {
+    }
+
+    @Aspect
+    @Entity // bad 11
+    class AspectAnnotationViolation2 {
+    }
+
+    @Aspect
+    class AspectAnnotationOk1 {
+    }
+
+    @Aspect
+    @Value
+    class AspectAnnotationOk2 {
+    }
+
+    @RestController
+    @Configuration // bad
+    class StringAnnotationsViolation3 {
+    }
+
+    class LombokAnnotationsOk2 {
+        @Getter
+        @Value("${foo.bar.enabled:true}")
+        private boolean barEnabled;
+    }
+
+}
+        ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>Avoid improper annotation combinations, Issue 223</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>3</expected-linenumbers>
+        <code><![CDATA[
+import lombok.*;
+import org.springframework.stereotype.*;
+@Component // bad 13
+@Data
+public class Issue223 {
+}
+        ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>Avoid improper annotation combinations, Issue 277</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import lombok.*;
+import org.springframework.stereotype.*;
+@Configuration // good
+@Data
+public class Issue277 {
+}
+        ]]></code>
+    </test-code>
+
+</test-data>

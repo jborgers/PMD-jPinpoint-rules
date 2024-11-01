@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>violati
+            on: NonComparableMapKeys</description>
+        <expected-problems>6</expected-problems>
+        <expected-linenumbers>4,5,9,10,11,16</expected-linenumbers>
+        <code><![CDATA[
+import java.util.*;
+
+public class NonComparableMapKeys {
+    Map<NonComparableKey, String> nckMap; // bad, with pmd7 we are able to test this, nice!
+    Map<Runnable, String> rMap; // bad
+    Map<ComparableKey, String> ckMap; // good. Not available from classpath, type cannot be determined, then no violation
+    Map<Comparable, String> cMap; // good
+    Map<String, String> sMap = new HashMap<>(); // good
+    HashMap<Object, String> oMap; // bad, Object does not implement Comparable
+    Map<Thread, String> tMap; // bad, Thread does not implement Comparable
+    Map<Class, String> clMap; // bad, Class does not implement Comparable
+    Map oldStyleMap = new HashMap(); // cannot check here
+
+    void putInOldStyleMap() {
+        oldStyleMap.put("key", "value");
+        oldStyleMap.put(new Thread(), new Thread()); // bad
+    }
+}
+
+class NonComparableKey { // will not be available in classpath, unfortunately
+}
+
+abstract class ComparableKey implements Comparable<ComparableKey> {
+}
+     ]]></code>
+    </test-code>
+
+</test-data>

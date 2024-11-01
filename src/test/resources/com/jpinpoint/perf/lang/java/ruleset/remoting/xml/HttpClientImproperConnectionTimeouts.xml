@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>violation: HttpClientImproperConnectionTimeouts</description>
+        <expected-problems>2</expected-problems>
+        <expected-linenumbers>3,4</expected-linenumbers>
+        <code><![CDATA[
+import org.apache.http.client.config.RequestConfig;
+public class HttpClientStuff {
+    private static final int CONNECTION_TIMEOUTMILLIS = 1000; // bad // Determines the timeout in milliseconds until a connection is established
+    private static final int CONNECTIONREQUEST_TIMEOUTMILLIS = 5000; // bad // The timeout when requesting a connection from the connection manager
+    private static final int SOCKET_TIMEOUTMILLIS = 5000; // The timeout of waiting for data
+
+    public RequestConfig requestConfigWithTimeouts() {
+        RequestConfig requestConfig = RequestConfig.custom()
+                .setConnectionRequestTimeout(CONNECTIONREQUEST_TIMEOUTMILLIS)
+                .setConnectTimeout(CONNECTION_TIMEOUTMILLIS)
+                .setSocketTimeout(SOCKET_TIMEOUTMILLIS)
+                .build();
+        return requestConfig;
+    }
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>violation: HttpClientImproperConnectionTimeouts issue #199</description>
+        <expected-problems>6</expected-problems>
+        <expected-linenumbers>3,4, 19,20, 26,27</expected-linenumbers>
+        <code><![CDATA[
+import org.apache.http.client.config.RequestConfig;
+class HttpClientStuffLocal {
+    private static final int CONNECTION_TIMEOUTMILLIS = 1000; // bad // timeout until a connection is established
+    private static final int CONNECTIONREQUEST_TIMEOUTMILLIS = 5000; // bad // timeout when requesting a connection from the connection manager
+    private static final int SOCKET_TIMEOUTMILLIS = 5000; // timeout of waiting for data
+
+    public RequestConfig requestConfigWithTimeouts() {
+        return RequestConfig.custom()
+                .setConnectionRequestTimeout(CONNECTIONREQUEST_TIMEOUTMILLIS)
+                .setConnectTimeout(CONNECTION_TIMEOUTMILLIS)
+                .setSocketTimeout(SOCKET_TIMEOUTMILLIS)
+                .build();
+    }
+}
+
+class Foo {
+    private RequestConfig getDefaultConnectionConfigLiterals() {
+        return RequestConfig.custom()
+                .setConnectionRequestTimeout(60000)// bad
+                .setConnectTimeout(60000)// bad
+                .setSocketTimeout(60000)
+                .build();
+    }
+    private RequestConfig getDefaultConnectionConfigLiteralsLocal() {
+        RequestConfig rq = RequestConfig.custom()
+                .setConnectionRequestTimeout(60000)// bad
+                .setConnectTimeout(60000)// bad
+                .setSocketTimeout(60000)
+                .build();
+        return rq;
+    }
+}
+]]></code>
+    </test-code>
+
+    <test-code>
+        <description>Fix Request: HttpClientImproperConnectionTimeouts missing Spring support #206</description>
+        <expected-problems>2</expected-problems>
+        <expected-linenumbers>7, 13</expected-linenumbers>
+        <code><![CDATA[
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+
+public class SomeClient {
+    private final RestTemplate restTemplate;
+    private final String path;
+    int CONN_READ_TIMEOUT_IN_MILLISECONDS = 4000;
+    int CONN_TIMEOUT_IN_MILLISECONDS = 5000; // missed case, bad
+
+    private void submitHttpRequest(HttpEntity<SomeRequest> request) {
+            HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
+            requestFactory.setConnectTimeout(CONN_TIMEOUT_IN_MILLISECONDS);
+            requestFactory.setReadTimeout(CONN_READ_TIMEOUT_IN_MILLISECONDS);
+            requestFactory.setConnectionRequestTimeout(6000); // missed case, bad
+            restTemplate.setRequestFactory(requestFactory);
+            ResponseEntity<?> response = restTemplate.exchange(path, HttpMethod.PUT, request, SomeResponse.class);
+    }
+}
+]]></code>
+    </test-code>
+    <test-code>
+        <description>Fix Request: support defaults in HttpClientImproperConnectionTimeouts #207</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>8</expected-linenumbers>
+        <code><![CDATA[
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+
+public class SomeClient {
+    private final RestTemplate restTemplate;
+    private final String path;
+    @Value("${http.read.timeout:4000}")
+    int CONN_READ_TIMEOUT_IN_MILLISECONDS;
+    @Value("${http.connect.timeout:5000}") // missed case
+    int CONN_TIMEOUT_IN_MILLISECONDS;
+
+    private void submitHttpRequest(HttpEntity<SomeRequest> request) {
+            HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
+            requestFactory.setConnectTimeout(CONN_TIMEOUT_IN_MILLISECONDS);
+            requestFactory.setReadTimeout(CONN_READ_TIMEOUT_IN_MILLISECONDS);
+            requestFactory.setConnectionRequestTimeout(CONN_TIMEOUT_IN_MILLISECONDS);
+            restTemplate.setRequestFactory(requestFactory);
+            ResponseEntity<?> response = restTemplate.exchange(path, HttpMethod.PUT, request, SomeResponse.class);
+    }
+}
+]]></code>
+    </test-code>
+
+</test-data>

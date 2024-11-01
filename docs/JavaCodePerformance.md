@@ -3056,9 +3056,22 @@ Violation of Encapsulation, DRY or SRP
 #### VOEDOS04
 
 **Observation: An interface is used to define constants.**  
-**Problem:** Constants are often implementation details. Putting constants in an interface makes them part of the public API of all implementing classes. Doing this for constants which are implementation details is bad OO practice. It is a [documented anti-pattern](http://en.wikipedia.org/wiki/Constant_interface).  
+**Problem:** Constants are often implementation details. Putting constants in an interface makes them part of the public API of all implementing classes and their sublcasses. Doing this for constants which are implementation details is bad OO practice. It is a documented anti-pattern, see [wikipedia](http://en.wikipedia.org/wiki/Constant_interface) and [baeldung](https://www.baeldung.com/java-constants-good-practices#3-the-constant-interface-anti-pattern).  
 **Solution:** Make it a Class which cannot be instantiated, or an Enum. Use static imports.  
-**Rule name:** AvoidConstantsInInterface.
+**Rule name:** AvoidConstantsInInterface.   
+**Example:**
+```java
+public interface AnimalConsts {
+    public static final Dog DOG = new Dog(); //bad
+}
+public class AnimalUtil {
+    private AnimalUtil() {}
+    public static final Dog DOG = new Dog(); // good
+}
+public enum Animal {
+    DOG // good
+}
+```
 
 #### VOEDOS05
 

@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>Unconditional operation in log statement: bad situations</description>
+        <expected-problems>6</expected-problems>
+        <expected-linenumbers>12,13,14, 20,21, 25</expected-linenumbers>
+        <code><![CDATA[
+import org.apache.commons.logging.*;
+import org.slf4j.*;
+import javax.servlet.http.HttpServletRequest;
+import java.util.*;
+
+public class Bad {
+    private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(Bad.class);
+    private static final java.util.logging.Logger JUTIL_LOG = java.util.logging.Logger.getLogger(Bad.class.toString());
+    private static final Log COMMONS_LOG = LogFactory.getLog(Bad.class);
+
+    public String testBad(String faultCode) {
+        LOG.debug("Trying to get [{}]", faultCode.toUpperCase(Locale.US)); // bad
+        JUTIL_LOG.info("Getting [" + faultCode.toUpperCase(Locale.US) + "]"); // bad
+        COMMONS_LOG.debug("Trying to get [{}]", faultCode.replaceAll("_", "-")); // bad
+        return faultCode.toUpperCase(Locale.US);
+    }
+
+    public void testBadStringOps(String total) {
+        StringBuilder sb = new StringBuilder();
+        LOG.debug("buffer = {}", sb.toString()); // bad
+        LOG.debug(String.format("Total= %s", total)); // bad
+    }
+
+    public void operationsBad(String s) {
+        LOG.debug("Response : {}", testBad(s)); // bad
+    }
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>Unconditional operation in log statement: good situations</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import org.apache.commons.logging.*;
+import org.slf4j.*;
+import javax.servlet.http.HttpServletRequest;
+import java.util.*;
+
+public class Good {
+    private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(Good.class);
+    private static final java.util.logging.Logger JUTIL_LOG = java.util.logging.Logger.getLogger(Good.class.toString());
+    private static final Log COMMONS_LOG = LogFactory.getLog(TryoutUnconditionalOperationOnLogArgument.class);
+
+    public void testGood(String faultCode) {
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Getting [{}]", faultCode.toUpperCase(Locale.US));
+        }
+        if (JUTIL_LOG.isLoggable(Level.INFO)) {
+            JUTIL_LOG.info("Getting [" + faultCode.toUpperCase(Locale.US) + "]");
+        }
+    }
+
+    public void operationsGood(Map m, String key) {
+        LOG.debug("Response : {}", m.get(key), op()); // good
+    }
+
+    public void op() {
+    }
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>Unconditional operation in log statement: return if debugEnabled before actual log</description>
+        <expected-problems>3</expected-problems>
+        <expected-linenumbers>13,16,22</expected-linenumbers>
+        <code><![CDATA[
+import org.slf4j.*;
+
+public class UnconOp {
+    private static final Logger LOG = LoggerFactory.getLogger(UnconOp.class);
+
+    public static void good(String to) {
+        if (!LOG.isDebugEnabled()) {
+            return;
+        }
+        LOG.debug("green-> {}", shortenActor1(to));
+    }
+    public static void bad1(String to) {
+        LOG.debug("green-> {}", shortenActor2(to)); //bad
+    }
+    public static void bad2(String to) {
+        LOG.debug("green-> {}", shortenActor3(to)); //bad
+        if (!LOG.isDebugEnabled()) {
+            return;
+        }
+    }
+    public static void bad3(String to) {
+        LOG.debug("green-> {}", shortenActor4(to)); // bad
+        if (!LOG.isDebugEnabled()) {
+            return;
+        }
+        LOG.debug("green-> {}", shortenActor1(to));
+    }
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>Avoid unconditional operation on log argument issue #158</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>6</expected-linenumbers>
+        <code><![CDATA[
+import org.slf4j.*;
+class Foo {
+    private static final Logger LOG = LoggerFactory.getLogger(Foo.class);
+    private static void bar(Environment env) {
+        LOG.info("Application '{}' has started!", env.getProperty("spring.application.name")); //good
+        LOG.info("Application", env.resolvePlaceHoldersProperty(" '${spring.application.name}' has started!")); //bad
+    }
+}
+    ]]></code>
+    </test-code>
+
+</test-data>

@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>violation: returning HttpClient built without disableConnectionState</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>7</expected-linenumbers>
+        <code><![CDATA[
+import org.apache.http.impl.client.ClosableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.client.HttpClient;
+
+class Bad {
+    public HttpClient bad(Object conMgr) {
+        return HttpClientBuilder.create() // bad, missing disableConnectionState
+                .setConnectionManager(conMgr)
+                .build();
+    }
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>no violation: returning HttpClient built with disableConnectionState</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import org.apache.http.impl.client.ClosableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.client.HttpClient;
+
+class Good {
+    public HttpClient good(Object conMgr) {
+        return HttpClientBuilder.create()
+                .setConnectionManager(conMgr)
+                .disableConnectionState()
+                .build();
+    }
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>violation: HttpClient local built without disableConnectionState</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>7</expected-linenumbers>
+        <code><![CDATA[
+import org.apache.http.impl.client.ClosableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.client.HttpClient;
+
+class Bad {
+    public HttpClient bad(Object conMgr) {
+        HttpClient client = HttpClientBuilder.create() // bad
+                .setConnectionManager(conMgr)
+                .build(); // bad
+        return client;
+    }
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>no violation: HttpClient local built with disableConnectionState</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import org.apache.http.impl.client.ClosableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.client.HttpClient;
+
+class Bad {
+    public HttpClient good(Object conMgr) {
+        HttpClient client = HttpClientBuilder.create()
+                .setConnectionManager(conMgr)
+                .disableConnectionState()
+                .build();
+        return client;
+    }
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>violation: HttpClients.custom local built without disableConnectionState</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>7</expected-linenumbers>
+        <code><![CDATA[
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.client.CloseableHttpClient;
+
+class Bad {
+    public CloseableHttpClient bad(Object conMgr) {
+        HttpClientBuilder httpClientBuilder = HttpClients.custom() //bad
+                .setConnectionManager(null)
+                .setRetryHandler(null);
+        return httpClientBuilder.build();
+    }
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>no violation: HttpClients.custom local built with disableConnectionState</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.client.CloseableHttpClient;
+
+class Good {
+    public CloseableHttpClient good(Object conMgr) {
+        HttpClientBuilder httpClientBuilder = HttpClients.custom() // good
+                .disableConnectionState()
+                .setConnectionManager(null)
+                .setRetryHandler(null);
+        return httpClientBuilder.build();
+    }
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>violation: HttpAsyncClientBuilder formal param, built without disableConnectionState</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>6</expected-linenumbers>
+        <code><![CDATA[
+import org.apache.http.impl.nio.client.HttpAsyncClientBuilder;
+import org.apache.http.impl.nio.client.CloseableHttpAsyncClient;
+class Bad {
+    private CloseableHttpAsyncClient bad(final HttpAsyncClientBuilder clientBuilder) {
+        clientBuilder.setDefaultCredentialsProvider(CREDENTIALS);
+        return clientBuilder.build(); // bad
+    }
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>no violation: HttpAsyncClientBuilder formal param, built with disableConnectionState</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import org.apache.http.impl.nio.client.HttpAsyncClientBuilder;
+import org.apache.http.impl.nio.client.CloseableHttpAsyncClient;
+class Good {
+    private CloseableHttpAsyncClient good(final HttpAsyncClientBuilder clientBuilder) {
+        clientBuilder
+            .setDefaultCredentialsProvider(CREDENTIALS)
+            .disableConnectionState();
+        return clientBuilder.build();
+    }
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>violation: HttpAsyncClientBuilder formal param, and return created built without disableConnectionState</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>5</expected-linenumbers>
+        <code><![CDATA[
+import org.apache.http.impl.nio.client.HttpAsyncClientBuilder;
+import org.apache.http.impl.nio.client.CloseableHttpAsyncClient;
+class Bad {
+    private CloseableHttpAsyncClient bad(final HttpAsyncClientBuilder clientBuilder) {
+        return HttpAsyncClientBuilder.create() // bad
+            .setDefaultCredentialsProvider(CREDENTIALS)
+            .build();
+    }
+}
+     ]]></code>
+    </test-code>
+
+</test-data>
