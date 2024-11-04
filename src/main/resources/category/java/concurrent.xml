@@ -654,14 +654,16 @@ public class MutateInheritedFieldTryout extends SynchronizedTryout {
    ]
    (: -- GuardedBy annotations are matched on SimpleName, so it matches all known GuardedBy annotations :)
    (: -- net.jcip.annotations.GuardedBy, javax.annotation.concurrent.GuardedBy, com.google.errorprone.annotations.concurrent.GuardedBy :)
-   (: assignment to a field that is not final or volatile or GuardedBy :)
    //AssignmentExpression/*[1][
-      not(@Name = ancestor::ClassDeclaration//FieldDeclaration[
+      (: is a field of class :)
+      @Name = ancestor::ClassDeclaration//FieldDeclaration/VariableDeclarator/VariableId/@Name
+      (: but not  final or volatile or GuardedBy :)
+      and not(@Name = ancestor::ClassDeclaration//FieldDeclaration[
             pmd-java:modifiers()=('final','volatile')
             or ModifierList/Annotation[@SimpleName='GuardedBy']
         ]/VariableDeclarator/VariableId/@Name)
-       (: field not on accessor method with assignment level annotated with framework annotation :)
-       and not(
+      (: field not on accessor method with assignment level annotated with framework annotation :)
+      and not(
              ancestor::MethodDeclaration[
                    pmd-java:hasAnnotation('org.springframework.beans.factory.annotation.Autowired')
                    or (pmd-java:hasAnnotation('javax.annotation.PostConstruct') or pmd-java:hasAnnotation('jakarta.annotation.PostConstruct'))
