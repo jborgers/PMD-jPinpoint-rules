@@ -176,4 +176,31 @@ enum BarCode {
         ]]></code>
     </test-code>
 
+    <test-code>
+        <description>False positive and missed case #387 </description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>13</expected-linenumbers>
+        <code><![CDATA[
+import java.util.*;
+import java.time.temporal.ChronoField; // enum
+
+class Issue387 {
+    private enum Language {
+    }
+    private static final Map<Language, String> RULES_NAMES;
+
+    static {
+        Map<Language, String> map = new EnumMap<>(Language.class);
+        RULES_NAMES = Collections.unmodifiableMap(map); // <--- false positive
+    }
+    private static final Map<ChronoField, String> mapEnumValueInLine = Map.of( // bad, missed
+                ChronoField.DAY_OF_WEEK, "DOW",
+                ChronoField.DAY_OF_MONTH, "DOM"
+    );
+    private static final Map<ChronoField, String> mapEnumValueInLineOneElem = Map.of( // good, 1 entry no hashmap overhead
+                ChronoField.DAY_OF_WEEK, "DOW"
+    );
+}
+        ]]></code>
+    </test-code>
 </test-data>
