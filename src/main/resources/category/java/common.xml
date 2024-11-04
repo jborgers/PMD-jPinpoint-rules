@@ -1965,4 +1965,61 @@ class Foo {
         </example>
     </rule>
 
+    <rule name="MissingEqualsAndHashCodeWithGetterSetter"
+          language="java"
+          message="Equals and/or hashCode is missing in a class with lombok @Getter or @Setter."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          externalInfoUrl="${doc_root}/JavaCodeQuality.md#ieah01">
+        <description>Problem: If only the @Setter and/or @Getter annotation is used, and equals and hashcode are not defined, this is probably a mistake. The object has fields and if used in a collection or with equality, it will not behave as expected.
+            Solution: include equals and hashCode e.g. by @EqualsAndHashCode or usually better @Data instead of @Setter/@Getter, however, are setters really needed? Prefer immutability, so @Value, combined with @Builder, with @Singular for collection fields.
+        </description>
+        <priority>3</priority>
+        <properties>
+            <property name="xpath">
+                <value><![CDATA[
+//ClassDeclaration[
+    (pmd-java:hasAnnotation('lombok.Getter') or pmd-java:hasAnnotation('lombok.Setter'))
+    and not(
+        pmd-java:hasAnnotation('lombok.EqualsAndHashCode')
+        or pmd-java:hasAnnotation('org.springframework.context.annotation.Configuration')
+        or pmd-java:hasAnnotation('org.springframework.boot.context.properties.ConfigurationProperties')
+        or pmd-java:hasAnnotation('jakarta.persistence.Entity')
+        or pmd-java:hasAnnotation('javax.persistence.Entity')
+        or (
+            ./ClassBody/MethodDeclaration[@Name='equals' and @Arity=1 and ./PrimitiveType[@Kind='boolean']]
+            and ./ClassBody/MethodDeclaration[@Name='hashCode' and @Arity=0 and ./PrimitiveType[@Kind='int']]
+        )
+    )
+]/ModifierList/Annotation
+                ]]></value>
+            </property>
+            <property name="tags" value="jpinpoint-rule,correctness" type="String" description="classification"/>
+        </properties>
+        <example>
+            <![CDATA[
+import lombok.*;
+
+@Getter @Setter
+// no equals/hashcode annotation
+class MissingEqualsHashCodeWithGetterSetterBad { // bad
+    String field1;
+    String field2;
+    // no equals, no hashCode
+}
+
+@Getter @Setter @EqualsAndHashCode
+class EqualsHashCodeWithGetterSetterOkay {
+    String field1;
+    String field2;
+}
+
+@Builder @Value
+class ValueGood {
+    String field1;
+    String field2;
+}
+            ]]>
+        </example>
+    </rule>
+
 </ruleset>

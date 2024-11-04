@@ -347,8 +347,8 @@ Potential Session Data Mix-up
 Session data mixup is one of the worst problems that can occur. Customers seeing data of other customers is bad, for the users and for the reputation of the company. Therefore, we want to have defence mechanisms to protect against these problems. There can be several causes of session data mixup, like:
 
 *   a response over a connection being bound to the wrong request, so request-response mixup.
-*   shared variables like singleton fields, e.g. in a Spring @Controller, @Component, etc.
-*   cache key mixup.
+*   shared variables like singleton fields, e.g. in a servlet, Spring @Component, JavaEE @Singleton.
+*   cache key mixup: when two users use the same key in a shared cache. See [caching pitfalls](https://github.com/jborgers/PMD-jPinpoint-rules/blob/master/docs/JavaCodePerformance.md#improper-caching).
 
 #### PSDM01
 

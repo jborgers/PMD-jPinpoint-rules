@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>MissingEqualsHashCodeWithGetterSetter</description>
+        <expected-problems>4</expected-problems>
+        <expected-linenumbers>7,8,16,27</expected-linenumbers>
+        <code><![CDATA[
+import lombok.Getter;
+import lombok.Setter;
+import lombok.EqualsAndHashCode;
+import lombok.Data;
+import lombok.Value;
+
+@Getter // bad
+@Setter // bad
+// no equals/hashcode annotation
+class MissingEqualsHashCodeWithGetterSetterBad {
+    String field1;
+    String field2;
+    // no equals, no hashCode
+}
+
+@Getter // bad
+// no equals/hashcode annotation
+class MissingEqualsHashCodeWithGetterBad {
+    String field1;
+    String field2;
+    public boolean equals(Object o) {
+        // implementation
+    }
+    //hashCode missing
+}
+
+@Setter // bad - l27
+// no equals/hashcode annotation
+ class MissingEqualsHashCodeWithSetterBad {
+    String field1;
+    String field2;
+    public int hashCode() {
+        // implementation
+    }
+    //equals missing
+}
+
+@Getter
+@Setter
+// no equals/hashcode annotation
+class HasEqualsHashCodeWithGetterSetterGood { // good
+    String field1;
+    String field2;
+    public boolean equals(Object o) {
+        // implementation
+    }
+    public int hashCode() {
+        // implementation
+    }
+}
+
+@Getter
+@Setter
+@EqualsAndHashCode
+ class EqualsHashCodeWithGetterSetterGood {
+    String field1;
+    String field2;
+}
+
+@Getter
+@Setter
+@EqualsAndHashCode(doNotUseGetters = true)
+ class EqualsHashCodeWithGetterSetterGoodAlt {
+    String field1;
+    String field2;
+}
+
+@Data
+ class DataGood {
+    String field1;
+    String field2;
+}
+
+@Value
+ class ValueBetter {
+    String field1;
+    String field2;
+}
+    ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>MissingEqualsHashCodeWithGetterSetter issue #324</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import lombok.Getter;
+
+@RequiredArgsConstructor
+@Getter // false positive
+public enum DomainContext {
+
+    DK("001"),
+    VK("002");
+
+    private final String code;
+}
+            ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>MissingEqualsHashCodeWithGetterSetter issue #328</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import lombok.*;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import jakarta.persistence.Entity;
+import javax.persistence.Entity;
+
+@Getter
+@Configuration
+class SomeConfig {}
+
+@Getter
+@ConfigurationProperties
+class SomeConfigProps {}
+
+@Entity
+@Getter
+class SomeEntity {}
+        ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>MissingEqualsHashCodeWithGetterSetter issue #328 old javax entity</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import lombok.*;
+import javax.persistence.Entity;
+
+@Entity
+@Getter
+class SomeEntity {}
+        ]]></code>
+    </test-code>
+
+
+</test-data>
