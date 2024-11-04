@@ -511,8 +511,7 @@ void good2() {
         </example>
     </rule>
 
-    <rule
-            name="AvoidModifyingObjectMapper"
+    <rule name="AvoidModifyingObjectMapper"
             class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
             language="java"
             message="ObjectMapper is configured/modified, only initialize it right after construction."
