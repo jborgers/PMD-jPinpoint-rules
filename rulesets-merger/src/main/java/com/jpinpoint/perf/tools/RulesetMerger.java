@@ -19,7 +19,7 @@ public class RulesetMerger {
     private static final String LSEP = System.lineSeparator();
     public static final String J_PINPOINT = "jPinpoint";
 
-    public static final String JPINPOINT_RULES = "jpinpoint-rules-pmd7"; // temporarily '-pmd7' until enough rules are migrated
+    public static final String JPINPOINT_RULES = "jpinpoint-rules";
 
     public static final String JPINPOINT_KOTLIN_RULES = "jpinpoint-kotlin-rules";
 
