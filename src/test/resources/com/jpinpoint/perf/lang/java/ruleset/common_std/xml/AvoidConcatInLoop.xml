@@ -254,4 +254,29 @@ public class ConcatInLoop {
      ]]></code>
     </test-code>
 
+    <test-code>
+        <description>violation: false positive and missed case #383</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>14</expected-linenumbers>
+        <code><![CDATA[
+public class Issue383 {
+
+    public void goodX() {
+        String logStatement = "ticAtacBtoe";
+        List<String> values = Arrays.asList("tic", "tac", "toe");
+        for (String val : values) {
+            logStatement = logStatement.replace(val, "-"); // <-----false positive
+        }
+    }
+
+    public void badX() {
+       String logStatement = "";
+        for (int i = 0; i < 3; i++) {
+            logStatement += i + ", "; // bad
+        }
+    }
+}
+     ]]></code>
+    </test-code>
+
 </test-data>

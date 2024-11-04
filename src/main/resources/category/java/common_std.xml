@@ -101,9 +101,10 @@ public class DateStuff {
             <property name="tags" value="cpu,jpinpoint-rule,performance,sustainability-medium" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
-(//ForeachStatement | //WhileStatement | //DoStatement)//AssignmentExpression[
+(//ForStatement | //ForeachStatement | //WhileStatement | //DoStatement)//AssignmentExpression[
     (: a += ...;  - a being a string OR a = ... + a + ...; - a being a string :)
-    @Operator = '+=' or @Operator = '=']/VariableAccess[pmd-java:typeIs('java.lang.String')]
+    @Operator = '+=' or (@Operator = '=' and ./InfixExpression[@Operator="+"])
+]/VariableAccess[pmd-java:typeIs('java.lang.String')]
 /.. (: Go up to report on the StatementExpression :)
 	]]>
                 </value>
