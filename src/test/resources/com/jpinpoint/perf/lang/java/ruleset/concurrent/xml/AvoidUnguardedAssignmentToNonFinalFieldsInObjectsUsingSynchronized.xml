@@ -190,4 +190,39 @@ public class GoodForThisRule {
 
         ]]></code>
     </test-code>
+
+    <test-code>
+        <description>no violation: do not match non-field values</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+package com.jpinpoint.tryout;
+
+import net.jcip.annotations.GuardedBy;
+
+import java.util.HashMap;
+import java.util.Map;
+
+public class NoMatchOnNonFieldValues {
+    @GuardedBy("this")
+    private static Map staticMapField = new HashMap();
+
+    public String getDetails() {
+
+        String detailsResponse = null;
+        try {
+            detailsResponse = produceResponse(); // <-- false positive
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage());
+        }
+
+        return detailsResponse;
+    }
+
+    public static synchronized Map getStaticMapField() {
+        return staticMapField;
+    }
+}
+        ]]></code>
+    </test-code>
+
 </test-data>
