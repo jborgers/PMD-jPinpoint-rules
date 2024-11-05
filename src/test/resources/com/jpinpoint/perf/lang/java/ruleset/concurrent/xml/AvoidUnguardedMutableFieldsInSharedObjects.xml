@@ -477,4 +477,30 @@ public class Foo {
 }
         ]]></code>
     </test-code>
+    <test-code>
+        <description>Avoid unguarded mutable fields in shared objects. Not for ConfigurationProperties, unless also Lombok Setter, Issue #389</description>
+        <expected-problems>2</expected-problems>
+        <expected-linenumbers>10,11</expected-linenumbers>
+        <code><![CDATA[
+import lombok.Setter;
+import org.springframework.stereotype.Component;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import my.app.*;
+
+@ConfigurationProperties("my.app")
+@Component
+@Setter
+public class Issue389bad {
+    private String url;
+    private String token;
+}
+
+@ConfigurationProperties("my.app")
+public class Issue389good {
+    private String url;
+    private String token;
+}
+        ]]></code>
+    </test-code>
+
 </test-data>

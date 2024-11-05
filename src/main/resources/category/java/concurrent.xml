@@ -402,8 +402,7 @@ public class RootController {
    (: if @NotThreadSafe no checking :)
    and not(pmd-java:hasAnnotation('net.jcip.annotations.NotThreadSafe'))
    (: ConfigurationProperties assumed executed only once, no violation, except if Lombok Setter :)
-   and not(pmd-java:hasAnnotation('org.springframework.boot.context.properties.ConfigurationProperties'))
-   and not(pmd-java:hasAnnotation('lombok.Setter'))]
+   and not(pmd-java:hasAnnotation('org.springframework.boot.context.properties.ConfigurationProperties') and not(pmd-java:hasAnnotation('lombok.Setter')))]
 (: non-final and non-volatile fields :)
 //FieldDeclaration[
 
@@ -551,8 +550,7 @@ class BadMutebleTypes {
    (: if @NotThreadSafe no checking :)
    and not(pmd-java:hasAnnotation('net.jcip.annotations.NotThreadSafe'))
    (: ConfigurationProperties assumed executed only once, no violation, except if Lombok Setter :)
-   and not(pmd-java:hasAnnotation('org.springframework.boot.context.properties.ConfigurationProperties'))
-   and not(pmd-java:hasAnnotation('lombok.Setter'))]
+   and not(pmd-java:hasAnnotation('org.springframework.boot.context.properties.ConfigurationProperties') and not(pmd-java:hasAnnotation('lombok.Setter')))]
 (: any method call:)
 //MethodCall[
     (: class extends a base class :)
