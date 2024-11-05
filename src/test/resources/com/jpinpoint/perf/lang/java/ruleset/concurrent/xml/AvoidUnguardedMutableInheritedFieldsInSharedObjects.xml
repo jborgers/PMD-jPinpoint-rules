@@ -105,6 +105,37 @@ class SynchronizedTryout {
 }
         ]]></code>
     </test-code>
+    <test-code>
+        <description>Avoid unguarded mutable fields in shared objects. Not for ConfigurationProperties, unless also Lombok Setter, Issue #389</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>19</expected-linenumbers>
+        <code><![CDATA[
+import lombok.Setter;
+import org.springframework.stereotype.Component;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import my.app.*;
+
+@ConfigurationProperties("my.app")
+@Component
+public class Issue389good extends SynchronizedTryout {
+    public void mutateMap(String key, String val) {
+        map.put(key, val); // good, ConfigurationProperties
+    }
+}
+
+@ConfigurationProperties("my.app")
+@Component
+@Setter
+public class Issue389bad extends SynchronizedTryout {
+    public void mutateMap(String key, String val) {
+        map.put(key, val); // bad, ConfigurationProperties but also Lombok Setter
+    }
+}
+class SynchronizedTryout {
+    protected final Map map;
+}
+        ]]></code>
+    </test-code>
 
     <test-code>
         <description>pmd7 AvoidUnguardedMutableInheritedFieldsInSharedObjects false positives #391</description>
