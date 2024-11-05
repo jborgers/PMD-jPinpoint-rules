@@ -1434,11 +1434,10 @@ class Foo {
     and
     VariableDeclarator/(MethodCall|ConstructorCall)
         [not ((pmd-java:typeIs('java.util.EnumSet') or pmd-java:typeIs('java.util.EnumMap')) or
-        (: Set.of() with 1 or 2 elems doesn't have the HashSet overhead :)
-        (@MethodName='of' and pmd-java:typeIsExactly('java.util.Set') and ArgumentList/@Size <= 2) or
+        (: Set.of() with 1 or 2 elems and Map.of() with 1 key+value don't have the HashSet/Map overhead :)
+        (@MethodName='of' and ((pmd-java:typeIsExactly('java.util.Set') and ArgumentList/@Size <= 2) or (pmd-java:typeIsExactly('java.util.Map') and ArgumentList/@Size <= 2))) or
         (: it is exactly a Map or Set, cannot determine implementation #194 :)
-        ((@MethodName!='of' and pmd-java:typeIsExactly('java.util.Set'))
-            or pmd-java:typeIsExactly('java.util.Map'))
+        ((@MethodName!='of' and (pmd-java:typeIsExactly('java.util.Set') or pmd-java:typeIsExactly('java.util.Map'))))
         (: cannot determine type, indirect #194 :)
         or (not(pmd-java:typeIs('java.util.Set') or pmd-java:typeIs('java.util.Map')))
      )]
@@ -1447,8 +1446,13 @@ class Foo {
 //Initializer//AssignmentExpression[(pmd-java:typeIs('java.util.Map') and not (pmd-java:typeIs('java.util.EnumMap'))) or (pmd-java:typeIs('java.util.Set') and not(pmd-java:typeIs('java.util.EnumSet')))]
 /(MethodCall|ConstructorCall)
         [not ((pmd-java:typeIs('java.util.EnumSet') or pmd-java:typeIs('java.util.EnumMap')) or
-        (: Set.of() with 1 or 2 elems doesn't have the HashSet overhead :)
-        (pmd-java:typeIsExactly('java.util.Set') and @MethodName='of' and ArgumentList/@Size <= 2))
+        (: Set.of() with 1 or 2 elems and Map.of() with 1 key+value don't have the HashSet/Map overhead :)
+        (@MethodName='of' and ((pmd-java:typeIsExactly('java.util.Set') and ArgumentList/@Size <= 2) or (pmd-java:typeIsExactly('java.util.Map') and ArgumentList/@Size <= 2))) or
+        (: it is exactly a Map or Set, cannot determine implementation #194 :)
+        ((@MethodName!='of' and (pmd-java:typeIsExactly('java.util.Set') or pmd-java:typeIsExactly('java.util.Map'))))
+        (: cannot determine type, indirect #194 :)
+        or (not(pmd-java:typeIs('java.util.Set') or pmd-java:typeIs('java.util.Map')))
+     )
 ]
 ]]></value>
             </property>
