@@ -136,4 +136,26 @@ class SynchronizedTryout {
 }
         ]]></code>
     </test-code>
+
+    <test-code>
+        <description>pmd7 AvoidUnguardedMutableInheritedFieldsInSharedObjects false positives #391</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import org.springframework.stereotype.Service;
+@Service
+class Issue391 extends Base {
+
+  void bar(String text) {
+    try {
+     } catch (TechnicalException e) {
+            e.setText(text); // <--- false positive
+     }
+  }
+
+    Issue(RestTemplate restTemplate) {
+        restTemplate.setErrorHandler(); // <--- false positive
+    }
+}
+        ]]></code>
+    </test-code>
 </test-data>

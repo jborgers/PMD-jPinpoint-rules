@@ -558,12 +558,13 @@ class BadMutebleTypes {
     (: not in static inner class :)
     and not (ancestor::ClassDeclaration[@Nested=true() and @Static=true()])
     (:  has arguments (a method call), and  a compound like date.setTime, map.put, list.set :)
-    and matches(@MethodName,"(set|put|clear|add|remove|replace)")
+    and matches(@MethodName,"^(set|put|clear|add|remove|replace)")
     (: not a field of this class, no param or local :)
     and ./VariableAccess[
                 not (@Name = ancestor::ClassDeclaration//FieldDeclaration/VariableDeclarator/VariableId/@Name
                   or @Name = ancestor::Block/LocalVariableDeclaration/VariableDeclarator/VariableId/@Name
-                  or @Name = ancestor::MethodDeclaration//FormalParameter/VariableId/@Name
+                  or @Name = (ancestor::MethodDeclaration|ancestor::ConstructorDeclaration)//FormalParameter/VariableId/@Name
+                  or @Name = ancestor::CatchClause/CatchParameter/VariableId/@Name
                 )]
     (: not synchronized :)
     and not (ancestor::SynchronizedStatement or ancestor::MethodDeclaration[pmd-java:modifiers()='synchronized'])
