@@ -168,12 +168,23 @@ and not (preceding-sibling::SwitchLabel[@Default=true()])]
     or pmd-java:matchesSig('java.lang.String#matches(java.lang.String)')
     or pmd-java:matchesSig('java.nio.file.FileSystem#getPathMatcher(java.lang.String)')
 ]
-/ArgumentList/*[1][(self::StringLiteral and string-length(@Image) > 5 and
-(matches(@Image, '[\.\$\|\(\)\[\]\{\}\^\?\*\+\\]+')))
-or
-self::VariableAccess and @Name=ancestor::ClassBody/FieldDeclaration/VariableDeclarator[StringLiteral[string-length(@Image) > 5 and
-(matches(@Image, '[\.\$\|\(\)\[\]\{\}\^\?\*\+\\]+'))] or not(StringLiteral)]/VariableId/@Name]
-]]></value>
+/ArgumentList/*[1][
+    (: external references are assumed ok, e.g. Constants.SEP :)
+    self::FieldAccess[not(TypeExpression)]
+    or (self::StringLiteral
+        and string-length(@Image) > 5
+        and (matches(@Image, '[\.\$\|\(\)\[\]\{\}\^\?\*\+\\]+'))
+    )
+    or (self::VariableAccess
+        and @Name=ancestor::ClassBody/FieldDeclaration/VariableDeclarator[
+             StringLiteral[
+                 string-length(@Image) > 5
+                 and (matches(@Image, '[\.\$\|\(\)\[\]\{\}\^\?\*\+\\]+'))
+             ] or not(StringLiteral)
+        ]/VariableId/@Name
+    )
+]
+                ]]></value>
             </property>
         </properties>
         <example>
