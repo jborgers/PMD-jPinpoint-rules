@@ -491,14 +491,14 @@ import my.app.*;
 @Component
 @Setter
 public class Issue389bad {
-    private String url;
-    private String token;
+    private String url; // bad, ConfigurationProperties but also Lombok Setter
+    private String token; // bad, ConfigurationProperties but also Lombok Setter
 }
 
 @ConfigurationProperties("my.app")
 public class Issue389good {
-    private String url;
-    private String token;
+    private String url; // good, ConfigurationProperties
+    private String token; // good, ConfigurationProperties
 }
         ]]></code>
     </test-code>
