@@ -86,4 +86,25 @@ public class Foo {
 }
      ]]></code>
     </test-code>
+
+    <test-code>
+        <description>no violation: false positive in AvoidUserDataInSharedObjects #396</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import lombok.Getter;
+import lombok.Setter;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.stereotype.Component;
+
+@Getter
+@EqualsAndHashCode
+@Component
+@ConfigurationProperties(prefix = "hazelcast")
+public class Issue396 implements BaseHazelcastProperties {
+    private static final String HAZELCAST = "hazelcast.";
+    @Value("${"+ HAZELCAST + "mapNameAccount}")
+    private String mapNameAccount; // <--- false positive
+}
+     ]]></code>
+    </test-code>
 </test-data>

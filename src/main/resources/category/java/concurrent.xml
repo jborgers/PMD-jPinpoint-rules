@@ -1349,22 +1349,26 @@ public class Good {
                     <value><![CDATA[
 (: annotations that make singleton like components in Spring and EJB :)
 //ClassDeclaration[
-  (
-       pmd-java:hasAnnotation('org.springframework.stereotype.Service')
-    or pmd-java:hasAnnotation('org.springframework.stereotype.Component')
-    or pmd-java:hasAnnotation('org.springframework.stereotype.Controller')
-    or pmd-java:hasAnnotation('org.springframework.stereotype.Repository')
-    or pmd-java:hasAnnotation('org.springframework.web.bind.annotation.RestController')
-    or (pmd-java:hasAnnotation('javax.ejb.Singleton') and ModifierList/Annotation[pmd-java:typeIs('javax.ejb.ConcurrencyManagement')]/AnnotationMemberList/MemberValuePair/FieldAccess[./TypeExpression[pmd-java:typeIs('javax.ejb.ConcurrencyManagementType')] and @Name="BEAN"])
-    or (pmd-java:hasAnnotation('jakarta.ejb.Singleton') and ModifierList/Annotation[pmd-java:typeIs('jakarta.ejb.ConcurrencyManagement')]/AnnotationMemberList/MemberValuePair/FieldAccess[./TypeExpression[pmd-java:typeIs('jakarta.ejb.ConcurrencyManagementType')] and @Name="BEAN"])
-    (: only check if @ConfigurationProperties *and* @Setter :)
-    or (pmd-java:hasAnnotation('org.springframework.boot.context.properties.ConfigurationProperties') and pmd-java:hasAnnotation('lombok.Setter'))
+    (
+        (pmd-java:hasAnnotation('org.springframework.stereotype.Service')
+            or pmd-java:hasAnnotation('org.springframework.stereotype.Component')
+            or pmd-java:hasAnnotation('org.springframework.stereotype.Controller')
+            or pmd-java:hasAnnotation('org.springframework.stereotype.Repository')
+            or pmd-java:hasAnnotation('org.springframework.web.bind.annotation.RestController')
+            or (pmd-java:hasAnnotation('javax.ejb.Singleton') and ModifierList/Annotation[pmd-java:typeIs('javax.ejb.ConcurrencyManagement')]/AnnotationMemberList/MemberValuePair/FieldAccess[./TypeExpression[pmd-java:typeIs('javax.ejb.ConcurrencyManagementType')] and @Name="BEAN"])
+            or (pmd-java:hasAnnotation('jakarta.ejb.Singleton') and ModifierList/Annotation[pmd-java:typeIs('jakarta.ejb.ConcurrencyManagement')]/AnnotationMemberList/MemberValuePair/FieldAccess[./TypeExpression[pmd-java:typeIs('jakarta.ejb.ConcurrencyManagementType')] and @Name="BEAN"])
+            or (pmd-java:hasAnnotation('org.springframework.boot.context.properties.ConfigurationProperties') and pmd-java:hasAnnotation('lombok.Setter'))
+        )
+        (: no violation if @ConfigurationProperties *and not* @Setter :)
+        and not(pmd-java:hasAnnotation('org.springframework.boot.context.properties.ConfigurationProperties') and not(pmd-java:hasAnnotation('lombok.Setter')))
    )
    (: no @RequestScope annotation :)
-   and not (pmd-java:hasAnnotation('org.springframework.context.annotation.Scope') and .//AnnotationMemberList/MemberValuePair[
-       StringLiteral[contains(@Image,'request') or contains(@Image,'prototype')]
-       or FieldAccess[@Name='SCOPE_REQUEST' or @Name='SCOPE_PROTOTYPE']/TypeExpression[pmd-java:typeIs('org.springframework.beans.factory.config.ConfigurableBeanFactory')]]
-    )
+   and not(
+        pmd-java:hasAnnotation('org.springframework.context.annotation.Scope') and .//AnnotationMemberList/MemberValuePair[
+            StringLiteral[contains(@Image,'request') or contains(@Image,'prototype')]
+            or FieldAccess[@Name='SCOPE_REQUEST' or @Name='SCOPE_PROTOTYPE']/TypeExpression[pmd-java:typeIs('org.springframework.beans.factory.config.ConfigurableBeanFactory')]
+        ]
+   )
    (: no request or prototype @Scope, literal or via constant :)
    and not(pmd-java:hasAnnotation('org.springframework.web.context.annotation.RequestScope'))
 ]
@@ -1374,12 +1378,9 @@ public class Good {
                      or ancestor::ClassDeclaration[pmd-java:modifiers()='static']
                      or ./PrimitiveType
                    )
-   ]/VariableDeclarator/VariableId[
-     matches(
-         @Name,
-         'User[Id|Ref|Reference]*$|Customer[Id|Ref|Reference]*$|Session[Id|Ref|Reference]*$|Order[Id|Ref|Reference|List]*$|Account[Id|Ref|Reference|List]*$|Transaction[Id|Ref|Reference|List]*$|Contract[Id|Ref|Reference|List]*$'
-         , 'i')
-   ]
+]/VariableDeclarator/VariableId[
+    matches(@Name, 'User[Id|Ref|Reference]*$|Customer[Id|Ref|Reference]*$|Session[Id|Ref|Reference]*$|Order[Id|Ref|Reference|List]*$|Account[Id|Ref|Reference|List]*$|Transaction[Id|Ref|Reference|List]*$|Contract[Id|Ref|Reference|List]*$' , 'i')
+]
                     ]]></value>
                 </property>
             </properties>
