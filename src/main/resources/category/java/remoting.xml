@@ -538,16 +538,16 @@ void good2() {
         (: modify operations on objectMapper in a method where objectMapper is a formal parameter or field :)
         //MethodCall
             [matches(@MethodName, '^config.*|^set.*|^register.*|^find.*|^disable.*|^enable.*|^activate.*|^deactivate.*|^add.*|^clear.*')]
-            [VariableAccess/@Name=
-                (ancestor::MethodDeclaration//FormalParameter|ancestor::ClassBody//FieldDeclaration/ClassType)[pmd-java:typeIs('com.fasterxml.jackson.databind.ObjectMapper')]/..//VariableId/@Name]
+            [VariableAccess[@Name=ancestor::MethodDeclaration//FormalParameter[pmd-java:typeIs('com.fasterxml.jackson.databind.ObjectMapper')]/VariableId/@Name
+                or @Name=ancestor::ClassBody/FieldDeclaration[ClassType[pmd-java:typeIs('com.fasterxml.jackson.databind.ObjectMapper')]]/VariableDeclarator/VariableId/@Name]
+            ]
     ,
     (: modify operations on objectMapper in a constructor where objectMapper is a formal parameter or static field :)
     //ConstructorDeclaration//MethodCall
             [matches(@MethodName, '^config.*|^set.*|^register.*|^find.*|^disable.*|^enable.*|^activate.*|^deactivate.*|^add.*|^clear.*')]
             [VariableAccess/@Name=
                 (ancestor::ConstructorDeclaration//FormalParameter|ancestor::ClassBody//FieldDeclaration[pmd-java:modifiers()=('static')]/ClassType)[pmd-java:typeIs('com.fasterxml.jackson.databind.ObjectMapper')]/..//VariableId/@Name]
-
-    ]]>
+                    ]]>
                 </value>
             </property>
         </properties>

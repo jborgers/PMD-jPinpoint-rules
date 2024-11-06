@@ -185,5 +185,21 @@ class FooFactory {
      ]]></code>
     </test-code>
 
+    <test-code>
+        <description>no violation: AvoidModifyingObjectMapper - false positive #400</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+public class Issue400 {
+
+    private void setTransformOptions(ObjectMapper objectmapper, Object obj) {
+
+        obj.set();
+    }
+}
+
+     ]]></code>
+    </test-code>
 
 </test-data>

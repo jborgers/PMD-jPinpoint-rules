@@ -3585,8 +3585,7 @@ public class Good {
    (: if @NotThreadSafe no checking :)
    and not(pmd-java:hasAnnotation('net.jcip.annotations.NotThreadSafe'))
    (: ConfigurationProperties assumed executed only once, no violation, except if Lombok Setter :)
-   and not(pmd-java:hasAnnotation('org.springframework.boot.context.properties.ConfigurationProperties'))
-   and not(pmd-java:hasAnnotation('lombok.Setter'))]
+   and not(pmd-java:hasAnnotation('org.springframework.boot.context.properties.ConfigurationProperties') and not(pmd-java:hasAnnotation('lombok.Setter')))]
 (: non-final and non-volatile fields :)
 //FieldDeclaration[
 
@@ -3734,8 +3733,7 @@ class BadMutebleTypes {
    (: if @NotThreadSafe no checking :)
    and not(pmd-java:hasAnnotation('net.jcip.annotations.NotThreadSafe'))
    (: ConfigurationProperties assumed executed only once, no violation, except if Lombok Setter :)
-   and not(pmd-java:hasAnnotation('org.springframework.boot.context.properties.ConfigurationProperties'))
-   and not(pmd-java:hasAnnotation('lombok.Setter'))]
+   and not(pmd-java:hasAnnotation('org.springframework.boot.context.properties.ConfigurationProperties') and not(pmd-java:hasAnnotation('lombok.Setter')))]
 (: any method call:)
 //MethodCall[
     (: class extends a base class :)
@@ -4642,16 +4640,16 @@ public class Foo {
         (: modify operations on objectMapper in a method where objectMapper is a formal parameter or field :)
         //MethodCall
             [matches(@MethodName, '^config.*|^set.*|^register.*|^find.*|^disable.*|^enable.*|^activate.*|^deactivate.*|^add.*|^clear.*')]
-            [VariableAccess/@Name=
-                (ancestor::MethodDeclaration//FormalParameter|ancestor::ClassBody//FieldDeclaration/ClassType)[pmd-java:typeIs('com.fasterxml.jackson.databind.ObjectMapper')]/..//VariableId/@Name]
+            [VariableAccess[@Name=ancestor::MethodDeclaration//FormalParameter[pmd-java:typeIs('com.fasterxml.jackson.databind.ObjectMapper')]/VariableId/@Name
+                or @Name=ancestor::ClassBody/FieldDeclaration[ClassType[pmd-java:typeIs('com.fasterxml.jackson.databind.ObjectMapper')]]/VariableDeclarator/VariableId/@Name]
+            ]
     ,
     (: modify operations on objectMapper in a constructor where objectMapper is a formal parameter or static field :)
     //ConstructorDeclaration//MethodCall
             [matches(@MethodName, '^config.*|^set.*|^register.*|^find.*|^disable.*|^enable.*|^activate.*|^deactivate.*|^add.*|^clear.*')]
             [VariableAccess/@Name=
                 (ancestor::ConstructorDeclaration//FormalParameter|ancestor::ClassBody//FieldDeclaration[pmd-java:modifiers()=('static')]/ClassType)[pmd-java:typeIs('com.fasterxml.jackson.databind.ObjectMapper')]/..//VariableId/@Name]
-
-    ]]>
+                    ]]>
                 </value>
             </property>
         </properties>
