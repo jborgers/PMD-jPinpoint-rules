@@ -44,7 +44,7 @@ class Issue259 {
     </test-code>
 
     <test-code>
-        <description>violation: AvoidHardcodedConnectionConfig: Issue266</description>
+        <description>no violation: AvoidHardcodedConnectionConfig: Issue266</description>
         <expected-problems>0</expected-problems>
         <code><![CDATA[
 import org.springframework.beans.factory.annotation.Value;
@@ -62,4 +62,13 @@ class Issue266 {
         ]]></code>
     </test-code>
 
+    <test-code>
+        <description>no violation: AvoidHardcodedConnectionConfig: Issue398</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+public final class Issue398 {
+    private static final int MAXIMUM_LENGTH_FOR_NAME = 30; // <--- false positive
+}
+        ]]></code>
+    </test-code>
 </test-data>
