@@ -4449,7 +4449,7 @@ class Good {
                 <value><![CDATA[
 //FieldDeclaration[PrimitiveType/@Kind='int']/VariableDeclarator
     [VariableId[@Final = true()]
-    [matches(upper-case(@Name), 'TIMEOUT|DURATIONOUT|MAX|ROUTE')]
+    [matches(upper-case(@Name), 'TIMEOUT|DURATIONOUT') or (contains(upper-case(@Name), 'MAX') and contains(upper-case(@Name), 'ROUTE'))]
 ]
 [NumericLiteral or
     (VariableId/@Name=ancestor::ClassBody//ConstructorDeclaration//AssignmentExpression/*[1]/@Name
