@@ -458,4 +458,21 @@ class ExampleTimeouts {
      ]]></code>
     </test-code>
 
+    <test-code>
+        <description>no violation: RequestConfig false positive Issue #402</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import org.apache.http.client.config.RequestConfig;
+
+class Issue402 {
+    private RequestConfig reqConfig;
+
+    @Override
+    public boolean foo() {
+        return reqConfig.bar(); // <--- false positive
+    }
+}
+     ]]></code>
+    </test-code>
+
 </test-data>

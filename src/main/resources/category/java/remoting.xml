@@ -346,6 +346,7 @@ return HttpClientBuilder.create() // good
 ]
 ,
 //MethodDeclaration//MethodCall/(TypeExpression|VariableAccess)[pmd-java:typeIs('org.apache.http.client.config.RequestConfig')]
+    [ancestor::MethodDeclaration//MethodCall[@MethodName='custom']]
     [ancestor::MethodDeclaration[count(.//MethodCall[@MethodName=('setConnectionRequestTimeout','setConnectTimeout','setSocketTimeout')]) != 3]]
 ,
 (: only client v4 :)
