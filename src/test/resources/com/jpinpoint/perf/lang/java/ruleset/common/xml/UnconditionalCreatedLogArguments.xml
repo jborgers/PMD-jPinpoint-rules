@@ -214,7 +214,7 @@ public class MyProducer {
 
     public void delete(UUID id) {
         String idStr = id.toString();
-        log.debug("delete --> {}", idStr); // <--- unnoticed due to use of @Slf4j (issue #395)
+        log.debug("delete --> {}", idStr); // bad <-- unnoticed due to use of @Slf4j (issue #395)
     }
 
    void good(Object obj) {

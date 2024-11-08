@@ -708,7 +708,17 @@ class Good {
                 <value><![CDATA[
 //MethodCall
   [@MethodName=('trace','debug','info')]
-  [VariableAccess[pmd-java:typeIs('org.slf4j.Logger') or pmd-java:typeIs('java.util.logging.Logger') or pmd-java:typeIs('org.apache.commons.logging.Log')]]
+  [
+    (: supported logger libs :)
+    (VariableAccess[
+        pmd-java:typeIs('org.slf4j.Logger')
+        or pmd-java:typeIs('java.util.logging.Logger')
+        or pmd-java:typeIs('org.apache.commons.logging.Log')
+     ])
+   or
+     (: Slfj4 annotation makes the log variable AmbiguousName as there is no explicit log field :)
+     (AmbiguousName[ancestor::ClassDeclaration[pmd-java:hasAnnotation('lombok.extern.slf4j.Slf4j')]])
+  ]
   /ArgumentList[.//InfixExpression[@Operator='+'][(VariableAccess|MethodCall)[pmd-java:typeIs('java.lang.String')] or (StringLiteral and (VariableAccess or MethodCall))]]
 [not(ancestor::IfStatement/MethodCall[@MethodName = ('isTraceEnabled', 'isDebugEnabled','isInfoEnabled', 'isLoggable')])]
 ]]></value>
