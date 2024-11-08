@@ -532,10 +532,20 @@ class Foo {
 [VariableAccess/@Name=(ancestor::ExpressionStatement|ancestor::ForeachStatement|ancestor::DoStatement|ancestor::WhileStatement)
   /(following-sibling::TryStatement|following-sibling::ExpressionStatement)//MethodCall
   [@MethodName=('trace', 'debug', 'info')]
-  [VariableAccess[pmd-java:typeIs('org.slf4j.Logger') or pmd-java:typeIs('java.util.logging.Logger') or pmd-java:typeIs('org.apache.commons.logging.Log')]]
+    [
+    (: supported logger libs :)
+    (VariableAccess[
+        pmd-java:typeIs('org.slf4j.Logger')
+        or pmd-java:typeIs('java.util.logging.Logger')
+        or pmd-java:typeIs('org.apache.commons.logging.Log')
+     ])
+   or
+     (: Slfj4 annotation makes the log variable AmbiguousName as there is no explicit log field :)
+     (AmbiguousName[ancestor::ClassDeclaration[pmd-java:hasAnnotation('lombok.extern.slf4j.Slf4j')]])
+  ]
     //VariableAccess/@Name
 ]
-(: variable in append following not used in anything other than logging :)
+(: variable in append following, not used in anything other than logging :)
 [not(
 VariableAccess/@Name=(ancestor::ExpressionStatement|ancestor::ForeachStatement|ancestor::DoStatement|ancestor::WhileStatement)
   /(following-sibling::TryStatement|following-sibling::ExpressionStatement)//MethodCall
