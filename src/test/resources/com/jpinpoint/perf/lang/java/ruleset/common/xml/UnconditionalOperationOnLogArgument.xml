@@ -123,4 +123,23 @@ class Foo {
     ]]></code>
     </test-code>
 
+    <test-code>
+        <description>Fix Request for UnconditionalOperationOnLogArgument with @Slf4j annotation #395</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>9</expected-linenumbers>
+        <code><![CDATA[
+import java.util.UUID;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+
+@Service
+@Slf4j
+public class MyProducer {
+    public void delete(UUID id) {
+        log.debug("delete --> {}", testBad(id)); // bad <-- unnoticed due to use of @Slf4j (issue #395)
+    }
+}
+]]></code>
+    </test-code>
+
 </test-data>

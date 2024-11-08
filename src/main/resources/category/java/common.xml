@@ -532,10 +532,20 @@ class Foo {
 [VariableAccess/@Name=(ancestor::ExpressionStatement|ancestor::ForeachStatement|ancestor::DoStatement|ancestor::WhileStatement)
   /(following-sibling::TryStatement|following-sibling::ExpressionStatement)//MethodCall
   [@MethodName=('trace', 'debug', 'info')]
-  [VariableAccess[pmd-java:typeIs('org.slf4j.Logger') or pmd-java:typeIs('java.util.logging.Logger') or pmd-java:typeIs('org.apache.commons.logging.Log')]]
+    [
+    (: supported logger libs :)
+    (VariableAccess[
+        pmd-java:typeIs('org.slf4j.Logger')
+        or pmd-java:typeIs('java.util.logging.Logger')
+        or pmd-java:typeIs('org.apache.commons.logging.Log')
+     ])
+   or
+     (: Slfj4 annotation makes the log variable AmbiguousName as there is no explicit log field :)
+     (AmbiguousName[ancestor::ClassDeclaration[pmd-java:hasAnnotation('lombok.extern.slf4j.Slf4j')]])
+  ]
     //VariableAccess/@Name
 ]
-(: variable in append following not used in anything other than logging :)
+(: variable in append following, not used in anything other than logging :)
 [not(
 VariableAccess/@Name=(ancestor::ExpressionStatement|ancestor::ForeachStatement|ancestor::DoStatement|ancestor::WhileStatement)
   /(following-sibling::TryStatement|following-sibling::ExpressionStatement)//MethodCall
@@ -708,7 +718,17 @@ class Good {
                 <value><![CDATA[
 //MethodCall
   [@MethodName=('trace','debug','info')]
-  [VariableAccess[pmd-java:typeIs('org.slf4j.Logger') or pmd-java:typeIs('java.util.logging.Logger') or pmd-java:typeIs('org.apache.commons.logging.Log')]]
+  [
+    (: supported logger libs :)
+    (VariableAccess[
+        pmd-java:typeIs('org.slf4j.Logger')
+        or pmd-java:typeIs('java.util.logging.Logger')
+        or pmd-java:typeIs('org.apache.commons.logging.Log')
+     ])
+   or
+     (: Slfj4 annotation makes the log variable AmbiguousName as there is no explicit log field :)
+     (AmbiguousName[ancestor::ClassDeclaration[pmd-java:hasAnnotation('lombok.extern.slf4j.Slf4j')]])
+  ]
   /ArgumentList[.//InfixExpression[@Operator='+'][(VariableAccess|MethodCall)[pmd-java:typeIs('java.lang.String')] or (StringLiteral and (VariableAccess or MethodCall))]]
 [not(ancestor::IfStatement/MethodCall[@MethodName = ('isTraceEnabled', 'isDebugEnabled','isInfoEnabled', 'isLoggable')])]
 ]]></value>
@@ -744,8 +764,17 @@ class Foo {
 //MethodCall
 (: log levels often not enabled in prod :)
   [@MethodName=('trace','debug','info')]
-(: supported logging libs :)
-  [VariableAccess[pmd-java:typeIs('org.slf4j.Logger') or pmd-java:typeIs('java.util.logging.Logger') or pmd-java:typeIs('org.apache.commons.logging.Log')]]
+  [
+    (: supported logger libs :)
+    (VariableAccess[
+        pmd-java:typeIs('org.slf4j.Logger')
+        or pmd-java:typeIs('java.util.logging.Logger')
+        or pmd-java:typeIs('org.apache.commons.logging.Log')
+     ])
+   or
+     (: Slfj4 annotation makes the log variable AmbiguousName as there is no explicit log field :)
+     (AmbiguousName[ancestor::ClassDeclaration[pmd-java:hasAnnotation('lombok.extern.slf4j.Slf4j')]])
+  ]
 (: only if unconditional :)
   [not(ancestor::IfStatement/MethodCall[@MethodName = ('isTraceEnabled', 'isDebugEnabled','isInfoEnabled', 'isLoggable')])]
 (: and not returned conditionally before :)
@@ -838,10 +867,19 @@ class VMRData {
             <property name="xpath">
                 <value><![CDATA[
 //MethodCall
-    (: log levels typically/often not enabled :)
+  (: log levels typically/often not enabled :)
   [@MethodName=('trace','debug','info')]
-  (: supported logger libs :)
-  [VariableAccess[pmd-java:typeIs('org.slf4j.Logger') or pmd-java:typeIs('java.util.logging.Logger') or pmd-java:typeIs('org.apache.commons.logging.Log')]]
+  [
+    (: supported logger libs :)
+    (VariableAccess[
+        pmd-java:typeIs('org.slf4j.Logger')
+        or pmd-java:typeIs('java.util.logging.Logger')
+        or pmd-java:typeIs('org.apache.commons.logging.Log')
+     ])
+   or
+     (: Slfj4 annotation makes the log variable AmbiguousName as there is no explicit log field :)
+     (AmbiguousName[ancestor::ClassDeclaration[pmd-java:hasAnnotation('lombok.extern.slf4j.Slf4j')]])
+  ]
   (: no violation if conditionally: only executed if level enabled is okay :)
   [not(ancestor::IfStatement/MethodCall[@MethodName = ('isTraceEnabled', 'isDebugEnabled','isInfoEnabled', 'isLoggable')])]
   (: no violation if return conditionally before :)

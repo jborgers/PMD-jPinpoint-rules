@@ -4,7 +4,7 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
     <test-code>
-        <description>Unconditional contactenation of strings in log statements</description>
+        <description>Unconditional concatenation of strings in log statements</description>
         <expected-problems>5</expected-problems>
         <expected-linenumbers>30,32,40,47,247</expected-linenumbers>
         <code><![CDATA[
@@ -311,4 +311,25 @@ class Foo2 {
 
     ]]></code>
         </test-code>
+
+    <test-code>
+        <description>Fix Request for UnconditionalConcatInLogArgument with @Slf4j annotation #395</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>10</expected-linenumbers>
+        <code><![CDATA[
+import java.util.UUID;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+
+@Service
+@Slf4j
+public class MyProducer {
+
+    public void delete(UUID id) {
+        log.debug("delete -->" + id); // bad <-- unnoticed due to use of @Slf4j (issue #395)
+    }
+}
+]]></code>
+    </test-code>
+
 </test-data>

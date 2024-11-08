@@ -283,4 +283,33 @@ public class ConditionalLogging {
 }
      ]]></code>
     </test-code>
+
+    <test-code>
+        <description>Fix Request for AvoidUnconditionalBuiltLogStrings with @Slf4j annotation #395</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>13</expected-linenumbers>
+        <code><![CDATA[
+import java.util.UUID;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+
+@Service
+@Slf4j
+public class MyProducer {
+
+    public void testUnConditionalBuiltLogStringDefect5() {
+        StringBuilder logStatement = new StringBuilder();
+        List<String> values = Arrays.asList("tic", "tac", "toe");
+        for (String val : values) {
+            logStatement.append(val); // bad <-- unnoticed due to use of @Slf4j (issue #395)
+        }
+        LOG.debug("values: {}.", values);
+        LOG.debug("logStatement: {}.", logStatement);
+    }
+
+
+}
+]]></code>
+    </test-code>
+
 </test-data>
