@@ -2850,16 +2850,17 @@ public static String good(CompletableFuture<String> complFuture) throws Exceptio
 (: static field, non-guarded, some often used known collection/array types, allocation side:)
 //FieldDeclaration[
     pmd-java:modifiers() = ('static') and not(./ModifierList/Annotation[@SimpleName='GuardedBy'])
-    and .//ConstructorCall/ClassType[
-       (pmd-java:typeIs('java.util.ArrayList') and not(ancestor::MethodCall[pmd-java:matchesSig('java.util.Collections#unmodifiableList(_*)')]) )
-       or ((pmd-java:typeIs('java.util.HashMap') or pmd-java:typeIs('java.util.EnumMap')) and not(ancestor::MethodCall[pmd-java:matchesSig('java.util.Collections#unmodifiableMap(_*)')]))
-       or (pmd-java:typeIs('java.util.HashSet') and not(ancestor::MethodCall[pmd-java:matchesSig('java.util.Collections#unmodifiableSet(_*)')]))
-    ]
-    or .//ArrayInitializer[@Length > 0]
-    or .//ArrayAllocation[.//ArrayDimExpr/NumericLiteral[@ValueAsInt > 0]]
-    or .//MethodCall[pmd-java:matchesSig('java.util.Arrays#asList(_*)') and not(ancestor::MethodCall[pmd-java:matchesSig('java.util.Collections#unmodifiableList(_*)')])]
-]
-,
+    and (
+        .//ConstructorCall/ClassType[
+           (pmd-java:typeIs('java.util.ArrayList') and not(ancestor::MethodCall[pmd-java:matchesSig('java.util.Collections#unmodifiableList(_*)')]) )
+           or ((pmd-java:typeIs('java.util.HashMap') or pmd-java:typeIs('java.util.EnumMap')) and not(ancestor::MethodCall[pmd-java:matchesSig('java.util.Collections#unmodifiableMap(_*)')]))
+           or (pmd-java:typeIs('java.util.HashSet') and not(ancestor::MethodCall[pmd-java:matchesSig('java.util.Collections#unmodifiableSet(_*)')]))
+        ]
+        or .//ArrayInitializer[@Length > 0]
+        or .//ArrayAllocation[.//ArrayDimExpr/NumericLiteral[@ValueAsInt > 0]]
+        or .//MethodCall[pmd-java:matchesSig('java.util.Arrays#asList(_*)') and not(ancestor::MethodCall[pmd-java:matchesSig('java.util.Collections#unmodifiableList(_*)')])]
+   )
+],
 (: static-block allocations of non-empty arrays :)
 //Initializer//ArrayAllocation[ArrayType/ArrayDimensions[@Size > 0]/ArrayDimExpr/NumericLiteral[@ValueAsInt > 0]
   or exists(.//ArrayDimExpr/VariableAccess/@Name)
