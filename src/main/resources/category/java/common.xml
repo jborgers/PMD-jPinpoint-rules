@@ -838,10 +838,19 @@ class VMRData {
             <property name="xpath">
                 <value><![CDATA[
 //MethodCall
-    (: log levels typically/often not enabled :)
+  (: log levels typically/often not enabled :)
   [@MethodName=('trace','debug','info')]
-  (: supported logger libs :)
-  [VariableAccess[pmd-java:typeIs('org.slf4j.Logger') or pmd-java:typeIs('java.util.logging.Logger') or pmd-java:typeIs('org.apache.commons.logging.Log')]]
+  [
+    (: supported logger libs :)
+    (VariableAccess[
+        pmd-java:typeIs('org.slf4j.Logger')
+        or pmd-java:typeIs('java.util.logging.Logger')
+        or pmd-java:typeIs('org.apache.commons.logging.Log')
+     ])
+   or
+     (: Slfj4 annotation makes the log variable AmbiguousName as there is no explicit log field :)
+     (AmbiguousName[ancestor::ClassDeclaration[pmd-java:hasAnnotation('lombok.extern.slf4j.Slf4j')]])
+  ]
   (: no violation if conditionally: only executed if level enabled is okay :)
   [not(ancestor::IfStatement/MethodCall[@MethodName = ('isTraceEnabled', 'isDebugEnabled','isInfoEnabled', 'isLoggable')])]
   (: no violation if return conditionally before :)

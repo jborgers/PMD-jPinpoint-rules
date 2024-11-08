@@ -93,7 +93,7 @@ class Foo {
 
     void bar13(Object obj) {
       String logObj13 = obj.getId();
-      log.debug("object to String: {}", logObj13); //good, method starts with 'get' is assumed quick
+      log.debug("object to String: {}", logObj13); // good, method starts with 'get' is assumed quick
     }
 
     /** from #140 */
@@ -160,8 +160,8 @@ class Foo {
     void bad(Bar param) {
       String log = param.baz(field1.get());
       String logThis = param.baz(this.field1.get());
-      LOGGER.debug("field: {}", log); //bad, missed
-      LOGGER.debug("field: {}", logThis); //bad
+      LOGGER.debug("field: {}", log); // bad, missed
+      LOGGER.debug("field: {}", logThis); // bad
 
       String fieldGet = field1.getClass();
       String fieldGetThis = this.field2.getClass();
@@ -194,6 +194,34 @@ class Foo {
 
        this.deleteFromRepository(key);
        log.info("Deleted order intent from repository: key " + key); // false positive: Avoid unconditional creation of a log argument, it may not be needed.
+    }
+}
+]]></code>
+    </test-code>
+
+    <test-code>
+        <description>Fix Request for UnconditionalCreatedLogArgument with @Slf4j annotation #395</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>11</expected-linenumbers>
+        <code><![CDATA[
+import java.util.UUID;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+
+@Service
+@Slf4j
+public class MyProducer {
+
+    public void delete(UUID id) {
+        String idStr = id.toString();
+        log.debug("delete --> {}", idStr); // <--- unnoticed due to use of @Slf4j (issue #395)
+    }
+
+   void good(Object obj) {
+        if (log.isDebugEnabled()) {
+          String logObj1 = obj.toString();
+          log.debug("object to String: {}", logObj1);
+        }
     }
 }
 ]]></code>
