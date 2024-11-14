@@ -6,7 +6,7 @@
     <test-code>
         <description>violation: forEach in streams</description>
         <expected-problems>2</expected-problems>
-        <expected-linenumbers>14,30</expected-linenumbers>
+        <expected-linenumbers>15,31</expected-linenumbers>
         <code><![CDATA[
 import java.util.*;
 import java.util.stream.IntStream;
@@ -21,7 +21,8 @@ class AvoidForEachInStreams {
     Map<String, Integer> map;
     void forEachInStream() {
         map = new HashMap<>();
-        letters.forEach(l -> map.put(l, 0)); // bad, side effect, modifies map
+        letters.forEach(l -> map.put(l, 0)); // good, not a stream, just internal iterator
+        letters.stream().forEach(l -> map.put(l, 0)); // bad, side effect, modifies map
     }
     void forEachInLogging() {
         letters.forEach(Log::info); // good, logging is okay
@@ -63,6 +64,37 @@ class Issue258 {
     Iterable values = new ArrayList();
     void bad() {
         values.forEach(Log::debug); // good
+    }
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>one violation: forEach in streams Issue407</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>18</expected-linenumbers>
+        <code><![CDATA[
+import java.util.*;
+
+class Issue407 {
+    Iterable values = new ArrayList();
+    void bad() {
+        values.forEach(v -> doStuff(v)); // good
+        values.forEach(this::doStuff); // good
+    }
+    void doStuff(String s) {
+    }
+}
+
+class VenkatSample2 {
+    public static void main(String[] args) {
+        List<String> names = List.of("Dory", "Gill", "Bruce", "Nemo", "Darla", "Marlin", "Jacques");
+        List<String> inUppercase = new ArrayList<>();
+
+        names.parallelStream().map(String::toUpperCase).forEach(name -> inUppercase.add(name)); // bad
+
+        System.out.println(names.size()); // 7
+        System.out.println(inUppercase.size()); // sometimes 6!
     }
 }
      ]]></code>

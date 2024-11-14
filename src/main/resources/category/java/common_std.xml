@@ -392,8 +392,8 @@ class Foo {
             <property name="tags" value="bad-practice,jpinpoint-rule" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
-(: should match java.lang.Iterable#forEach(java.util.function.Consumer) but also others like java.util.stream.IntStream#forEach(java.util.function.IntConsumer) :)
-//MethodCall[pmd-java:matchesSig('_#forEach(_)')]
+(: should match java.lang.Stream#forEach(java.util.function.Consumer) but also others like java.util.stream.IntStream#forEach(java.util.function.IntConsumer) :)
+//MethodCall[pmd-java:matchesSig('java.util.stream.BaseStream#forEach(_)')]
 [not (
     .//MethodReference[starts-with(@MethodName, 'log')]
     or .//TypeExpression/ClassType[starts-with(lower-case(@SimpleName), 'log')]
