@@ -10,7 +10,7 @@
         <code><![CDATA[
 import java.util.*;
 import java.util.stream.IntStream;
-
+import org.slf4j.Logger;
 import static java.util.stream.Collectors.toMap;
 
 class AvoidForEachInStreams {
@@ -25,7 +25,7 @@ class AvoidForEachInStreams {
         letters.stream().forEach(l -> map.put(l, 0)); // bad, side effect, modifies map
     }
     void forEachInLogging() {
-        letters.forEach(Log::info); // good, logging is okay
+        letters.stream().forEach(Log::info); // good, logging is okay
     }
     void forEachLoop() {
         map = new HashMap<>();
@@ -41,11 +41,14 @@ class AvoidForEachInStreams {
         IntStream.range(0, letters.size()).forEach(i -> map.put(letters.get(i), 0)); // bad, side effect, modifies map
     }
     void loggingForms() { // all good
-        letters.forEach(this::log);
-        letters.forEach(l -> {
+        letters.stream().forEach(this::log);
+        letters.stream().forEach(l -> {
             log.info(l);
         });
-        letters.forEach(Log::info);
+        letters.stream().forEach(l -> {
+            log(l);
+        });
+        letters.stream().forEach(Log::info);
     }
     void log(String l) {
         System.out.println(l);
@@ -61,23 +64,24 @@ class AvoidForEachInStreams {
 import java.util.*;
 
 class Issue258 {
-    Iterable values = new ArrayList();
+    Iterable<String> values = new ArrayList<>();
     void bad() {
-        values.forEach(Log::debug); // good
+        values.forEach(Log::debug); // no streaming, good
+        values.stream().forEach(Log::debug); // log in stream, good
     }
 }
      ]]></code>
     </test-code>
 
     <test-code>
-        <description>one violation: forEach in streams Issue407</description>
+        <description>one violation: forEach not in streams Issue407</description>
         <expected-problems>1</expected-problems>
         <expected-linenumbers>18</expected-linenumbers>
         <code><![CDATA[
 import java.util.*;
 
 class Issue407 {
-    Iterable values = new ArrayList();
+    Iterable<String> values = new ArrayList<>();
     void bad() {
         values.forEach(v -> doStuff(v)); // good
         values.forEach(this::doStuff); // good
@@ -99,5 +103,98 @@ class VenkatSample2 {
 }
      ]]></code>
     </test-code>
+
+    <test-code>
+        <description>4 violations: forEach in streams Issue341 Lombok</description>
+        <expected-problems>4</expected-problems>
+        <expected-linenumbers>11,17,22,24</expected-linenumbers>
+        <code><![CDATA[
+import java.util.*;
+import java.util.stream.*;
+import lombok.extern.java.Log;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+class Issue341 {
+    List<String> values = new ArrayList<>();
+    Stream<String> valStream = values.stream();
+    void bad() {
+        values.stream().forEach(v -> { // bad
+            doStuff(v);
+            this.doStuff(v);
+            values.add("bad");
+            log.debug(v);
+        });
+        valStream.forEach(v -> { // bad
+            values = null;
+            log.debug(v);
+        });
+        values.stream().forEach(Log::debug); // good
+        values.stream().forEach(this::doStuff); // bad
+        valStream.forEach(log::debug); // good
+        valStream.forEach(this::doStuff); // bad
+    }
+    void good() {
+        values.stream().forEach(v -> {
+            log.debug("values: " + v);
+            if (!values.isEmpty()) {
+                log.info(v);
+            }
+        });
+    }
+    void doStuff(String s) {
+    }
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>5 violations: forEach in streams Issue341 No-Lombok</description>
+        <expected-problems>6</expected-problems>
+        <expected-linenumbers>10,14,18,22,23,25</expected-linenumbers>
+        <code><![CDATA[
+import java.util.*;
+import java.util.stream.*;
+import org.slf4j.Logger;
+
+class Issue341NoLombok {
+    Logger log;
+    List<String> values = new ArrayList<>();
+    Stream<String> valStream = values.stream();
+    void bad() {
+        values.stream().forEach(v -> { // bad
+            values = null;
+            log.debug(v);
+        });
+        valStream.forEach(v -> { // bad
+            doStuff(v);
+            log.debug(v);
+        });
+        values.stream().forEach(v -> { // bad
+            doStuff(v);
+            log(v);
+        });
+        values.stream().forEach(Log::debug); // bad, own Log
+        values.stream().forEach(this::doStuff); // bad
+        valStream.forEach(log::debug); // good
+        valStream.forEach(this::doStuff); // bad
+    }
+    void good() {
+        values.stream().forEach(v -> {
+            log.debug(v);
+        });
+    }
+    void doStuff(String s) {
+    }
+    class Log { // considered not safe, unlikely to be used
+        static void debug(String s) {}
+    }
+    void log(String l) { // considered safe
+        System.out.println(l);
+    }
+}
+     ]]></code>
+    </test-code>
+
 
 </test-data>
