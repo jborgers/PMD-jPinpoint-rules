@@ -879,10 +879,20 @@ public RetrieveCache(final @Value("${cache.expiryTimeMillis}") long timeToLiveMi
 [VariableAccess/@Name=(ancestor::ExpressionStatement|ancestor::ForeachStatement|ancestor::DoStatement|ancestor::WhileStatement)
   /(following-sibling::TryStatement|following-sibling::ExpressionStatement)//MethodCall
   [@MethodName=('trace', 'debug', 'info')]
-  [VariableAccess[pmd-java:typeIs('org.slf4j.Logger') or pmd-java:typeIs('java.util.logging.Logger') or pmd-java:typeIs('org.apache.commons.logging.Log')]]
+    [
+    (: supported logger libs :)
+    (VariableAccess[
+        pmd-java:typeIs('org.slf4j.Logger')
+        or pmd-java:typeIs('java.util.logging.Logger')
+        or pmd-java:typeIs('org.apache.commons.logging.Log')
+     ])
+   or
+     (: Slfj4 annotation makes the log variable AmbiguousName as there is no explicit log field :)
+     (AmbiguousName[ancestor::ClassDeclaration[pmd-java:hasAnnotation('lombok.extern.slf4j.Slf4j')]])
+  ]
     //VariableAccess/@Name
 ]
-(: variable in append following not used in anything other than logging :)
+(: variable in append following, not used in anything other than logging :)
 [not(
 VariableAccess/@Name=(ancestor::ExpressionStatement|ancestor::ForeachStatement|ancestor::DoStatement|ancestor::WhileStatement)
   /(following-sibling::TryStatement|following-sibling::ExpressionStatement)//MethodCall
@@ -1869,7 +1879,17 @@ Set<YourEnumType> set = EnumSet.allOf(YourEnumType.class);
                 <value><![CDATA[
 //MethodCall
   [@MethodName=('trace','debug','info')]
-  [VariableAccess[pmd-java:typeIs('org.slf4j.Logger') or pmd-java:typeIs('java.util.logging.Logger') or pmd-java:typeIs('org.apache.commons.logging.Log')]]
+  [
+    (: supported logger libs :)
+    (VariableAccess[
+        pmd-java:typeIs('org.slf4j.Logger')
+        or pmd-java:typeIs('java.util.logging.Logger')
+        or pmd-java:typeIs('org.apache.commons.logging.Log')
+     ])
+   or
+     (: Slfj4 annotation makes the log variable AmbiguousName as there is no explicit log field :)
+     (AmbiguousName[ancestor::ClassDeclaration[pmd-java:hasAnnotation('lombok.extern.slf4j.Slf4j')]])
+  ]
   /ArgumentList[.//InfixExpression[@Operator='+'][(VariableAccess|MethodCall)[pmd-java:typeIs('java.lang.String')] or (StringLiteral and (VariableAccess or MethodCall))]]
 [not(ancestor::IfStatement/MethodCall[@MethodName = ('isTraceEnabled', 'isDebugEnabled','isInfoEnabled', 'isLoggable')])]
 ]]></value>
@@ -1904,10 +1924,19 @@ class Foo {
             <property name="xpath">
                 <value><![CDATA[
 //MethodCall
-    (: log levels typically/often not enabled :)
+  (: log levels typically/often not enabled :)
   [@MethodName=('trace','debug','info')]
-  (: supported logger libs :)
-  [VariableAccess[pmd-java:typeIs('org.slf4j.Logger') or pmd-java:typeIs('java.util.logging.Logger') or pmd-java:typeIs('org.apache.commons.logging.Log')]]
+  [
+    (: supported logger libs :)
+    (VariableAccess[
+        pmd-java:typeIs('org.slf4j.Logger')
+        or pmd-java:typeIs('java.util.logging.Logger')
+        or pmd-java:typeIs('org.apache.commons.logging.Log')
+     ])
+   or
+     (: Slfj4 annotation makes the log variable AmbiguousName as there is no explicit log field :)
+     (AmbiguousName[ancestor::ClassDeclaration[pmd-java:hasAnnotation('lombok.extern.slf4j.Slf4j')]])
+  ]
   (: no violation if conditionally: only executed if level enabled is okay :)
   [not(ancestor::IfStatement/MethodCall[@MethodName = ('isTraceEnabled', 'isDebugEnabled','isInfoEnabled', 'isLoggable')])]
   (: no violation if return conditionally before :)
@@ -1954,8 +1983,17 @@ class Foo {
 //MethodCall
 (: log levels often not enabled in prod :)
   [@MethodName=('trace','debug','info')]
-(: supported logging libs :)
-  [VariableAccess[pmd-java:typeIs('org.slf4j.Logger') or pmd-java:typeIs('java.util.logging.Logger') or pmd-java:typeIs('org.apache.commons.logging.Log')]]
+  [
+    (: supported logger libs :)
+    (VariableAccess[
+        pmd-java:typeIs('org.slf4j.Logger')
+        or pmd-java:typeIs('java.util.logging.Logger')
+        or pmd-java:typeIs('org.apache.commons.logging.Log')
+     ])
+   or
+     (: Slfj4 annotation makes the log variable AmbiguousName as there is no explicit log field :)
+     (AmbiguousName[ancestor::ClassDeclaration[pmd-java:hasAnnotation('lombok.extern.slf4j.Slf4j')]])
+  ]
 (: only if unconditional :)
   [not(ancestor::IfStatement/MethodCall[@MethodName = ('isTraceEnabled', 'isDebugEnabled','isInfoEnabled', 'isLoggable')])]
 (: and not returned conditionally before :)
@@ -2224,33 +2262,58 @@ public class StringStuff {
             <property name="tags" value="bad-practice,jpinpoint-rule" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
-(: should match java.lang.Iterable#forEach(java.util.function.Consumer) but also others like java.util.stream.IntStream#forEach(java.util.function.IntConsumer) :)
-//MethodCall[pmd-java:matchesSig('_#forEach(_)')]
-[not (
-    .//MethodReference[starts-with(@MethodName, 'log')]
-    or .//TypeExpression/ClassType[starts-with(lower-case(@SimpleName), 'log')]
-    or .//LambdaExpression//VariableAccess[starts-with(@Name, 'log')]
-)]
+(: should match java.lang.Stream#forEach(java.util.function.Consumer) but also others like java.util.stream.IntStream#forEach(java.util.function.IntConsumer) :)
+//MethodCall[pmd-java:matchesSig('java.util.stream.BaseStream#forEach(_)')]
+[ArgumentList[not(
+    .//LambdaExpression[
+        (: if a lambda expression in a foreach has expression statements, they should all be logging :)
+        count(.//ExpressionStatement) > 0
+        and count(.//ExpressionStatement) = count(
+            .//ExpressionStatement/MethodCall[
+                (: supported logger libs :)
+                VariableAccess[pmd-java:typeIs('org.slf4j.Logger')
+                or pmd-java:typeIs('java.util.logging.Logger')
+                or pmd-java:typeIs('org.apache.commons.logging.Log')
+            ]
+            (: Slfj4 annotation makes the log variable AmbiguousName as there is no explicit log field :)
+            or (AmbiguousName[@Name='log'] and ancestor::ClassDeclaration[pmd-java:hasAnnotation('lombok.extern.slf4j.Slf4j')])]
+        ) + count(.//ExpressionStatement/MethodCall[starts-with(@MethodName,'log')])
+    ]
+    (: if a foreach has a method reference, it should be only for logging :)
+    or .//MethodReference[
+        (TypeExpression/ClassType[pmd-java:typeIs('lombok.extern.java.Log')]
+            (: supported logger libs :)
+            or VariableAccess[pmd-java:typeIs('org.slf4j.Logger')
+            or pmd-java:typeIs('java.util.logging.Logger')
+            or pmd-java:typeIs('org.apache.commons.logging.Log')]
+            (: Slfj4 annotation makes the log variable AmbiguousName as there is no explicit log field :)
+            or (AmbiguousName[@Name='log'] and ancestor::ClassDeclaration[pmd-java:hasAnnotation('lombok.extern.slf4j.Slf4j')])
+        ) or starts-with(@MethodName,'log')]
+)]]
                 ]]></value>
             </property>
         </properties>
         <example>
             <![CDATA[
-        // forEach in stream
-        map = new HashMap<>();
-        letters.forEach(l -> map.put(l, 0)); // bad, side effect, modifies map
+        List<String> letters = List.of("D", "O", "G", "E");
+        Map<String, String> map = new HashMap<>();
+
+        // forEach in stream, bad
+        letters.stream().forEach(l -> map.put(l, 0)); // bad, side effect, modifies map
+
+        // pure functional form, good
+        map = letters.stream().collect(toMap(l -> l, v -> 0));
 
         // reporting result by logging, good
-        letters.forEach(Log::info);
+        letters.stream().forEach(Log::info);
 
-        // iterative form, meant for modifying state, good
-        map = new HashMap<>();
+        // external iterative form, meant for modifying state, good
         for (String l : letters) {
             map.put(l, 0);
         }
 
-        // pure functional form, good
-        map = letters.stream().collect(toMap(l -> l, v -> 0));
+        // internal iterator, fine for modifying state, good
+        letters.forEach(l -> map.put(l, 0));
             ]]>
         </example>
     </rule>
