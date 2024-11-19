@@ -71,4 +71,18 @@ public final class Issue398 {
 }
         ]]></code>
     </test-code>
+
+    <test-code>
+        <description>no violation: AvoidHardcodedConnectionConfig: Issue417</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+public final class Issue417 {
+    private final int readTimeout; // <--- false positive
+
+    Issue417() {
+        readTimeout = Configuration.getReadTimeout();
+    }
+}
+        ]]></code>
+    </test-code>
 </test-data>
