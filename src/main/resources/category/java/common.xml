@@ -780,7 +780,11 @@ class Foo {
 (: and not returned conditionally before :)
   [not(ancestor::ExpressionStatement/preceding-sibling::IfStatement[.//ReturnStatement and .//MethodCall[@MethodName = ('isTraceEnabled', 'isDebugEnabled','isInfoEnabled', 'isLoggable')]])]
 (: for operations in log with >0 arguments or toString(); except getters which are assumed as fast :)
-  /ArgumentList//MethodCall[(ArgumentList[@Size>0] or @MethodName='toString') and not(starts-with(@MethodName, 'get'))]
+  /ArgumentList//MethodCall[
+    (ArgumentList[@Size>0] or @MethodName='toString') and not(starts-with(@MethodName, 'get'))
+    (: if methods are chained, only report 1 in the chain :)
+    and not(ancestor::MethodCall[ArgumentList[@Size>0]]/MethodCall)
+  ]
 			]]>
                 </value>
             </property>
