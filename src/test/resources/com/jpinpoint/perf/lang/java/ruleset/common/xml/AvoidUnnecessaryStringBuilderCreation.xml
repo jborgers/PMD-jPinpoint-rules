@@ -65,8 +65,8 @@ public class Foo {
 
     <test-code>
         <description>violation: unnecessary string builder creation</description>
-        <expected-problems>7</expected-problems>
-        <expected-linenumbers>6,14,21,28,36,44,45</expected-linenumbers>
+        <expected-problems>9</expected-problems>
+        <expected-linenumbers>6,6,6,14,21,28,36,44,45</expected-linenumbers>
         <code><![CDATA[
 public class Foo {
     String field1;
@@ -145,10 +145,10 @@ public class Foo {
             StringBuilder one = new StringBuilder();
             StringBuilder two = new StringBuilder();
 
-            one.append("one");
-            one.append("one-two");
-            two.append("two");
-            two.append("two-two");
+            one.append("one"); // bad
+            one.append("one-two"); // bad
+            two.append("two"); // bad
+            two.append("two-two"); // bad
 
             one.toString();
             two.toString();
@@ -167,6 +167,24 @@ class Issue195 {
    list.forEach(e -> stringBuilder.append(e).append(" "));
    return stringBuilder.toString();
  }
+}
+        ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>false positive: StringBuilder is used in while loop (issue #413)</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+class Issue413 {
+    String foo(String value, int len) {
+        StringBuilder zeroes = new StringBuilder();
+
+        while (zeroes.length() + value.length() < len) {
+            zeroes.append('0');
+        }
+
+        return zeroes.append(value).toString(); // <-- false positive, zeroes used in while loop
+    }
 }
         ]]></code>
     </test-code>
