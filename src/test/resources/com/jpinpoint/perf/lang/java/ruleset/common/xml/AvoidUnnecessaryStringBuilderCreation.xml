@@ -65,8 +65,8 @@ public class Foo {
 
     <test-code>
         <description>violation: unnecessary string builder creation</description>
-        <expected-problems>7</expected-problems>
-        <expected-linenumbers>6,14,21,27,35,44,52</expected-linenumbers>
+        <expected-problems>9</expected-problems>
+        <expected-linenumbers>6,6,6,14,21,28,36,44,45</expected-linenumbers>
         <code><![CDATA[
 public class Foo {
     String field1;
@@ -206,6 +206,24 @@ class Issue433 {
         bui.append("-blabla"); // <-- false positive
         bui.append(baz); // <-- false positive
         return bui.toString();
+    }
+}
+        ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>false positive: StringBuilder is used in while loop (issue #413)</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+class Issue413 {
+    String foo(String value, int len) {
+        StringBuilder zeroes = new StringBuilder();
+
+        while (zeroes.length() + value.length() < len) {
+            zeroes.append('0');
+        }
+
+        return zeroes.append(value).toString(); // <-- false positive, zeroes used in while loop
     }
 }
         ]]></code>
