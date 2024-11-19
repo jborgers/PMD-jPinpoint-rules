@@ -231,22 +231,32 @@ import static com.co.corporate.Constants.GREAT; // good
             <property name="tags" value="jpinpoint-rule,pitfall,replaces-sonar-rule" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
-//ClassDeclaration[pmd-java:typeIs('java.io.Serializable')
-(: Throwable is the exception, except RemoteException :)
-and not(pmd-java:typeIs('java.lang.Throwable') and not(pmd-java:typeIs('java.rmi.RemoteException')))]
 (: non-transient, non-static, non-primitive fields :)
-//FieldDeclaration[not(pmd-java:modifiers() = ('transient', 'static'))]
-[not(.//PrimitiveType)]
-[ClassType[not(pmd-java:typeIs('java.io.Serializable'))]]
-(: and can be resolved :)
-[ClassType[pmd-java:typeIs('java.lang.Object')]]
-(: if has type args, type args which are not serializable like List<String, Thread>):)
-[not(exists(.//TypeArguments))
-    or exists(.//TypeArguments/ClassType[not(pmd-java:typeIs('java.io.Serializable'))
-                                         (: and can be resolved :)
-                                         and pmd-java:typeIs('java.lang.Object')]
+//FieldDeclaration[
+     not(pmd-java:modifiers() = ('transient', 'static'))
+     and not(.//PrimitiveType)
+     and ClassType[not(pmd-java:typeIs('java.io.Serializable'))]
+     (: and can be resolved :)
+     and ClassType[pmd-java:typeIs('java.lang.Object')]
+     (: if has type args, type args which are not serializable like List<String, Thread>) :)
+     and (
+           not(exists(.//TypeArguments))
+           or exists(.//TypeArguments/ClassType[
+                                  not(pmd-java:typeIs('java.io.Serializable'))
+                                  (: and can be resolved :)
+                                  and pmd-java:typeIs('java.lang.Object')
+                              ]
+           )
     )
-]                ]]></value>
+    and ancestor::ClassDeclaration[pmd-java:typeIs('java.io.Serializable')
+                       (: Throwable is the exception, except RemoteException :)
+                       and not(
+                                 pmd-java:typeIs('java.lang.Throwable')
+                                 and not(pmd-java:typeIs('java.rmi.RemoteException'))
+                           )
+                   ]
+]
+                ]]></value>
             </property>
         </properties>
         <example>

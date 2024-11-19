@@ -70,6 +70,7 @@ class SerializableOther implements Serializable {
     <test-code>
         <description>Fix Request: LetFieldsMeetSerializable has false positives #231</description>
         <expected-problems>1</expected-problems>
+        <expected-linenumbers>8</expected-linenumbers>
         <code><![CDATA[
 import java.lang.*;
 import java.util.*;
@@ -79,6 +80,29 @@ import lombok.*;
 class SomeDTO implements Serializable {
     private List<@NonNull Serializable> listGood; // false positive, actually good
     private List<@NonNull Object> listBad; // bad
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>Fix Request: LetFieldsMeetSerializable has multiple hits #411</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>9</expected-linenumbers>
+        <code><![CDATA[
+import java.lang.*;
+import java.util.*;
+import java.io.*;
+
+class SomeDTO implements Serializable {
+   private MyBank myBank;
+
+    public static class MyBank implements Serializable {
+        private MyCode code; // bad <-- two hits on this line, one expected
+    }
+
+    private static class MyCode {
+        private String code;
+    }
 }
      ]]></code>
     </test-code>
