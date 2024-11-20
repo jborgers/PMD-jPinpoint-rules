@@ -8,7 +8,7 @@
         <expected-problems>3</expected-problems>
         <expected-linenumbers>3, 7, 11</expected-linenumbers>
         <code><![CDATA[
-public class Foo {
+public class Foo1 {
     void bar() {
         String doodle = "init"; // bad, assigned value overwritten, not used
         doodle = "k";
@@ -16,7 +16,7 @@ public class Foo {
         String other = str.toString();
         str = "empty"; // bad
         doSomething();
-        str = "other"; // good
+        str = "other"; // good, because it is used before next assignment
         doSomethingWith(str);
         str = ""; // bad
         str = "second";
@@ -30,11 +30,11 @@ public class Foo {
         <expected-problems>3</expected-problems>
         <expected-linenumbers>3, 4, 6</expected-linenumbers>
         <code><![CDATA[
-public class Foo {
+public class Foo2 {
     void bar() {
         int i = 0; // bad
         i = 1; // bad
-        i = 2;
+        i = 2; // good, because it is used in next line before assignment
         i = i++; // bad
         i = 5;
         int j = calc(i);
@@ -48,7 +48,7 @@ public class Foo {
         <expected-problems>1</expected-problems>
         <expected-linenumbers>20</expected-linenumbers>
         <code><![CDATA[
-public class Foo {
+public class Foo3 {
     void bar() {
         String doodle = "init"; // good
         if (doodle.length > 2) {
@@ -78,7 +78,7 @@ public class Foo {
         <description>no violation: false positive in AvoidUnusedAssignments #221</description>
         <expected-problems>0</expected-problems>
         <code><![CDATA[
-class CarStuff {
+class CarStuffIssue221 {
     String[] licenses;
     String license;
 
@@ -96,7 +96,7 @@ class CarStuff {
         <expected-problems>1</expected-problems>
         <expected-linenumbers>9</expected-linenumbers>
         <code><![CDATA[
-public class Foo {
+public class FooIssue229 {
     private String str1;
     public Foo() {
         str1 = "now"; // false positive
@@ -115,7 +115,7 @@ public class Foo {
         <description>no violation: += operator #241</description>
         <expected-problems>0</expected-problems>
         <code><![CDATA[
-class Foo {
+class FooIssue241 {
   public static boolean elfProef(final String accountNumber) {
     int sum = 0;
     final int length = accountNumber.length();
