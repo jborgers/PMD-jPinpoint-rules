@@ -142,4 +142,29 @@ public class MyProducer {
 ]]></code>
     </test-code>
 
+    <test-code>
+        <description>Fix Request for UnconditionalOperationOnLogArgument: Spurious violations on chained operations #415</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>9</expected-linenumbers>
+        <code><![CDATA[
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+public final class DataUtil {
+    public static void addTestData(URI uri, List<TransactionDocument> documents) {
+        String data = documents.stream()
+            .map(document -> document.toString() + "\n")
+            .collect(Collectors.joining());
+        log.info(WebClient.builder().build().post() // <--- 4x violation, should be 1 -- bad 1x
+            .uri(uri.resolve("/_bulk")) // <-- violation, not needed
+            .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+            .body(BodyInserters.fromValue(data)) // <-- violation, not needed
+            .exchange()
+            .flatMap(clientResponse -> clientResponse.bodyToMono(String.class)) // <-- violation, not needed
+            .block());
+    }
+}
+]]></code>
+    </test-code>
+
 </test-data>
