@@ -5,8 +5,8 @@
         xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
     <test-code>
         <description>MissingEqualsHashCodeWithGetterSetter</description>
-        <expected-problems>4</expected-problems>
-        <expected-linenumbers>7,8,16,27</expected-linenumbers>
+        <expected-problems>3</expected-problems>
+        <expected-linenumbers>7,16,27</expected-linenumbers>
         <code><![CDATA[
 import lombok.Getter;
 import lombok.Setter;
@@ -15,7 +15,7 @@ import lombok.Data;
 import lombok.Value;
 
 @Getter // bad
-@Setter // bad
+@Setter // not bad anymore after #419 fix
 // no equals/hashcode annotation
 class MissingEqualsHashCodeWithGetterSetterBad {
     String field1;
@@ -144,5 +144,20 @@ class SomeEntity {}
         ]]></code>
     </test-code>
 
+    <test-code>
+        <description>MissingEqualsHashCodeWithGetterSetter issue #419</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>4</expected-linenumbers>
+        <code><![CDATA[
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter // bad
+@Setter // <-- 2nd violation not needed
+@NoArgsConstructor // <-- false positive
+@AllArgsConstructor // <-- false positive
+public class Foo {}
+            ]]></code>
+    </test-code>
 
 </test-data>

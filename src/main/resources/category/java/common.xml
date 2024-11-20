@@ -2032,7 +2032,7 @@ class Foo {
             and ./ClassBody/MethodDeclaration[@Name='hashCode' and @Arity=0 and ./PrimitiveType[@Kind='int']]
         )
     )
-]/ModifierList/Annotation
+]/ModifierList/Annotation[1]
                 ]]></value>
             </property>
             <property name="tags" value="jpinpoint-rule,correctness" type="String" description="classification"/>
