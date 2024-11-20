@@ -4530,7 +4530,7 @@ class Good {
     [matches(upper-case(@Name), 'TIMEOUT|DURATIONOUT') or (contains(upper-case(@Name), 'MAX') and contains(upper-case(@Name), 'ROUTE'))]
 ]
 [NumericLiteral or
-    (VariableId/@Name=ancestor::ClassBody//ConstructorDeclaration//AssignmentExpression/*[1]/@Name
+    (VariableId/@Name=ancestor::ClassBody//ConstructorDeclaration//AssignmentExpression[NumericLiteral]/*[1]/@Name
     and not(VariableId/@Name=ancestor::ClassBody//ConstructorDeclaration//FormalParameter[pmd-java:hasAnnotation('org.springframework.beans.factory.annotation.Value')]/VariableId/@Name))
 ]
 ]]></value>
