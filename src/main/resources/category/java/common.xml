@@ -780,7 +780,11 @@ class Foo {
 (: and not returned conditionally before :)
   [not(ancestor::ExpressionStatement/preceding-sibling::IfStatement[.//ReturnStatement and .//MethodCall[@MethodName = ('isTraceEnabled', 'isDebugEnabled','isInfoEnabled', 'isLoggable')]])]
 (: for operations in log with >0 arguments or toString(); except getters which are assumed as fast :)
-  /ArgumentList//MethodCall[(ArgumentList[@Size>0] or @MethodName='toString') and not(starts-with(@MethodName, 'get'))]
+  /ArgumentList//MethodCall[
+    (ArgumentList[@Size>0] or @MethodName='toString') and not(starts-with(@MethodName, 'get'))
+    (: if methods are chained, only report 1 in the chain :)
+    and not(ancestor::MethodCall[ArgumentList[@Size>0]]/MethodCall)
+  ]
 			]]>
                 </value>
             </property>
@@ -1696,6 +1700,10 @@ public enum Fruit {
 //MethodCall[pmd-java:matchesSig('java.util.Map#put(_,_)')]
 (: first arg does not implement Comparable :)
 /ArgumentList/*[1][not(pmd-java:typeIs('java.lang.Comparable'))]
+[not(pmd-java:typeIs('byte'))][not(pmd-java:typeIs('short'))]
+[not(pmd-java:typeIs('int'))][not(pmd-java:typeIs('long'))]
+[not(pmd-java:typeIs('float'))][not(pmd-java:typeIs('double'))]
+[not(pmd-java:typeIs('boolean'))][not(pmd-java:typeIs('char'))]
                ]]></value>
             </property>
         </properties>
@@ -2032,7 +2040,7 @@ class Foo {
             and ./ClassBody/MethodDeclaration[@Name='hashCode' and @Arity=0 and ./PrimitiveType[@Kind='int']]
         )
     )
-]/ModifierList/Annotation
+]/ModifierList/Annotation[1]
                 ]]></value>
             </property>
             <property name="tags" value="jpinpoint-rule,correctness" type="String" description="classification"/>
