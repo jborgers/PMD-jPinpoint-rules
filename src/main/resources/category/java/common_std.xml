@@ -461,39 +461,19 @@ class Foo {
             <property name="tags" value="jpinpoint-rule,replaces-sonar-rule,suspicious,unused" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
-(: for each assignment node :)
-(for $node in //StatementExpression[AssignmentOperator[@Image='=']][not(ancestor::IfStatement or ancestor::TryStatement or ancestor::SwitchStatement)]/PrimaryExpression/PrimaryPrefix/Name
-(: match if for that node the next occurrence of ((assignment without use in same statement) union with (use) is an assignment to the var) :)
-return ($node[
-(: assignment without use, Name is result :)
-((ancestor::BlockStatement/following-sibling::BlockStatement//StatementExpression[AssignmentOperator[@Image='=']][not(ancestor::IfStatement or ancestor::TryStatement or ancestor::SwitchStatement)]/PrimaryExpression/PrimaryPrefix/Name[@Image=$node/@Image]
-[not(ancestor::BlockStatement//PrimaryExpression[not(../AssignmentOperator[@Image='=']) and (not(PrimarySuffix/Arguments) or PrimaryPrefix[contains(Name/@Image, '.')])]
-/PrimaryPrefix[substring-before(concat(Name/@Image, '.'), '.')=$node/@Image])]
-)[1]
-|
-(: use, PrimaryPrefix is result, so @Image is empty string :)
-(ancestor::BlockStatement/following-sibling::BlockStatement//PrimaryExpression[not(../AssignmentOperator[@Image='='] and not(PrimarySuffix/Expression)) and (not(PrimarySuffix/Arguments) or PrimaryPrefix[contains(Name/@Image, '.')])]
-/PrimaryPrefix[substring-before(concat(Name/@Image, '.'), '.')=$node/@Image])[1])
-(: first is the var name :)
-[1]/@Image = $node/@Image])
-)
+(: local var declaration with following assignment same var :)
+//Block//LocalVariableDeclaration[
+    .//VariableId/@Name = following::ExpressionStatement/AssignmentExpression/VariableAccess/@Name
+    and not(.//VariableId/@Name = (following::LocalVariableDeclaration//MethodCall/VariableAccess)/@Name)
+    and not(.//VariableId/@Name = (preceding-sibling::ExpressionStatement//ArgumentList/VariableAccess)/@Name)
+]
 ,
-(: for each local variable declaration :)
-(for $node in (//LocalVariableDeclaration/VariableDeclarator[VariableInitializer]//VariableDeclaratorId)
-(: match if for that node the next occurrence of ((assignment without use in same statement) union with (use) is an assignment to the var) :)
-return ($node[
-(: assignment without use, Name is result :)
-((ancestor::BlockStatement/following-sibling::BlockStatement//StatementExpression[AssignmentOperator[@Image='=']][not(ancestor::IfStatement or ancestor::TryStatement or ancestor::SwitchStatement)]/PrimaryExpression/PrimaryPrefix/Name[@Image=$node/@Name]
-[not(ancestor::BlockStatement//PrimaryExpression[not(../AssignmentOperator[@Image='=']) and (not(PrimarySuffix/Arguments) or PrimaryPrefix[contains(Name/@Image, '.')])]
-/PrimaryPrefix[substring-before(concat(Name/@Image, '.'), '.')=$node/@Name])]
-)[1]
-|
-(: use, PrimaryPrefix is result, so @Image is empty string :)
-(ancestor::BlockStatement/following-sibling::BlockStatement//PrimaryExpression[not(../AssignmentOperator[@Image='='] and not(PrimarySuffix/Expression)) and (not(PrimarySuffix/Arguments) or PrimaryPrefix[contains(Name/@Image, '.')])]
-/PrimaryPrefix[substring-before(concat(Name/@Image, '.'), '.')=$node/@Name])[1])
-(: first is the var name :)
-[1]/@Image = $node/@Name])
-)
+(: assigment with following other assignment same var :)
+//Block//ExpressionStatement/AssignmentExpression[
+    .//VariableAccess/@Name = following::ExpressionStatement/AssignmentExpression/VariableAccess/@Name
+    and not(.//VariableAccess/@Name = (following::LocalVariableDeclaration//MethodCall/VariableAccess)/@Name)
+    and not(.//VariableAccess/@Name = (preceding-sibling::ExpressionStatement//ArgumentList/VariableAccess)/@Name)
+]
                 ]]></value>
             </property>
         </properties>
