@@ -1414,25 +1414,22 @@ public class Good {
             <property name="tags" value="bad-practice,jpinpoint-rule" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
-(: append used in one chained statement on constructor of StringBuilder and with chained toString :)
-//MethodDeclaration//Block//MethodCall[@MethodName = "toString"]/MethodCall[@MethodName='append']
-[//ConstructorCall[pmd-java:typeIs('java.lang.StringBuilder') or pmd-java:typeIs('java.lang.StringBuffer')]]
-|
-(: or :)
-(: append on builder var, where var is allocated as StringBuilder :)
-//MethodDeclaration//Block//MethodCall[@MethodName='append']
-[//VariableAccess[pmd-java:typeIs('java.lang.StringBuilder') or pmd-java:typeIs('java.lang.StringBuffer')]]
-[(
-(: and toString is called on the var in same block :)
-../MethodCall[@MethodName='append']/VariableAccess/@Name = ancestor::Block//(ReturnStatement|ExpressionStatement)//MethodCall[@MethodName='toString']/VariableAccess/@Name
-(: and not append on var used in inner block like a ForStatement or IfStatement :)
-and not(../MethodCall[@MethodName='append']/VariableAccess/@Name = ancestor::Block//Block//MethodCall[@MethodName='append']/VariableAccess/@Name)
-(: and not append in lambda expression, issue 195 :)
-and not(ancestor::LambdaExpression)
-(: and var not passed as argument to method :)
-and not(../MethodCall[@MethodName='append']/VariableAccess/@Name = ancestor::MethodDeclaration//MethodCall/ArgumentList/VariableAccess/@Name))
+//MethodCall[
+    (pmd-java:matchesSig('java.lang.StringBuilder#append(_*)') or pmd-java:matchesSig('java.lang.StringBuffer#append(_*)'))
+    (: toString() is called on variable or just constructed StringBuilder :)
+    and (
+       ./VariableAccess[@Name
+             = ancestor::MethodDeclaration//MethodCall[@MethodName = 'toString']//VariableAccess/@Name]
+       or .//ConstructorCall[pmd-java:typeIs('java.lang.StringBuilder') or pmd-java:typeIs('java.lang.StringBuffer')]
+      )
+    (: and not used in loop, while or if statements :)
+    and not(./VariableAccess[@Name
+        = ancestor::Block//(IfStatement|WhileStatement)//MethodCall[@MethodName = 'append']/VariableAccess/@Name])
+    (: not used in another method call :)
+    and not(./VariableAccess[@Name
+        = ancestor::Block//ArgumentList/VariableAccess/@Name])
 ]
-	         ]]></value>
+]]></value>
             </property>
         </properties>
         <example>
