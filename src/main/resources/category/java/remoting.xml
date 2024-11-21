@@ -737,7 +737,7 @@ public class Foo {
             <property name="xpath">
                 <value><![CDATA[
 //MethodCall[pmd-java:matchesSig('org.springframework.http.client.HttpComponentsClientHttpRequestFactory#setHttpClient(_)')][VariableAccess/@Name =
-ancestor::MethodDeclaration//VariableDeclarator[ConstructorCall[pmd-java:typeIs('org.springframework.http.client.HttpComponentsClientHttpRequestFactory')][ArgumentList]]
+ancestor::MethodDeclaration//VariableDeclarator[ConstructorCall[pmd-java:typeIs('org.springframework.http.client.HttpComponentsClientHttpRequestFactory')][ArgumentList[@Size > 0]]]
 /VariableId/@Name]
 ]]>
                 </value>
