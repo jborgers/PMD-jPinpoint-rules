@@ -312,4 +312,24 @@ public class MyProducer {
 ]]></code>
     </test-code>
 
+    <test-code>
+        <description>false positive in AvoidUnconditionalBuiltLogStrings #430</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+class Issue430 {
+    String bar() {
+        StringBuilder messageBuilder = new StringBuilder();
+        messageBuilder.append("-"); // <-- false positive
+
+        log.info("message: {}" , messageBuilder);
+
+        return messageBuilder.toString();
+    }
+}
+]]></code>
+    </test-code>
+
 </test-data>
