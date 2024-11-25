@@ -65,8 +65,8 @@ public class Foo {
 
     <test-code>
         <description>violation: unnecessary string builder creation</description>
-        <expected-problems>7</expected-problems>
-        <expected-linenumbers>6,14,21,28,36,44,45</expected-linenumbers>
+        <expected-problems>8</expected-problems>
+        <expected-linenumbers>6,14,21,28,36,45,53,54</expected-linenumbers>
         <code><![CDATA[
 public class Foo {
     String field1;
@@ -101,9 +101,18 @@ public class Foo {
                 .toString();
     }
 
+    public String bad4a() {
+        StringBuilder strBui = new StringBuilder();
+        String s = strBui.append(field1) // bad nr5, missed case found when correcting for #427
+                .append(" = ")
+                .append(field2)
+                .toString();
+        return s;
+    }
+
     public String bad5() {
         StringBuilder strBui = new StringBuilder();
-        strBui.append(field1) // bad 5
+        strBui.append(field1) // bad nr6
                 .append(" = ")
                 .append(field2);
         return strBui.toString();
@@ -111,8 +120,8 @@ public class Foo {
 
     public String bad6() {
         StringBuilder strBui = new StringBuilder();
-        strBui.append(field1); // bad 6
-        strBui.append(" = ").append(field2); // bad 7
+        strBui.append(field1); // bad nr7
+        strBui.append(" = ").append(field2); // bad nr8
         return strBui.toString();
     }
 }
@@ -170,4 +179,19 @@ class Issue195 {
 }
         ]]></code>
     </test-code>
+
+    <test-code>
+        <description>no violation: false positive for non-append operations (issue #427)</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+class Issue427 {
+    String bar() {
+        StringBuilder timestampBuilder = new StringBuilder(new SimpleDateFormat(TIME_STAMP_FORMAT).format(new Date()));
+        String reversedTimeStamp = timestampBuilder.reverse().append(userId).toString(); // <--- false positive
+        return timestampBuilder.append(userId).reverse().toString(); // <--- false positive after fixing the expression partly
+    }
+}
+        ]]></code>
+    </test-code>
+
 </test-data>
