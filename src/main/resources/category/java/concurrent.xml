@@ -1430,14 +1430,14 @@ public class Good {
               message="Beware: parallelStream with the common pool is rarely a good choice."
               typeResolution="true"
               externalInfoUrl="${doc_root}/JavaCodePerformance.md#ia11">
-            <description>Problem: Collection.parallelStream uses the common pool, with #threads = #CPUs - 1. It is designed to distribute much CPU work over the cores. It is not for remote calls or other blocking calls.
-                In addition, parallelizing has overhead and risks, should only be used for much pure CPU processing.&#13;
+            <description>Problem: Collection.parallelStream uses the common pool, with #threads = #CPUs - 1. It is designed to distribute much CPU work over the cores. It is not designed for remote calls or other blocking calls.
+                In addition, parallelizing has CPU overhead and concurrency risks. It should only be used for much pure CPU processing, e.g. on collections with > 10.000 elements.&#13;
                 Solution: For remote/blocking calls: Use a dedicated thread pool with enough threads to get proper parallelism independent of the number of cores.
-                For pure CPU processing: use ordinary sequential streaming unless the work takes more than about 0,1 ms in sequential form and proves to be faster with parallelization.
+                For pure CPU processing: use ordinary sequential streaming unless the work takes more than about 0,1 ms in sequential form and proves to be faster with parallelization by measuring.
                 So only for large collections and much processing without having to wait.   (jpinpoint-rules)</description>
             <priority>2</priority>
             <properties>
-                <property name="tags" value="cpu,jpinpoint-rule,multi-threading,performance,sustainability-low,unpredictable" type="String" description="classification"/>
+                <property name="tags" value="cpu,jpinpoint-rule,multi-threading,performance,sustainability-medium,unpredictable" type="String" description="classification"/>
                 <property name="xpath">
                     <value><![CDATA[
 //MethodCall[
