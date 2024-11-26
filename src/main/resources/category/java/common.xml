@@ -548,7 +548,7 @@ class Foo {
 (: variable in append following, not used in anything other than logging :)
 [not(
 VariableAccess/@Name=(ancestor::ExpressionStatement|ancestor::ForeachStatement|ancestor::DoStatement|ancestor::WhileStatement)
-  /(following-sibling::TryStatement|following-sibling::ExpressionStatement)//MethodCall
+  /(following-sibling::TryStatement|following-sibling::ExpressionStatement|following-sibling::ReturnStatement)//MethodCall
   [not(@MethodName=('trace', 'debug', 'info'))
   or VariableAccess[not(pmd-java:typeIs('org.slf4j.Logger')) and not(pmd-java:typeIs('java.util.logging.Logger')) and not(pmd-java:typeIs('org.apache.commons.logging.Log'))]]
     //VariableAccess/@Name
