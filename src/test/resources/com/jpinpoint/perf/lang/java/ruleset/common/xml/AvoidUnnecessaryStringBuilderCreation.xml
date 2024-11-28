@@ -65,8 +65,8 @@ public class Foo {
 
     <test-code>
         <description>violation: unnecessary string builder creation</description>
-        <expected-problems>8</expected-problems>
-        <expected-linenumbers>6,14,21,28,36,45,53,54</expected-linenumbers>
+        <expected-problems>7</expected-problems>
+        <expected-linenumbers>6,14,21,27,35,44,52</expected-linenumbers>
         <code><![CDATA[
 public class Foo {
     String field1;
@@ -94,16 +94,16 @@ public class Foo {
     }
 
     public String bad4() {
-        StringBuilder strBui = new StringBuilder();
-        return strBui.append(field1) // bad 4
+        StringBuilder strBui = new StringBuilder(); // bad 4
+        return strBui.append(field1)
                 .append(" = ")
                 .append(field2)
                 .toString();
     }
 
     public String bad4a() {
-        StringBuilder strBui = new StringBuilder();
-        String s = strBui.append(field1) // bad nr5, missed case found when correcting for #427
+        StringBuilder strBui = new StringBuilder(); // bad nr5, missed case found when correcting for #427
+        String s = strBui.append(field1)
                 .append(" = ")
                 .append(field2)
                 .toString();
@@ -111,17 +111,17 @@ public class Foo {
     }
 
     public String bad5() {
-        StringBuilder strBui = new StringBuilder();
-        strBui.append(field1) // bad nr6
+        StringBuilder strBui = new StringBuilder(); // bad nr6
+        strBui.append(field1)
                 .append(" = ")
                 .append(field2);
         return strBui.toString();
     }
 
     public String bad6() {
-        StringBuilder strBui = new StringBuilder();
-        strBui.append(field1); // bad nr7
-        strBui.append(" = ").append(field2); // bad nr8
+        StringBuilder strBui = new StringBuilder(); // bad nr7
+        strBui.append(field1);
+        strBui.append(" = ").append(field2);
         return strBui.toString();
     }
 }
@@ -130,15 +130,15 @@ public class Foo {
 
     <test-code>
         <description>violation: more than one toString in method (issue #102: fails with error)</description>
-        <expected-problems>2</expected-problems>
-        <expected-linenumbers>5,6</expected-linenumbers>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>4</expected-linenumbers>
         <code><![CDATA[
     class Foo {
         public void bar() {
             final String expiry = Long.toString(5);
-            final StringBuilder sasToken = new StringBuilder();
-            sasToken.append("a="); // bad
-            sasToken.append(expiry); // bad
+            final StringBuilder sasToken = new StringBuilder(); // bad
+            sasToken.append("a=");
+            sasToken.append(expiry);
             sasToken.toString();
         }
     }
@@ -146,13 +146,13 @@ public class Foo {
     </test-code>
     <test-code>
         <description>violation: more than one StringBuilder in method (issue #106: fails with error)</description>
-        <expected-problems>4</expected-problems>
-        <expected-linenumbers>6,7,8,9</expected-linenumbers>
+        <expected-problems>2</expected-problems>
+        <expected-linenumbers>3,4</expected-linenumbers>
         <code><![CDATA[
     public class Foo {
         public void bar(Foo bar) {
-            StringBuilder one = new StringBuilder();
-            StringBuilder two = new StringBuilder();
+            StringBuilder one = new StringBuilder(); // bad
+            StringBuilder two = new StringBuilder(); // bad
 
             one.append("one");
             one.append("one-two");
@@ -189,6 +189,23 @@ class Issue427 {
         StringBuilder timestampBuilder = new StringBuilder(new SimpleDateFormat(TIME_STAMP_FORMAT).format(new Date()));
         String reversedTimeStamp = timestampBuilder.reverse().append(userId).toString(); // <--- false positive
         return timestampBuilder.append(userId).reverse().toString(); // <--- false positive after fixing the expression partly
+    }
+}
+        ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>no violation: false positive AvoidUnnecessaryStringBuilderCreation spurious violations #433</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>3</expected-linenumbers>
+        <code><![CDATA[
+class Issue433 {
+    void bar(String baz) {
+        StringBuilder bui = new StringBuilder(); // bad
+        bui.append("bla"); // <-- false positive
+        bui.append("-blabla"); // <-- false positive
+        bui.append(baz); // <-- false positive
+        return bui.toString();
     }
 }
         ]]></code>

@@ -944,22 +944,31 @@ class Foo {
                 <value><![CDATA[
 (: append used in one chained statement on constructor of StringBuilder and with chained toString :)
 //MethodDeclaration//Block//MethodCall[@MethodName = "toString"]/MethodCall[@MethodName='append']
-[.//ConstructorCall[pmd-java:typeIs('java.lang.StringBuilder') or pmd-java:typeIs('java.lang.StringBuffer')]]
+[.//ConstructorCall[pmd-java:typeIs('java.lang.AbstractStringBuilder')]]
 |
-(: or :)
-(: append on builder var, where var is allocated as StringBuilder :)
-//MethodDeclaration//Block//MethodCall[@MethodName='append']
-[.//VariableAccess[pmd-java:typeIs('java.lang.StringBuilder') or pmd-java:typeIs('java.lang.StringBuffer')]]
-[(
-(: and toString is called (possibly chained) on the var in same block, with no other operations than append :)
-../MethodCall[@MethodName='append']/VariableAccess/@Name
-    = ancestor::Block//(ReturnStatement|ExpressionStatement|LocalVariableDeclaration)//MethodCall[@MethodName='toString'][not(.//MethodCall[@MethodName!='append'])]//VariableAccess/@Name
-(: and not append on var used in inner block like a ForStatement or IfStatement :)
-and not(../MethodCall[@MethodName='append']/VariableAccess/@Name = ancestor::Block//Block//MethodCall[@MethodName='append']/VariableAccess/@Name)
-(: and not append in lambda expression, issue 195 :)
-and not(ancestor::LambdaExpression)
-(: and var not passed as argument to method :)
-and not(../MethodCall[@MethodName='append']/VariableAccess/@Name = ancestor::MethodDeclaration//MethodCall/ArgumentList/VariableAccess/@Name))
+(: or local declared builder var with an append :)
+//MethodDeclaration//Block/LocalVariableDeclaration[
+    VariableDeclarator[
+        VariableId/@Name=ancestor::Block[1]//MethodCall[@MethodName='append']/VariableAccess/@Name
+    ]
+    /ConstructorCall/ClassType[pmd-java:typeIs('java.lang.AbstractStringBuilder')]
+]
+[
+    (: and toString is called (possibly chained) on the var in same block, with no other operations than append :)
+    ..//MethodCall[@MethodName='append']/VariableAccess/@Name=..//(ReturnStatement|ExpressionStatement|LocalVariableDeclaration)//MethodCall[@MethodName='toString']
+        [not(..//MethodCall[@MethodName!=('append') and @MethodName!=('toString')])]//VariableAccess/@Name
+]
+[
+    not(
+        ..//MethodCall[@MethodName='append']/VariableAccess[
+            (: and not append on var used in inner block like a ForStatement or IfStatement :)
+            @Name = ancestor::Block//Block//MethodCall[@MethodName='append']/VariableAccess/@Name
+            (: and not append in lambda expression, issue 195 :)
+            or ancestor::LambdaExpression
+            (: and var not passed as argument to method :)
+            or (@Name = ancestor::MethodDeclaration//MethodCall/ArgumentList/VariableAccess/@Name)
+        ]
+    )
 ]
 	         ]]></value>
             </property>
