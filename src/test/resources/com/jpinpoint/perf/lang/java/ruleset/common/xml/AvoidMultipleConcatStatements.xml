@@ -5,8 +5,8 @@
         xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
     <test-code>
         <description>Avoid multiple concat statements</description>
-        <expected-problems>5</expected-problems>
-        <expected-linenumbers>11,12, 28,29, 67</expected-linenumbers>
+        <expected-problems>3</expected-problems>
+        <expected-linenumbers>11, 28, 67</expected-linenumbers>
         <code><![CDATA[
 import java.util.Arrays;
 import java.util.List;
@@ -19,7 +19,7 @@ public class AvoidMultipleConcatStatementsTest {
 
 		logStatement += values.get(0);
 		logStatement += values.get(1); // bad
-        logStatement += values.get(2); // bad
+        logStatement += values.get(2); // not reported to prevent violation overload
         otherCall();
 	}
 
@@ -36,7 +36,7 @@ public class AvoidMultipleConcatStatementsTest {
 
 		logStatement = logStatement + values.get(0);
 		logStatement = logStatement + values.get(1); // bad
-        logStatement = logStatement + values.get(2); // bad
+        logStatement = logStatement + values.get(2); // not reported to prevent violation overload
         otherCall();
 	}
 
@@ -80,6 +80,52 @@ class ConcatsExample {
         StringBuilder logStmtBuilder = new StringBuilder();
         return logStmtBuilder.append(values[0]).append(values[1]).toString(); // good
     }
+}
+
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>Fix Request: AvoidMultipleConcatStatements spurious violations and missing cases #434</description>
+        <expected-problems>4</expected-problems>
+        <expected-linenumbers>8,15,22,31</expected-linenumbers>
+        <code><![CDATA[
+class Issue434 {
+
+    private String[] values = {"tic", "tac", "toe"};
+
+    String bad1() {
+        String logStatement = "";
+        logStatement += values[0];
+        logStatement = logStatement + values[1]; // bad <-- missed case
+        return logStatement;
+    }
+
+    String bad2() {
+        String logStatement = "";
+        logStatement = logStatement + values[1];
+        logStatement += values[0]; // bad <-- missed case
+        return logStatement;
+    }
+
+    String bad3() {
+        String logStatement = "";
+        logStatement = logStatement + values[0];
+        logStatement += values[1] + "-"; // bad
+        logStatement += values[2]; // <-- 'false positive', spurious, not reported to prevent violation overload
+        logStatement += "-bla"; // <-- 'false positive', spurious, not reported to prevent violation overload
+        return logStatement;
+    }
+
+    String bad4() {
+        String logStatement = "";
+        logStatement = logStatement + values[0];
+        logStatement = logStatement + values[1] + "-"; // bad
+        logStatement = logStatement + values[2]; // <-- 'false positive', spurious, not reported to prevent violation overload
+        logStatement = logStatement + "-bla"; // <-- 'false positive', spurious, not reported to prevent violation overload
+        return logStatement;
+    }
+
 }
 
      ]]></code>
