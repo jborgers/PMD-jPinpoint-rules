@@ -370,11 +370,30 @@ class Good {
             <property name="tags" value="cpu,jpinpoint-rule,performance,sustainability-low" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
+(: x += y with only one preceding x += v or x = x + w :)
 //AssignmentExpression[@Operator='+='][VariableAccess/@Name=ancestor::Block//VariableDeclarator/VariableId[pmd-java:typeIs('java.lang.String')]/@Name]
-[VariableAccess/@Name = ../preceding-sibling::ExpressionStatement/AssignmentExpression[@Operator='+=']/VariableAccess/@Name]
+[(VariableAccess/@Name = ../preceding-sibling::ExpressionStatement/AssignmentExpression[@Operator='+=']/VariableAccess/@Name
+or
+VariableAccess/@Name = ../preceding-sibling::ExpressionStatement//InfixExpression[@Operator='+']/VariableAccess/@Name)
+and not (
+    VariableAccess/@Name = ../preceding-sibling::ExpressionStatement[2]/AssignmentExpression[@Operator='+=']/VariableAccess/@Name
+    or
+    VariableAccess/@Name = ../preceding-sibling::ExpressionStatement[2]//InfixExpression[@Operator='+']/VariableAccess/@Name
+)
+]
 |
-//InfixExpression[@Operator='+'][VariableAccess/@Name=../VariableAccess/@Name][VariableAccess/@Name=ancestor::Block//VariableDeclarator/VariableId[pmd-java:typeIs('java.lang.String')]/@Name]
-[VariableAccess/@Name = ../../preceding-sibling::ExpressionStatement//InfixExpression[@Operator='+']/VariableAccess/@Name]/..
+(: x = x + y with only one preceding x += v or x = x + w :)
+//InfixExpression[@Operator='+'][VariableAccess/@Name=ancestor::AssignmentExpression/VariableAccess/@Name][VariableAccess/@Name=ancestor::Block//VariableDeclarator/VariableId[pmd-java:typeIs('java.lang.String')]/@Name]
+[(VariableAccess/@Name = ancestor::ExpressionStatement/preceding-sibling::ExpressionStatement//InfixExpression[@Operator='+']/VariableAccess/@Name
+or
+VariableAccess/@Name = ancestor::ExpressionStatement/preceding-sibling::ExpressionStatement/AssignmentExpression[@Operator='+=']/VariableAccess/@Name)
+and not (
+    VariableAccess/@Name = ancestor::ExpressionStatement/preceding-sibling::ExpressionStatement[2]/AssignmentExpression[@Operator='+=']/VariableAccess/@Name
+    or
+    VariableAccess/@Name = ancestor::ExpressionStatement/preceding-sibling::ExpressionStatement[2]//InfixExpression[@Operator='+']/VariableAccess/@Name
+)
+]/..
+
 	]]></value>
             </property>
         </properties>
