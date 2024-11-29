@@ -1426,8 +1426,6 @@ class Good {
     (ancestor::ClassBody[1]/MethodDeclaration
        [(@Visibility='public' or ../../@Nested=true()) and @Static=false() and (starts-with(@Name, 'get') and string-length(@Name) > 3 or starts-with(@Name, 'is') and string-length(@Name) > 2)]
        [ClassType/@SimpleName=ancestor::ClassBody[1]/FieldDeclaration[@Static=false()]/ClassType/@SimpleName]
-    (: or a @Getter on class :)
-    or ancestor::ClassDeclaration[1][pmd-java:hasAnnotation('lombok.Getter')]
     )
     (: and class has no equals nor hashCode method :)
     and (not (ancestor::ClassBody[1]/MethodDeclaration[(@Visibility='public' or ../../@Nested=true()) and @Static=false() and (@Name='equals' and .//FormalParameters[@Size=1]) or (@Name='hashCode' and .//FormalParameters[@Size=0])]))
@@ -1438,7 +1436,6 @@ class Good {
             or ancestor::ClassDeclaration[1][ends-with(upper-case(@SimpleName), 'DTO')])
         (: or #fields == #getters :)
         or count(ancestor::ClassBody[1]/FieldDeclaration[@Static=false()]) = count(ancestor::ClassBody[1]/MethodDeclaration[(@Visibility='public' or ../../@Nested=true()) and @Static=false() and (starts-with(@Name, 'get') and string-length(@Name) > 3 or starts-with(@Name, 'is') and string-length(@Name) > 2)])
-        or ancestor::ClassDeclaration[1][pmd-java:hasAnnotation('lombok.Getter')]
         )
 ] (:-up to class -:)
 ]/..
@@ -1459,19 +1456,29 @@ class Getters { // bad
         return someState2;
     }
 }
-
-@Getter
-class LombokGetterBad { // bad
+class Good {
     private String someState1 = "some1";
     private String someState2 = "some2";
+
+    public String getSomeState1() {
+        return someState1;
+    }
+    public String getSomeState2() {
+        return someState2;
+    }
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Good good = (Good) o;
+        return Objects.equals(someState1, good.someState1) && Objects.equals(someState2, good.someState2);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(someState1, someState2);
+    }
 }
 
-@Getter
-@EqualsAndHashCode
-class LombokGetterGood {
-    private String someState1 = "some1";
-    private String someState2 = "some2";
-}
             ]]>
         </example>
     </rule>

@@ -541,13 +541,12 @@ class AdaptedValidationErrorIgnored {
     </test-code>
 
     <test-code>
-        <description>violation: Implement equals and hashcode methods on Objects with @Getter and no @EqualsAndHashCode (or @Value or @Data)</description>
-        <expected-problems>1</expected-problems>
-        <expected-linenumbers>3</expected-linenumbers>
+        <description>no violation anymore: Implement equals and hashcode methods on Objects with @Getter and no @EqualsAndHashCode (or @Value or @Data) - Issue #432 </description>
+        <expected-problems>0</expected-problems>
         <code><![CDATA[
 import lombok.*;
 @Getter
-public class LombokGetterBad1 { // bad
+public class LombokGetterWasBad1 { // false positive
     private String someState1 = "some1";
 }
 
