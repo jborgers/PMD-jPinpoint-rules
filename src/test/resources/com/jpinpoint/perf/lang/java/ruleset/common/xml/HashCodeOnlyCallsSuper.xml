@@ -105,5 +105,46 @@ class Good4 extends SomeClass {
      ]]></code>
     </test-code>
 
+    <test-code>
+        <description>violation: false positive in HashCodeOnlyCallsSuper #440</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>31</expected-linenumbers>
+        <code><![CDATA[
+import java.util.*;
+
+class EqHashTryoutBad6 {
+    String field1;
+    String field2;// bad
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        EqHashTryoutBad3 that = (EqHashTryoutBad3) o;
+        return Objects.equals(field1, that.field1) &&
+                Objects.equals((field2.toLowerCase()), that.field2.toLowerCase());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(field1, field2); // <-- false positive
+    }
+}
+
+class EqHashTryoutBad8 {
+    String field1;
+
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        EqHashTryoutBad8 that = (EqHashTryoutBad8) o;
+        return Objects.equals(field1, that.field1);
+    }
+    public int hashCode() {
+        return super.hashCode(); // bad
+    }
+}
+     ]]></code>
+    </test-code>
 
 </test-data>
