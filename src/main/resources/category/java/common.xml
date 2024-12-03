@@ -995,7 +995,8 @@ public RetrieveCache(final @Value("${cache.expiryTimeMillis}") long timeToLiveMi
         <description>
             Problem: If equals and hashCode are not defined, they don't meet the programmer's expectations and the requirements for use with the collections API. It may result in unexpected, undesired behavior.&#13;
             Solution: Add proper equals and hashCode methods that meet the equals-hashCode contract to all objects which might anyhow be put in a Map, Set or other collection. Or use Lombok @EqualsAndHashCode, @Value or @Data. Also holds for inner classes.
-            If the object should never be checked for equality or used in a collection, also add those methods and let them throw UnsupportedOperationException to fail fast. @Xml... , @Entity, Throwable and Executor objects are ignored because they are assumed to be not used as value objects.
+            If the object should never be checked for equality or used in a collection, also add those methods and let them throw UnsupportedOperationException to fail fast.
+            @Xml... , @Entity, Throwable and Executor and some other objects are ignored because they are assumed to be not used as value objects.
             (jpinpoint-rules)</description>
         <priority>3</priority>
         <properties>
@@ -1003,8 +1004,9 @@ public RetrieveCache(final @Value("${cache.expiryTimeMillis}") long timeToLiveMi
             <property name="xpath">
                 <value>
                     <![CDATA[
-(:- top level class - not annotated that would make it a non-value object -:)
+(:- top level class :)
 //ClassDeclaration
+(: exclusions, the following annotations assume a non-value object -:)
 [not(pmd-java:hasAnnotation('lombok.Data') or pmd-java:hasAnnotation('lombok.Value')or pmd-java:hasAnnotation('lombok.EqualsAndHashCode')
     or pmd-java:hasAnnotation('javax.ejb.Singleton') or pmd-java:hasAnnotation('jakarta.ejb.Singleton')
     or pmd-java:hasAnnotation('org.springframework.stereotype.Component') or pmd-java:hasAnnotation('org.springframework.stereotype.Controller')
@@ -1018,7 +1020,13 @@ public RetrieveCache(final @Value("${cache.expiryTimeMillis}") long timeToLiveMi
     (: JAXB annotations: @XmlType, @XmlRootElement, @XmlAccessorType, @XmlAccessorOrder :)
     or ModifierList/Annotation[starts-with(@SimpleName, 'Xml')]
 )]
-[@Interface=false() and @Abstract=false() and not(pmd-java:typeIs('java.util.concurrent.Executor') or pmd-java:typeIs('java.lang.Throwable'))]
+[@Interface=false() and @Abstract=false() and not(
+    (: excluded types, assumed non-value objects :)
+    pmd-java:typeIs('java.util.concurrent.Executor')
+    or pmd-java:typeIs('java.lang.Throwable')
+    or pmd-java:typeIs('javax.ws.rs.ext.ContextResolver')
+    or pmd-java:typeIs('javax.ws.rs.client.ClientRequestFilter')
+)]
 /ClassBody[FieldDeclaration[@Static=false() and (not (pmd-java:hasAnnotation('javax.xml.bind.annotation.XmlElement')))
     and
     (: a getter with result type of a field :)

@@ -689,5 +689,44 @@ class ExtendedThreadPoolExecutor extends ThreadPoolExecutor {
 }
             ]]></code>
     </test-code>
+    <test-code>
+        <description>no violation: ImplementEqualsHashCodeOnValueObjects has false positives #438</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import javax.ws.rs.ext.ContextResolver;
+import javax.ws.rs.client.ClientRequestFilter;
 
+class Foo implements ContextResolver {
+
+    String field1;
+    String field2;
+    Object context;
+
+    public String getField1() {
+        return field1;
+    }
+    public String getField2() {
+        return field2;
+    }
+    public T getContext(Class<?> type) {
+        return context;
+    }
+}
+
+class Foo implements ClientRequestFilter {
+
+    String field1;
+    String field2;
+    public String getField1() {
+        return field1;
+    }
+    public String getField2() {
+        return field2;
+    }
+    public void filter(ClientRequestContext requestContext,
+            ClientResponseContext responseContext) throws IOException {
+    }
+}
+            ]]></code>
+    </test-code>
 </test-data>
