@@ -112,32 +112,30 @@ class Good4 extends SomeClass {
         <code><![CDATA[
 import java.util.*;
 
-class EqHashTryoutBad6 {
+class EqHashTryout {
     String field1;
-    String field2;// bad
+    String field2;
 
-    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        EqHashTryoutBad3 that = (EqHashTryoutBad3) o;
+        EqHashTryout that = (EqHashTryout) o;
         return Objects.equals(field1, that.field1) &&
-                Objects.equals((field2.toLowerCase()), that.field2.toLowerCase());
+                Objects.equals(field2, that.field2);
     }
 
-    @Override
     public int hashCode() {
         return Objects.hash(field1, field2); // <-- false positive
     }
 }
 
-class EqHashTryoutBad8 {
+class EqHashTryout2 {
     String field1;
 
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        EqHashTryoutBad8 that = (EqHashTryoutBad8) o;
+        EqHashTryout2 that = (EqHashTryout2) o;
         return Objects.equals(field1, that.field1);
     }
     public int hashCode() {
