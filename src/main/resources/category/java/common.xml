@@ -1973,7 +1973,7 @@ class Good {
                 <value><![CDATA[
 //MethodDeclaration[@Name='equals' and FormalParameters/@Size=1 and @Static=false() and ModifierList/@ExplicitModifiers='public']
 /ancestor::ClassBody[1]//MethodDeclaration[@Name='hashCode' and FormalParameters/@Size=0 and @Static=false() and ModifierList/@ExplicitModifiers='public']
-/Block[count(descendant::MethodCall)=1][//MethodCall[pmd-java:matchesSig('java.lang.Object#hashCode()')]/SuperExpression]
+/Block[count(descendant::MethodCall)=1][.//MethodCall[pmd-java:matchesSig('java.lang.Object#hashCode()')]/SuperExpression]
                 ]]></value>
             </property>
         </properties>
