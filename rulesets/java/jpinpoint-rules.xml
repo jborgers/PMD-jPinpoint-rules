@@ -2307,6 +2307,7 @@ public class StringStuff {
           externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodeQuality.md#ils01">
         <description>Problem: Streams is a paradigm based on functional programming: the result should depend only on its input and not update any state.
             Use of forEach is actually iterative code masquerading as streams code. It is typically harder to read and less maintainable than the iterative form.
+            For parallel streams, side effects are dangerous: accessing a thread-unsafe shared variable is a concurrency bug.
             Solution: Use the for-each (enhanced-for) loop, or the pure functional form. The forEach operation should only be used to report (i.e. log) the result of a stream computation.
         (jpinpoint-rules)</description>
         <priority>4</priority>
@@ -2941,6 +2942,69 @@ public static String good(CompletableFuture<String> complFuture) throws Exceptio
                 ]]>
             </example>
         </rule>
+
+    <rule name="AvoidMutableCollectionInParallelStreamForEach"
+          message="Avoid using a mutable collection in a parallel stream forEach, it is a concurrency bug."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          language="java"
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#ia15">
+        <description>Problem: If a thread-unsafe collection is mutated in a parallelStream, this means that multiple threads access an unguarded shared variable which can cause data corruption and
+            visibility problems: a concurrency bug.&#13;
+            Solution: Using a thread-safe collection would fix the bug, however, the proper solution is to only use forEach for reporting/logging and let streams not have side effects.
+            Moreover, parallelization is only faster in the exceptional case with large collections and much CPU work per element. Always measure if really faster.(jpinpoint-rules)</description>
+        <priority>1</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,multi-threading,performance,pitfall" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+(: should match java.lang.Stream#forEach(java.util.function.Consumer) but also others like java.util.stream.IntStream#forEach(java.util.function.IntConsumer) :)
+//MethodCall[pmd-java:matchesSig('java.util.stream.BaseStream#forEach(_)')][.//MethodCall[@MethodName='parallel' or @MethodName='parallelStream']]
+[ArgumentList[
+    .//(LambdaExpression|MethodReference)[
+        (: a constructor of a thread-unsafe collection/map :)
+        .//VariableAccess/@Name = (ancestor::MethodDeclaration//LocalVariableDeclaration|ancestor::ClassBody/FieldDeclaration)/VariableDeclarator[
+            ConstructorCall[pmd-java:typeIs('java.util.ArrayList')]
+            or ConstructorCall[pmd-java:typeIs('java.util.HashMap')]
+            or ConstructorCall[pmd-java:typeIs('java.util.HashSet')]
+            or ConstructorCall[pmd-java:typeIs('java.util.LinkedList')]
+            or ConstructorCall[pmd-java:typeIs('java.util.TreeMap')]
+            or ConstructorCall[pmd-java:typeIs('java.util.TreeSet')]
+            or ConstructorCall[pmd-java:typeIs('java.util.EnumMap')]
+            or ConstructorCall[pmd-java:typeIs('java.util.ArrayDeque')]
+            or ConstructorCall[pmd-java:typeIs('java.util.PriorityQueue')]
+            or ArrayAllocation
+        ]/(VariableId|VariableAccess)/@Name]
+    ]
+]
+                ]]></value>
+            </property>
+        </properties>
+        <example><![CDATA[
+class AvoidMutableCollectionInParallelStreamForEach {
+
+    static List<String> names = List.of("Dory", "Gill", "Bruce", "Nemo", "Darla", "Marlin", "Jacques");
+    List<String> inUppercaseField = new ArrayList<>();
+
+    public static void main(String[] args) {
+        List<String> inUppercase = new ArrayList<>();
+
+        names.parallelStream().map(String::toUpperCase).forEach(name -> inUppercase.add(name)); // bad
+
+        System.out.println(names.size()); // 7
+        System.out.println(inUppercase.size()); // sometimes 6! As Venkat's demo!
+    }
+
+    public void noBug() {
+        List<String> inUppercase = Collections.synchronizedList(new ArrayList<>()); // thread-safe collection
+        names.parallelStream().map(String::toUpperCase).forEach(name -> inUppercase.add(name));
+    }
+
+    public void good() {
+        // pure functional form, proper solution. Note parallel may be faster, yet only with large collections. Always measure!
+        List<String> inUppercase = names.parallelStream().map(String::toUpperCase).toList(); // java 12+
+    }
+                ]]></example>
+    </rule>
 
     <rule name="AvoidMutableStaticFields"
           message="Avoid non-final or mutable static fields. Make final immutable or access thread-safely AND use @GuardedBy."

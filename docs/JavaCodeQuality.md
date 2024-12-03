@@ -426,7 +426,8 @@ Ineffective Lambdas and Streams
 
 **Observation: forEach is used to perform a stream computation.**  
 **Problem:** Java Streams is a paradigm based on functional programming: the result should depend only on its input, not on any mutable state nor should it update any state.
-Use of forEach in a stream is actually iterative code masquerading as streams code. It is typically harder to read and less maintainable than the iterative form.  
+Use of forEach in a stream is actually iterative code masquerading as streams code. It is typically harder to read and less maintainable than the iterative form.
+For parallel streams, side effects are dangerous: accessing a thread-unsafe shared variable is a concurrency bug.  
 **Solution:** Use the for-each (enhanced-for) loop, or the pure functional form. The forEach operation should only be used to report (i.e. log) the result of a stream computation.    
 **See:** Effective Java 3rd Ed. Item 46: Prefer Side-Effect-Free Functions In Streams.   
 **Rule name:** AvoidForEachInStreams   
