@@ -6301,7 +6301,7 @@ class Good {
     <rule name="UseClearKeyGeneratorName" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
           message="Use a specific name for this KeyGenerator class which makes clear where to use it." typeResolution="true"
           externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#ic17">
-        <description>This class implementing Spring's KeyGenerator uses a generic name, CacheKeyGenerator.
+        <description>This class implementing Spring's KeyGenerator uses a generic name, CacheKeyGenerator or CacheKeyGeneration.
             Problem: It is unclear where this KeyGenerator should be used, for which cache and/or for which methods.
             If used on the wrong caches or methods, it may lead to cache key mix-up and user data mix-up.
             Solution: Make the name specific so that it is clear where to apply this KeyGenerator in @Cacheable.
@@ -6314,6 +6314,7 @@ class Good {
 //ClassDeclaration[
    pmd-java:typeIs('org.springframework.cache.interceptor.KeyGenerator')
    and not(pmd-java:modifiers()='abstract')
+   and (@SimpleName="CacheKeyGenerator" or @SimpleName="CacheKeyGeneration")
 ]
     ]]></value>
             </property>
