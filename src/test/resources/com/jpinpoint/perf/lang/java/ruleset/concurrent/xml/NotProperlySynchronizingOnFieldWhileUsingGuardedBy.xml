@@ -227,7 +227,8 @@
    </test-code>
 
     <test-code>
-        <description>NotProperlySynchronizingOnFieldWhileUsingGuardedBy Issue #442, another rule catches this case</description>
+        <description>NotProperlySynchronizingOnFieldWhileUsingGuardedBy Issue #442, another rule catches this case
+            (NotProperlySynchronizingOnThisWhileUsingGuardedBy)</description>
         <expected-problems>0</expected-problems>
         <code><![CDATA[
 class Issue442 {
