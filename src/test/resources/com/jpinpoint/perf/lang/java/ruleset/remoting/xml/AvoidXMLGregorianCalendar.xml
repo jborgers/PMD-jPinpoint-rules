@@ -5,8 +5,8 @@
         xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
     <test-code>
         <description>Avoid XMLGregorianCalendar</description>
-        <expected-problems>4</expected-problems>
-        <expected-linenumbers>7,8,10,11</expected-linenumbers>
+        <expected-problems>3</expected-problems>
+        <expected-linenumbers>7,8,11</expected-linenumbers>
         <code><![CDATA[
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
@@ -17,7 +17,7 @@ public class AvoidXMLGregorianCalendar {
 	private XMLGregorianCalendar sprinkleDatum; // bad
 	protected XMLGregorianCalendar sparkleDatum; // bad
 
-	public XMLGregorianCalendar getSparkleDatum2() { // bad
+	public XMLGregorianCalendar getSparkleDatum2() { // bad <-- abundant: did not match in pmd6
 		XMLGregorianCalendar cal = sprinkleDatum;  // bad
 		try {
 			cal = DatatypeFactory.newInstance().newXMLGregorianCalendar();
@@ -30,4 +30,99 @@ public class AvoidXMLGregorianCalendar {
 }
       ]]></code>
     </test-code>
+
+    <test-code>
+        <description>Avoid XMLGregorianCalendar, avoid double hits</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>5</expected-linenumbers>
+        <code><![CDATA[
+import javax.xml.datatype.XMLGregorianCalendar;
+
+public class AvoidXMLGregorianCalendarDoubleHits {
+
+    protected XMLGregorianCalendar startDate; // bad
+
+    public XMLGregorianCalendar getStartDate() { // bad <-- abundant: did not match in pmd6
+        return startDate;
+    }
+
+    public void setStartDate(XMLGregorianCalendar value) { // bad <-- abundant: did not match in pmd6
+        this.startDate = value;
+    }
+}
+      ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>Avoid XMLGregorianCalendar in gson</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>7</expected-linenumbers>
+        <code><![CDATA[
+import javax.xml.datatype.XMLGregorianCalendar;
+import my.app.XMLGregorianCalendarTypeAdapter;
+
+public class AvoidXMLGregorianCalendarGson {
+
+    private Gson gson = new GsonBuilder()
+        .registerTypeHierarchyAdapter(XMLGregorianCalendar.class, new XMLGregorianCalendarTypeAdapter()) // bad
+        .build();
+}
+      ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>Avoid XMLGregorianCalendar in gson</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>7</expected-linenumbers>
+        <code><![CDATA[
+import javax.xml.datatype.XMLGregorianCalendar;
+import my.app.XMLGregorianCalendarTypeAdapter;
+
+public class AvoidXMLGregorianCalendarGson {
+
+    private Gson gson = new GsonBuilder()
+        .registerTypeHierarchyAdapter(XMLGregorianCalendar.class, new XMLGregorianCalendarTypeAdapter()) // bad
+        .build();
+
+}
+      ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>Avoid XMLGregorianCalendar in class definitions</description>
+        <expected-problems>2</expected-problems>
+        <expected-linenumbers>13,13</expected-linenumbers>
+        <code><![CDATA[
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonDeserializer;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParseException;
+import com.google.gson.JsonPrimitive;
+import com.google.gson.JsonSerializationContext;
+import com.google.gson.JsonSerializer;
+
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.XMLGregorianCalendar;
+import java.lang.reflect.Type;
+
+public class XMLGregorianCalendarTypeAdapter implements JsonSerializer<XMLGregorianCalendar>, JsonDeserializer<XMLGregorianCalendar> { // bad <-- keep these?
+    @Override
+    public XMLGregorianCalendar deserialize(  // bad <-- abundant: skip these?
+            JsonElement jsonElement, Type type, JsonDeserializationContext jsonDeserializationContext)
+            throws JsonParseException {
+        try {
+            return DatatypeFactory.newInstance().newXMLGregorianCalendar(jsonElement.getAsString());
+        } catch (Exception e) {
+            throw new JsonParseException(e);
+        }
+    }
+
+    @Override
+    public JsonElement serialize(XMLGregorianCalendar xmlGregorianCalendar, Type type, JsonSerializationContext jsonSerializationContext) { // bad <-- abundant, skip these?
+        return new JsonPrimitive(xmlGregorianCalendar.toString());
+    }
+}
+      ]]></code>
+    </test-code>
+
 </test-data>
