@@ -1151,9 +1151,8 @@ class BufferFileStreaming {
          or ancestor::MethodDeclaration//MethodCall[@MethodName = 'copy' and TypeExpression[pmd-java:typeIs('org.apache.commons.io.IOUtils')]]
       )
    or (@MethodName='newOutputStream' and not(ancestor::MethodDeclaration//ConstructorCall[pmd-java:typeIs('java.io.BufferedOutputStream')]
-        (: IOUtil.buffer used chained or in separate statements :)
-        or ancestor::MethodCall[@MethodName='buffer' and TypeExpression[pmd-java:typeIs('org.apache.commons.io.IOUtils')]]
-        or ancestor::VariableDeclarator/VariableId/@Name = ancestor::MethodDeclaration//MethodCall[@MethodName='buffer' and TypeExpression[pmd-java:typeIs('org.apache.commons.io.IOUtils')]]/ArgumentList/VariableAccess/@Name
+        (: IOUtils.copy buffers inputStream to outputStream :)
+         or ancestor::MethodDeclaration//MethodCall[@MethodName = 'copy' and TypeExpression[pmd-java:typeIs('org.apache.commons.io.IOUtils')]]
    )))
 ]
                 ]]></value>

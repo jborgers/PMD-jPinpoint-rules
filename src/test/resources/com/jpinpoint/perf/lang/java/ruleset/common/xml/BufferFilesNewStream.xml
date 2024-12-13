@@ -76,8 +76,7 @@ class Issue273 {
 
     <test-code>
         <description>violation: BufferFilesNewStream Issue #456</description>
-        <expected-problems>1</expected-problems>
-        <expected-linenumbers>7</expected-linenumbers>
+        <expected-problems>0</expected-problems>
         <code><![CDATA[
 import java.io.*;
 import java.nio.file.*;
@@ -85,7 +84,7 @@ import org.apache.commons.io.IOUtils;
 
 class Issue456 {
     void ioUtilsBad(InputStream in, String path) throws IOException {
-        OutputStream out = Files.newOutputStream(Paths.get(path)); // bad, not buffered
+        OutputStream out = Files.newOutputStream(Paths.get(path)); // good after all, buffered
         IOUtils.copy(in, out);
     }
     void ioUtilsGood1(InputStream in, String path) throws IOException {
