@@ -1058,6 +1058,7 @@ public class HttpClientStuff {
             Exceptions: A convertValue method is not provided by ObjectReader nor ObjectWriter, therefore in those cases
             this rule is not applied.
             Also, when used like jaxMsgConverter.setObjectMapper(objectMapper) it is not considered a violation.
+            And, when the class implements ContextResolver&lt;ObjectMapper&gt;.
             (jpinpoint-rules)
         </description>
         <priority>3</priority>
@@ -1070,6 +1071,8 @@ public class HttpClientStuff {
     [not(@Name = ancestor::ClassBody//MethodCall[pmd-java:matchesSig('com.fasterxml.jackson.databind.ObjectMapper#convertValue(_,_)')]/VariableAccess/@Name)]
     (: exception: do not match if used with jaxMsgConverter.setObjectMapper(objectMapper) :)
     [not(@Name = ancestor::ClassBody//MethodCall[pmd-java:matchesSig('org.springframework.http.converter.json.MappingJackson2HttpMessageConverter#setObjectMapper(_)')]/ArgumentList/VariableAccess/@Name)]
+    (: exception: do not match if class implements ContextResolver<ObjectMapper> :)
+    [not(ancestor::ClassDeclaration/ImplementsList/ClassType[pmd-java:typeIs('javax.ws.rs.ext.ContextResolver')]/TypeArguments/ClassType[pmd-java:typeIs('com.fasterxml.jackson.databind.ObjectMapper')])]
 ]]>
                 </value>
             </property>
