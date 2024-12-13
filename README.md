@@ -38,7 +38,7 @@ PMD-jPinpoint-rules is licensed under the [Apache License, Version 2.0](https://
 To use the ruleset you can install: 
 
 - the PMD command line tool from [PMD project at github](https://pmd.github.io/) and/or
-- the PMD-Plugin in you development environment. 
+- the PMD-Plugin in your development environment. 
 
 ## PMD command line tool
 
@@ -60,7 +60,7 @@ After installing the tool you can run `pmd.sh` or `pmd.bat` similar to the follo
 
       Settings > Tools > PMD > RuleSets > + > Choose RuleSet > drop down > Choose 'jpinpoint-rules' 
 
-- Alternatively, download and add your local copy: *rulesets/java/jpinpoint-rules.xml*
+- Alternatively, download and add your local copy: *[rulesets/java/jpinpoint-rules.xml](https://raw.githubusercontent.com/jborgers/PMD-jPinpoint-rules/refs/heads/pmd7/rulesets/java/jpinpoint-rules.xml)*
   - remember to download regularly to get up-to-date
   
 - Options tab: optionally check 'Skip Test Sources' and optionally set your Java version 
@@ -78,7 +78,7 @@ After installing the tool you can run `pmd.sh` or `pmd.bat` similar to the follo
 The Acanda PMD plugin seems to be the best one to use. 
 - [Import it into eclipse](http://www.acanda.ch/eclipse-pmd/release/latest).
 - enable PMD through the properties of the project
-- add the ruleset from this project *rulesets/java/jpinpoint-rules.xml*
+- add the ruleset from this project *[rulesets/java/jpinpoint-rules.xml](https://raw.githubusercontent.com/jborgers/PMD-jPinpoint-rules/refs/heads/pmd7/rulesets/java/jpinpoint-rules.xml)*
 
 ## SonarQube with Plugins
 In SonarQube, you need to install [sonar-pmd plugin](https://github.com/jborgers/sonar-pmd) from the marketplace, and [sonar-pmd-jpinpoint plugin](https://github.com/jborgers/sonar-pmd-jpinpoint) for these jpinpoint rules.
