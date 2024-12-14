@@ -71,7 +71,7 @@ public class AvoidXMLGregorianCalendarGson {
     </test-code>
 
     <test-code>
-        <description>Avoid XMLGregorianCalendar in gson</description>
+        <description>Avoid XMLGregorianCalendar in gson builder</description>
         <expected-problems>1</expected-problems>
         <expected-linenumbers>7</expected-linenumbers>
         <code><![CDATA[
