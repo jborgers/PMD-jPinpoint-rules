@@ -1881,7 +1881,7 @@ class BufferFileStreaming {
             The stream is read from/written to file byte by byte, where each operating system call has its overhead which makes it slow.
             Solution: Use buffering to read/write a chunk of bytes at once with much lower overhead.
             Use e.g. BufferedInputStream or BufferedOutputStream which has a buffer size of 8 kB to read/write at once. Make sure to close it after use.
-            Note that IOUtils methods just take care of buffering the inputStream, and not the outputStream.
+            Note that IOUtils methods take care of buffering the inputStream.
         </description>
         <priority>3</priority>
         <properties>
@@ -1896,9 +1896,8 @@ class BufferFileStreaming {
          or ancestor::MethodDeclaration//MethodCall[@MethodName = 'copy' and TypeExpression[pmd-java:typeIs('org.apache.commons.io.IOUtils')]]
       )
    or (@MethodName='newOutputStream' and not(ancestor::MethodDeclaration//ConstructorCall[pmd-java:typeIs('java.io.BufferedOutputStream')]
-        (: IOUtil.buffer used chained or in separate statements :)
-        or ancestor::MethodCall[@MethodName='buffer' and TypeExpression[pmd-java:typeIs('org.apache.commons.io.IOUtils')]]
-        or ancestor::VariableDeclarator/VariableId/@Name = ancestor::MethodDeclaration//MethodCall[@MethodName='buffer' and TypeExpression[pmd-java:typeIs('org.apache.commons.io.IOUtils')]]/ArgumentList/VariableAccess/@Name
+        (: IOUtils.copy buffers inputStream to outputStream :)
+         or ancestor::MethodDeclaration//MethodCall[@MethodName = 'copy' and TypeExpression[pmd-java:typeIs('org.apache.commons.io.IOUtils')]]
    )))
 ]
                 ]]></value>
