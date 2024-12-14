@@ -439,7 +439,7 @@ class RetrieveCache {
 2. connectionRequestTimeout is for requesting a connection from the connection manager, which should be almost as quick, say below 250 ms.   
 
 If timeouts are long, requests will wait long for an unavailable service and cause high thread usage and possibly overload.   
-**Solution:** Set connectTimeout and connectionRequestTimeout to values based on network tests, for instance 200 ms and 250 ms. respectively.
+**Solution:** Set connectTimeout and connectionRequestTimeout to values based on network tests, for instance 200 ms and 250 ms. respectively.   
 **Rule name:** HttpClientImproperConnectionTimeouts    
 **Example:**
 ```java
@@ -1619,7 +1619,7 @@ Better is using and sharing ObjectReaders and ObjectWriters created from ObjectM
 **Helpful:** Only configure objectMappers when initializing: right after construction, in one thread.   
 **Solution:** Create configured ObjectReaders and ObjectWriters from ObjectMapper and share those as field, since they are immutable and therefore guaranteed to be thread-safe.  
 **Exceptions:** A convertValue method is not provided by Reader/Writer, therefore use of an ObjectMapper as field cannot easily be avoided in this case. The AvoidObjectMapperAsField rule is not applied.
-Also when used like jaxMsgConverter.setObjectMapper(objectMapper) it is not considered a violation.    
+Also when used like jaxMsgConverter.setObjectMapper(objectMapper) it is not considered a violation. And, when the class implements ContextResolver&lt;ObjectMapper&gt;.    
 **Rule names:** AvoidObjectMapperAsField, AvoidModifyingObjectMapper   
 **Example:**   
 ```java
