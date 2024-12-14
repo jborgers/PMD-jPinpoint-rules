@@ -17,7 +17,7 @@ public class AvoidXMLGregorianCalendar {
 	private XMLGregorianCalendar sprinkleDatum; // bad
 	protected XMLGregorianCalendar sparkleDatum; // bad
 
-	public XMLGregorianCalendar getSparkleDatum2() { // bad <-- abundant: did not match in pmd6
+	public XMLGregorianCalendar getSparkleDatum2() { // abundant
 		XMLGregorianCalendar cal = sprinkleDatum;  // bad
 		try {
 			cal = DatatypeFactory.newInstance().newXMLGregorianCalendar();
@@ -42,11 +42,11 @@ public class AvoidXMLGregorianCalendarDoubleHits {
 
     protected XMLGregorianCalendar startDate; // bad
 
-    public XMLGregorianCalendar getStartDate() { // bad <-- abundant: did not match in pmd6
+    public XMLGregorianCalendar getStartDate() { // abundant
         return startDate;
     }
 
-    public void setStartDate(XMLGregorianCalendar value) { // bad <-- abundant: did not match in pmd6
+    public void setStartDate(XMLGregorianCalendar value) { // abundant
         this.startDate = value;
     }
 }
@@ -105,9 +105,9 @@ import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.lang.reflect.Type;
 
-public class XMLGregorianCalendarTypeAdapter implements JsonSerializer<XMLGregorianCalendar>, JsonDeserializer<XMLGregorianCalendar> { // bad <-- keep these?
+public class XMLGregorianCalendarTypeAdapter implements JsonSerializer<XMLGregorianCalendar>, JsonDeserializer<XMLGregorianCalendar> { // bad 2x
     @Override
-    public XMLGregorianCalendar deserialize(  // bad <-- abundant: skip these?
+    public XMLGregorianCalendar deserialize(  // abundant
             JsonElement jsonElement, Type type, JsonDeserializationContext jsonDeserializationContext)
             throws JsonParseException {
         try {
@@ -118,8 +118,28 @@ public class XMLGregorianCalendarTypeAdapter implements JsonSerializer<XMLGregor
     }
 
     @Override
-    public JsonElement serialize(XMLGregorianCalendar xmlGregorianCalendar, Type type, JsonSerializationContext jsonSerializationContext) { // bad <-- abundant, skip these?
+    public JsonElement serialize(XMLGregorianCalendar xmlGregorianCalendar, Type type, JsonSerializationContext jsonSerializationContext) { // abundant
         return new JsonPrimitive(xmlGregorianCalendar.toString());
+    }
+}
+      ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>Avoid XMLGregorianCalendar in non abundant situations</description>
+        <expected-problems>2</expected-problems>
+        <expected-linenumbers>5,9</expected-linenumbers>
+        <code><![CDATA[
+import javax.xml.datatype.XMLGregorianCalendar;
+import my.app.Remote;
+
+public class XMLGregorianCalendarInUse {
+    public XMLGregorianCalendar produceDate() { // bad - not mentioned in field or class definition
+        return Remote.createDate();
+    }
+
+    public void showDate(XMLGregorianCalendar value) { // bad - not mentioned in field or class definition
+        Remote.showDate(value);
     }
 }
       ]]></code>
