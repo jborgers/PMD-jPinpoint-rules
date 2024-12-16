@@ -158,7 +158,12 @@ return JsonMapper.builder().build(); // bad
             <property name="tags" value="cpu,jpinpoint-rule,performance,sustainability-medium" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
-//ClassType[pmd-java:typeIs('javax.xml.datatype.XMLGregorianCalendar')]
+//(FieldDeclaration|LocalVariableDeclaration|ClassLiteral|TypeArguments)/ClassType[pmd-java:typeIs('javax.xml.datatype.XMLGregorianCalendar')]
+|
+(: the excluded abundant left-overs when others are not present :)
+//ClassType[pmd-java:typeIs('javax.xml.datatype.XMLGregorianCalendar')
+              and not (ancestor::ClassDeclaration//(FieldDeclaration|LocalVariableDeclaration|ClassLiteral|TypeArguments)/ClassType[pmd-java:typeIs('javax.xml.datatype.XMLGregorianCalendar')])
+           ]
 ]]></value>
             </property>
         </properties>
