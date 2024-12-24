@@ -1301,4 +1301,48 @@ class AvoidHardcodedConnectionConfig {
         </example>
     </rule>
 
+    <rule name="AvoidUnclearHttpRouteSecurity"
+          message="HttpRoute is constructed without specifying the secure argument, this is unclear."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          language="java"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi24">
+        <description>Problem: For Apache HttpRoute, if you don't specify whether the route is secure, the default of non-secure is taken. This is unclear. If you use it to configure a connection manager for that route, and the actual route is secure,
+            the key does not match, and you don't configure anything. The default number of connections (2) is used which may cause requests to wait long for a connection (without a proper timeout) resulting in bad responsiveness.
+            Solution: Always specify in the constructor whether the route is secure (true) or not (false) to make it clear.
+            Note: Covers Apache Http Client 4 and 5.
+            (jpinpoint-rules)
+        </description>
+        <priority>2</priority>
+        <properties>
+            <property name="tags" value="io,jpinpoint-rule,performance,pitfall" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+//ConstructorCall[pmd-java:typeIs('org.apache.http.conn.routing.HttpRoute') or pmd-java:typeIs('org.apache.hc.client5.http.HttpRoute')]/ArgumentList[@Size <= 2]
+    ]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+import org.apache.http.HttpHost;
+import org.apache.http.conn.routing.HttpRoute;
+import java.net.URL;
+
+public class Foo {
+        void bar() {
+            for (Route route : connectionProperties.routes()) {
+                URL url = new URL(route.host());
+                HttpHost httpHost = new HttpHost("https", url.getHost(), getPort(url));
+                HttpRoute httpRouteBad1 = new HttpRoute(httpHost); // bad
+                HttpRoute httpRouteBad2 = new HttpRoute(httpHost, null); // bad
+                boolean secure = true;
+                HttpRoute httpRouteGood = new HttpRoute(httpHost, null, secure);
+                connectionManager.setMaxPerRoute(httpRouteGood, route.maxConnections());
+            }
+        }
+    }
+}
+    ]]>
+        </example>
+    </rule>
+
 </ruleset>
