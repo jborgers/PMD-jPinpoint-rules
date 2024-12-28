@@ -572,6 +572,14 @@ VariableAccess/@Name=(ancestor::ExpressionStatement|ancestor::ForeachStatement|a
   or VariableAccess[not(pmd-java:typeIs('org.slf4j.Logger')) and not(pmd-java:typeIs('java.util.logging.Logger')) and not(pmd-java:typeIs('org.apache.commons.logging.Log'))]]
     //VariableAccess/@Name
 )]
+(: except if method name starts with 'log', and it is non-public, .. :)
+[not(ancestor::MethodDeclaration
+[starts-with(@Name, 'log') and @Visibility = 'private']
+(: and the method is called only conditionally: it is called inside an if :)
+[@Name=ancestor::ClassBody//MethodCall[ancestor::IfStatement/MethodCall[@MethodName = ('isTraceEnabled', 'isDebugEnabled','isInfoEnabled', 'isLoggable')]]/@MethodName]
+(: and it is not called not inside an if :)
+[not(@Name=ancestor::ClassBody//MethodCall[not(ancestor::IfStatement/MethodCall[@MethodName = ('isTraceEnabled', 'isDebugEnabled','isInfoEnabled', 'isLoggable')])]/@MethodName)]
+)]
 	]]></value>
             </property>
         </properties>
@@ -803,6 +811,14 @@ class Foo {
     (: if methods are chained, only report 1 in the chain :)
     and not(ancestor::MethodCall[ArgumentList[@Size>0]]/MethodCall)
   ]
+  (: except if method name starts with 'log', and it is non-public, .. :)
+  [not(ancestor::MethodDeclaration
+    [starts-with(@Name, 'log') and @Visibility = 'private']
+    (: and the method is called only conditionally: it is called inside an if :)
+    [@Name=ancestor::ClassBody//MethodCall[ancestor::IfStatement/MethodCall[@MethodName = ('isTraceEnabled', 'isDebugEnabled','isInfoEnabled', 'isLoggable')]]/@MethodName]
+    (: and it is not called not inside an if :)
+    [not(@Name=ancestor::ClassBody//MethodCall[not(ancestor::IfStatement/MethodCall[@MethodName = ('isTraceEnabled', 'isDebugEnabled','isInfoEnabled', 'isLoggable')])]/@MethodName)]
+   )]
 			]]>
                 </value>
             </property>
@@ -911,9 +927,14 @@ class VMRData {
      [@Name = ancestor::MethodDeclaration//VariableDeclarator[not(MethodCall[starts-with(@MethodName, 'get')] and not(ancestor::WhileStatement or ancestor::ForStatement or ancestor::DoStatement))]/VariableId/@Name]
      (: and it is not used in a return :)
      [not (@Name = ancestor::MethodDeclaration//VariableAccess[not(ancestor::MethodCall[@MethodName=('trace','debug','info')])]/@Name)]
-     (: method name starts with log, we assume it is called conditionally :)
-     [not(ancestor::MethodDeclaration[starts-with(@Name, 'log')]
- )]
+     (: except if method name starts with 'log', and it is non-public, .. :)
+     [not(ancestor::MethodDeclaration
+        [starts-with(@Name, 'log') and @Visibility = 'private']
+        (: and the method is called only conditionally: it is called inside an if :)
+        [@Name=ancestor::ClassBody//MethodCall[ancestor::IfStatement/MethodCall[@MethodName = ('isTraceEnabled', 'isDebugEnabled','isInfoEnabled', 'isLoggable')]]/@MethodName]
+        (: and it is not called not inside an if :)
+        [not(@Name=ancestor::ClassBody//MethodCall[not(ancestor::IfStatement/MethodCall[@MethodName = ('isTraceEnabled', 'isDebugEnabled','isInfoEnabled', 'isLoggable')])]/@MethodName)]
+     )]
                 ]]></value>
             </property>
         </properties>
