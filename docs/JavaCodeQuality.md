@@ -468,11 +468,11 @@ For parallel streams, side effects are dangerous: accessing a thread-unsafe shar
 **Solution:** Use the pure functional form: return a result based just on the input; do not modify any variable.    
 **See:**
 * Effective Java 3rd Ed. Item 46: Prefer Side-Effect-Free Functions In Streams  
-* Java doc: [stream/package#SideEffects](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/stream/package-summary.html#SideEffects).  
+* Article from Brian Goetz: [An intro to the java.uti.stream library - the fine print](https://developer.ibm.com/articles/j-java-streams-1-brian-goetz/#the-fine-print4)
+* Java doc: [stream/package#SideEffects](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/stream/package-summary.html#SideEffects).
 
 **Rule name:** AvoidSideEffectsInStreams   
 **Example:**
-
 ````java
 import lombok.extern.slf4j.Slf4j;
 
