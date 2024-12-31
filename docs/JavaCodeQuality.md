@@ -459,6 +459,41 @@ class AvoidForEachInStreams {
 }
 ````
 
+### ILS02
+
+**Observation: a stream pipeline has side effects, that is, a variable is modified.**  
+**Problem:** Java Streams is a paradigm based on functional programming: the result should depend only on its input, not on any mutable state nor should it update any state: not modify any variable.
+By the spec, everything that does not contribute to the result, may be optimized away. So, side effects are not guaranteed to be executed.
+For parallel streams, side effects are dangerous: accessing a thread-unsafe shared variable is a concurrency bug. Accessing a (thread-safe) shared variable may cause data mix-up between the threads.   
+**Solution:** Use the pure functional form: return a result based just on the input; do not modify any variable.    
+**See:**
+* Effective Java 3rd Ed. Item 46: Prefer Side-Effect-Free Functions In Streams  
+* Java doc: [stream/package#SideEffects](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/stream/package-summary.html#SideEffects).  
+
+**Rule name:** AvoidSideEffectsInStreams   
+**Example:**
+
+````java
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+class AvoidSideEffectsInStreams {
+    final String[] array = new String[]{"a", "b", "c"};
+    final List<String> list = new ArrayList<>(); 
+
+    public List<String> getEndpointsInfo(String... endpoints) {
+        AtomicReference<String> currentEndpoint = new AtomicReference<>();
+        return Arrays.stream(endpoints)
+                .peek(endpoint -> currentEndpoint.set(endpoint)) // bad
+                .peek(endpoint -> array[0] = endpoint)           // bad
+                .peek(list::add)                                 // bad
+                .peek(endpoint -> log.debug(endpoint)) // peek is meant for something like this
+                .map(String::toLowerCase)
+                .map(pingInfo -> addEndpointInfo(pingInfo, currentEndpoint.get()))
+                .toList();
+    }
+}
+````
 Maintainability
 ---------------
 

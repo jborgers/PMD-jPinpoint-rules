@@ -396,11 +396,11 @@ class Foo {
         <description>Problem: Streams is a paradigm based on functional programming: the result should depend only on its input and not update any state.
             Use of forEach is actually iterative code masquerading as streams code. It is typically harder to read and less maintainable than the iterative form.
             For parallel streams, side effects are dangerous: accessing a thread-unsafe shared variable is a concurrency bug.
-            Solution: Use the for-each (enhanced-for) loop, or the pure functional form. The forEach operation should only be used to report (i.e. log) the result of a stream computation.
+            Solution: Use the for-each (enhanced-for) loop, internal iterator, or the pure functional form. The forEach operation should only be used to report (i.e. log) the result of a stream computation.
         </description>
         <priority>4</priority>
         <properties>
-            <property name="tags" value="bad-practice,jpinpoint-rule" type="String" description="classification"/>
+            <property name="tags" value="bad-practice,jpinpoint-rule,pitfall" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
 (: should match java.lang.Stream#forEach(java.util.function.Consumer) but also others like java.util.stream.IntStream#forEach(java.util.function.IntConsumer) :)
@@ -455,6 +455,47 @@ class Foo {
 
         // internal iterator, fine for modifying state, good
         letters.forEach(l -> map.put(l, 0));
+            ]]>
+        </example>
+    </rule>
+
+    <rule name="AvoidSideEffectsInStreams"
+          language="java"
+          message="Apply functional programming with streams, avoid side-effects."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          externalInfoUrl="${doc_root}/JavaCodeQuality.md#ils02">
+        <description>Problem: Streams is a paradigm based on functional programming: the result should depend only on its input, and the stream should not update any state: not modify any variable.
+            By the spec, everything that does not contribute to the result, may be optimized away. So, side effects are not guaranteed to be executed!
+            For parallel streams, side effects are dangerous: accessing a thread-unsafe shared variable is a concurrency bug. Accessing a (thread-safe) shared variable may cause data mix-up between the threads.
+            Solution: Use the pure functional form: return a result based just on the input; do not modify any variable.
+        </description>
+        <priority>3</priority>
+        <properties>
+            <property name="tags" value="bad-practice,data-mix-up,jpinpoint-rule,pitfall" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+(: matches java.lang.Stream and java.util.stream.IntStream like types :)
+//MethodCall[pmd-java:typeIs('java.util.stream.BaseStream')]
+(: modifying methods :)
+[ArgumentList[.//(MethodCall|MethodReference)[@MethodName=('set','add','put')]/VariableAccess or .//AssignmentExpression/ArrayAccess/*[1][pmd-java:nodeIs('VariableAccess')]
+]]
+                ]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+    final List<String> list = new ArrayList<>();
+
+    public List<String> getEndpointsInfo(String... endpoints) {
+        AtomicReference<String> currentEndpoint = new AtomicReference<>();
+        return Arrays.stream(endpoints)
+                .peek(endpoint -> currentEndpoint.set(endpoint)) // bad
+                .peek(list::add)                                 // bad
+                .peek(endpoint -> log.debug(endpoint)) // peek is meant for something like this
+                .map(String::toLowerCase)
+                .map(pingInfo -> addEndpointInfo(pingInfo, currentEndpoint.get()))
+                .toList();
+    }
             ]]>
         </example>
     </rule>
