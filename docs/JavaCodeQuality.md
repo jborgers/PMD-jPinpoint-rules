@@ -479,9 +479,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 class AvoidSideEffectsInStreams {
     final String[] array = new String[]{"a", "b", "c"};
-    final List<String> list = new ArrayList<>(); 
 
-    public List<String> getEndpointsInfo(String... endpoints) {
+    public List<String> getEndpointsInfo(final List<String> list, String... endpoints) {
         AtomicReference<String> currentEndpoint = new AtomicReference<>();
         return Arrays.stream(endpoints)
                 .peek(endpoint -> currentEndpoint.set(endpoint)) // bad
