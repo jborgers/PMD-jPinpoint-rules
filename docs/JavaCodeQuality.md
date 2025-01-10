@@ -26,39 +26,42 @@ Improper use of BigDecimal
 
 #### IUOB01
 
-**Observation: the constructor BigDecimal(double) is used.** [This constructor (javadoc)](https://docs.oracle.com/en%2Fjava%2Fjavase%2F11%2Fdocs%2Fapi%2F%2F/java.base/java/math/BigDecimal.html#%3Cinit%3E(double)) 
+**Observation: the constructor BigDecimal(double) is used.** 
 
-```
-translates a double into a BigDecimal which is the exact decimal representation of the double's binary floating-point value.  
+[Javadoc of this constructor:](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/math/BigDecimal.html#%3Cinit%3E(double)) 
+
+```text
+Translates a double into a BigDecimal which is the exact decimal representation of the double's binary floating-point value. The scale of the returned BigDecimal is the smallest value such that (10scale × val) is an integer.
 
 Notes:
 
-1.  The results of this constructor can be somewhat unpredictable. One might assume that writing new BigDecimal(0.1) in Java creates a BigDecimal which is exactly equal to 0.1 (an unscaled value of 1, with a scale of 1), but it is actually equal to 0.1000000000000000055511151231257827021181583404541015625. This is because 0.1 cannot be represented exactly as a double (or, for that matter, as a binary fraction of any finite length). Thus, the value that is being passed in to the constructor is not exactly equal to 0.1, appearances notwithstanding.
-2.  The String constructor, on the other hand, is perfectly predictable: writing new BigDecimal("0.1") creates a BigDecimal which is exactly equal to 0.1, as one would expect. Therefore, it is generally recommended that the String constructor be used in preference to this one.
-3.  When a double must be used as a source for a BigDecimal, note that this constructor provides an exact conversion; it does not give the same result as converting the double to a String using the Double.toString(double) method and then using the BigDecimal(String) constructor. To get that result, use the static valueOf(double) method.
+1. The results of this constructor can be somewhat unpredictable. One might assume that writing new BigDecimal(0.1) in Java creates a BigDecimal which is exactly equal to 0.1 (an unscaled value of 1, with a scale of 1), but it is actually equal to 0.1000000000000000055511151231257827021181583404541015625. This is because 0.1 cannot be represented exactly as a double (or, for that matter, as a binary fraction of any finite length). Thus, the value that is being passed in to the constructor is not exactly equal to 0.1, appearances notwithstanding.
+2. The String constructor, on the other hand, is perfectly predictable: writing new BigDecimal("0.1") creates a BigDecimal which is exactly equal to 0.1, as one would expect. Therefore, it is generally recommended that the String constructor be used in preference to this one.
+3. When a double must be used as a source for a BigDecimal, note that this constructor provides an exact conversion; it does not give the same result as converting the double to a String using the Double.toString(double) method and then using the BigDecimal(String) constructor. To get that result, use the static valueOf(double) method.
 ```
-**Problem:** BigDecimal is intended to be used for amounts of e.g. euro’s with cents. It should e.g. represent 0,11 exactly. However, with the used constructor, one easily gets unexpected rounding, e.g.:
+**Problem:** BigDecimal is intended to be used for amounts of e.g. euro’s with cents. It should e.g. represent `0,11` exactly. However, with the used constructor, one easily gets unexpected rounding, e.g.:
 ```java
-System.out.println("result = " + new BigDecimal(0.105).setScale(2, BigDecimal.ROUND_HALF_UP));
+System.out.println("result = " + new BigDecimal(0.105).setScale(2, RoundingMode.HALF_UP));
 ```
+
 Results unexpectedly in:
-````java
+````text
 result = 0.10
 ````
-**Solution:** Use the factory method BigDecimal.valueOf(double) instead. E.g.:
+**Solution:** Use the factory method `BigDecimal.valueOf(double)` instead. E.g.:
 ````java
-System.out.println("result = " + BigDecimal.valueOf(0.105).setScale(2, BigDecimal.ROUND_HALF_UP));
+System.out.println("result = " + BigDecimal.valueOf(0.105).setScale(2, RoundingMode.HALF_UP));
 ````
 Results as expected in:
-````java
+````text
 result = 0.11
 ````
-Or use long for cents in stead of BigDecimal.
+Or use long for cents instead of BigDecimal.
 
 #### IUOB02
 
-**Observation: BigDecimal is instantiated with 0,1 or 10.**  
-**Problem:** These instances are already available as BigDecimal.ZERO, BigDecimal.ONE and BigDecimal.TEN  
+**Observation: BigDecimal is instantiated with `0`,`1`,`2` or `10`.**  
+**Problem:** These instances are already available as `BigDecimal.ZERO`, `BigDecimal.ONE`, `BigDecimal.TWO` (since Java 19!) and `BigDecimal.TEN`  
 **Solution:** Use the static instances.
 
 Improper amount representation
