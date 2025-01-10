@@ -1307,9 +1307,9 @@ class AvoidHardcodedConnectionConfig {
           language="java"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi24">
         <description>Problem: For Apache HttpRoute, if you don't specify whether the route is secure, the default of non-secure is taken. This is unclear. If you use it to configure a connection manager for that route, and the actual route is secure,
-            the key does not match, and you don't configure anything. The default number of connections (2) is used which may cause requests to wait long for a connection (without a proper timeout) resulting in bad responsiveness.
+            the key does not match, and the intended configuration will not be effectuated. The default number of connections (2 for Http-Client version 4, and 5 for version 5) is used which may cause requests to wait long for a connection (without a proper timeout) resulting in bad responsiveness.
             Solution: Always specify in the constructor whether the route is secure (true) or not (false) to make it clear.
-            Note: Covers Apache Http Client 4 and 5.
+            Note: Covers Apache Http-Client 4 and 5.
             (jpinpoint-rules)
         </description>
         <priority>2</priority>

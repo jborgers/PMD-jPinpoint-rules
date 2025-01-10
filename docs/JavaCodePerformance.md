@@ -554,9 +554,9 @@ class Good {
 #### IBI24
 **Observation: HttpRoute is constructed without specifying the secure argument.**   
 **Problem:** For Apache HttpRoute, if you don't specify whether the route is secure, the default of non-secure is taken. This is unclear. If you use it to configure a connection manager for that route, and the actual route is secure,
-the key does not match, and you don't configure anything. Then, the default number of connections (2) will be used which may cause requests to wait long for a connection to become available (without a proper timeout) resulting in bad responsiveness.   
+the key does not match, and the intended configuration will not be effectuated. Then, the default number of connections (2 for Http-Client version 4, and 5 for version 5) will be used which may cause requests to wait long for a connection to become available (without a proper timeout) resulting in bad responsiveness.   
 **Solution:** Always specify in the constructor whether the route is secure (true) or not (false) to make it clear.   
-**Note:** Covers Apache Http Client 4 and 5.    
+**Note:** Covers Apache Http-Client 4 and 5.    
 **Rule name:** AvoidUnclearHttpRouteSecurity   
 **Example:**
 ```java
@@ -571,8 +571,8 @@ public class Foo {
       HttpHost httpHost = new HttpHost("https", url.getHost(), getPort(url));
       HttpRoute httpRouteBad1 = new HttpRoute(httpHost); // bad
       HttpRoute httpRouteBad2 = new HttpRoute(httpHost, null); // bad
-      boolean secure = true;
-      HttpRoute httpRouteGood = new HttpRoute(httpHost, null, secure);
+      final boolean secure = true;
+      HttpRoute httpRouteGood = new HttpRoute(httpHost, null, secure); // good
       connectionManager.setMaxPerRoute(httpRouteGood, route.maxConnections());
     }
   }
