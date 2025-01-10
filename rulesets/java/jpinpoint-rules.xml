@@ -15,7 +15,7 @@
           language="java"
           message="Explicit CDI references need to be destroyed otherwise they leak."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#pml05">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#pml05">
         <description>Problem: A proxy object is created by Contexts and Dependency Injection (CDI) for explicit references, they are not de-referenced implicitly and become a memory leak. &#13;
             Solution: Destroy the reference explicitly.
         (jpinpoint-rules)</description>
@@ -60,7 +60,7 @@ public class CDIStuff {
     <rule name="AvoidConstantsInInterface"
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           language="java" message="Interface defines constants. It may expose implementation details."
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#voedos04">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#voedos04">
         <description>Interface defines constants. Problem: Possibly exposes implementation details.  &#13;
             Solution: Make it a Class which cannot be instantiated, or an Enum. Use static imports.
             (jpinpoint-rules)</description>
@@ -93,7 +93,7 @@ public enum Animal {
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           language="java"
           message="Avoid using DecimalFormat or ChoiceFormat as field since it is thread-unsafe."
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#idtf01">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#idtf01">
         <description>Problem: java.text.NumberFormat: DecimalFormat and ChoiceFormat are thread-unsafe.&#13;
             Solution: usual solution is to create a new local one when needed in a method.
             (jpinpoint-rules)
@@ -123,7 +123,7 @@ public class Foo {
     <rule name="AvoidDuplicateAssignmentsInCases"
           message="Avoid duplicate assignments in different switch cases"
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" language="java"
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodeQuality.md#SSC01">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodeQuality.md#SSC01">
         <description>
             Problem: Potential bug: expected to have different assignments in different cases.&#13;
             Solution: assign different values in different cases, common assignments should be taken out of the switch.
@@ -163,7 +163,7 @@ and not (preceding-sibling::SwitchLabel[@Default=true()])]
           message="Avoid exposing mutable state of the record. Use copyOf in the compact constructor."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
 
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#voedos06">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#voedos06">
         <description>Problem: Internal state can be modified from outside of the record, through the implicit accessor method or by the caller of the constructor. Risk of thread-unsafety.
             Solution: Use the record compact constructor to defensively copy the (possibly) mutable object such as a List, Set or Map, e.g. with List.copyOf().
         (jpinpoint-rules)</description>
@@ -196,7 +196,7 @@ record GoodRecord(String name, List<String> list) {
 
     <rule name="AvoidImplicitlyRecompilingRegex" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java" message="String regex method, Pattern.matches or FileSystem.getPathMatcher is used.
 	   Implicitly compiles a regex pattern, can be expensive." typeResolution="true"
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#ireu01">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#ireu01">
         <description>A regular expression is compiled implicitly on every invocation. Problem: this can be expensive, depending on the length of the regular expression.&#13;
             Solution: Compile the regex pattern only once and assign it to a private static final Pattern field. java.util.Pattern objects are thread-safe, so they can be shared among threads.
             (jpinpoint-rules)</description>
@@ -242,7 +242,7 @@ String good_replaceInnerLineBreakBySpace() {
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           language="java"
           message="The default capacity or smaller is used for ByteArrayOutputStream or StringWriter, it usually needs expensive expansions."
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#isio01">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#isio01">
         <description>Problem: The default constructor of ByteArrayOutputStream creates a 32 bytes initial capacity and for StringWriter 16 chars. Problem: Such a small buffer as capacity usually needs several expensive expansions.&#13;
             Solution: Pre-size the ByteArrayOutputStream or StringWriter with an initial capacity such that an expansion is not needed in most cases, typically much larger than 32, for instance 4096.
             (jpinpoint-rules)</description>
@@ -286,7 +286,7 @@ class Good {
           message="Files.readAll methods load all bytes from a file into memory: a risk of memory problems."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
 
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#isio03">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#isio03">
         <description>Problem: Files.readAllBytes and Files.readAllLines load all bytes from a file into the heap memory.
             This may result in an OutOfMemoryError crash, or long gc pauses and slow responses.
             Solution: Stream-through: use streaming all the way, don't store the whole thing in memory, don't use byte arrays.
@@ -361,7 +361,7 @@ class Good {
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           language="java"
           message="Multiple statements concatenate to the same String. Use StringBuilder append."
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#isu02">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#isu02">
         <description>Multiple statements concatenate to the same String. Problem: Each statement with one or more +-operators creates a hidden temporary StringBuilder, a char[] and a new String object, which all have to be garbage collected.&#13;
             Solution: Use StringBuilder.append.
             (jpinpoint-rules)</description>
@@ -422,7 +422,7 @@ class ConcatsExample {
           message="List is not modified after object construction, make it immutable or unmodifiable"
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
 
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#pml01">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#pml01">
         <description>Problem: A list which is unnecessarily mutable may accidentally be added to and cause a memory leak. &#13;
             Solution: Make it impossible to modify the list after object construction/initialization: use Java 9 List.of, Java 11 List.copyOf, Collections.unmodifiableList or Guava ImmutableList.
         (jpinpoint-rules)</description>
@@ -484,7 +484,7 @@ public class Good {
           message="Avoid re-streaming enum values to find a value by a field."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
 
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#iuoc07">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#iuoc07">
         <description>Problem: the time to find element is O(n); n = the number of enum values. This identical processing is executed for every call. Considered problematic when n > 3.
             Solution: use a static field-to-enum-value Map. Access time is O(1), provided the hashCode is well-defined.
             For one String field, usually toString returns that field. Implement a fromString method to provide the reverse conversion by using the map.
@@ -545,7 +545,7 @@ public enum Fruit {
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           language="java"
           message="Pattern.compile is used in a method. Compiling a regex pattern can be expensive, make it a static final field."
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#ireu02">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#ireu02">
         <description>A regular expression is compiled on every invocation. Problem: this can be expensive, depending on the length of the regular expression.&#13;
             Solution: Usually a pattern is a literal, not dynamic and can be compiled only once. Assign it to a private static field. java.util.Pattern objects are thread-safe so they can be shared among threads.
             (jpinpoint-rules)</description>
@@ -583,7 +583,7 @@ class Good {
     </rule>
 
     <rule name="AvoidRecompilingXPathExpression" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" language="java" message="XPathExpression is created and compiled every time. Beware it is thread-unsafe."
-      externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#ux02">
+      externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#ux02">
         <description>XPathExpression is created and compiled on every method call, compiled possibly implicitly by XPath::evaluate.
             Problem: Creation of XPath and compilation of XPathExpression takes time. It may slow down your application. &#13;
             Solution: 1. Avoid XPath usage. 2. Compile the xpath expression as String into a XPathExpression. However, since XPath and XPathExpression classes are thread-unsafe, they are not easily cached. Caching it in a ThreadLocal may be a solution.
@@ -636,7 +636,7 @@ class Good {
     <rule name="AvoidRecreatingDateTimeFormatter"
           message="Avoid recreating DateTimeFormatter, it is relatively expensive."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" language="java"
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#idtf02">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#idtf02">
         <description>
             Problem: Recreating a DateTimeFormatter is relatively expensive.&#13;
             Solution: Java 8+ java.time.DateTimeFormatter is thread-safe and can be shared among threads. Create the
@@ -674,7 +674,7 @@ class Good {
           message="Avoid re-creating security providers, this is expensive."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
 
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#iuosf01">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#iuosf01">
         <description>Problem: Creating a security provider is expensive because of loading of algorithms and other classes. Additionally, it uses synchronized which leads to lock contention when used with multiple threads.
             Solution: This only needs to happen once in the JVM lifetime, because once loaded, the provider is typically available from the Security class. Create the security provider only once: only in case it is nog available from the Security class, yet.
         (jpinpoint-rules)</description>
@@ -721,7 +721,7 @@ class Foo {
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           language="java"
           message="Reflection is used in toString or hashCode, which is expensive."
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#uuor01">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#uuor01">
         <description>Problem: Reflection is relatively expensive. &#13;
             Solution: Avoid to use reflection. Use the non-reflective, explicit way, like generation by IDE or Lombok.
             (jpinpoint-rules)</description>
@@ -763,7 +763,7 @@ class Good {
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           language="java"
           message="SimpleDateFormat is used. Since it is thread-unsafe, it needs expensive recreation."
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#idtf01">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#idtf01">
         <description>Problem: java.util.SimpleDateFormat is thread-unsafe. The usual solution is to create a new one when needed in a method. Creating SimpleDateFormat is relatively expensive. &#13;
             Solution: Use java.time.DateTimeFormatter. These classes are immutable, thus thread-safe and can be made static.
             (jpinpoint-rules)</description>
@@ -800,7 +800,7 @@ public class Foo {
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           language="java"
           message="StringBuffer is used. It introduces locking overhead, use StringBuilder."
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#isu01" >
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#isu01" >
         <description>Problem: StringBuffer introduces locking overhead because it is thread safe. Its thread-safety is rarely needed.&#13;
             Solution: Replace StringBuffer by StringBuilder.  (jpinpoint-rules)</description>
         <priority>3</priority>
@@ -829,7 +829,7 @@ class Foo {
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           language="java"
           message="A primitive variable identifier or @Value member ends with time, timeout, duration or similar: time unit is missing."
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#ibi19">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#ibi19">
         <description>Problem: Time unit like hours, seconds, milliseconds is not specified and may be assumed differently by readers.
             Different assumptions will lead to errors or hidden problems like ineffective caches.&#13;
             Solution: Specify the time unit in the identifier, like connectTimeoutMillis. (jpinpoint-rules)</description>
@@ -883,7 +883,7 @@ public RetrieveCache(final @Value("${cache.expiryTimeMillis}") long timeToLiveMi
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           language="java"
           message="Log String is built irrespective of log level."
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#il02">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#il02">
         <description>A String to be logged is built unconditionally. Problem: String building, concatenation and/or other operations happen before the debug, trace or info method executes, so independent of the need to actually log. Concatenation is relatively expensive. &#13;
             Solution: Build the String conditionally on the log level, within an if statement.
             (jpinpoint-rules)</description>
@@ -959,7 +959,7 @@ class Foo {
           message="Use concatenation (+) instead of new StringBuilder if only one statement."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
 
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#isu05">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#isu05">
         <description>Problem: Creating a StringBuilder and using append is more verbose, less readable and less maintainable than simply using String concatenation (+).
             For one statement resulting in a String, creating a StringBuilder and using append is not faster than simply using concatenation.&#13;
             Solution: Simply concatenate Strings in one statement, it is more concise, better readable and more maintainable.
@@ -1026,7 +1026,7 @@ class Foo {
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           language="java"
           message="XPathExpression targets a wide scope, this is potentially slow."
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#ux01">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#ux01">
         <description>The XPathExpression targets a wide scope since it starts with '//'. Problem: XPath has to search in a wide scope for occurrences, this may take a while. &#13;
             Solution: 1. Avoid XPath usage. 2. Make the scope as narrow as possible, do not start with '//'.
             (jpinpoint-rules)</description>
@@ -1059,7 +1059,7 @@ public class Foo {
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           language="java"
           message="XPathAPI is used. XPathAPI implementation has bad performance."
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#ux03">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#ux03">
         <description>XPathAPI is used. Problem: XPathAPI implementation is slow.&#13;
             Solution: 1. try to avoid using XPathAPI. 2. improve performance by using jvm parameters and possibly CachedXPathAPI.
             (jpinpoint-rules)</description>
@@ -1078,7 +1078,7 @@ public class Foo {
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           language="java"
           message="XPath is used. XPath implementation has bad performance."
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#ux03">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#ux03">
         <description>XPath is used. Problem: XPath implementation is slow.&#13;
             Solution: 1. avoid using XPath. 2. improve performance by using jvm parameters and possibly Cached XPath API.
             (jpinpoint-rules)</description>
@@ -1099,7 +1099,7 @@ public class Foo {
           message="FileInputStream and FileOutputStream are not buffered, add buffering."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
 
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#isio05">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#isio05">
         <description>Problem: With FileInputStream and FileOutputStream, file access is not buffered.
             The stream is read-from/written-to file byte by byte, where each operating system call has its overhead, which makes it slow.
             Solution: Use buffering to read/write a chunk of bytes at once with much lower overhead.
@@ -1139,7 +1139,7 @@ class BufferFileStreaming {
           language="java"
           message="Files.newInputStream or Files.newOutputStream is not buffered, add buffering."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#isio06">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#isio06">
         <description>Problem: Files.newInputStream or Files.newOutputStream is not buffered.
             The stream is read from/written to file byte by byte, where each operating system call has its overhead which makes it slow.
             Solution: Use buffering to read/write a chunk of bytes at once with much lower overhead.
@@ -1184,7 +1184,7 @@ class Foo {
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           language="java"
           message="Equals uses a conversion inconsistent with hashCode."
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodeQuality.md#ieah03">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodeQuality.md#ieah03">
         <description>Problem: Equal objects may have different hashCodes and end-up in different buckets of a Map/Set. Strange things can happen like adding an object to a Set and not being able to find it back.
             Solution: When objects are equal, hashCode needs to be equal, too. Use the same fields in equals and hashCode and use identical conversions like toUpperCase() in both when needed. Don't use equalsIgnoreCase. (jpinpoint-rules)
         (jpinpoint-rules)</description>
@@ -1287,7 +1287,7 @@ class Good {
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           language="java"
           message="Equals does not use all fields used by hashCode."
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodeQuality.md#ieah03">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodeQuality.md#ieah03">
         <description>Problem: Equal objects may have different hashCodes and end-up in different buckets of a Map/Set. Strange things can happen like adding an object to a Set and not being able to find it back.&#13;
             Solution: When objects are equal, hashCode needs to be equal, too. Use the same fields in equals and hashCode. (jpinpoint-rules)</description>
         <priority>1</priority>
@@ -1354,7 +1354,7 @@ class Bad {
           message="hashCode only calls super."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
 
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#isio03">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#isio03">
         <description>Problem: when equals is implemented, hashCode needs to be implemented, too; and if objects are equal, hashCode needs to be equal, too. If hashCode only calls super.hashCode, it is effectively not implemented.
             Strange things can happen, for instance, if super.hashCode calls Object.hashCode, it is unique for each object and when used in Set or as key in Map, equal objects can duplicate in Set, and keys not found in Map.
             Solution: implement hashCode properly, consistent with equals. Meet the equals and hashCode contracts. If objects are equal, hashCode needs to be equal, too. See Effective Java.
@@ -1407,7 +1407,7 @@ class Good {
           message="Equals and/or hashCode is missing for a value object."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           language="java"
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodeQuality.md#incorrect-equals-and-hashcode">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodeQuality.md#incorrect-equals-and-hashcode">
         <description>
             Problem: If equals and hashCode are not defined, they don't meet the programmer's expectations and the requirements for use with the collections API. It may result in unexpected, undesired behavior.&#13;
             Solution: Add proper equals and hashCode methods that meet the equals-hashCode contract to all objects which might anyhow be put in a Map, Set or other collection. Or use Lombok @EqualsAndHashCode, @Value or @Data. Also holds for inner classes.
@@ -1511,7 +1511,7 @@ class Good {
           message="Give variables and fields a meaningful name."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
 
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodeQuality.md#m01">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodeQuality.md#m01">
         <description>Problem: Variables like 'var3' and fields like 'FOUR = 4', do not express what they are used for. This is bad for maintainability.&#13;
             Solution: Let variable names express what they are used for, like 'key' and 'MAX_KEYS = 4'
         (jpinpoint-rules)</description>
@@ -1549,7 +1549,7 @@ class Foo {
     <rule name="MDCPutWithoutRemove"
           message="MDC put is used without finally remove."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-          language="java" externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#IL04">
+          language="java" externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#IL04">
         <description>
             MDC values are added for logging, but not removed. Problem: MDC values can leak to other user transactions (requests) and log incorrect information. Solution: remove the MDC value in a finally clause.
             (jpinpoint-rules)</description>
@@ -1600,7 +1600,7 @@ class Good {
           language="java"
           message="Equals and/or hashCode is missing in a class with lombok @Getter or @Setter."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodeQuality.md#ieah01">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodeQuality.md#ieah01">
         <description>Problem: If only the @Setter and/or @Getter annotation is used, and equals and hashcode are not defined, this is probably a mistake. The object has fields and if used in a collection or with equality, it will not behave as expected.
             Solution: include equals and hashCode e.g. by @EqualsAndHashCode or usually better @Data instead of @Setter/@Getter, however, are setters really needed? Prefer immutability, so @Value, combined with @Builder, with @Singular for collection fields.
         (jpinpoint-rules)</description>
@@ -1657,7 +1657,7 @@ class ValueGood {
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           language="java"
           message="Field simply assigned to is missing in equals method."
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodeQuality.md#ieah04">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodeQuality.md#ieah04">
         <description>Problem: If a field which can be assigned separately (independent of other fields) is missing in the equals method, then changing the field in one object has no effect on the equality with another object.
             However, if a field of one of two equal objects is changed, the expectation is that they are no longer equal.&#13;
             Solution: include the missing field in the equals and hashCode method. (jpinpoint-rules)</description>
@@ -1711,7 +1711,7 @@ class Bad1 {
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           language="java"
           message="Equals uses a field which is missing in hashCode."
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodeQuality.md#ieah03">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodeQuality.md#ieah03">
         <description>Problem: Two unequal objects can have the same hashCode and end up in the same bucket of a Map. This may result in bad performance, O(n) lookup instead of O(1).&#13;
             Solution: Use the same fields in hashCode as are used in equals. (jpinpoint-rules)</description>
         <priority>2</priority>
@@ -1769,7 +1769,7 @@ class Bad {
           message="Map keys should implement Comparable in order to make access fast."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
 
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#iuoc08">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#iuoc08">
         <description>Problem: If multiple entries end up in the same HashMap bucket, they are stored as LinkedList, and with more than 7 as a red black tree.
             The list access time is O(n) and tree access time is only O(log n) which is much faster for large n. This tree implementation utilizes the compareTo from the Comparable interface.
             If this is not implemented, access will be slow.
@@ -1825,7 +1825,7 @@ class Bad {
           message="Set elements should implement Comparable in order to make access by element fast."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
 
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#iuoc09">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#iuoc09">
         <description>Problem: A Set is implemented with a Map. If multiple entries end up in the same HashMap bucket, they are stored as LinkedList, and with more than 7 as a red-black tree.
             The list access time is O(n) and tree access time is only O(log n) which is much faster for large n. This tree implementation utilizes the compareTo from the Comparable interface.
             If this is not implemented, access by element will be slow. Iterating through the elements does not suffer from this slow access because no lookup by key in the map is involved.
@@ -1882,7 +1882,7 @@ class Foo {
           language="java"
           message="Map has enum keys or Set has enum elements, use EnumMap or EnumSet for more efficiency."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#iuoc03">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#iuoc03">
         <description>Problem: A HashMap and HashSet are rather greedy in memory usage.&#13;
             Solution: Use an EnumMap or EnumSet. It is represented internally with arrays which is extremely compact and efficient.
         (jpinpoint-rules)</description>
@@ -1932,7 +1932,7 @@ Set<YourEnumType> set = EnumSet.allOf(YourEnumType.class);
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           language="java"
           message="String concatenation (+) is executed regardless of log level and can be expensive"
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#il01">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#il01">
         <description>Problem: String concatenation (+) is executed regardless of log level and can be expensive. &#13;
             Solution: Use SLF4J formatting with {}-placeholders or log and format conditionally.  (jpinpoint-rules)</description>
         <priority>2</priority>
@@ -1977,7 +1977,7 @@ class Foo {
           language="java"
           message="Avoid unconditional creation of a log argument, it may not be needed."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#il06">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#il06">
         <description>Problem: Creation of a log argument with a toString or other operation(s) may be expensive, while depending on the log level, the result may not be used.&#13;
             Solution: Create the log argument conditionally on the log level, within an if statement. For just 'obj.toString()', just pass 'obj' to the log method and leave it to SLF4J to call toString() only if needed.
         (jpinpoint-rules)</description>
@@ -2040,7 +2040,7 @@ class Foo {
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           language="java"
           message="Operation is executed regardless of log level and can be expensive"
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#il03">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#il03">
         <description>Problem: An operation is executed regardless of log level. This could be much processing while the result is typically not used. Detected are obj.toString() and operations with one or more arguments except usually cheap obj.getXXX(arg).&#13;
             Solution: Execute the operation only conditionally and utilize SLF4J formatting with {}-placeholders.  (jpinpoint-rules)</description>
         <priority>2</priority>
@@ -2101,7 +2101,7 @@ class Foo {
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           language="java"
           message="Using SuppressWarnings."
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md">
         <description>(Informative - be aware) Problem: This rule detects problems, suppressing them without full knowledge can lead to the problems this rule is trying to prevent. &#13;
             Solution: Suppress warnings judiciously based on full knowledge and report reasons to suppress (false positives) to the rule maintainers so the rule can be fixed. (jpinpoint-rules)</description>
         <priority>5</priority>
@@ -2124,7 +2124,7 @@ class Foo {
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           language="java"
           message="Using SuppressWarnings for a rule that is meant to prevent high risk problems."
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md">
         <description>(Informative - are you sure?) Problem: This rule detects high risk problems, suppressing them without full knowledge can lead to incidents like customer data mix-up, corrupt data, server crashes or very bad performance. &#13;
             Solution: Suppress warnings judiciously based on full knowledge and report reasons to suppress (false positives) to the rule maintainers so the rule can be fixed. (jpinpoint-rules)</description>
         <priority>4</priority>
@@ -2160,7 +2160,7 @@ class VMRData {
           message="Avoid memory intensive FileItem.get and FileItem.getString"
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           typeResolution="true"
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#isio03">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#isio03">
         <description>
             Problem: Use of FileItem.get and FileItem.getString could exhaust memory since they load the entire file into memory&#13;
             Solution: Use streaming methods and buffering.
@@ -2196,7 +2196,7 @@ class VMRData {
           message="A Calendar is used to create a Date or DateTime, this is expensive."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           typeResolution="true"
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#ue01">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#ue01">
         <description>Problem: A Calendar is a heavyweight object and expensive to create. &#13;
             Solution: Use 'new Date()', Java 8+ java.time.[Local/Zoned]DateTime.now().
         (jpinpoint-rules)</description>
@@ -2243,7 +2243,7 @@ public class DateStuff {
           message="Concatenation inside append. Use extra append."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           typeResolution="true"
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#isu04">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#isu04">
         <description>Concatenation of Strings is used inside an StringBuilder.append argument. Problem: Each statement with one or more +-operators creates a hidden temporary StringBuilder, a char[] and a new String object, which all have to be garbage collected.&#13;
             Solution: Use an extra fluent append instead of concatenation.
         (jpinpoint-rules)</description>
@@ -2285,7 +2285,7 @@ public class StringStuff {
           message="A String is concatenated in a loop. Use StringBuilder.append."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           typeResolution="true"
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#isu02">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#isu02">
         <description>A String is built in a loop by concatenation. Problem: Each statement with one or more +-operators creates a hidden temporary StringBuilder, a char[] and a new String object, which all have to be garbage collected. &#13;
             Solution: Use the StringBuilder append method.
         (jpinpoint-rules)</description>
@@ -2332,7 +2332,7 @@ public class StringStuff {
           language="java"
           message="Prefer side-effect-free functions in streams, use forEach only for logging."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodeQuality.md#ils01">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodeQuality.md#ils01">
         <description>Problem: Streams is a paradigm based on functional programming: the result should depend only on its input and not update any state.
             Use of forEach is actually iterative code masquerading as streams code. It is typically harder to read and less maintainable than the iterative form.
             For parallel streams, side effects are dangerous: accessing a thread-unsafe shared variable is a concurrency bug.
@@ -2403,7 +2403,7 @@ public class StringStuff {
           language="java"
           message="Apply functional programming with streams, avoid side-effects."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodeQuality.md#ils02">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodeQuality.md#ils02">
         <description>Problem: Streams is a paradigm based on functional programming: the result should depend only on its input, and the stream should not update any state: not modify any variable.
             By the spec, everything that does not contribute to the result, may be optimized away. So, side effects are not guaranteed to be executed!
             For parallel streams, side effects are dangerous: accessing a thread-unsafe shared variable is a concurrency bug. Accessing a (thread-safe) shared variable may cause data mix-up between the threads.
@@ -2442,7 +2442,7 @@ public class StringStuff {
           language="java"
           message="Fields in a Serializable class should be serializable or transient."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodeQuality.md#isr02">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodeQuality.md#isr02">
         <description>Problem: Field in a Serializable class is not serializable nor transient. When (de)serialization happens, a RuntimeException will be thrown and (de)serialization fails.
             Solution: make the field either transient, make its class implement Serializable or interface extend Serializable.
             Note: Classes extending Throwable do, by inheritance, implement Serializable, yet are excluded in this rule, since they are typically never actually serialized.
@@ -2512,7 +2512,7 @@ class Baz extends RemoteException {
           language="java"
           message="Avoid deep nesting of lambdas in lambda expressions."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodeQuality.md#isr05">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodeQuality.md#isr05">
         <description>Problem: lambda expressions with deep nesting (lambda's in lambda's) are hard to understand and maintain.
             Solution: extract the lambda expression code block(s) into one or more well-named separate method(s).
             Note: A violation when the depth of lambda-with-code-block nesting exceeds (by default) 1,
@@ -2563,7 +2563,7 @@ class Foo {
           language="java"
           message="Avoid many statements in lambda expressions."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodeQuality.md#isr03">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodeQuality.md#isr03">
         <description>Problem: lambda expressions with many statements are hard to understand and maintain.
             Solution: extract the lambda expression code block into one or more well-named separate method(s).
         (jpinpoint-rules)</description>
@@ -2615,7 +2615,7 @@ class Foo {
           message="The number of static imports with a wildcard should be limited"
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           typeResolution="true"
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodeQuality.md#isr01">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodeQuality.md#isr01">
         <description>Importing a class statically allows you to use its public static members easily: without qualifying them with the class name. Problem: if you import too many classes statically, your code can become confusing and difficult to maintain. The default maximum = 3.
             Solution: Import class members individually.
         (jpinpoint-rules)</description>
@@ -2654,7 +2654,7 @@ import static com.co.corporate.Constants.GREAT; // good
         <rule name="AvoidCommonPoolForBlockingCalls" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
               message="Avoid the ForkJoinPool::commonPool used in parallelStream for blocking calls."
               typeResolution="true"
-              externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#ia09">
+              externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#ia09">
             <description>Problem: Blocking calls, for instance remote calls, may exhaust the common pool for some time thereby blocking all other use of the common pool.
                 In addition, nested use of the common pool can lead to deadlock. Do not use the common pool for blocking calls. The parallelStream() call uses the common pool.&#13;
                 Solution: Use a dedicated thread pool with enough threads to get proper parallelism. The number of threads in the common pool is equal to the number of CPUs - 1 and meant to utilize all of them.
@@ -2714,7 +2714,7 @@ import static com.co.corporate.Constants.GREAT; // good
         <rule name="AvoidCommonPoolForFutureAsync"
               message="Avoid using the common thread pool for future.supplyAsync, use a separate pool."
               class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
-              typeResolution="true" externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#ia08">
+              typeResolution="true" externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#ia08">
             <description>
                 Problem: Future.supplyAsync is typically used for remote calls. By default, it uses the common pool.
                 The number of threads in the common pool is equal to the number of CPU's, which is suitable for in-memory processing.
@@ -2755,7 +2755,7 @@ import static com.co.corporate.Constants.GREAT; // good
     <rule name="AvoidCompletionServiceTake"
           message="Avoid completionService.take, use poll"
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
-          typeResolution="true" externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md">
+          typeResolution="true" externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md">
         <description>
             Problem: take() stalls indefinitely in case of hanging threads and consumes a thread.&#13;
             Solution: use poll() with a timeout value and handle the timeout.
@@ -2792,7 +2792,7 @@ public static <T> void collectAllCollectionReplyFromThreads(CompletionService<Li
               dfa="false"
               language="java"
               typeResolution="true"
-              externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#ia15">
+              externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#ia15">
             <description>Problem: Stalls indefinitely in case of stalled Callable(s) and consumes threads.&#13;
                 Solution: Provide a timeout to the invokeAll/invokeAny method and handle the timeout. (jpinpoint-rules)</description>
             <priority>2</priority>
@@ -2821,7 +2821,7 @@ class Foo {
     <rule name="AvoidFutureGetWithoutTimeout"
           message="Avoid future.get without timeout"
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
-          typeResolution="true" externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md">
+          typeResolution="true" externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md">
         <description>
             Problem: Stalls indefinitely in case of hanging threads and consumes a thread.&#13;
             Solution: Provide a timeout value and handle the timeout.
@@ -2849,7 +2849,7 @@ public static String good(CompletableFuture<String> complFuture) throws Exceptio
         <rule name="AvoidFutureJoinWithoutTimeout"
               message="Avoid future.join without timeout"
               class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
-              typeResolution="true" externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#ia07">
+              typeResolution="true" externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#ia07">
             <description>
                 Problem: Stalls indefinitely in case of hanging thread(s) and consumes a thread.&#13;
                 Solution: Provide a timeout before the join and handle the timeout. For example a future.get(timeout, unit), a orTimeout() or a completeOnTimeout(). You may want to use CompletableFuture.allOf() too.
@@ -2904,7 +2904,7 @@ public static String good(CompletableFuture<String> complFuture) throws Exceptio
         </rule>
 
         <rule name="AvoidIncrementOrDecrementForVolatileField" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java" message="Avoid ++, - -, +=, -= for volatile fields" typeResolution="true"
-              externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#tutc09">
+              externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#tutc09">
             <description>A compound statement like i++, i- -, i += 1 or i -= 1 may seem one statement and thread-safe for a volatile field. Problem: The operation is actually two separate statements executed non-atomically and therefore not thread-safe. &#13;
                 Solution: Guard the field properly with synchronized or use atomics like AtomicInteger. (jpinpoint-rules)</description>
             <priority>1</priority>
@@ -2951,7 +2951,7 @@ public static String good(CompletableFuture<String> complFuture) throws Exceptio
               dfa="false"
               language="java"
               typeResolution="true"
-              externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#ia13">
+              externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#ia13">
             <description>Problem: Mapped Diagnostic Context (MDC) of logging frameworks uses ThreadLocals to store things like traceIds from headers, userId, correlationId.
                 Reactive programming uses multiple threads to handle a request, and one thread can deal with asynchronous steps of many requests.
                 Therefore, MDC is tricky to use in reactive context and may take much processing time to propagate, likely so for much data in the MDC.&#13;
@@ -3014,7 +3014,7 @@ public static String good(CompletableFuture<String> complFuture) throws Exceptio
           message="Avoid using a mutable collection in a parallel stream forEach, it is a concurrency bug."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           language="java"
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#ia15">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#ia15">
         <description>Problem: If a thread-unsafe collection is mutated in a parallelStream, this means that multiple threads access an unguarded shared variable which can cause data corruption and
             visibility problems: a concurrency bug.&#13;
             Solution: Using a thread-safe collection would fix the bug, however, the proper solution is to only use forEach for reporting/logging and let streams not have side effects.
@@ -3076,7 +3076,7 @@ class AvoidMutableCollectionInParallelStreamForEach {
     <rule name="AvoidMutableStaticFields"
           message="Avoid non-final or mutable static fields. Make final immutable or access thread-safely AND use @GuardedBy."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
-          typeResolution="true" externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#tutc08">
+          typeResolution="true" externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#tutc08">
         <description>
             Problem: Multiple threads typically access static fields. Unguarded assignment to a mutable or non-final static field is thread-unsafe and may cause corruption or visibility problems. To make this thread-safe, that is, guard the field e.g. with synchronized methods, may cause contention. &#13;
             Solution: Make the fields final and unmodifiable.  If they really need to be mutable, make access thread-safe: use synchronized and @GuardedBy or use volatile. Consider lock contention.&#13;
@@ -3153,7 +3153,7 @@ enum Good {
     <rule name="AvoidNonPrivateFieldsInSharedObjects"
           message="Avoid non-private objects shared among threads. Make fields private to ensure thread-safety."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
-          typeResolution="true" externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#tutc11">
+          typeResolution="true" externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#tutc11">
         <description>
             Problem: A singleton, or more general: an object shared among threads, has a field that is not private.
             These field can possibly be modified from other classes.&#13;
@@ -3225,7 +3225,7 @@ public class RootController {
               dfa="false"
               language="java"
               typeResolution="true"
-              externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#ia12">
+              externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#ia12">
             <description>Problem: With Reactor Flux.parallel.runOn, the data is divided on a number of 'rails' matching the number of CPU cores.
                 This is only useful in case much CPU processing is performed: if the sequential form takes more than 0,1 ms of CPU time.
                 With remote calls this is usually not the case. In addition, it introduces more complexity with risk of failures.&#13;
@@ -3268,7 +3268,7 @@ public class RootController {
         <rule name="AvoidParallelStreamWithCommonPool" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
               message="Beware: parallelStream with the common pool is rarely a good choice."
               typeResolution="true"
-              externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#ia11">
+              externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#ia11">
             <description>Problem: Collection.parallelStream uses the common pool, with #threads = #CPUs - 1. It is designed to distribute much CPU work over the cores. It is not designed for remote calls or other blocking calls.
                 In addition, parallelizing has CPU overhead and concurrency risks. It should only be used for much pure CPU processing, e.g. on collections with > 10.000 elements.&#13;
                 Solution: For remote/blocking calls: Use a dedicated thread pool with enough threads to get proper parallelism independent of the number of cores.
@@ -3344,7 +3344,7 @@ public class RootController {
               dfa="false"
               language="java"
               typeResolution="true"
-              externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#ia14">
+              externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#ia14">
             <description>Problem: Using Reactor Hooks.onEachOperator means executing the code on every operator in the Reactor flow, for every element. This typically means much processing time.&#13;
                 Solution: Just do processing when and where actually needed. (jpinpoint-rules)</description>
             <priority>2</priority>
@@ -3375,7 +3375,7 @@ public class FooBad {
         </rule>
 
         <rule name="AvoidStaticXmlFactories" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java" message="Avoid static XML Factories" typeResolution="true"
-              externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#IUOXAR09">
+              externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#IUOXAR09">
             <description>An XML Factory like DocumentBuilderFactory, TransformerFactory, MessageFactory is used as static field. Problem: These factory objects are typically not thread-safe and rather expensive to create because of class loading. &#13;
                 Solution: Create the Factories as local variables and use command line arguments to specify the implementation class. (jpinpoint-rules)</description>
             <priority>1</priority>
@@ -3416,7 +3416,7 @@ public class FooBad {
             </example>
         </rule>
 
-    <rule name="AvoidThreadUnsafeJaxbUsage" message="A JAXB Marshaller, Unmarshaller or Validator is used in a thread-unsafe way." class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java" typeResolution="true" externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#IUOXAR07">
+    <rule name="AvoidThreadUnsafeJaxbUsage" message="A JAXB Marshaller, Unmarshaller or Validator is used in a thread-unsafe way." class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java" typeResolution="true" externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#IUOXAR07">
         <description>Problem: JAXB Marshaller, Unmarshaller and Validator are not thread-safe.  &#13;
             Solution: Create a new instance every time you need to marshall, unmarshall or validate a document.
             (jpinpoint-rules)</description>
@@ -3450,7 +3450,7 @@ class Exporter {
         <rule name="AvoidUnguardedAssignmentToNonFinalFieldsInObjectsUsingSynchronized"
               message="Avoid unguarded assignments to non-final fields in objects using synchronized. Access thread-safely AND use @GuardedBy."
               class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
-              typeResolution="true" externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#tutc07">
+              typeResolution="true" externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#tutc07">
             <description>
                 Problem: Multiple threads typically access fields of an object using synchronized. Unguarded assignment to a non-final field is thread-unsafe and may cause corruption or visibility problems. To make this thread-safe, that is, guard the field e.g. with synchronized methods, may cause contention. &#13;
                 Solution: Make the fields final and unmodifiable.  If they really need to be mutable, make access thread-safe: use synchronized and jcip @GuardedBy or use volatile.&#13;
@@ -3547,7 +3547,7 @@ public class Good {
     <rule name="AvoidUnguardedAssignmentToNonFinalFieldsInSharedObjects"
           message="Avoid unguarded assignments to non-final fields in objects shared among threads. Access thread-safely AND use @GuardedBy."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
-          typeResolution="true" externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#tutc07">
+          typeResolution="true" externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#tutc07">
         <description>
             Problem: Multiple threads typically access fields of a singleton or may access fields in session scoped objects. Unguarded assignment to a non-final field is thread-unsafe and may cause corruption or visibility problems. It may also unintentionally mix-up session data. &#13;
             Solution: Make the fields final and unmodifiable. If they really need to be mutable, make access thread-safe: use synchronized and jcip @GuardedBy or use volatile.&#13;
@@ -3667,7 +3667,7 @@ class MyService {
         <rule name="AvoidUnguardedMutableFieldsInObjectsUsingSynchronized"
               message="Avoid unguarded non-final or mutable fields in objects using synchronized. Make final immutable or access thread-safely AND use @GuardedBy."
               class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
-              typeResolution="true" externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#tutc07">
+              typeResolution="true" externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#tutc07">
             <description>
                 Problem: Multiple threads typically access fields of an object using synchronized. If a field or its reference is mutable, access is thread-unsafe and may cause corruption or visibility problems. To make this thread-safe, that is, guard the field e.g. with synchronized methods, may cause contention.&#13;
                 Solution: Make the fields final and unmodifiable. If they really need to be mutable, make access thread-safe: use synchronized and jcip @GuardedBy or use volatile.&#13;
@@ -3803,7 +3803,7 @@ public class Good {
     <rule name="AvoidUnguardedMutableFieldsInSharedObjects"
           message="Avoid unguarded non-final or mutable fields in objects shared among threads. Make final immutable or access thread-safely AND use @GuardedBy."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
-          typeResolution="true" externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#tutc07">
+          typeResolution="true" externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#tutc07">
         <description>
             Problem: Multiple threads typically access fields of a singleton or may access fields in session scoped objects. If a field or its reference is mutable, access is thread-unsafe and may cause corruption or visibility problems. It may also unintentionally mix-up session data.&#13;
             Solution: Make the fields final and unmodifiable. If they really need to be mutable, make access thread-safe: use synchronized and jcip @GuardedBy or use volatile.&#13;
@@ -3953,7 +3953,7 @@ class BadMutebleTypes {
     <rule name="AvoidUnguardedMutableInheritedFieldsInSharedObjects"
           message="Mutator method called on inherited field. Avoid unguarded mutable inherited fields in objects shared among threads. Make final immutable or access thread-safely AND use @GuardedBy."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
-          typeResolution="true" externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#tutc07">
+          typeResolution="true" externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#tutc07">
         <description>
             Problem: Multiple threads typically access fields of a singleton or may access fields in session scoped objects. If a (inherited) field or its reference is mutable, access is thread-unsafe and may cause corruption or visibility problems. It may also unintentionally mix-up session data. &#13;
             Solution: Make the fields final and unmodifiable. If they really need to be mutable, make access thread-safe: use synchronized and jcip @GuardedBy or use volatile.&#13;
@@ -4071,7 +4071,7 @@ public class MutateInheritedFieldTryout extends SynchronizedTryout {
         <rule name="AvoidUserDataInSharedObjects" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
               message="Do *not* use user data in shared objects, it causes user data mix-up."
               typeResolution="true"
-              externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodeQuality.md#ssc03">
+              externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodeQuality.md#ssc03">
             <description>The name of the field indicates user data. Problem: the field will be shared among users. If it is different data for each user, it can mix-up: a user may access data of another user, this is really bad.&#13;
                 Solution: Do *not* put the user related data in a shared object e.g. by Spring @Component annotation. Use a POJO. Or, if it is not user data, rename the field. (jpinpoint-rules)</description>
             <priority>1</priority>
@@ -4158,7 +4158,7 @@ public class MutateInheritedFieldTryout extends SynchronizedTryout {
         </rule>
 
         <rule name="AvoidVolatileInPrototypeScope" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java" message="No need for volatile in prototype scope" typeResolution="true"
-              externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#tutc10">
+              externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#tutc10">
             <description>A field is defined as volatile while the class has prototype scope. Problem: volatile has some overhead, especially for writes. When getting the bean from the Spring applicationContext, prototype scope means that each invocation creates a new object so the field is not shared. &#13;
                 Solution: Since only one thread can access the field, there is no need for volatile and it can be removed. (jpinpoint-rules)</description>
             <priority>2</priority>
@@ -4337,7 +4337,7 @@ public class MutateInheritedFieldTryout extends SynchronizedTryout {
         </rule>
 
         <rule name="SynchronizingForLocalVars" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java" message="Local variables don't need synchronization" typeResolution="true"
-              externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#tutc12">
+              externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#tutc12">
             <description>In the synchronized block, only local variables seem to be accessed. Problem: synchronization has overhead and may introduce lock contention. &#13;
                 Solution: Remove synchronized because local variables are only accessible by the owning thread and are not shared. (jpinpoint-rules)</description>
             <priority>3</priority>
@@ -4388,7 +4388,7 @@ public class MutateInheritedFieldTryout extends SynchronizedTryout {
           message="For JavaEE @Singleton, make @ConcurrencyManagement explicit and define @Lock on class level or for all public methods."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           language="java"
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#tutc13">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#tutc13">
     <description>
         Problem: A JavaEE @Singleton has default @ConcurrencyManagement CONTAINER and write locks. Using defaults is unclear and write locks typically cause much more contention than read locks. &#13;
         Solution: Make @ConcurrencyManagement and @Lock-s explicit, @Lock on class level or on all public methods. Or use BEAN managed for full control using e.g. synchronized or volatile.&#13;
@@ -4456,7 +4456,7 @@ class SingletonGood {
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           language="java"
           message="Avoid use of ClientHttpRequestFactorySupplier."
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#ibi17">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#ibi17">
         <description>Problem: The org.springframework.boot.web.client.ClientHttpRequestFactorySupplier may return a
             HttpComponentsClientHttpRequestFactory which you supply as @Bean, however,
             this can silently go wrong and e.g. an unconfigured SimpleClientHttpRequestFactory can be returned.
@@ -4517,7 +4517,7 @@ and use it to replace the bad line in Bad example:
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" 
           language="java" 
           message="Avoid the use of deprecated/thread-unsafe HTTP connectors" 
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#ibi06">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#ibi06">
     <description>Problem: Several HTTP client connection managers are thread-unsafe which may cause session data mix-up or have other issues for which they were made deprecated.&#13;
         Solutions: Upgrade to httpclient-4.5+ and use org.apache.http.impl.conn.PoolingHttpClientConnectionManager and e.g. org.apache.http.impl.client.HttpClientBuilder. (jpinpoint-rules)</description>
     <priority>2</priority>
@@ -4568,7 +4568,7 @@ class Good {
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           language="java"
           message="Netflix Hystrix is deprecated. Use an alternative like resilience4j"
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#ibi11">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#ibi11">
         <description>Problem: Hystrix is not actively maintained anymore.&#13;
             Solution: Netflix recommends to use open source alternatives like resilience4j. (jpinpoint-rules)
         (jpinpoint-rules)</description>
@@ -4590,7 +4590,7 @@ class Good {
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           language="java"
           message="Do not replace the configured httpClient provided in the constructor of the factory."
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#ibi15">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#ibi15">
         <description>Problem: Apache HttpComponentsClientHttpRequestFactory has a constructor which takes a HttpClient
             and also a setter: setHttpClient.
             If you use both on the same factory, you discard all configuration done on the one provided in the
@@ -4640,7 +4640,7 @@ class Good {
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           dfa="false"
           language="java"
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#ibi23">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#ibi23">
         <description>Problem: SAAJ uses DOM to load the XML document in memory which uses a TransformerFactory. The
             implementation class of it is loaded on every call which causes lock contention under load. This means long
             response times.&#13;
@@ -4685,7 +4685,7 @@ class Good {
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           dfa="false"
           language="java"
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#ibi22">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#ibi22">
         <description>Problem: configuring connection settings like timeouts and pool sizes in code (int values) makes it
             difficult to manage and tune these settings.&#13;
             Solution: use property files, e.g. yml, to define the values for these settings for each called service.
@@ -4738,7 +4738,7 @@ class AvoidHardcodedConnectionConfig {
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           language="java"
           message="Avoid the HttpHost constructor with only hostname, provide port number and protocol as well."
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#ibi16">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#ibi16">
         <description>Problem: the HttpHost constructor with one argument must only be provided with a host name, the
             default port 80 and protocol http are implied.
             The mistake of providing a URL and assuming it will be parsed into hostname, port and protocol is easily
@@ -4781,7 +4781,7 @@ class Foo {
           language="java"
           message="The JAXB utility class is not optimized for performance."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#iuoxar04">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#iuoxar04">
         <description>Problem: JAXB utility methods do not reuse JAXBContext when more that one context is used. &#13;
             Solution: use JAXB API directly for marshalling and unmarshalling to gain all the performance benefits as
             described in IUOXAR04 and IUOXAR06.
@@ -4814,7 +4814,7 @@ public class XMLConversion {
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           dfa="false"
           language="java"
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#pml06">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#pml06">
         <description>Problem: A resilience4j retry event consumer is added to a retry event publisher for every method
             call. Likely a lambda retaining one or more objects.
             This will result in a growing list of consumers: a memory leak. Besides, the event will be sent to the
@@ -4867,7 +4867,7 @@ public class Foo {
             class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
             language="java"
             message="ObjectMapper is configured/modified, only initialize it right after construction."
-            externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#iuojar02">
+            externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#iuojar02">
         <description>Problem: ObjectMapper is thread-safe only after configuration. Configuring an ObjectMapper is not
             thread-safe. &#13;
             Solution: Avoid configuring objectMappers except when initializing: right after construction. It is
@@ -4935,7 +4935,7 @@ public class Foo {
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           language="java"
           message="Avoid ObjectMapper as field, use ObjectReader or ObjectWriter instead."
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#iuojar02">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#iuojar02">
         <description>Problem: Configuring an ObjectMapper is thread-unsafe. &#13;
             Solution: Create ObjectReaders and ObjectWriters from ObjectMapper and only share those as field, since they
             are immutable and therefore thread-safe.
@@ -4980,7 +4980,7 @@ class GoodStyle {
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           language="java"
           message="Do not use Reactor debugging in production, it has much overhead."
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#ibi14">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#ibi14">
         <description>Problem: For troubleshooting Reactor, Blockhound can be used. It needs proper stack traces which
             can be achieved by Hooks.onOperatorDebug(). This can have much CPU overhead. &#13;
             Solution: Remove Hooks.onOperatorDebug() when not debugging. (jpinpoint-rules)
@@ -5012,7 +5012,7 @@ public class Foo {
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           language="java"
           message="An HttpClient is created and combined with request-response."
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#ibi12">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#ibi12">
         <description>Problem: Apache HttpClient with its connection pool and timeouts should be setup once and then used
             for many requests. It is quite expensive to create and can only provide the benefits of pooling when reused
             in all requests for that connection.&#13;
@@ -5055,7 +5055,7 @@ class Foo {
           message="HttpRoute is constructed without specifying the secure argument, this is unclear."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           language="java"
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#ibi24">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#ibi24">
         <description>Problem: For Apache HttpRoute, if you don't specify whether the route is secure, the default of non-secure is taken. This is unclear. If you use it to configure a connection manager for that route, and the actual route is secure,
             the key does not match, and the intended configuration will not be effectuated. The default number of connections (2 for Http-Client version 4, and 5 for version 5) is used which may cause requests to wait long for a connection (without a proper timeout) resulting in bad responsiveness.
             Solution: Always specify in the constructor whether the route is secure (true) or not (false) to make it clear.
@@ -5099,7 +5099,7 @@ public class Foo {
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           language="java"
           message="XMLGregorianCalendar is used. It is slow in JAXB."
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#iuoxar05">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#iuoxar05">
         <description>Problem: XMLGregorianCalendar is a large object, involving substantial processing. It is created
             with the poorly performing DatatypeFactory.
             Solution: Add a converter for alternative date handling with Java 8+ java.time.
@@ -5126,7 +5126,7 @@ public class Foo {
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           dfa="false"
           language="java"
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#ia10">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#ia10">
         <description>Problem: each Producer takes threads and memory. If you create it in each method call, and call
             this frequently, it will result in an explosion of threads and memory used and lead to Out Of Memory Error.
             &#13;
@@ -5173,7 +5173,7 @@ public class AxualProducerBad {
       class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
       language="java"
       message="BufferingClientHttpRequestFactory is memory greedy. Only use when multiple reads of the response body cannot be avoided."
-      externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#ibi18">
+      externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#ibi18">
     <description>org.springframework.http.client.BufferingClientHttpRequestFactory is used.
         Problem: It buffers all incoming and outgoing streams fully in memory which may result in high memory usage.
         &#13;
@@ -5213,7 +5213,7 @@ public class Foo {
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           language="java"
           message="Default Feign client is used with (mutual) TLS. This is HttpURLConnection that creates a new connection for each call with TLS overhead."
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#ibi21">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#ibi21">
         <description>Problem: the default http client of Feign is java.net.HttpURLConnection that does not pool
             connections when using mutual TLS. This causes connection handshake overhead: extra CPU usage and higher
             latency.&#13;
@@ -5285,7 +5285,7 @@ public class MyFeignClient {
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           language="java"
           message="HttpClient builder is used with a ConnectionManager and MaxConn settings on the client are ignored. Remove them."
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#ibi09">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#ibi09">
         <description>Problem: If you use setConnectionManager, the connection pool must be configured on that Connection
             Manager. Pool settings on the client are ignored and lost. &#13;
             Solution: HttpClients should either 1. use setConnectionManager and *only* call setMaxTotal and
@@ -5336,7 +5336,7 @@ return HttpClientBuilder.create() // good
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           language="java"
           message="A HttpClient builder is used and disableConnectionState is not called. HTTP client tracks connection state while using TLS"
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#ibi07">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#ibi07">
         <description>Problem: NTLM authenticated connections and SSL/TLS connections with client certificate
             authentication are stateful: they have a specific user identity/security context per session. If HttpClients
             have enabled connection state tracking which is the default, established TLS connections will not be reused
@@ -5367,7 +5367,7 @@ return HttpClientBuilder.create() // good
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           language="java"
           message="HttpClient builder is used and the connection pool is not configured. HttpClient defaults of 2 per route and 20 max total are probably not right."
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#ibi03">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#ibi03">
         <description>Problem: by default only 2 connections are available per route. When two external calls are being
             made, a third thread requesting a connection must wait for a free connection.&#13;
             Solution: HttpClients should explicitly define the number of connections per route. If only one route is
@@ -5431,7 +5431,7 @@ return HttpClientBuilder.create() // good, setConnectionManager called, pool con
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           language="java"
           message="HttpClient-v4 builder is used and not all three timeouts are configured. The defaults are probably not optimal (e.g. infinite). "
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#IBI10">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#IBI10">
         <description>Problem: (Apache client version 4) For connectionRequestTimeout, connectTimeout, socketTimeout (for
             HttpComponentsClientHttpRequestFactory) or readTimeout (for RequestConfig) the default timeout settings are
             not optimal in most cases. &#13;
@@ -5502,7 +5502,7 @@ return HttpClientBuilder.create() // good, setConnectionManager called, pool con
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           language="java"
           message="ApacheHttpClient RequestConfig connectionRequestTimeout and connectTimeout have values which are typically too high."
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#ibi20">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#ibi20">
         <description>org.apache.http.client.config.RequestConfig is used with connectionRequestTimeout and
             connectTimeout values above 500 milli seconds.
             Problem: 1. connectTimeout is for establishing a connection which should be quick, say below 200 ms.
@@ -5588,7 +5588,7 @@ public class HttpClientStuff {
 		  class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
 		  language="java"
 		  message="JAXBContext is created for each method call, which is expensive."
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#iuoxar04">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#iuoxar04">
         <description>Problem: JAXBContext creation is expensive because it does much class loading.  &#13;
             Solution: Since JAXBContext objects are thread safe, they can be shared between requests and reused. So, reuse created instances, e.g. as singletons.
             (jpinpoint-rules)</description>
@@ -5607,7 +5607,7 @@ public class HttpClientStuff {
     <rule name="ObjectMapperCreatedForEachMethodCall"
           message="An ObjectMapper or JsonMapper is created for each method call, which is expensive."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-          language="java" externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#IUOJAR01">
+          language="java" externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#IUOJAR01">
         <description>Problem: Jackson ObjectMapper/JsonMapper creation is expensive because it does much class loading.
             &#13;
             Solution: Since ObjectMapper/JsonMapper objects are thread-safe after configuration in one thread, they can
@@ -5649,7 +5649,7 @@ return JsonMapper.builder().build(); // bad
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           language="java"
           message="Be careful with retrying: multiple retry locations in a call chain can cause overload."
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#ibi13">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#ibi13">
         <description>Problem: Multiple Retry locations in a call chain multiply the number of calls. For 2x retry on 3
             locations (service calls) in a chain calling a system which is just recovering,
             results in 3 x 3 x 3 = 27 calls instead of 1. This may cause it not being able to restart.&#13;
@@ -5688,7 +5688,7 @@ public class Foo {
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           language="java"
           message="Configure the queue capacity for the ThreadPoolTaskExecutor."
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#ia05">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#ia05">
         <description>The org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor queue capacity is not
             configured.
             Problem: It has a default queue capacity which is unlimited which can lead to an out of memory situation.
@@ -5734,7 +5734,7 @@ public class Foo {
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           language="java"
           message="HttpClient is used instead of ClosableHttpClient. "
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#ibi08">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#ibi08">
         <description>Problem: if HttpClient connections are not closed properly when needed, resources are not released
             and connections may not (or not quick enough) become available from the pool.&#13;
             Solution: Use ClosableHttpClient to allow for invoking close on it to properly close the connection. Or use
@@ -5782,7 +5782,7 @@ void good2() {
 <!-- END Included file 'remoting.xml' -->
 <!-- BEGIN Included file 'spring.xml' -->
     <rule name="AvoidExpressionsInCacheable" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java" message="Avoid SpEL-expression for computing Cacheable key" typeResolution="true"
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#improper-caching">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#improper-caching">
         <description>Spring Expression Language (SpEL) expression is used for computing the key dynamically. Problem: evaluating the expression language is expensive, on every call.&#13;
             Solution: use a custom KeyGenerator: keyGenerator=... instead of key=...
             (jpinpoint-rules)</description>
@@ -5815,7 +5815,7 @@ class Good {
 
     <rule name="AvoidIdentityCacheKeys" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
           message="Avoid identity cache keys by casting the generate method parameters" typeResolution="true"
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#ic13">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#ic13">
         <description>A non-overridden Object.toString may be called on a spring KeyGenerator.generate method parameter.
             Problem: The non-overridden Object.toString returns a String representing the identity of the object.
             Because this is different for two objects with the same value, cache keys will be different and the cache will only have misses and no hits.&#13;
@@ -5885,7 +5885,7 @@ public class Good implements KeyGenerator {
     <rule name="AvoidImproperAnnotationCombinations"
           language="java"
           message="Don't combine these annotations"
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodeQuality.md#ssc02"
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodeQuality.md#ssc02"
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule">
         <description>
             Improper combination of annotations. Problem: these annotations are not meant to be combined and may cause unexpected and unwanted behavior, e.g. data mix-up.&#13;
@@ -5970,7 +5970,7 @@ class Good {
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
           message="A ModelMap or @ModelAttribute is used as parameter of a portlet render method and implicitly put in the session."
           typeResolution="true"
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#tmsu11">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#tmsu11">
         <description>Problem: ModelMaps are rather large objects containing explicitly added data and administrative data from Spring.
             They are added to the Portlet session implicitly.
             They stay in the session for some time: during session activity and 30 minutes (HTTP timeout) after it,
@@ -6021,7 +6021,7 @@ public ModelAndView initialOverviewRender(RenderRequest request, String viewName
     </rule>
 
     <rule name="AvoidSimpleCaches" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java" message="Avoid simple caching in production" typeResolution="true"
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#ic08">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#ic08">
         <description>Simple caches are used. Problem: Simple caching is meant for testing and prototyping plus it lacks manageability and monitorability.&#13;
             Solution: Use a proper cache implementation like ehcache or a cloud cache.
             (jpinpoint-rules)</description>
@@ -6060,7 +6060,7 @@ class Good {
 
     <rule name="AvoidSimpleKeyCollisions" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
           message="Generate a unique SimpleKey by using both method and parameters as composites." typeResolution="true"
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#ic15">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#ic15">
         <description>
             Problem: Spring's SimpleKey creation lacks either the method or the method parameters, which may cause cache data mix-up.&#13;
             Solution: Create a SimpleKey composed of both the method object and the params Object[].
@@ -6113,7 +6113,7 @@ class GoodCacheKeyGenerator implements KeyGenerator {
     <rule name="AvoidSpringApplicationContextRecreation"
           message="Avoid re-creation of Spring application context"
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
-          typeResolution="true" externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#euocs01">
+          typeResolution="true" externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#euocs01">
         <description>
             Problem: When a XXXApplicationContext is created, all Spring beans are initialized, wired and component scanning may take place.
             Component scanning involves extensive class path scanning which is expensive.&#13;
@@ -6154,7 +6154,7 @@ public class AvoidSpringApplicationContextRecreation {
 
     <rule name="AvoidSpringMVCMemoryLeaks" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
           message="Spring Controller returns an additive expression or a ModelAndView object which may cause a MemoryLeak" typeResolution="true"
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md">
         <description>Avoid to return an additive expression for a Spring Controller because it may cause a MemoryLeak.
             Each new value returned will create a new entry in the View Cache.
             Also avoid to return a ModelAndView object created using non-static and non-final methods because it may
@@ -6216,7 +6216,7 @@ public ModelAndView getSomeRequestGood(@RequestParam int someValue) {
 
     <rule name="EnsureProperCacheableParams" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
           message="Info: Make sure that the parameters that make up the cache key implement the required methods properly." typeResolution="true"
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#ic16">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#ic16">
         <description>
             Problem: When (1) concatenating or joining parameters in a KeyGenerator: they need to properly implement toString().
             (2) using SimpleKey (recommended): the parameters need to properly implement equals() and hashCode(). Failing to do so may lead to caching data mix-up.&#13;
@@ -6267,7 +6267,7 @@ class MyObject {
     <rule name="MakeAutoWiredConstructedFieldFinal"
           message="Make autowired, constructed field final in objects shared among threads."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
-          typeResolution="true" externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#tutc07">
+          typeResolution="true" externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#tutc07">
         <description>
             Problem: Multiple threads typically access fields of a singleton or may access fields in session scoped objects. If a field or its reference is mutable, non-autowired access is thread-unsafe and may cause corruption or visibility problems. To make this thread-safe, that is, guard the field e.g. with synchronized methods, may cause contention. &#13;
             Solution: Make the fields final and unmodifiable to defend against mutation. If they really need to be mutable (which is strange for autowired fields), make access thread-safe. Thread-safety can be achieved e.g. by proper synchronization and use the @GuardedBy annotation or use of volatile.&#13;
@@ -6338,7 +6338,7 @@ public class DoodleController {
 
     <rule name="MinimizeActionModelMapInSession" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
           message="ModelMap in action method is not cleared. This may bloat the session." typeResolution="true"
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#tmsu12">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#tmsu12">
         <description>A ModelMap is used in an action method typically for form validation and not cleared.
             Problem: the ModelMap is put in the session by Spring. This is typically a large object which may bloat the session.&#13;
             Solution: clear the ModelMap right after the validation in the happy flow.
@@ -6373,7 +6373,7 @@ public void validateDetails(ActionRequest request, ModelMap modelMap) {
     </rule>
 
     <rule name="SynchronizeForKeyInCacheable" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java" message="Synchronize access for each key in @Cacheable" typeResolution="true"
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#improper-caching">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#improper-caching">
         <description>The cache by default allows multiple threads accessing by the same key.
             Problem: if the value of the key is not available from the cache, it will be fetched/computed by multiple threads while only one time is needed.&#13;
             Solution: Let only the first accessing thread fetch/compute the value and block others until the value is in the cache.
@@ -6411,7 +6411,7 @@ class Good {
 
     <rule name="UseClearKeyGeneratorName" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
           message="Use a specific name for this KeyGenerator class which makes clear where to use it." typeResolution="true"
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#ic17">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#ic17">
         <description>This class implementing Spring's KeyGenerator uses a generic name, CacheKeyGenerator or CacheKeyGeneration.
             Problem: It is unclear where this KeyGenerator should be used, for which cache and/or for which methods.
             If used on the wrong caches or methods, it may lead to cache key mix-up and user data mix-up.
@@ -6445,7 +6445,7 @@ public class CacheKeyGenerator implements KeyGenerator { // bad, unclear name
 
     <rule name="UseExplicitKeyGeneratorForCacheable" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
           message="Use a KeyGenerator to generate a correct and unique key per cached value, do not rely on the implicit default key generation." typeResolution="true"
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#ic14">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#ic14">
         <description>
             Problem: With default key generation, an object of Spring's SimpleKey class is used and its value is composed of just the method parameter(s).
             It does not include the method, which is unclear and risky.&#13;
@@ -6488,7 +6488,7 @@ class Foo {
           message="Avoid fetching the whole list of entities for the query, while only one entity is used"
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           language="java"
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaDataAccessPerformance.md#ida-trr04">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaDataAccessPerformance.md#ida-trr04">
         <description>
             Problem: Unused rows are fetched and transported, and unused jdbc buffer is allocated.&#13;
             Solution: Use query.getSingleResult() in stead of query.getResultList().
@@ -6533,7 +6533,7 @@ class Foo {
           message="Avoid a huge query fetch size, it consumes much memory."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           language="java"
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaDataAccessPerformance.md#ida-trm03">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaDataAccessPerformance.md#ida-trm03">
         <description>
             Problem: if huge numbers of result rows are fetched these are all stored in memory and this may introduce long gc times and out of memory risk.&#13;
             Solution: Set fetch size to 100 maximally. Only set it higher than 100 yet still max 500, if you are sure there is only little data returned per row, for instance 3 rather short columns.
@@ -6564,7 +6564,7 @@ class Foo {
           message="Avoid multiple round trips for the same query"
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           language="java"
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaDataAccessPerformance.md#ida-trr05">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaDataAccessPerformance.md#ida-trr05">
         <description>
             Problem: Time is taken by the unnecessary round trip(s). Unnecessary work is performed.&#13;
             Solution: Execute the query only once.
@@ -6590,7 +6590,7 @@ class Foo {
     <rule name="AvoidSqlInExpression"
           message="Avoid a SQL IN-Expression, it fails for > 1000 arguments and pollutes the query plan cache / statement cache"
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
-          typeResolution="true" externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaDataAccessPerformance.md#ida-ino01">
+          typeResolution="true" externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaDataAccessPerformance.md#ida-ino01">
         <description>
             Problem: The number of values for the IN-argument list is limited, in Oracle to 1000. An error occurs when exceeding this limit. Additionally, a large IN list takes much time to transport to the database and be parsed. Moreover, each number of IN values used in a query results in a separate cache entry in e.g. the Prepared Statement Cache of the application server and in the Hibernate Query Plan Cache, resulting in higher memory usage and/or low cache hit ratio.&#13;
             Solution: Rewrite the query by replacing the IN-argument list by a sub query using the criteria used to fetch the IN arguments. Or often even better performing, an inner join using these criteria (depending on indexes etc. - recommended to test to be sure.) This way, the select and update are combined into one, which will also save one roundtrip.
