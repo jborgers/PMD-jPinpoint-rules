@@ -462,9 +462,10 @@ class AvoidForEachInStreams {
 ### ILS02
 
 **Observation: a stream pipeline has side effects, that is, a variable is modified.**  
-**Problem:** Java Streams is a paradigm based on functional programming: the result should depend only on its input, not on any mutable state nor should it update any state: not modify any variable.
-By the spec, everything that does not contribute to the result, may be optimized away. So, side effects are not guaranteed to be executed.
-For parallel streams, side effects are dangerous: accessing a thread-unsafe shared variable is a concurrency bug. Accessing a (thread-safe) shared variable may cause data mix-up between the threads.   
+**Problem:** Java Streams is a paradigm based on functional programming: the result should depend only on its input, not on any mutable state nor should it update any state: not modify any variable (including thread-safe variables).
+By the spec, everything that does not contribute to the functional result, may be optimized away. So, side effects are not guaranteed to be executed.
+For parallel streams, side effects are dangerous: accessing a thread-unsafe shared variable is a concurrency bug. Accessing a (thread-safe) shared variable may cause data mix-up between the threads.
+So, using a thread-safe variable is not the solution.   
 **Solution:** Use the pure functional form: return a result based just on the input; do not modify any variable.    
 **See:**
 * Effective Java 3rd Ed. Item 46: Prefer Side-Effect-Free Functions In Streams  
@@ -484,10 +485,11 @@ class AvoidSideEffectsInStreams {
         AtomicReference<String> currentEndpoint = new AtomicReference<>();
         return Arrays.stream(endpoints)
                 .peek(endpoint -> currentEndpoint.set(endpoint)) // bad
-                .peek(endpoint -> array[0] = endpoint)           // bad
                 .peek(list::add)                                 // bad
-                .peek(endpoint -> log.debug(endpoint)) // peek is meant for something like this
+                .peek(endpoint -> log.debug(endpoint))           // peek is meant for something like this
+                .map(endpoint -> array[0] = endpoint)            // bad
                 .map(String::toLowerCase)
+                .map(list::remove)                               // bad
                 .map(pingInfo -> addEndpointInfo(pingInfo, currentEndpoint.get()))
                 .toList();
     }
