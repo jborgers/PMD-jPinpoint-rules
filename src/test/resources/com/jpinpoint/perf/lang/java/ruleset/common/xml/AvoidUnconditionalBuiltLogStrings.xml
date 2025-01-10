@@ -332,4 +332,37 @@ class Issue430 {
 ]]></code>
     </test-code>
 
+    <test-code>
+        <description>false positive in AvoidUnconditionalBuiltLogStrings #455</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>20</expected-linenumbers>
+        <code><![CDATA[
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+class Issue455_Cond {
+    private String logBar() {
+        StringBuilder messageBuilder = new StringBuilder();
+        messageBuilder.append("-"); // <-- false positive
+        log.info("message: {}" , messageBuilder);
+    }
+    private void logCond() {
+        if (log.isDebugEnabled()) {
+            logBar();
+        }
+    }
+}
+@Slf4j
+class Issue455_UnCond {
+    private String logBar() {
+        StringBuilder messageBuilder = new StringBuilder();
+        messageBuilder.append("-");   // bad
+        log.info("message: {}" , messageBuilder);
+    }
+    private void logUnCond() {
+        logBar();
+    }
+}
+]]></code>
+    </test-code>
 </test-data>
