@@ -431,6 +431,55 @@ class Foo {
         </example>
     </rule>
 
+    <rule name="AvoidXPathAPIUsage"
+          class="net.sourceforge.pmd.lang.rule.XPathRule"
+          dfa="false"
+          language="kotlin"
+          message="XPathAPI is used. XPathAPI implementation has bad performance."
+          typeResolution="true"
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#ux01">
+        <description>XPathAPI is used. Problem: XPathAPI implementation is slow.&#13;
+            Solution: 1. try to avoid using XPathAPI. 2. improve performance by using jvm parameters and possibly CachedXPathAPI.
+            (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <!--property name="tag" value="performance" type="String" description="for-sonar"/-->
+            <property name="xpath">
+                <value><![CDATA[
+//ImportHeader[.//T-Identifier[@Text='org'] and .//T-Identifier[@Text='apache'] and .//T-Identifier[@Text='xpath']][1]/ancestor::KotlinFile
+//ClassBody//SimpleIdentifier/T-Identifier[@Text='XPathAPI']
+	]]></value>
+            </property>
+        </properties>
+        <example><![CDATA[
+import org.w3c.dom.Node
+import org.apache.xpath.XPathAPI
+import org.apache.xpath.CachedXPathAPI
+
+class FooBad {
+    fun getAction(doc: Node?): String? {
+        return try {
+            XPathAPI.eval(doc, "/Envelope/Header/Action").toString() // bad
+        } catch (e: TransformerException) {
+            null
+        }
+    }
+}
+
+class FooGood {
+    fun getAction(doc: Node?): String? {
+        return try {
+            CachedXPathAPI.eval(doc, "/Envelope/Header/Action").toString()
+        } catch (e: TransformerException) {
+            null
+        }
+    }
+}
+]]>
+        </example>
+    </rule>
+
 <!-- END Included file 'common.xml' -->
 <!-- BEGIN Included file 'remoting.xml' -->
     <rule name="AvoidDeprecatedHystrix"
