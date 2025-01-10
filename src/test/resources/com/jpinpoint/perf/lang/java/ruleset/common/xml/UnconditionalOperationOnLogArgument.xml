@@ -167,4 +167,51 @@ public final class DataUtil {
 ]]></code>
     </test-code>
 
+    <test-code>
+        <description>Fix Request for UnconditionalOperationOnLogArgument false positive #455</description>
+        <expected-problems>2</expected-problems>
+        <expected-linenumbers>21,37</expected-linenumbers>
+        <code><![CDATA[
+class Issue455_onlyCond {
+    private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(Issue455_onlyCond.class);
+
+    void callLogConditionally(String faultCode) {
+        if (LOG.isDebugEnabled()) {
+             logFault(faultCode);
+        }
+    }
+    private String logFault(String faultCode) {
+        LOG.debug("Trying to get [{}]", faultCode.toUpperCase(Locale.US)); // false-positive, good
+    }
+}
+
+class Issue455_onlyUnCond {
+    private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(Issue455_onlyUnCond.class);
+
+    void callLogUnConditionally(String faultCode) {
+        logFault(faultCode);
+    }
+    private String logFault(String faultCode) {
+        LOG.debug("Trying to get [{}]", faultCode.toUpperCase(Locale.US)); // bad
+    }
+}
+
+class Issue455_CondUncond {
+    private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(Issue455_CondUncond.class);
+
+    void callLogConditionally(String faultCode) {
+        if (LOG.isDebugEnabled()) {
+             logFault(faultCode);
+        }
+    }
+    void callLogUnConditionally(String faultCode) {
+        logFault(faultCode);
+    }
+    private String logFault(String faultCode) {
+        LOG.debug("Trying to get [{}]", faultCode.toUpperCase(Locale.US)); // bad
+    }
+}
+
+]]></code>
+    </test-code>
 </test-data>
