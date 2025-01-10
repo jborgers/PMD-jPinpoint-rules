@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>violation: side effects in streams</description>
+        <expected-problems>6</expected-problems>
+        <expected-linenumbers>13,13,13,13,13,13</expected-linenumbers>
+        <code><![CDATA[
+import java.util.*;
+import java.util.stream.*;
+import java.util.concurrent.atomic.AtomicReference;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+abstract class AvoidSideEffectsInStreams {
+    final String[] array = new String[]{"a", "b", "c"};
+    final List<String> list = new ArrayList<>();
+
+    public List<String> getEndpointsPingInfo(String... pingEndpoints) {
+        AtomicReference<String> currentEndpoint = new AtomicReference<>();
+        return Arrays.stream(pingEndpoints) // 6x bad reported here
+                .peek(endpoint -> currentEndpoint.set(endpoint)) // bad - not reported on this line
+                .peek(currentEndpoint::set) // bad - not reported on this line
+                .peek(endpoint -> array[0] = endpoint) // bad - not reported on this line
+                .peek(list::add) // bad - not reported on this line
+                .peek(endpoint -> log.debug(endpoint)) // peek is meant for something like this
+                .map(endpoint -> array[0] = endpoint) // bad
+                .map(String::toLowerCase)
+                .map(list::remove) // bad
+                .map(list::contains) // ok for this rule, not a modifying operation
+                .map(pingInfo -> addEndpointInfo(pingInfo, currentEndpoint.get()))
+                .toList();
+    }
+
+    abstract String addEndpointInfo(String pingInfo, String s);
+}
+        ]]></code>
+    </test-code>
+
+</test-data>
