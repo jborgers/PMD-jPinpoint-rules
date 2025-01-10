@@ -229,8 +229,8 @@ public class MyProducer {
 
     <test-code>
         <description>Fix Request for UnconditionalCreatedLogArgument with @Slf4j annotation #395</description>
-        <expected-problems>1</expected-problems>
-        <expected-linenumbers>21</expected-linenumbers>
+        <expected-problems>2</expected-problems>
+        <expected-linenumbers>21,37</expected-linenumbers>
         <code><![CDATA[
 import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
@@ -261,6 +261,19 @@ public class Issue455_AlsoUnCond {
     }
     void callerUnCond(UUID id) {
         logDelete();
+    }
+}
+
+@Slf4j
+public class Issue455_PublicLog {
+    public void logDelete(UUID id) {
+        String idStr = id.toString();
+        log.debug("delete --> {}", idStr); // bad, public log method can be called from anywhere unconditionally
+    }
+   void callerCond(UUID id) {
+        if (log.isDebugEnabled()) {
+            logDelete();
+        }
     }
 }
 ]]></code>
