@@ -56,7 +56,7 @@ public class RulesetMerger {
     }
 
     private static final String PATH_TO_CAT_RULES = "src/main/resources/category/%s/";
-    private static final String COMPANY_DOC_ROOT = "https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs";
+    private static final String COMPANY_DOC_ROOT = "https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs";
     private static final boolean IS_ADD_TAG_TO_DESCRIPTION_AND_DOC = true;
 
     // constants unlikely to have to change
