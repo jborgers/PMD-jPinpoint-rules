@@ -459,4 +459,40 @@ class Foo {
         </example>
     </rule>
 
+    <rule name="AvoidUnusedAssignments"
+          language="java"
+          message="Avoid assignments for which the assigned value is never used."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          externalInfoUrl="${doc_root}/JavaCodeQuality.md#isr04">
+        <description>Problem: Assignments to variables for which the assigned value is not used because a new value is assigned before actual use, is unnecessary work and may indicate a bug.
+            Solution: remove the first assignment and make sure that is as intended.
+        </description>
+        <priority>3</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,replaces-sonar-rule,suspicious,unused" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+(: local var declaration with following assignment same var :)
+//Block//LocalVariableDeclaration[
+    .//VariableId/@Name = following::ExpressionStatement/AssignmentExpression/VariableAccess/@Name
+    and not(.//VariableId/@Name = (following::LocalVariableDeclaration//MethodCall/VariableAccess)/@Name)
+    and not(.//VariableId/@Name = (preceding-sibling::ExpressionStatement//ArgumentList/VariableAccess)/@Name)
+]
+,
+(: assigment with following other assignment same var :)
+//Block//ExpressionStatement/AssignmentExpression[
+    .//VariableAccess/@Name = following::ExpressionStatement/AssignmentExpression/VariableAccess/@Name
+    and not(.//VariableAccess/@Name = (following::LocalVariableDeclaration//MethodCall/VariableAccess)/@Name)
+    and not(.//VariableAccess/@Name = (preceding-sibling::ExpressionStatement//ArgumentList/VariableAccess)/@Name)
+]
+                ]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+
+            ]]>
+        </example>
+    </rule>
+
 </ruleset>
