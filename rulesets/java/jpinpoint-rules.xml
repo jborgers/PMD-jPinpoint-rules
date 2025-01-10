@@ -2417,20 +2417,18 @@ public class StringStuff {
 (: matches java.lang.Stream and java.util.stream.IntStream like types :)
 //MethodCall[pmd-java:typeIs('java.util.stream.BaseStream')]
 (: modifying methods :)
-[ArgumentList[.//(MethodCall|MethodReference)[@MethodName=('set','add','put')]/VariableAccess or .//AssignmentExpression/ArrayAccess/*[1][pmd-java:nodeIs('VariableAccess')]
+[ArgumentList[.//(MethodCall|MethodReference)[matches(@MethodName,"^(set|put|clear|add|remove|replace|retain)")]/VariableAccess or .//AssignmentExpression/ArrayAccess/*[1][pmd-java:nodeIs('VariableAccess')]
 ]]
                 ]]></value>
             </property>
         </properties>
         <example>
             <![CDATA[
-    final List<String> list = new ArrayList<>();
 
     public List<String> getEndpointsInfo(String... endpoints) {
         AtomicReference<String> currentEndpoint = new AtomicReference<>();
         return Arrays.stream(endpoints)
                 .peek(endpoint -> currentEndpoint.set(endpoint)) // bad
-                .peek(list::add)                                 // bad
                 .peek(endpoint -> log.debug(endpoint)) // peek is meant for something like this
                 .map(String::toLowerCase)
                 .map(pingInfo -> addEndpointInfo(pingInfo, currentEndpoint.get()))
