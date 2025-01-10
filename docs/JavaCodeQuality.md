@@ -56,7 +56,7 @@ Results as expected in:
 ````text
 result = 0.11
 ````
-Or use long for cents instead of BigDecimal.
+Or use `long` for cents instead of `BigDecimal`.
 
 #### IUOB02
 
