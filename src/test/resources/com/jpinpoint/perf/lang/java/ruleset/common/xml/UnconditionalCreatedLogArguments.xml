@@ -5,8 +5,8 @@
         xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
     <test-code>
         <description>UnconditionalCreatedLogArguments - Avoid unconditional creation of log arguments</description>
-        <expected-problems>6</expected-problems>
-        <expected-linenumbers>14,31,37,43,94,108</expected-linenumbers>
+        <expected-problems>7</expected-problems>
+        <expected-linenumbers>14,31,37,43,81,94,108</expected-linenumbers>
         <code><![CDATA[
 import org.slf4j.Logger;
 class Foo {
@@ -86,9 +86,9 @@ class Foo {
       boolean b = logObj11.equals("foo");
     }
 
-    void logBar12(Object obj) {
+    private void logBar12(Object obj) {
       String logObj12 = obj.toString();
-      log.debug("object to String: {}", logObj12); // good, method starts with log assumes called conditionally
+      log.debug("object to String: {}", logObj12); // bad (method starts with log, if it were only called conditionally in a caller, it would be good)
     }
 
     void bar13(Object obj) {
@@ -226,4 +226,57 @@ public class MyProducer {
 }
 ]]></code>
     </test-code>
+
+    <test-code>
+        <description>Fix Request for UnconditionalCreatedLogArgument with @Slf4j annotation #395</description>
+        <expected-problems>2</expected-problems>
+        <expected-linenumbers>21,37</expected-linenumbers>
+        <code><![CDATA[
+import java.util.UUID;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+public class Issue455_OnlyCond {
+    private void logDelete(UUID id) {
+        String idStr = id.toString();
+        log.debug("delete --> {}", idStr); // false positive, good, called only conditionally in the caller
+    }
+   void callerCond(UUID id) {
+        if (log.isDebugEnabled()) {
+            logDelete();
+        }
+    }
+}
+
+@Slf4j
+public class Issue455_AlsoUnCond {
+    private void logDelete(UUID id) {
+        String idStr = id.toString();
+        log.debug("delete --> {}", idStr); // bad, called also unconditionally in a caller
+    }
+   void callerCond(UUID id) {
+        if (log.isDebugEnabled()) {
+            logDelete();
+        }
+    }
+    void callerUnCond(UUID id) {
+        logDelete();
+    }
+}
+
+@Slf4j
+public class Issue455_PublicLog {
+    public void logDelete(UUID id) {
+        String idStr = id.toString();
+        log.debug("delete --> {}", idStr); // bad, public log method can be called from anywhere unconditionally
+    }
+   void callerCond(UUID id) {
+        if (log.isDebugEnabled()) {
+            logDelete();
+        }
+    }
+}
+]]></code>
+    </test-code>
+
 </test-data>
