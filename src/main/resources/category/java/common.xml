@@ -698,6 +698,22 @@ public class Foo {
 or ancestor::TryStatement//FinallyClause//MethodCall[pmd-java:matchesSig('org.slf4j.MDC#clear()')]
 or @Image=ancestor::ClassBody//MethodDeclaration[@Name='afterCompletion' or @Name='postHandle']//MethodCall[pmd-java:matchesSig('org.slf4j.MDC#remove(java.lang.String)')]/ArgumentList/*[1]/@Image
 or ancestor::ClassBody//MethodDeclaration[@Name='afterCompletion' or @Name='postHandle']//MethodCall[pmd-java:matchesSig('org.slf4j.MDC#clear()')]
+or @Image=ancestor::MethodDeclaration//MethodCall[@MethodName='doFinally']//MethodCall[pmd-java:matchesSig('org.slf4j.MDC#remove(java.lang.String)')]/ArgumentList/*[1]/@Image
+or ancestor::MethodDeclaration//MethodCall[@MethodName='doFinally']//MethodCall[pmd-java:matchesSig('org.slf4j.MDC#clear()')]
+(: Issue 473, a put in a method only called from a try block with a remove of that key, or a clear :)
+(: a put of a key not in a try statement nor with a doFinally :)
+or not(ancestor::TryStatement) and not(.//MethodCall[@MethodName='doFinally'])
+    (: if method is non-private -> violation :)
+    and not ((ancestor::MethodDeclaration/@Visibility!='private'
+        (: or in a method called from a non-try scope -> violation:)
+        or ancestor::MethodDeclaration/@Name = ancestor::ClassBody//MethodDeclaration[not(.//TryStatement)]//MethodCall/@MethodName)
+        (: or in a method not called from a try statement with a finally -> violation :)
+        or not(ancestor::MethodDeclaration/@Name=ancestor::ClassBody//TryStatement[.//FinallyClause]/Block//MethodCall/@MethodName)
+        (: or in a method called from a try statement and the key not removed / cleared in finally :)
+        or (ancestor::MethodDeclaration/@Name=ancestor::ClassBody//TryStatement[.//FinallyClause]/Block//MethodCall/@MethodName and
+        not(@Image = ancestor::ClassBody//TryStatement/FinallyClause//MethodCall[pmd-java:matchesSig('org.slf4j.MDC#remove(java.lang.String)')]/ArgumentList/*[1]/@Image
+        or ancestor::ClassBody//TryStatement//FinallyClause//MethodCall[pmd-java:matchesSig('org.slf4j.MDC#clear()')]
+    )))
 )]
 ]]>
                 </value>
