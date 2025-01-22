@@ -49,4 +49,22 @@ class Foo {
      ]]></code>
     </test-code>
 
+    <test-code>
+        <description>false positive: NonComparableSetKeys Issue #470</description>
+        <expected-problems>0</expected-problems>
+
+        <code><![CDATA[
+import java.util.SortedSet;
+import java.util.TreeSet;
+
+public class Issue470 {
+    private static final SortedSet<Class<?>> TYPES = new TreeSet<>(Comparator.comparing(Class::getName)); // <--- false positive
+
+    public void foo() {
+        TYPES.contains(String.class);
+    }
+}
+     ]]></code>
+    </test-code>
+
 </test-data>
