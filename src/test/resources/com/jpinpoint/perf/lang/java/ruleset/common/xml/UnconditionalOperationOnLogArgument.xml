@@ -214,4 +214,65 @@ class Issue455_CondUncond {
 
 ]]></code>
     </test-code>
+
+    <test-code>
+        <description>Fix Request for UnconditionalOperationOnLogArgument false positive #468</description>
+        <expected-problems>2</expected-problems>
+        <expected-linenumbers>15, 49</expected-linenumbers>
+        <code><![CDATA[
+import org.slf4j.*;
+
+class Issue468 {
+
+    private static final Logger log = LoggerFactory.getLogger(Issue468.class);
+
+    public void testGood(String faultCode) {
+        if (ids.contains("some-id") && log.isDebugEnabled()) {
+            log.debug("Getting [{}]", faultCode.toUpperCase(Locale.US));  // <-- false positive
+        }
+    }
+
+    public void testBad(String faultCode) {
+        if (ids.contains("some-id") || log.isDebugEnabled()) {
+            log.debug("Getting [{}]", faultCode.toUpperCase(Locale.US));  // bad
+        }
+    }
+
+    void callLogConditionally(String faultCode) {
+        if (ds.contains("some-id") && LOG.isDebugEnabled()) {
+             logFault(faultCode);
+        }
+    }
+    private String logFault(String faultCode) {
+        LOG.debug("Trying to get [{}]", faultCode.toUpperCase(Locale.US)); // false-positive, good
+    }
+}
+
+class Issue468_methodCall {
+    private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(Issue455_onlyCond.class);
+
+    void callLogConditionally(String faultCode) {
+        if ((ds.contains("some-other-id") || ds.contains("some-id")) && LOG.isDebugEnabled()) {
+             logFault2(faultCode);
+        }
+    }
+
+    void callLogConditionallyBad(String faultCode) {
+        if ((ds.contains("some-other-id") || ds.contains("some-id")) || LOG.isDebugEnabled()) {
+             logFault3(faultCode);
+        }
+    }
+
+    private String logFault2(String faultCode) {
+        LOG.debug("Trying to get [{}]", faultCode.toUpperCase(Locale.US)); // false-positive, good
+    }
+
+    private String logFault3(String faultCode) {
+        LOG.debug("Trying to get [{}]", faultCode.toUpperCase(Locale.US)); // bad
+    }
+
+}
+]]></code>
+    </test-code>
+
 </test-data>

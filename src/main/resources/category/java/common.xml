@@ -801,8 +801,11 @@ class Foo {
      (: Slfj4 annotation makes the log variable AmbiguousName as there is no explicit log field :)
      (AmbiguousName[ancestor::ClassDeclaration[pmd-java:hasAnnotation('lombok.extern.slf4j.Slf4j')]])
   ]
-(: only if unconditional :)
-  [not(ancestor::IfStatement/MethodCall[@MethodName = ('isTraceEnabled', 'isDebugEnabled','isInfoEnabled', 'isLoggable')])]
+(: only if unconditional, and not || before the log check in the if statement :)
+  [not(ancestor::IfStatement//MethodCall[
+                        @MethodName = ('isTraceEnabled', 'isDebugEnabled','isInfoEnabled', 'isLoggable')
+                        and count(../../InfixExpression[@Operator='||']) = 0 ])
+                      ]
 (: and not returned conditionally before :)
   [not(ancestor::ExpressionStatement/preceding-sibling::IfStatement[.//ReturnStatement and .//MethodCall[@MethodName = ('isTraceEnabled', 'isDebugEnabled','isInfoEnabled', 'isLoggable')]])]
 (: for operations in log with >0 arguments or toString(); except getters which are assumed as fast :)
@@ -814,12 +817,23 @@ class Foo {
   (: except if method name starts with 'log', and it is non-public, .. :)
   [not(ancestor::MethodDeclaration
     [starts-with(@Name, 'log') and @Visibility = 'private']
-    (: and the method is called only conditionally: it is called inside an if :)
-    [@Name=ancestor::ClassBody//MethodCall[ancestor::IfStatement/MethodCall[@MethodName = ('isTraceEnabled', 'isDebugEnabled','isInfoEnabled', 'isLoggable')]]/@MethodName]
+    (: and the method is called only conditionally: it is called inside an if and not prefixed with || :)
+    [@Name=ancestor::ClassBody//MethodCall[ancestor::IfStatement//MethodCall[
+           @MethodName = ('isTraceEnabled', 'isDebugEnabled','isInfoEnabled', 'isLoggable')
+           and count(../../InfixExpression[@Operator='||']) = 0
+       ]]/@MethodName]
     (: and it is not called not inside an if :)
-    [not(@Name=ancestor::ClassBody//MethodCall[not(ancestor::IfStatement/MethodCall[@MethodName = ('isTraceEnabled', 'isDebugEnabled','isInfoEnabled', 'isLoggable')])]/@MethodName)]
+    [not(@Name=ancestor::ClassBody//MethodCall[
+           not(
+             ancestor::IfStatement//MethodCall[
+                   @MethodName = ('isTraceEnabled', 'isDebugEnabled','isInfoEnabled', 'isLoggable')
+                   and count(../../InfixExpression[@Operator='||']) = 0
+             ]
+           )
+        ]/@MethodName)
+      ]
    )]
-			]]>
+]]>
                 </value>
             </property>
         </properties>
