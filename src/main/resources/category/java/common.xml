@@ -756,7 +756,10 @@ class Good {
      (AmbiguousName[ancestor::ClassDeclaration[pmd-java:hasAnnotation('lombok.extern.slf4j.Slf4j')]])
   ]
   /ArgumentList[.//InfixExpression[@Operator='+'][(VariableAccess|MethodCall)[pmd-java:typeIs('java.lang.String')] or (StringLiteral and (VariableAccess or MethodCall))]]
-[not(ancestor::IfStatement/MethodCall[@MethodName = ('isTraceEnabled', 'isDebugEnabled','isInfoEnabled', 'isLoggable')])]
+    [not(ancestor::IfStatement//MethodCall[
+         @MethodName = ('isTraceEnabled', 'isDebugEnabled','isInfoEnabled', 'isLoggable')
+         and count(../../InfixExpression[@Operator='||']) = 0 ])
+    ]
 ]]></value>
             </property>
         </properties>

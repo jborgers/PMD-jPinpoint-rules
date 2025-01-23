@@ -332,4 +332,32 @@ public class MyProducer {
 ]]></code>
     </test-code>
 
+    <test-code>
+        <description>Fix Request for UnconditionalConcatInLogArgument with multiple if conditions #468</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>16</expected-linenumbers>
+        <code><![CDATA[
+import java.util.UUID;
+import org.slf4j.*;
+
+public class Issue486 {
+
+    private static final Logger log = LoggerFactory.getLogger(Issue486.class);
+
+    public void delete1(UUID id) {
+        if (ids.contains(id) && log.isDebugEnabled()) {
+            log.debug("delete -->" + id); // <--- false positive (issue #468)
+        }
+    }
+
+    public void delete2(UUID id) {
+        if (ids.contains(id) || log.isDebugEnabled()) {
+            log.debug("delete -->" + id); // <--- bad due to use of || in if (issue #468)
+        }
+    }
+
+}
+]]></code>
+    </test-code>
+
 </test-data>
