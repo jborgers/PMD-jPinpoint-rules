@@ -936,7 +936,11 @@ class VMRData {
      (AmbiguousName[ancestor::ClassDeclaration[pmd-java:hasAnnotation('lombok.extern.slf4j.Slf4j')]])
   ]
   (: no violation if conditionally: only executed if level enabled is okay :)
-  [not(ancestor::IfStatement/MethodCall[@MethodName = ('isTraceEnabled', 'isDebugEnabled','isInfoEnabled', 'isLoggable')])]
+  [not(ancestor::IfStatement//MethodCall[
+       @MethodName = ('isTraceEnabled', 'isDebugEnabled','isInfoEnabled', 'isLoggable')
+       and count(../../InfixExpression[@Operator='||']) = 0
+     ])
+  ]
   (: no violation if return conditionally before :)
   [not(ancestor::ExpressionStatement/preceding-sibling::IfStatement[.//ReturnStatement and .//MethodCall[@MethodName = ('isTraceEnabled', 'isDebugEnabled','isInfoEnabled', 'isLoggable')]])]
   (: equals a declared var, with initializer not like obj.get[Xxx], we assume a simple getter is quick; except when in a loop :)
@@ -948,9 +952,12 @@ class VMRData {
      [not(ancestor::MethodDeclaration
         [starts-with(@Name, 'log') and @Visibility = 'private']
         (: and the method is called only conditionally: it is called inside an if :)
-        [@Name=ancestor::ClassBody//MethodCall[ancestor::IfStatement/MethodCall[@MethodName = ('isTraceEnabled', 'isDebugEnabled','isInfoEnabled', 'isLoggable')]]/@MethodName]
+        [@Name=ancestor::ClassBody//MethodCall[ancestor::IfStatement//MethodCall[
+               @MethodName = ('isTraceEnabled', 'isDebugEnabled','isInfoEnabled', 'isLoggable')
+               and count(../../InfixExpression[@Operator='||']) = 0
+            ]]/@MethodName]
         (: and it is not called not inside an if :)
-        [not(@Name=ancestor::ClassBody//MethodCall[not(ancestor::IfStatement/MethodCall[@MethodName = ('isTraceEnabled', 'isDebugEnabled','isInfoEnabled', 'isLoggable')])]/@MethodName)]
+        [not(@Name=ancestor::ClassBody//MethodCall[not(ancestor::IfStatement//MethodCall[@MethodName = ('isTraceEnabled', 'isDebugEnabled','isInfoEnabled', 'isLoggable')])]/@MethodName)]
      )]
                 ]]></value>
             </property>
