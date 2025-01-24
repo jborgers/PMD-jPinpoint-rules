@@ -2168,4 +2168,68 @@ class ValueGood {
         </example>
     </rule>
 
+    <rule name="AvoidInfiniteRecursion"
+          language="java"
+          message=""
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          externalInfoUrl="${doc_root}/JavaPerformance.md#ipf01">
+        <description>Problem: If a method calls itself: recursion, and it doesn't have a proper and guaranteed stop condition. It may become an infinite loop and result in an OutOfMemoryError or StackOverflowError, and high CPU usage.
+            Solution: Limit the number of recursive calls: use a counter to count up-to or down-from a maximum number of calls, for every recursive call, and stop when the maximum is reached. This maximum should not be a large number.
+            Or better yet, rewrite into iterations for better performance and avoiding errors.
+        </description>
+        <priority>1</priority>
+        <properties>
+            <property name="xpath">
+                <value><![CDATA[
+//MethodDeclaration[not(.//IfStatement[
+    ((.//UnaryExpression[@Operator=('++', '--')]|.//InfixExpression[@Operator=('+', '-')]/NumericLiteral[@ValueAsInt=1]|.//AssignmentExpression[@Operator=('+=', '-=')]/NumericLiteral[@ValueAsInt=1])
+    or .//MethodCall[contains(@MethodName,'crement')]/VariableAccess[pmd-java:typeIs('java.lang.Number')])
+    and .//InfixExpression[@Operator=('>', '>=','<', '<=')]
+])]//MethodCall[@MethodName = ancestor::MethodDeclaration/@Name]
+                ]]></value>
+            </property>
+            <property name="tags" value="cpu,jpinpoint-rule,memory,performance,pitfall,sustainability-medium" type="String" description="classification"/>
+        </properties>
+        <example>
+            <![CDATA[
+class InfiniteRecursionBad {
+    private void foo() {
+        boolean success = tryRemoteCall();
+        if (!success) {
+            delay(10, MILLISECONDS);
+            foo(); // bad
+        }
+    }
+}
+
+class FiniteRecursionGood {
+    private static final int MAX_ATTEMPTS = 5;
+
+    private void foo(int attemptsLeft) {
+        boolean success = tryRemoteCall();
+        if (!success && attemptsLeft > 0 ) {
+            delay(10, MILLISECONDS);
+            foo(--attemptsLeft);
+        }
+    }
+}
+
+class IterationsBetter {
+    private static final int MAX_ATTEMPTS = 5;
+
+    private void foo() {
+        int attempt = 0;
+        boolean success = false;
+        while (!success && attempt++ < MAX_ATTEMPTS) {
+            success = tryRemoteCall();
+            if (!success) {
+                delay(10, MILLISECONDS);
+            }
+        }
+    }
+}
+            ]]>
+        </example>
+    </rule>
+
 </ruleset>

@@ -1,0 +1,252 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>violation: endless recursion</description>
+        <expected-problems>5</expected-problems>
+        <expected-linenumbers>16,25,38,53,66</expected-linenumbers>
+        <code><![CDATA[
+import reactor.core.publisher.Mono;
+import java.time.Duration;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+
+public class Issue478_Bad1 {
+    private final AtomicBoolean lock = new AtomicBoolean(false);
+
+    private Mono<Void> waitForLock() {
+        return Mono.defer(() -> {
+            if (lock.compareAndSet(false, true)) {
+                return Mono.empty();
+            } else {
+                return Mono.delay(Duration.ofMillis(10))
+                        .then(waitForLock()); // bad: unbounded recursion
+            }
+        });
+    }
+}
+
+class Issue478_Bad2 {
+    private void foo() {
+        if (bar()) {
+            foo(); // bad
+        }
+    }
+    private boolean bar() {
+        return true;
+    }
+}
+
+class Issue478_Bad3 {
+    final int MAX_ATTEMPTS = 10;
+
+    private void foo(int attemptsLeft) {
+        if (bar() && attemptsLeft > 0) {
+            foo(attemptsLeft); // bad, no increment/decrement
+        }
+    }
+    private boolean bar() {
+        return true;
+    }
+}
+
+class Issue478_Bad4 {
+    private static final int MAX_ATTEMPTS = 10;
+
+    private void foo(int attemptsLeft) {
+        if (bar() && attemptsLeft > 0) {
+            attemptsLeft = attemptsLeft + 0;
+            attemptsLeft += 0;
+            foo(attemptsLeft); // bad, no increment/decrement
+        }
+    }
+    private boolean bar() {
+        return true;
+    }
+}
+
+class InfiniteRecursionBad {
+    private void foo() {
+        boolean success = tryRemoteCall();
+        if (!success) {
+            delay(10, MILLISECONDS);
+            foo(); // bad
+        }
+    }
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+    <description>No violation: bounded recursion, they have a proper stop condition</description>
+    <expected-problems>0</expected-problems>
+    <code><![CDATA[
+import reactor.core.publisher.Mono;
+import java.time.Duration;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+
+class Issue478_Good1 {
+    private final AtomicBoolean lock = new AtomicBoolean(false);
+
+    private Mono<Void> waitForLock(int attempt) {
+        return Mono.defer(() -> {
+            if(attempt >= 20) {
+                return Mono.error(new JWKException("Unable to acquire JWK refresh lock"));
+            } else if (lock.compareAndSet(false, true)) {
+                return Mono.empty();
+            } else {
+                return Mono.delay(Duration.ofMillis(50))
+                        .then(waitForLock(attempt+1));
+            }
+        });
+    }
+}
+
+class Issue478_Good2 {
+    private static final int MAX_ATTEMPTS = 10;
+
+    private void foo(int attemptsLeft) {
+        if (bar() && attemptsLeft > 0) {
+            foo(--attemptsLeft);
+        }
+    }
+    private boolean bar() {
+        return true;
+    }
+}
+
+class Issue478_Good3 {
+    private static final int MAX_ATTEMPTS = 10;
+    private int attemptsLeft = MAX_ATTEMPTS;
+
+    private void foo() {
+        if (bar() && attemptsLeft > 0) {
+            attemptsLeft--;
+            foo();
+        }
+    }
+    private boolean bar() {
+        return true;
+    }
+}
+
+class Issue478_Good4 {
+    private static final int MAX_ATTEMPTS = 10;
+    private int attemptsLeft = MAX_ATTEMPTS;
+
+    private void foo() {
+        if (bar() && attemptsLeft > 0) {
+            attemptsLeft = attemptsLeft - 1;
+            foo();
+        }
+    }
+    private boolean bar() {
+        return true;
+    }
+}
+
+class Issue478_Good5 {
+    private static final int MAX_ATTEMPTS = 10;
+    private int attemptsLeft = MAX_ATTEMPTS;
+
+    private void foo() {
+        if (bar() && attemptsLeft > 0) {
+            attemptsLeft -= 1;
+            foo();
+        }
+    }
+    private boolean bar() {
+        return true;
+    }
+}
+
+class Issue478_Good6 {
+    private static final int MAX_ATTEMPTS = 10;
+    private int attemptsLeft = MAX_ATTEMPTS;
+
+    private void foo() {
+        if (bar() && --attemptsLeft >= 0) {
+            foo();
+        }
+    }
+    private boolean bar() {
+        return true;
+    }
+}
+
+class Issue478_Good7 {
+    private static final int MAX_ATTEMPTS = 10;
+    private final AtomicInteger attemptsLeft = new AtomicInteger(MAX_ATTEMPTS); // thread safe
+
+    private void foo() {
+        if (bar() && attemptsLeft.decrementAndGet() >= 0) {
+            foo();
+        }
+    }
+    private boolean bar() {
+        return true;
+    }
+}
+
+class FiniteRecursionGood {
+    private static final int MAX_ATTEMPTS = 5;
+    private int attemptsLeft = MAX_ATTEMPTS;
+
+    private void foo() {
+        boolean success = tryRemoteCall();
+        if (!success && --attemptsLeft >= 0 ) {
+            delay(10, MILLISECONDS);
+            foo();
+        }
+    }
+}
+
+class FiniteRecursionGood2 {
+    private static final int MAX_ATTEMPTS = 5;
+
+    private void foo(int attemptsLeft) {
+        boolean success = tryRemoteCall();
+        if (!success && attemptsLeft > 0 ) {
+            delay(10, MILLISECONDS);
+            foo(--attemptsLeft);
+        }
+    }
+}
+
+// when shared as singleton, it needs to be thread-safe
+class FiniteRecursionThreadSafeGood {
+    private static final int MAX_ATTEMPTS = 5;
+    private final AtomicInteger attemptsLeft = new AtomicInteger(MAX_ATTEMPTS); // thread safe
+
+    private void foo() {
+        boolean success = tryRemoteCall();
+        if (!success && attemptsLeft.decrementAndGet() >= 0 ) {
+            delay(10, MILLISECONDS);
+            foo();
+        }
+    }
+}
+
+class IterationsBetter {
+    private static final int MAX_ATTEMPTS = 5;
+
+    private void foo() {
+        int attempt = 0;
+        boolean success = false;
+        while (!success && attempt++ < MAX_ATTEMPTS) {
+            success = tryRemoteCall();
+            if (!success) {
+                delay(10, MILLISECONDS);
+            }
+        }
+    }
+}
+     ]]></code>
+    </test-code>
+
+</test-data>

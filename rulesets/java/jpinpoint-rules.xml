@@ -281,6 +281,70 @@ class Good {
         </example>
     </rule>
 
+    <rule name="AvoidInfiniteRecursion"
+          language="java"
+          message=""
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaPerformance.md#ipf01">
+        <description>Problem: If a method calls itself: recursion, and it doesn't have a proper and guaranteed stop condition. It may become an infinite loop and result in an OutOfMemoryError or StackOverflowError, and high CPU usage.
+            Solution: Limit the number of recursive calls: use a counter to count up-to or down-from a maximum number of calls, for every recursive call, and stop when the maximum is reached. This maximum should not be a large number.
+            Or better yet, rewrite into iterations for better performance and avoiding errors.
+        (jpinpoint-rules)</description>
+        <priority>1</priority>
+        <properties>
+            <property name="xpath">
+                <value><![CDATA[
+//MethodDeclaration[not(.//IfStatement[
+    ((.//UnaryExpression[@Operator=('++', '--')]|.//InfixExpression[@Operator=('+', '-')]/NumericLiteral[@ValueAsInt=1]|.//AssignmentExpression[@Operator=('+=', '-=')]/NumericLiteral[@ValueAsInt=1])
+    or .//MethodCall[contains(@MethodName,'crement')]/VariableAccess[pmd-java:typeIs('java.lang.Number')])
+    and .//InfixExpression[@Operator=('>', '>=','<', '<=')]
+])]//MethodCall[@MethodName = ancestor::MethodDeclaration/@Name]
+                ]]></value>
+            </property>
+            <property name="tags" value="cpu,jpinpoint-rule,memory,performance,pitfall,sustainability-medium" type="String" description="classification"/>
+        </properties>
+        <example>
+            <![CDATA[
+class InfiniteRecursionBad {
+    private void foo() {
+        boolean success = tryRemoteCall();
+        if (!success) {
+            delay(10, MILLISECONDS);
+            foo(); // bad
+        }
+    }
+}
+
+class FiniteRecursionGood {
+    private static final int MAX_ATTEMPTS = 5;
+
+    private void foo(int attemptsLeft) {
+        boolean success = tryRemoteCall();
+        if (!success && attemptsLeft > 0 ) {
+            delay(10, MILLISECONDS);
+            foo(--attemptsLeft);
+        }
+    }
+}
+
+class IterationsBetter {
+    private static final int MAX_ATTEMPTS = 5;
+
+    private void foo() {
+        int attempt = 0;
+        boolean success = false;
+        while (!success && attempt++ < MAX_ATTEMPTS) {
+            success = tryRemoteCall();
+            if (!success) {
+                delay(10, MILLISECONDS);
+            }
+        }
+    }
+}
+            ]]>
+        </example>
+    </rule>
+
     <rule name="AvoidLoadingAllFromFile"
           language="java"
           message="Files.readAll methods load all bytes from a file into memory: a risk of memory problems."
@@ -1799,19 +1863,23 @@ class Bad {
             <property name="xpath">
                 <value><![CDATA[
 (: check key type in declaration :)
-//VariableDeclarator/../ClassType[pmd-java:typeIs('java.util.Map')]
+//VariableDeclarator/../ClassType[pmd-java:typeIs('java.util.Map') and not(..//ConstructorCall[pmd-java:matchesSig('java.util.TreeMap#new(java.util.Comparator)')])]
 (: first type argument does not implement Comparable :)
-/TypeArguments/ClassType[1][not(pmd-java:typeIs('java.lang.Comparable'))]
+/TypeArguments/ClassType[1][not(pmd-java:typeIs('java.lang.Comparable')) ]
 ,
 (: for when key type is missing in declaration (old style), check Map.put :)
-//MethodCall[pmd-java:matchesSig('java.util.Map#put(_,_)')]
+//MethodCall[pmd-java:matchesSig('java.util.Map#put(_,_)') and not(
+                (: if Map is TreeMap constructed with a Comparator, it is also fine :)
+                ./VariableAccess/@Name = ancestor::ClassDeclaration//FieldDeclaration[
+                    .//ConstructorCall[pmd-java:matchesSig('java.util.TreeMap#new(java.util.Comparator)')]
+                ]/VariableDeclarator/VariableId/@Name)
+             ]
 (: first arg does not implement Comparable :)
 /ArgumentList/*[1][not(pmd-java:typeIs('java.lang.Comparable'))]
 [not(pmd-java:typeIs('byte'))][not(pmd-java:typeIs('short'))]
 [not(pmd-java:typeIs('int'))][not(pmd-java:typeIs('long'))]
 [not(pmd-java:typeIs('float'))][not(pmd-java:typeIs('double'))]
-[not(pmd-java:typeIs('boolean'))][not(pmd-java:typeIs('char'))]
-               ]]></value>
+[not(pmd-java:typeIs('boolean'))][not(pmd-java:typeIs('char'))]               ]]></value>
             </property>
         </properties>
         <example>
@@ -1858,9 +1926,13 @@ class Bad {
 (: declared variable used in Set by-element access :)
 //VariableId[@Name = ancestor::ClassBody//MethodCall[@MethodName = ('contains','containsAll','remove','removeAll','retainAll')]/VariableAccess/@Name]
     (: for 3 ways defined as a Set :)
-    [(ancestor::FieldDeclaration|ancestor::LocalVariableDeclaration|ancestor::FormalParameter)/ClassType[pmd-java:typeIs('java.util.Set')]
+    [(ancestor::FieldDeclaration|ancestor::LocalVariableDeclaration|ancestor::FormalParameter)/ClassType[pmd-java:typeIs('java.util.Set')
+                                                                                                         (: not when Set constructed with Comparator :)
+                                                                                                          and not(..//ConstructorCall[pmd-java:matchesSig('java.util.TreeSet#new(java.util.Comparator)')])
+                                                                                                         ]
     (: element type does not implement Comparable :)
-    /TypeArguments/ClassType[not(pmd-java:typeIs('java.lang.Comparable'))]]/../..
+    /TypeArguments/ClassType[not(pmd-java:typeIs('java.lang.Comparable'))]
+]/../..
                ]]></value>
             </property>
         </properties>

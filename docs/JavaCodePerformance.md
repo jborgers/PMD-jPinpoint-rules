@@ -2511,12 +2511,79 @@ class SingletonBMGood {
 }
 ```
 
+Improper program flow
+---------------------
+
+#### IPF01
+
+**Observation: A method calls itself, also known as recursion, and it doesn't have a proper and guaranteed stop condition.**  
+**Problem:** It may become an infinite loop and result in an OutOfMemoryError or StackOverflowError, and high CPU usage.  
+**Solution:** Limit the number of recursive calls: use a counter to count up-to or down-from a maximum number of calls, for every recursive call, and stop when the maximum is reached. This maximum should not be a large number. Or better yet, rewrite into iterations for better performance and avoiding errors.      
+**Rule name:** AvoidInfiniteRecursion.   
+**Note:** Be careful with recursive calls in general. Java currently does *not* optimize recursion, and it is typically expensive compared to iteration, most notably for large numbers of recursive calls. And large numbers involve the risk of OutOfMemoryError or StackOverflowError, and high CPU usage.   
+**Example:**
+```java
+class InfiniteRecursionBad {
+  private void foo() {
+    boolean success = tryRemoteCall();
+      if (!success) {
+        delay(10, MILLISECONDS);
+        foo(); // bad
+    }
+  }
+}
+
+class FiniteRecursionGood {
+  private static final int MAX_ATTEMPTS = 5;
+
+  private void foo(int attemptsLeft) {
+    boolean success = tryRemoteCall();
+    if (!success && attemptsLeft > 0) {
+      delay(10, MILLISECONDS);
+      foo(--attemptsLeft);
+    }
+  }
+}
+
+// when called from multiple threads, shared as a singleton, it needs to be thread-safe
+class FiniteRecursionSingletonThreadSafeGood {
+  private static final int MAX_ATTEMPTS = 5;
+  private final AtomicInteger attemptsLeft = new AtomicInteger(MAX_ATTEMPTS); // thread safe
+
+  private void foo() {
+    boolean success = tryRemoteCall();
+    if (!success && attemptsLeft.decrementAndGet() >= 0 ) {
+      delay(10, MILLISECONDS);
+      foo();
+    }
+  }
+}
+
+class IterationsBetter {
+  private static final int MAX_ATTEMPTS = 5;
+
+  private void foo() {
+    int attempt = 0;
+    boolean success = false;
+    while (!success && attempt++ < MAX_ATTEMPTS) {
+      success = tryRemoteCall();
+      if (!success) {
+        delay(10, MILLISECONDS);
+      }
+    }
+  }
+}
+```
+**See:** [TheServerSide: Five examples of recursion](https://www.theserverside.com/blog/Coffee-Talk-Java-News-Stories-and-Opinions/examples-Java-recursion-recursive-methods)
+[Baeldung: Java recursion](https://www.baeldung.com/java-recursion)
+
 Unnecessary execution
 ---------------------
 
 #### UE01
 **Observation: A Calendar is unnecessarily created for a Date or time**  
-**Problem:** A Calendar is a heavyweight object and expensive to create. For example, to copy a Date:
+**Problem:** A Calendar is a heavyweight object and expensive to create.   
+**Example:** to copy a Date:
 
 ```java
 Calendar dateCalendar = Calendar.getInstance();
@@ -2543,7 +2610,7 @@ long time = System.currentTimeMillis();
 ```
 
 Or better yet instead of Date, use a [java.time.LocalDateTime](https://docs.oracle.com/en%2Fjava%2Fjavase%2F11%2Fdocs%2Fapi%2F%2F/java.base/java/time/LocalDateTime.html), which also has the advantage over java.util.Date that it is immutable.  
-**Rule name**: prototype ready, hit on Calendar.getInstance().getTime() usage and on two steps in same block.
+**Rule name**: AvoidCalendarDateCreation
 
 #### UE02
 
