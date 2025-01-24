@@ -1581,7 +1581,7 @@ Set<YourEnumType> set = EnumSet.allOf(YourEnumType.class);
         </description>
         <priority>4</priority>
         <properties>
-            <property name="tags" value="jpinpoint-rule,unused,confusing" type="String" description="classification"/>
+            <property name="tags" value="jpinpoint-rule,confusing" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
 //ClassDeclaration/ModifierList/Annotation
