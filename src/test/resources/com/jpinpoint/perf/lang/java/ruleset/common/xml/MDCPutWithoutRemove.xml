@@ -156,7 +156,7 @@ public class TracingInterceptor extends HandlerInterceptorAdapter {
      ]]></code>
     </test-code>
 
-    <test-code>
+    <!--test-code>
         <description>no violation: Issue 326, doFinally </description>
         <expected-problems>0</expected-problems>
         <code><![CDATA[
@@ -170,18 +170,18 @@ class Issue326 {
         private final ServerAuthenticationConverter authenticationConverter;
 
        public Mono<Void> filter(ServerWebExchange serverWebExchange) {
-            MDC.put(MDC_REQUEST_ID_KEY, "something"); // <--- false positive
+            MDC.put(MDC_REQUEST_ID_KEY, "something"); // <- false positive
             return authenticationConverter.convert(serverWebExchange)
                    .doFinally(signalType -> MDC.remove(MDC_REQUEST_ID_KEY));
         }
         public Mono<Void> filter2(ServerWebExchange serverWebExchange) {
-            MDC.put(MDC_REQUEST_ID_KEY, "something"); // <--- false positive
+            MDC.put(MDC_REQUEST_ID_KEY, "something"); // <- false positive
             return authenticationConverter.convert(serverWebExchange)
                    .doFinally(signalType -> MDC.clear());
         }
 }
      ]]></code>
-    </test-code>
+    </test-code-->
 
     <test-code>
         <description>3 violations: Issue 473: put in called method</description>

@@ -698,8 +698,9 @@ public class Foo {
 or ancestor::TryStatement//FinallyClause//MethodCall[pmd-java:matchesSig('org.slf4j.MDC#clear()')]
 or @Image=ancestor::ClassBody//MethodDeclaration[@Name='afterCompletion' or @Name='postHandle']//MethodCall[pmd-java:matchesSig('org.slf4j.MDC#remove(java.lang.String)')]/ArgumentList/*[1]/@Image
 or ancestor::ClassBody//MethodDeclaration[@Name='afterCompletion' or @Name='postHandle']//MethodCall[pmd-java:matchesSig('org.slf4j.MDC#clear()')]
-or @Image=ancestor::MethodDeclaration//MethodCall[@MethodName='doFinally']//MethodCall[pmd-java:matchesSig('org.slf4j.MDC#remove(java.lang.String)')]/ArgumentList/*[1]/@Image
-or ancestor::MethodDeclaration//MethodCall[@MethodName='doFinally']//MethodCall[pmd-java:matchesSig('org.slf4j.MDC#clear()')]
+(: Issue 326, doFinally, not sure to accept :)
+(:or @Image=ancestor::MethodDeclaration//MethodCall[@MethodName='doFinally']//MethodCall[pmd-java:matchesSig('org.slf4j.MDC#remove(java.lang.String)')]/ArgumentList/*[1]/@Image
+or ancestor::MethodDeclaration//MethodCall[@MethodName='doFinally']//MethodCall[pmd-java:matchesSig('org.slf4j.MDC#clear()')]:)
 (: Issue 473, a put in a method only called from a try block with a remove of that key, or a clear :)
 (: a put of a key not in a try statement nor with a doFinally :)
 or not(ancestor::TryStatement) and not(.//MethodCall[@MethodName='doFinally'])
