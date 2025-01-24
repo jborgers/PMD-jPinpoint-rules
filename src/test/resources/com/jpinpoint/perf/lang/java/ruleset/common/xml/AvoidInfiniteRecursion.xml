@@ -231,6 +231,21 @@ class FiniteRecursionThreadSafeGood {
         }
     }
 }
+
+class IterationsBetter {
+    private static final int MAX_ATTEMPTS = 5;
+
+    private void foo() {
+        int attempt = 0;
+        boolean success = false;
+        while (!success && attempt++ < MAX_ATTEMPTS) {
+            success = tryRemoteCall();
+            if (!success) {
+                delay(10, MILLISECONDS);
+            }
+        }
+    }
+}
      ]]></code>
     </test-code>
 

@@ -287,7 +287,8 @@ class Good {
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaPerformance.md#ipf01">
         <description>Problem: If a method calls itself: recursion, and it doesn't have a proper and guaranteed stop condition. It may become an infinite loop and result in an OutOfMemoryError or StackOverflowError, and high CPU usage.
-            Solution: Limit the number of recursive calls: use a counter to count up-to or down-from a maximum number of calls, for every recursive call, and stop when the maximum is reached.
+            Solution: Limit the number of recursive calls: use a counter to count up-to or down-from a maximum number of calls, for every recursive call, and stop when the maximum is reached. This maximum should not be a large number.
+            Or better yet, rewrite into iterations for better performance and avoiding errors.
         (jpinpoint-rules)</description>
         <priority>1</priority>
         <properties>
@@ -322,6 +323,21 @@ class FiniteRecursionGood {
         if (!success && attemptsLeft > 0 ) {
             delay(10, MILLISECONDS);
             foo(--attemptsLeft);
+        }
+    }
+}
+
+class IterationsBetter {
+    private static final int MAX_ATTEMPTS = 5;
+
+    private void foo() {
+        int attempt = 0;
+        boolean success = false;
+        while (!success && attempt++ < MAX_ATTEMPTS) {
+            success = tryRemoteCall();
+            if (!success) {
+                delay(10, MILLISECONDS);
+            }
         }
     }
 }

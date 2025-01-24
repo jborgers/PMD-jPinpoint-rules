@@ -2518,8 +2518,9 @@ Improper program flow
 
 **Observation: A method calls itself, also known as recursion, and it doesn't have a proper and guaranteed stop condition.**  
 **Problem:** It may become an infinite loop and result in an OutOfMemoryError or StackOverflowError, and high CPU usage.  
-**Solution:** limit the number of recursive calls: use a counter to count up-to or down-from a maximum number of calls, for every recursive call, and stop when the maximum is reached.   
-**Rule name:** AvoidInfiniteRecursion.  
+**Solution:** Limit the number of recursive calls: use a counter to count up-to or down-from a maximum number of calls, for every recursive call, and stop when the maximum is reached. This maximum should not be a large number. Or better yet, rewrite into iterations for better performance and avoiding errors.      
+**Rule name:** AvoidInfiniteRecursion.   
+**Note:** Be careful with recursive calls in general. Java currently does *not* optimize recursion, and it is typically expensive compared to iteration, most notably for large numbers of recursive calls. And large numbers involve the risk of OutOfMemoryError or StackOverflowError, and high CPU usage.   
 **Example:**
 ```java
 class InfiniteRecursionBad {
@@ -2557,8 +2558,24 @@ class FiniteRecursionSingletonThreadSafeGood {
     }
   }
 }
+
+class IterationsBetter {
+  private static final int MAX_ATTEMPTS = 5;
+
+  private void foo() {
+    int attempt = 0;
+    boolean success = false;
+    while (!success && attempt++ < MAX_ATTEMPTS) {
+      success = tryRemoteCall();
+      if (!success) {
+        delay(10, MILLISECONDS);
+      }
+    }
+  }
+}
 ```
-**See:** [Java recursion by Baeldung](https://www.baeldung.com/java-recursion)
+**See:** [TheServerSide: Five examples of recursion](https://www.theserverside.com/blog/Coffee-Talk-Java-News-Stories-and-Opinions/examples-Java-recursion-recursive-methods)
+[Baeldung: Java recursion](https://www.baeldung.com/java-recursion)
 
 Unnecessary execution
 ---------------------
