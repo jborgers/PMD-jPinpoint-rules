@@ -281,8 +281,8 @@ public class Issue455_PublicLog {
 
     <test-code>
         <description>Fix Request for UnconditionalCreatedLogArgument with multiple if conditions #468</description>
-        <expected-problems>3</expected-problems>
-        <expected-linenumbers>17,43,58</expected-linenumbers>
+        <expected-problems>4</expected-problems>
+        <expected-linenumbers>17,43,52,67</expected-linenumbers>
         <code><![CDATA[
 import java.util.UUID;
 import org.slf4j.*;
@@ -333,6 +333,15 @@ public class Issue468_RemoteCallOr {
             logDelete();
         }
     }
+    private void logDeleteBitwise(UUID id) {
+        String idStr = id.toString();
+        log.debug("delete --> {}", idStr); // bad, called with | in a caller -- 52
+    }
+   void callerCondOrBitwise(UUID id) {
+        if (ids.contains(id) | log.isDebugEnabled()) {
+            logDeleteBitwise();
+        }
+    }
 }
 
 public class Issue468_PublicLog {
@@ -341,7 +350,7 @@ public class Issue468_PublicLog {
 
     public void logDelete(UUID id) {
         String idStr = id.toString();
-        log.debug("delete --> {}", idStr); // bad, public log method can be called from anywhere unconditionally -- 59
+        log.debug("delete --> {}", idStr); // bad, public log method can be called from anywhere unconditionally -- 67
     }
    void callerCond(UUID id) {
         if (ids.contains(id) && log.isDebugEnabled()) {

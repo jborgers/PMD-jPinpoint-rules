@@ -758,7 +758,7 @@ class Good {
   /ArgumentList[.//InfixExpression[@Operator='+'][(VariableAccess|MethodCall)[pmd-java:typeIs('java.lang.String')] or (StringLiteral and (VariableAccess or MethodCall))]]
     [not(ancestor::IfStatement//MethodCall[
          @MethodName = ('isTraceEnabled', 'isDebugEnabled','isInfoEnabled', 'isLoggable')
-         and count(../../InfixExpression[@Operator='||']) = 0 ])
+         and count(../../InfixExpression[@Operator='||' or @Operator='|' or @Operator='^']) = 0 ])
     ]
 ]]></value>
             </property>
@@ -807,7 +807,7 @@ class Foo {
 (: only if unconditional, and not || before the log check in the if statement :)
   [not(ancestor::IfStatement//MethodCall[
                         @MethodName = ('isTraceEnabled', 'isDebugEnabled','isInfoEnabled', 'isLoggable')
-                        and count(../../InfixExpression[@Operator='||']) = 0 ])
+                        and count(../../InfixExpression[@Operator='||' or @Operator='|' or @Operator='^']) = 0 ])
                       ]
 (: and not returned conditionally before :)
   [not(ancestor::ExpressionStatement/preceding-sibling::IfStatement[.//ReturnStatement and .//MethodCall[@MethodName = ('isTraceEnabled', 'isDebugEnabled','isInfoEnabled', 'isLoggable')]])]
@@ -823,14 +823,14 @@ class Foo {
     (: and the method is called only conditionally: it is called inside an if and not prefixed with || :)
     [@Name=ancestor::ClassBody//MethodCall[ancestor::IfStatement//MethodCall[
            @MethodName = ('isTraceEnabled', 'isDebugEnabled','isInfoEnabled', 'isLoggable')
-           and count(../../InfixExpression[@Operator='||']) = 0
+           and count(../../InfixExpression[@Operator='||' or @Operator='|' or @Operator='^']) = 0
        ]]/@MethodName]
     (: and it is not called not inside an if :)
     [not(@Name=ancestor::ClassBody//MethodCall[
            not(
              ancestor::IfStatement//MethodCall[
                    @MethodName = ('isTraceEnabled', 'isDebugEnabled','isInfoEnabled', 'isLoggable')
-                   and count(../../InfixExpression[@Operator='||']) = 0
+                   and count(../../InfixExpression[@Operator='||' or @Operator='|' or @Operator='^']) = 0
              ]
            )
         ]/@MethodName)
@@ -938,7 +938,7 @@ class VMRData {
   (: no violation if conditionally: only executed if level enabled is okay :)
   [not(ancestor::IfStatement//MethodCall[
        @MethodName = ('isTraceEnabled', 'isDebugEnabled','isInfoEnabled', 'isLoggable')
-       and count(../../InfixExpression[@Operator='||']) = 0
+       and count(../../InfixExpression[@Operator='||' or @Operator='|' or @Operator='^']) = 0
      ])
   ]
   (: no violation if return conditionally before :)
@@ -954,7 +954,7 @@ class VMRData {
         (: and the method is called only conditionally: it is called inside an if :)
         [@Name=ancestor::ClassBody//MethodCall[ancestor::IfStatement//MethodCall[
                @MethodName = ('isTraceEnabled', 'isDebugEnabled','isInfoEnabled', 'isLoggable')
-               and count(../../InfixExpression[@Operator='||']) = 0
+               and count(../../InfixExpression[@Operator='||' or @Operator='|' or @Operator='^']) = 0
             ]]/@MethodName]
         (: and it is not called not inside an if :)
         [not(@Name=ancestor::ClassBody//MethodCall[not(ancestor::IfStatement//MethodCall[@MethodName = ('isTraceEnabled', 'isDebugEnabled','isInfoEnabled', 'isLoggable')])]/@MethodName)]
