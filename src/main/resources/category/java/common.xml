@@ -147,6 +147,29 @@ and not (preceding-sibling::SwitchLabel[@Default=true()])]
                 </value>
             </property>
         </properties>
+        <example>
+            <![CDATA[
+switch (type) {
+    case "One":
+        xmlNsExtValue = "same";
+        schemaLocation = 1;
+        startElement = N_INITN;
+        extra = new String("alsoSame");
+        extra = dummy;
+        extra = toString();
+        break;
+    case "Two":
+        xmlNsValue = LINT008; // good
+        xmlNsExtValue = "same"; // bad
+        schemaLocation = 1; // bad
+        startElement = Y_INITN; // good
+        extra = new String("alsoSame"); // bad
+        break;
+    default:
+        throw new IllegalArgumentException("Type " + type + " is not supported.");
+}
+            ]]>
+        </example>
     </rule>
 
     <rule name="AvoidImplicitlyRecompilingRegex" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java" message="String regex method, Pattern.matches or FileSystem.getPathMatcher is used.
@@ -178,13 +201,11 @@ self::VariableAccess and @Name=ancestor::ClassBody/FieldDeclaration/VariableDecl
         </properties>
         <example>
             <![CDATA[
-//bad
 String bad_replaceInnerLineBreakBySpace() {
     return text.replaceAll("([^\\.\\n])\\n", "$1 "); // bad
 }
 
-// good
-private static final Pattern INNER_LINE_BREAK_PATTERN = Pattern.compile("([^\\.\\n])\\n");
+private static final Pattern INNER_LINE_BREAK_PATTERN = Pattern.compile("([^\\.\\n])\\n"); // good
 
 String good_replaceInnerLineBreakBySpace() {
     return INNER_LINE_BREAK_PATTERN.matcher(text).replaceAll("$1 "); // good
@@ -859,13 +880,13 @@ class Foo {
         </properties>
         <example>
             <![CDATA[
-    LOG.debug("customer = {}", customer.toString()); // bad
-    LOG.debug("Complete Soap response: {}", getSoapMsgAsString(context.getMessage())); // bad
+LOG.debug("customer = {}", customer.toString()); // bad
+LOG.debug("Complete Soap response: {}", getSoapMsgAsString(context.getMessage())); // bad
 
-    LOG.debug("customer = {}", customer); // good
-    if (LOG.isDebugEnabled()) { // good
-        LOG.debug("Complete Soap response: {}", getSoapMsgAsString(context.getMessage()));
-    }
+LOG.debug("customer = {}", customer); // good
+if (LOG.isDebugEnabled()) { // good
+    LOG.debug("Complete Soap response: {}", getSoapMsgAsString(context.getMessage()));
+}
             ]]>
         </example>
     </rule>
@@ -1147,7 +1168,6 @@ class Good {
         return Objects.hash(someState1, someState2);
     }
 }
-
             ]]>
         </example>
     </rule>
@@ -1834,7 +1854,6 @@ public enum Fruit {
         oldStyleMap.put("key", "value");
     }
 }
-
             ]]>
         </example>
     </rule>
