@@ -2209,7 +2209,7 @@ class ValueGood {
     ((.//UnaryExpression[@Operator=('++', '--')]|.//InfixExpression[@Operator=('+', '-')]/NumericLiteral[@ValueAsInt=1]|.//AssignmentExpression[@Operator=('+=', '-=')]/NumericLiteral[@ValueAsInt=1])
     or .//MethodCall[contains(@MethodName,'crement')]/VariableAccess[pmd-java:typeIs('java.lang.Number')])
     and .//InfixExpression[@Operator=('>', '>=','<', '<=')]
-])]//MethodCall[@MethodName = ancestor::MethodDeclaration/@Name]
+])]//MethodCall[@MethodName = ancestor::MethodDeclaration/@Name][not(VariableAccess or SuperExpression or TypeExpression or AmbiguousName)]
                 ]]></value>
             </property>
             <property name="tags" value="cpu,jpinpoint-rule,memory,performance,pitfall,sustainability-medium" type="String" description="classification"/>
