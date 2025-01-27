@@ -145,4 +145,52 @@ class EqHashTryout2 {
      ]]></code>
     </test-code>
 
+    <test-code>
+        <description>no violation: Issue false positive for HashCodeOnlyCallsSuper -- not when equals also calls only super #483 </description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>37</expected-linenumbers>
+        <code><![CDATA[
+class Foo {
+    @Override
+    public boolean equals(Object o) {
+        return super.equals(o);
+    }
+
+    @Override
+    public int hashCode() {
+        return super.hashCode();  // <- false positive
+    }
+}
+
+class ExtraStepStillGood {
+    @Override
+    public boolean equals(Object o) {
+        boolean equal = super.equals(o);
+        return equal;
+    }
+
+    @Override
+    public int hashCode() {
+        return super.hashCode();  // <- false positive
+    }
+}
+
+class FooAnimal {
+    enum Animal { DOG, CAT };
+    Animal a;
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof FooAnimal fooAnimal)) return false;
+        return (a == fooAnimal.a) && super.equals(o);
+    }
+
+    @Override
+    public int hashCode() {
+        return super.hashCode(); // bad
+    }
+}
+             ]]></code>
+    </test-code>
+
 </test-data>
