@@ -331,4 +331,39 @@ class Issue484_unknownObject {
              ]]></code>
     </test-code>
 
+    <test-code>
+        <description>Issue484-review one violation and a false positives on same method name but overloaded method (currently only different number of arguments supported)</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>25</expected-linenumbers>
+        <code><![CDATA[
+import org.springframework.boot.json.JsonParser;
+import java.util.*;
+import my.app.Context;
+
+public class Deserializer {
+
+    public Map deserialize(JsonParser p, Context c) {
+        return getTarget();
+    }
+
+    public Map deserialize(JsonParser p) {
+        Context c = new Context();
+        return this.deserialize(p, c); // <- false positive
+    }
+}
+
+public class Deserializer {
+
+    public Map deserialize(JsonParser p, Context c) {
+        return getTarget();
+    }
+
+    public Map deserialize(JsonParser p, String str) {
+        Context c = new Context();
+        return this.deserialize(p, str); // bad
+    }
+}
+             ]]></code>
+    </test-code>
+
 </test-data>

@@ -283,7 +283,7 @@ class Good {
 
     <rule name="AvoidInfiniteRecursion"
           language="java"
-          message=""
+          message="Avoid recursive calls without a proper stop condition."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaPerformance.md#ipf01">
         <description>Problem: If a method calls itself: recursion, and it doesn't have a proper and guaranteed stop condition. It may become an infinite loop and result in an OutOfMemoryError or StackOverflowError, and high CPU usage.
@@ -298,7 +298,10 @@ class Good {
     ((.//UnaryExpression[@Operator=('++', '--')]|.//InfixExpression[@Operator=('+', '-')]/NumericLiteral[@ValueAsInt=1]|.//AssignmentExpression[@Operator=('+=', '-=')]/NumericLiteral[@ValueAsInt=1])
     or .//MethodCall[contains(@MethodName,'crement')]/VariableAccess[pmd-java:typeIs('java.lang.Number')])
     and .//InfixExpression[@Operator=('>', '>=','<', '<=')]
+(: same method name, not on a variable, super, type or unknown: on itself :)
 ])]//MethodCall[@MethodName = ancestor::MethodDeclaration/@Name][not(VariableAccess or SuperExpression or TypeExpression or AmbiguousName)]
+(: only if the number of parameters match: not an overloaded method with difference in numbers :)
+[ArgumentList/@Size = ancestor::MethodDeclaration/FormalParameters/@Size]
                 ]]></value>
             </property>
             <property name="tags" value="cpu,jpinpoint-rule,memory,performance,pitfall,sustainability-medium" type="String" description="classification"/>
