@@ -279,4 +279,86 @@ public class Issue455_PublicLog {
 ]]></code>
     </test-code>
 
+    <test-code>
+        <description>Fix Request for UnconditionalCreatedLogArgument with multiple if conditions #468</description>
+        <expected-problems>4</expected-problems>
+        <expected-linenumbers>17,43,52,67</expected-linenumbers>
+        <code><![CDATA[
+import java.util.UUID;
+import org.slf4j.*;
+
+class Issue468_Basic {
+   private Logger log;
+
+   void bar1(Object obj) {
+        if (ids.contains(id) && log.isDebugEnabled()) {
+          String logObj1 = obj.toString();
+          log.debug("object to String: {}", logObj1);
+        }
+    }
+
+   void bar2(Object obj) {
+        if (ids.contains(id) || log.isDebugEnabled()) {
+          String logObj1 = obj.toString();
+          log.debug("object to String: {}", logObj1); // bad, use of || -- 17
+        }
+    }
+}
+
+public class Issue468_RemoteCallAnd {
+
+    private static final Logger log = LoggerFactory.getLogger(Issue468_RemoteCall.class);
+
+    private void logDelete(UUID id) {
+        String idStr = id.toString();
+        log.debug("delete --> {}", idStr); // false positive, good, called only conditionally in the caller
+    }
+    void callerCond(UUID id) {
+        if (ids.contains(id) && log.isDebugEnabled()) {
+            logDelete();
+        }
+    }
+}
+
+public class Issue468_RemoteCallOr {
+
+    private static final Logger log = LoggerFactory.getLogger(Issue468_RemoteCallOr.class);
+
+    private void logDelete(UUID id) {
+        String idStr = id.toString();
+        log.debug("delete --> {}", idStr); // bad, called with || in a caller -- 43
+    }
+   void callerCondOr(UUID id) {
+        if (ids.contains(id) || log.isDebugEnabled()) {
+            logDelete();
+        }
+    }
+    private void logDeleteBitwise(UUID id) {
+        String idStr = id.toString();
+        log.debug("delete --> {}", idStr); // bad, called with | in a caller -- 52
+    }
+   void callerCondOrBitwise(UUID id) {
+        if (ids.contains(id) | log.isDebugEnabled()) {
+            logDeleteBitwise();
+        }
+    }
+}
+
+public class Issue468_PublicLog {
+
+    private static final Logger log = LoggerFactory.getLogger(Issue468_PublicLog.class);
+
+    public void logDelete(UUID id) {
+        String idStr = id.toString();
+        log.debug("delete --> {}", idStr); // bad, public log method can be called from anywhere unconditionally -- 67
+    }
+   void callerCond(UUID id) {
+        if (ids.contains(id) && log.isDebugEnabled()) {
+            logDelete();
+        }
+    }
+}
+]]></code>
+    </test-code>
+
 </test-data>
