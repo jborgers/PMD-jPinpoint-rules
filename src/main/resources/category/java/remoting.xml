@@ -106,11 +106,11 @@ class Good {
         <example>
             <![CDATA[
 public static ObjectMapper createMapper() {
-return new ObjectMapper(); // bad
+    return new ObjectMapper(); // bad
 }
 
 public static JsonMapper createMapper() {
-return JsonMapper.builder().build(); // bad
+    return JsonMapper.builder().build(); // bad
 }
         ]]>
         </example>
@@ -377,14 +377,14 @@ return HttpClientBuilder.create() // good
         </properties>
         <example>
             <![CDATA[
-    RequestConfig requestConfig = RequestConfig.custom()
-    .setSocketTimeout(4000)
-    .build(); // bad, not all timeouts set
+RequestConfig requestConfig = RequestConfig.custom()
+                                           .setSocketTimeout(4000)
+                                           .build(); // bad, not all timeouts set
 
-    return HttpClientBuilder.create()
-    .setDefaultRequestConfig(requestConfig) // good
-    .build();
-    ]]>
+return HttpClientBuilder.create()
+                        .setDefaultRequestConfig(requestConfig) // good
+                        .build();
+]]>
         </example>
     </rule>
 
@@ -559,28 +559,28 @@ void good2() {
         </properties>
         <example>
             <![CDATA[
-    public class OldStyle {
-        private static final ObjectMapper staticObjectMapper = new ObjectMapper();
-        private final ObjectMapper mapperField = new ObjectMapper();
+public class OldStyle {
+    private static final ObjectMapper staticObjectMapper = new ObjectMapper();
+    private final ObjectMapper mapperField = new ObjectMapper();
 
-        static {
-            staticObjectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL); // good
-        }
-
-        public OldStyle() {
-            mapperField.setSerializationInclusion(JsonInclude.Include.NON_NULL); // good
-        }
-
-        ObjectMapper bad(ObjectMapper mapper) {
-            mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL); // bad
-            return mapper;
-        }
+    static {
+        staticObjectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL); // good
     }
 
-    public class NewStyle {
-        private static final ObjectWriter staticObjectWriter =
-            new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL).writer(); // good
+    public OldStyle() {
+        mapperField.setSerializationInclusion(JsonInclude.Include.NON_NULL); // good
     }
+
+    ObjectMapper bad(ObjectMapper mapper) {
+        mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL); // bad
+        return mapper;
+    }
+}
+
+public class NewStyle {
+    private static final ObjectWriter staticObjectWriter =
+        new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL).writer(); // good
+}
     ]]>
         </example>
     </rule>
@@ -603,8 +603,6 @@ void good2() {
                 </value>
             </property>
         </properties>
-        <example>
-        </example>
     </rule>
 
 
@@ -905,22 +903,22 @@ and use it to replace the bad line in Bad example:
         </properties>
         <example>
             <![CDATA[
-    private ThreadPoolTaskExecutor bad() {
-        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor(); // bad
-        executor.setCorePoolSize(10);
-        executor.setMaxPoolSize(20);
-        executor.initialize();
-        return executor;
-    }
+private ThreadPoolTaskExecutor bad() {
+    ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor(); // bad
+    executor.setCorePoolSize(10);
+    executor.setMaxPoolSize(20);
+    executor.initialize();
+    return executor;
+}
 
-    private ThreadPoolTaskExecutor good() {
-        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(10);
-        executor.setQueueCapacity(10); // good
-        executor.setMaxPoolSize(20);
-        executor.initialize();
-        return executor;
-    }
+private ThreadPoolTaskExecutor good() {
+    ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+    executor.setCorePoolSize(10);
+    executor.setQueueCapacity(10); // good
+    executor.setMaxPoolSize(20);
+    executor.initialize();
+    return executor;
+}
     ]]>
         </example>
     </rule>
@@ -1281,22 +1279,22 @@ class AvoidHardcodedConnectionConfig {
         </properties>
         <example>
             <![CDATA[
-    import org.springframework.ws.soap.saaj.SaajSoapMessageFactory;
+import org.springframework.ws.soap.saaj.SaajSoapMessageFactory;
 
-    class Foo {
-        private final SaajSoapMessageFactory mfField; // bad, also possibly thread-unsafe
+class Foo {
+    private final SaajSoapMessageFactory mfField; // bad, also possibly thread-unsafe
 
-        public WebServiceTemplate getTemplate(final String uri, final HttpClientMessageSender httpClientMessageSender) throws SOAPException {
-            SoapMessageFactory saajSoapMessageFactory = new SaajSoapMessageFactory(MessageFactory.newInstance()); // bad
-            //..
-        }
+    public WebServiceTemplate getTemplate(final String uri, final HttpClientMessageSender httpClientMessageSender) throws SOAPException {
+        SoapMessageFactory saajSoapMessageFactory = new SaajSoapMessageFactory(MessageFactory.newInstance()); // bad
+        //..
     }
+}
 
-    //To solve, add to the above the proper implementing classes:
-    static {
-        System.setProperty("javax.xml.transform.TransformerFactory", "com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl");
-        System.setProperty("javax.xml.soap.MessageFactory", "com.sun.xml.internal.messaging.saaj.soap.ver1_1.SOAPMessageFactory1_1Impl");
-    }
+//To solve, add to the above the proper implementing classes:
+static {
+    System.setProperty("javax.xml.transform.TransformerFactory", "com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl");
+    System.setProperty("javax.xml.soap.MessageFactory", "com.sun.xml.internal.messaging.saaj.soap.ver1_1.SOAPMessageFactory1_1Impl");
+}
     ]]>
         </example>
     </rule>

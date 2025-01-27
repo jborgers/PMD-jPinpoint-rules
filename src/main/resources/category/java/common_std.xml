@@ -27,15 +27,15 @@
         </properties>
         <example>
             <![CDATA[
-    public class FileStuff {
-       private String bad(FileItem fileItem) {
-            return fileItem.getString();
-       }
+public class FileStuff {
+   private String bad(FileItem fileItem) {
+        return fileItem.getString();
+   }
 
-       private InputStream good(FileItem fileItem) {
-            return fileItem.getInputStream();
-       }
-    }
+   private InputStream good(FileItem fileItem) {
+        return fileItem.getInputStream();
+   }
+}
                 ]]>
         </example>
     </rule>
@@ -308,30 +308,30 @@ class Baz extends RemoteException {
         <example>
             <![CDATA[
 class Foo {
-       void bar(List additionals) {
-            additionals.forEach(entity -> {
-                if (entity.getKNr() != null) {
-                    action.withActions(
-                            new Action().withFoId(actionFoId.incrementAndGet())
-                                    .withEntityPlanFoId(1)
-                                    .withEntity(mapLogicType(true))
-                    );
-                }
-            });
-       }
+   void bar(List additionals) {
+        additionals.forEach(entity -> {
+            if (entity.getKNr() != null) {
+                action.withActions(
+                        new Action().withFoId(actionFoId.incrementAndGet())
+                                .withEntityPlanFoId(1)
+                                .withEntity(mapLogicType(true))
+                );
+            }
+        });
+   }
 
-       void baz(List additionals) {
-            additionals.forEach(entity -> {         // bad, too many statements (5)
-                if (entity.getKNr() != null) {
-                    action.withActions(
-                            new Action().withFoId(actionFoId.incrementAndGet())
-                                    .withEntityPlanFoId(1)
-                                    .withEntity(mapLogicType(true))
-                    );
-                }
-                else { action.withActions(new Action().withFoId(0)); }
-            });
-        }
+   void baz(List additionals) {
+        additionals.forEach(entity -> {         // bad, too many statements (5)
+            if (entity.getKNr() != null) {
+                action.withActions(
+                        new Action().withFoId(actionFoId.incrementAndGet())
+                                .withEntityPlanFoId(1)
+                                .withEntity(mapLogicType(true))
+                );
+            }
+            else { action.withActions(new Action().withFoId(0)); }
+        });
+    }
 }
             ]]>
         </example>
@@ -436,25 +436,25 @@ class Foo {
         </properties>
         <example>
             <![CDATA[
-        List<String> letters = List.of("D", "O", "G", "E");
-        Map<String, String> map = new HashMap<>();
+List<String> letters = List.of("D", "O", "G", "E");
+Map<String, String> map = new HashMap<>();
 
-        // forEach in stream, bad
-        letters.stream().forEach(l -> map.put(l, 0)); // bad, side effect, modifies map
+// forEach in stream, bad
+letters.stream().forEach(l -> map.put(l, 0)); // bad, side effect, modifies map
 
-        // pure functional form, good
-        map = letters.stream().collect(toMap(l -> l, v -> 0));
+// pure functional form, good
+map = letters.stream().collect(toMap(l -> l, v -> 0));
 
-        // reporting result by logging, good
-        letters.stream().forEach(Log::info);
+// reporting result by logging, good
+letters.stream().forEach(Log::info);
 
-        // external iterative form, meant for modifying state, good
-        for (String l : letters) {
-            map.put(l, 0);
-        }
+// external iterative form, meant for modifying state, good
+for (String l : letters) {
+    map.put(l, 0);
+}
 
-        // internal iterator, fine for modifying state, good
-        letters.forEach(l -> map.put(l, 0));
+// internal iterator, fine for modifying state, good
+letters.forEach(l -> map.put(l, 0));
             ]]>
         </example>
     </rule>
@@ -484,16 +484,15 @@ class Foo {
         </properties>
         <example>
             <![CDATA[
-
-    public List<String> getEndpointsInfo(String... endpoints) {
-        AtomicReference<String> currentEndpoint = new AtomicReference<>();
-        return Arrays.stream(endpoints)
-                .peek(endpoint -> currentEndpoint.set(endpoint)) // bad
-                .peek(endpoint -> log.debug(endpoint)) // peek is meant for something like this
-                .map(String::toLowerCase)
-                .map(pingInfo -> addEndpointInfo(pingInfo, currentEndpoint.get()))
-                .toList();
-    }
+public List<String> getEndpointsInfo(String... endpoints) {
+    AtomicReference<String> currentEndpoint = new AtomicReference<>();
+    return Arrays.stream(endpoints)
+            .peek(endpoint -> currentEndpoint.set(endpoint)) // bad
+            .peek(endpoint -> log.debug(endpoint)) // peek is meant for something like this
+            .map(String::toLowerCase)
+            .map(pingInfo -> addEndpointInfo(pingInfo, currentEndpoint.get()))
+            .toList();
+}
             ]]>
         </example>
     </rule>
