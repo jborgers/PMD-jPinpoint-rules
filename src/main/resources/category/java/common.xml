@@ -2049,6 +2049,7 @@ class Good {
             <property name="xpath">
                 <value><![CDATA[
 //MethodDeclaration[@Name='equals' and FormalParameters/@Size=1 and @Static=false() and ModifierList/@ExplicitModifiers='public']
+/Block[not(count(descendant::MethodCall)=1 and .//MethodCall[pmd-java:matchesSig('java.lang.Object#equals(_)')]/SuperExpression)]
 /ancestor::ClassBody[1]//MethodDeclaration[@Name='hashCode' and FormalParameters/@Size=0 and @Static=false() and ModifierList/@ExplicitModifiers='public']
 /Block[count(descendant::MethodCall)=1][.//MethodCall[pmd-java:matchesSig('java.lang.Object#hashCode()')]/SuperExpression]
                 ]]></value>

@@ -145,4 +145,22 @@ class EqHashTryout2 {
      ]]></code>
     </test-code>
 
+    <test-code>
+        <description>no violation: Issue false positive for HashCodeOnlyCallsSuper -- not when equals also calls only super #483 </description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+class Foo {
+    @Override
+    public boolean equals(Object o) {
+        return super.equals(o);
+    }
+
+    @Override
+    public int hashCode() {
+        return super.hashCode();  // <- false positive
+    }
+}
+             ]]></code>
+    </test-code>
+
 </test-data>
