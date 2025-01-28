@@ -384,4 +384,104 @@ class Issue484_onThisAttributeCall {
 }
                      ]]></code>
     </test-code>
+
+    <test-code>
+        <description>No violations - Issue484-more additional false positives if a parameter is used in the call with calling a method on it, and if any parameter is used in the call in another position</description>
+        <expected-problems>4</expected-problems>
+        <expected-linenumbers>33,43,55,87</expected-linenumbers>
+        <code><![CDATA[
+import java.util.List;
+import my.lib.Request;
+
+public class Foo {
+    public String translate(Request request) {
+        return translate(request.getAccounts()); // method called on parameter, likely other type, good
+    }
+    public String translate(List<String> accounts) {
+        return convert(accounts);
+    }
+}
+
+public class Foo2 {
+    public String translate(Request request) {
+        return translate(Optional.ofNullable(request.getAccounts())); // extra calls in between don't change that, good
+    }
+    public String translate(List<String> accounts) {
+        return convert(accounts);
+    }
+}
+
+public class Foo3 {
+    public String translate(Request request, String str) {
+        return translate(str, request); // reversed order, good
+    }
+    public String translate(String str, Request request) {
+        return convert(request);
+    }
+}
+
+public class Foo4 {
+    public String translate(Request request, String str) {
+        return translate(request, str); // bad
+    }
+    public String translate(String str, Request request) {
+        return convert(request);
+    }
+}
+
+public class Foo5 {
+    public String translate(Request request, String str) {
+        String str2;
+        return translate(request, str2); // bad
+    }
+    public String translate(String str, Request request) {
+
+        return convert(request);
+    }
+}
+
+public class Foo6 {
+    public String translate(Request request, String str) {
+        String str2;
+        Request req;
+        return translate(req, str2); // bad
+    }
+    public String translate(String str, Request request) {
+        return convert(request);
+    }
+}
+
+public class Foo7 {
+    public String translate(Request request, String str) {
+        Request req;
+        return translate(str, req); // good
+    }
+    public String translate(String str, Request request) {
+        return convert(request);
+    }
+}
+
+public class Foo8 {
+    public String translate(Request request, String str) {
+        String str2;
+        Request req;
+        return translate(str2, request); // good
+    }
+    public String translate(String str, Request request) {
+        return convert(request);
+    }
+}
+
+public class Foo9 {
+    public String translate(Request request, String str) {
+        String str2;
+        Request req;
+        return translate(str2, req); // 'bad', but unsolved atm, accepted false positive. Does it occur in real code?
+    }
+    public String translate(String str, Request request) {
+        return convert(request);
+    }
+}
+                     ]]></code>
+    </test-code>
 </test-data>

@@ -307,9 +307,10 @@ class Good {
           message="Avoid recursive calls without a proper stop condition."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaPerformance.md#ipf01">
-        <description>Problem: If a method calls itself: recursion, and it doesn't have a proper and guaranteed stop condition. It may become an infinite loop and result in an OutOfMemoryError or StackOverflowError, and high CPU usage.
+        <description>Problem: If a method calls itself (recursion), and it doesn't have a proper and guaranteed stop condition, it may become an infinite loop and result in an OutOfMemoryError or StackOverflowError, and high CPU usage.
             Solution: Limit the number of recursive calls: use a counter to count up-to or down-from a maximum number of calls, for every recursive call, and stop when the maximum is reached. This maximum should not be a large number.
             Or better yet, rewrite into iterations for better performance and avoiding errors.
+            Note: This rule may result in a false positive when a method calls an overloaded method with the same name and the same number of parameters, just different types. It is recommended to rename one of the two methods for clarity.
         (jpinpoint-rules)</description>
         <priority>1</priority>
         <properties>
@@ -319,10 +320,14 @@ class Good {
     ((.//UnaryExpression[@Operator=('++', '--')]|.//InfixExpression[@Operator=('+', '-')]/NumericLiteral[@ValueAsInt=1]|.//AssignmentExpression[@Operator=('+=', '-=')]/NumericLiteral[@ValueAsInt=1])
     or .//MethodCall[contains(@MethodName,'crement')]/VariableAccess[pmd-java:typeIs('java.lang.Number')])
     and .//InfixExpression[@Operator=('>', '>=','<', '<=')]
-(: same method name, not on a variable, super, type or unknown: on itself :)
+(: same method name, not on a variable, field, super, type, methodCall or unknown: on itself :)
 ])]//MethodCall[@MethodName = ancestor::MethodDeclaration/@Name][not(VariableAccess or FieldAccess or SuperExpression or TypeExpression or MethodCall or AmbiguousName)]
 (: only if the number of parameters match: not an overloaded method with difference in numbers :)
 [ArgumentList/@Size = ancestor::MethodDeclaration/FormalParameters/@Size]
+(: not if a parameter is used in the call with calling a method on it :)
+[not(ArgumentList//MethodCall/VariableAccess/@Name = ancestor::MethodDeclaration/FormalParameters//VariableId/@Name)]
+(: not if any parameter is used in the call in another position :)
+[not(ArgumentList/VariableAccess[((position() != index-of(ancestor::MethodDeclaration/FormalParameters/FormalParameter/VariableId/@Name, @Name)))])]
                 ]]></value>
             </property>
             <property name="tags" value="cpu,jpinpoint-rule,memory,performance,pitfall,sustainability-medium" type="String" description="classification"/>
