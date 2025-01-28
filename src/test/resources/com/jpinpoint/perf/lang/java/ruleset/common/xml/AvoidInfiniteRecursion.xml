@@ -388,7 +388,7 @@ class Issue484_onThisAttributeCall {
     <test-code>
         <description>No violations - Issue484-more additional false positives if a parameter is used in the call with calling a method on it, and if any parameter is used in the call in another position</description>
         <expected-problems>4</expected-problems>
-        <expected-linenumbers>33,43,55,87</expected-linenumbers>
+        <expected-linenumbers>33,43,55,86</expected-linenumbers>
         <code><![CDATA[
 import java.util.List;
 import my.lib.Request;
