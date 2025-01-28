@@ -249,4 +249,121 @@ class IterationsBetter {
      ]]></code>
     </test-code>
 
+    <test-code>
+        <description>Issue484 No violation: false positives on same method name but other class</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+class Issue484 {
+
+    private final Other other;
+
+    public String foo() {
+        return other.foo();
+    }
+}
+
+class Other {
+     public String foo() {
+        return "something";
+    }
+}
+
+@Service
+@RequiredArgsConstructor
+class RepoClient {
+
+    private final DetailRepository detailRepository;
+
+    public EventDocument save(EventDocument documentToSave) {
+        return detailRepository.save(documentToSave);
+    }
+}
+
+@Builder
+@Getter
+@EqualsAndHashCode
+@ToString
+final class IssueRecursion implements Comparable<IssueRecursion>{
+
+  private final String name;
+
+  @Override
+  public int compareTo(IssueRecursion issue) {
+    return name.compareTo(issue.getName());
+  }
+}
+
+class Listener extends ListenerSupport {
+
+    @Override
+    public boolean open(Context context) {
+        return super.open(context);
+    }
+}
+
+class Issue484_static {
+
+
+    public String foo() {
+        return Other2.foo();
+    }
+}
+
+class Other2 {
+     public static String foo() {
+        return "something";
+    }
+}
+
+class Issue484_unknownClass {
+
+    public String foo() {
+        return UnknownClass.foo();
+    }
+}
+
+class Issue484_unknownObject {
+
+    public String foo() {
+        return unknownObject.foo();
+    }
+}
+             ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>Issue484-review one violation and a false positives on same method name but overloaded method (currently only different number of arguments supported)</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>25</expected-linenumbers>
+        <code><![CDATA[
+import org.springframework.boot.json.JsonParser;
+import java.util.*;
+import my.app.Context;
+
+public class Deserializer {
+
+    public Map deserialize(JsonParser p, Context c) {
+        return getTarget();
+    }
+
+    public Map deserialize(JsonParser p) {
+        Context c = new Context();
+        return this.deserialize(p, c); // <- false positive
+    }
+}
+
+public class Deserializer {
+
+    public Map deserialize(JsonParser p, Context c) {
+        return getTarget();
+    }
+
+    public Map deserialize(JsonParser p, String str) {
+        Context c = new Context();
+        return this.deserialize(p, str); // bad
+    }
+}
+             ]]></code>
+    </test-code>
+
 </test-data>
