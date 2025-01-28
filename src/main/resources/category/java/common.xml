@@ -2217,7 +2217,7 @@ class ValueGood {
           message="Avoid recursive calls without a proper stop condition."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           externalInfoUrl="${doc_root}/JavaPerformance.md#ipf01">
-        <description>Problem: If a method calls itself: recursion, and it doesn't have a proper and guaranteed stop condition. It may become an infinite loop and result in an OutOfMemoryError or StackOverflowError, and high CPU usage.
+        <description>Problem: If a method calls itself (recursion), and it doesn't have a proper and guaranteed stop condition, it may become an infinite loop and result in an OutOfMemoryError or StackOverflowError, and high CPU usage.
             Solution: Limit the number of recursive calls: use a counter to count up-to or down-from a maximum number of calls, for every recursive call, and stop when the maximum is reached. This maximum should not be a large number.
             Or better yet, rewrite into iterations for better performance and avoiding errors.
         </description>
