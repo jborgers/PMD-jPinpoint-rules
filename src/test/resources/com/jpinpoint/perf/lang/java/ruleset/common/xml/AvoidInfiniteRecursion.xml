@@ -366,4 +366,15 @@ public class Deserializer {
              ]]></code>
     </test-code>
 
+    <test-code>
+        <description>No violations - Issue484-additional false positive on same method name but a call on the result of another method call</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+class Issue484_onMethodCall {
+    public String foo() {
+        return other().foo(); // <- false positive
+    }
+}
+                     ]]></code>
+    </test-code>
 </test-data>
