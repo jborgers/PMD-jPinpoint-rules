@@ -375,6 +375,13 @@ class Issue484_onMethodCall {
         return other().foo(); // <- false positive
     }
 }
+
+class Issue484_onThisAttributeCall {
+    Other other;
+    public String foo() {
+        return this.other.foo(); // <- false positive
+    }
+}
                      ]]></code>
     </test-code>
 </test-data>
