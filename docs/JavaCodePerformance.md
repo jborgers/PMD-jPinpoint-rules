@@ -2520,6 +2520,7 @@ Improper program flow
 **Problem:** It may become an infinite loop and result in an OutOfMemoryError or StackOverflowError, and high CPU usage.  
 **Solution:** Limit the number of recursive calls: use a counter to count up-to or down-from a maximum number of calls, for every recursive call, and stop when the maximum is reached. This maximum should not be a large number. Or better yet, rewrite into iterations for better performance and avoiding errors.      
 **Rule name:** AvoidInfiniteRecursion.   
+**Note:** This rule may result in a false positive when a method calls an overloaded method with the same name and the same number of parameters, just different types. It is recommended to rename one of the two methods for clarity.   
 **Note:** Be careful with recursive calls in general. Java currently does *not* optimize recursion, and it is typically expensive compared to iteration, most notably for large numbers of recursive calls. And large numbers involve the risk of OutOfMemoryError or StackOverflowError, and high CPU usage.   
 **Example:**
 ```java
@@ -2574,7 +2575,7 @@ class IterationsBetter {
   }
 }
 ```
-**See:** [TheServerSide: Five examples of recursion](https://www.theserverside.com/blog/Coffee-Talk-Java-News-Stories-and-Opinions/examples-Java-recursion-recursive-methods)
+**See:** [TheServerSide: Five examples of recursion](https://www.theserverside.com/blog/Coffee-Talk-Java-News-Stories-and-Opinions/examples-Java-recursion-recursive-methods), 
 [Baeldung: Java recursion](https://www.baeldung.com/java-recursion)
 
 Unnecessary execution
