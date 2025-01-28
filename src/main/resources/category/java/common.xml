@@ -2210,7 +2210,7 @@ class ValueGood {
     or .//MethodCall[contains(@MethodName,'crement')]/VariableAccess[pmd-java:typeIs('java.lang.Number')])
     and .//InfixExpression[@Operator=('>', '>=','<', '<=')]
 (: same method name, not on a variable, super, type or unknown: on itself :)
-])]//MethodCall[@MethodName = ancestor::MethodDeclaration/@Name][not(VariableAccess or SuperExpression or TypeExpression or AmbiguousName)]
+])]//MethodCall[@MethodName = ancestor::MethodDeclaration/@Name][not(VariableAccess or SuperExpression or TypeExpression or MethodCall or AmbiguousName)]
 (: only if the number of parameters match: not an overloaded method with difference in numbers :)
 [ArgumentList/@Size = ancestor::MethodDeclaration/FormalParameters/@Size]
                 ]]></value>
