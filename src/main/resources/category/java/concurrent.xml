@@ -248,6 +248,8 @@ class Exporter {
              )
        )
      )
+     (: not in static inner class :)
+     and not (ancestor::ClassDeclaration[@Nested=true() and @Static=true()])
      (: field not on accessor method with assignment, annotated with framework annotation :)
      and not(
           ancestor::MethodDeclaration[
