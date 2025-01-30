@@ -7,7 +7,7 @@
         <description>no violation</description>
         <expected-problems>0</expected-problems>
         <code><![CDATA[
-public class Foo {
+public class FooGood {
     String field1;
     String field2;
 
@@ -68,7 +68,7 @@ public class Foo {
         <expected-problems>7</expected-problems>
         <expected-linenumbers>6,14,21,27,35,44,52</expected-linenumbers>
         <code><![CDATA[
-public class Foo {
+public class FooBad1 {
     String field1;
     String field2;
 
@@ -94,8 +94,8 @@ public class Foo {
     }
 
     public String bad4() {
-        StringBuilder strBui = new StringBuilder(); // bad 4
-        return strBui.append(field1)
+        StringBuilder strBui = new StringBuilder();
+        return strBui.append(field1) // bad 4
                 .append(" = ")
                 .append(field2)
                 .toString();
@@ -111,17 +111,17 @@ public class Foo {
     }
 
     public String bad5() {
-        StringBuilder strBui = new StringBuilder(); // bad nr6
-        strBui.append(field1)
+        StringBuilder strBui = new StringBuilder();
+        strBui.append(field1) // bad 5
                 .append(" = ")
                 .append(field2);
         return strBui.toString();
     }
 
     public String bad6() {
-        StringBuilder strBui = new StringBuilder(); // bad nr7
-        strBui.append(field1);
-        strBui.append(" = ").append(field2);
+        StringBuilder strBui = new StringBuilder();
+        strBui.append(field1); // bad 6
+        strBui.append(" = ").append(field2); // bad 7
         return strBui.toString();
     }
 }
@@ -136,7 +136,7 @@ public class Foo {
     class Foo {
         public void bar() {
             final String expiry = Long.toString(5);
-            final StringBuilder sasToken = new StringBuilder(); // bad
+            final StringBuilder sasToken = new StringBuilder(); // bad 4
             sasToken.append("a=");
             sasToken.append(expiry);
             sasToken.toString();
@@ -149,10 +149,10 @@ public class Foo {
         <expected-problems>2</expected-problems>
         <expected-linenumbers>3,4</expected-linenumbers>
         <code><![CDATA[
-    public class Foo {
+     public class Foo {
         public void bar(Foo bar) {
-            StringBuilder one = new StringBuilder(); // bad
-            StringBuilder two = new StringBuilder(); // bad
+            StringBuilder one = new StringBuilder(); // bad 3
+            StringBuilder two = new StringBuilder(); // bad 4
 
             one.append("one");
             one.append("one-two");
@@ -206,6 +206,47 @@ class Issue433 {
         bui.append("-blabla"); // <-- false positive
         bui.append(baz); // <-- false positive
         return bui.toString();
+    }
+}
+        ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>false positive: StringBuilder is used in while loop (issue #413)</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+class Issue413 {
+    static String loopWhile(String value, int len) {
+        StringBuilder zeroes = new StringBuilder(); // <-- false positive, used in loop
+
+        while (zeroes.length() + value.length() < len) {
+            zeroes.append('0');
+        }
+
+        return zeroes.append(value).toString();
+    }
+
+    static String loopFor(String value, int len) {
+        StringBuilder zeroes = new StringBuilder(); // <-- false positive, used in loop
+
+        for (int i = 0; i < len - value.length(); i++) {
+            zeroes.append("0");
+        }
+
+        return zeroes.append(value).toString();
+    }
+
+    static String loopStream(String value, int len) {
+        return IntStream.range(0, len - value.length())
+                .mapToObj(i -> "0")
+                .collect(StringBuilder::new, StringBuilder::append, StringBuilder::append)
+                .append("123").toString();
+    }
+
+    public static void main(String[] args) {
+        System.out.println(loopWhile("123", 5));
+        System.out.println(loopFor("123", 5));
+        System.out.println(loopStream("123", 5));
     }
 }
         ]]></code>
