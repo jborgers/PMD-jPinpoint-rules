@@ -568,6 +568,7 @@ class BadMutebleTypes {
                   or @Name = ancestor::Block/LocalVariableDeclaration/VariableDeclarator/VariableId/@Name
                   or @Name = (ancestor::MethodDeclaration|ancestor::ConstructorDeclaration)//FormalParameter/VariableId/@Name
                   or @Name = ancestor::CatchClause/CatchParameter/VariableId/@Name
+                  or @Name = ancestor::LambdaExpression//LambdaParameter/VariableId/@Name
                 )]
     (: not synchronized :)
     and not (ancestor::SynchronizedStatement or ancestor::MethodDeclaration[pmd-java:modifiers()='synchronized'])
