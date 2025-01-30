@@ -148,14 +148,30 @@ class Issue391 extends Base {
   void bar(String text) {
     try {
      } catch (TechnicalException e) {
-            e.setText(text); // <--- false positive
+            e.setText(text); // <- false positive
      }
   }
 
     Issue(RestTemplate restTemplate) {
-        restTemplate.setErrorHandler(); // <--- false positive
+        restTemplate.setErrorHandler(); // <- false positive
     }
 }
         ]]></code>
     </test-code>
+
+    <test-code>
+        <description>Issue #496: AvoidUnguardedMutableInheritedFieldsInSharedObjects false positive for lambda</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import org.springframework.stereotype.Service;
+
+@Service
+public class Foo extends Bar {
+    public void baz(List<Response> list, List<Order> orders) {
+            list.stream().forEach(response1 -> response1.setOrders(orders)); // <- false positive;  note: misuse of forEach
+    }
+}
+        ]]></code>
+    </test-code>
+
 </test-data>
