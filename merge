@@ -7,5 +7,5 @@ else
 fi
 
 cd rulesets-merger
-mvn install exec:java -Dexec.args="$ARG1"
+../mvnw install exec:java -Dexec.args="$ARG1"
 cd ..
