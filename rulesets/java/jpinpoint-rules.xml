@@ -320,11 +320,13 @@ class Good {
     ((.//UnaryExpression[@Operator=('++', '--')]|.//InfixExpression[@Operator=('+', '-')]/NumericLiteral[@ValueAsInt=1]|.//AssignmentExpression[@Operator=('+=', '-=')]/NumericLiteral[@ValueAsInt=1])
     or .//MethodCall[contains(@MethodName,'crement')]/VariableAccess[pmd-java:typeIs('java.lang.Number')])
     and .//InfixExpression[@Operator=('>', '>=','<', '<=')]
-(: same method name, not on a variable, field, super, type, methodCall or unknown: on itself :)
-])]//MethodCall[@MethodName = ancestor::MethodDeclaration/@Name][not(VariableAccess or FieldAccess or SuperExpression or TypeExpression or MethodCall or AmbiguousName)]
+(: same method name, not on a variable, field, super, type, methodCall or unknown or ctor or cast+varable: just on itself :)
+])]//MethodCall[@MethodName = ancestor::MethodDeclaration/@Name]
+(: only called on implicit or explicit this :)
+[(ArgumentList and count(*) = 1) or (ArgumentList and ThisExpression and count(*) = 2)]
 (: only if the number of parameters match: not an overloaded method with difference in numbers :)
 [ArgumentList/@Size = ancestor::MethodDeclaration/FormalParameters/@Size]
-(: not if a parameter is used in the call with calling a method on it or with it as param :)
+(: not if a parameter is used in the call with calling a method on it, or call a method or ctor with it as param :)
 [not(ArgumentList//(MethodCall|ConstructorCall)//VariableAccess/@Name = ancestor::MethodDeclaration/FormalParameters//VariableId/@Name)]
 (: not if any parameter is used in the call in another position :)
 [not(ArgumentList/VariableAccess[((position() != index-of(ancestor::MethodDeclaration/FormalParameters/FormalParameter/VariableId/@Name, @Name)))])]

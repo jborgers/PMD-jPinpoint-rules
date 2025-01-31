@@ -539,4 +539,30 @@ class Baz {
 
                             ]]></code>
     </test-code>
+
+    <test-code>
+        <description>1 violation - Fix request: AvoidInfiniteRecursion - same (interface) method on new object or cast field or simple other type #505</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+class Issue505 {
+    public InputStream execute(Context context) {
+        InputStream stream = new ResourceCmd(id, name).execute(context); // <- false positive
+        return stream;
+    }
+
+    public InputStream execute2(Context context) {
+        InputStream stream = ((Other)field).execute2(context); // <- false positive
+        return stream;
+    }
+
+    public String sourceUrl(String url) {
+        try {
+            return sourceUrl(new URL(url)); // <- previously a false positive
+        } catch (MalformedURLException e) {
+            throw new IllegalArgumentException("malformed url: " + url, e);
+        }
+    }
+}
+                            ]]></code>
+    </test-code>
 </test-data>
