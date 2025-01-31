@@ -483,4 +483,60 @@ public class Foo9 {
 }
                      ]]></code>
     </test-code>
+
+    <test-code>
+        <description>1 violation - Fix Request: AvoidInfiniteRecursion false positive for same number of params, other types #498</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>38</expected-linenumbers>
+        <code><![CDATA[
+        class Bar1 {
+    public void tellNext(TbMsg msg, String relationType) {
+        tellNext(msg, Collections.singleton(relationType)); // <-- false positive
+    }
+
+    public void tellNext(TbMsg msg, Set<String> relationTypes) {
+        nodeCtx.tell(new TellNextMsg(msg, relationTypes));
+    }
+}
+
+class Bar2 {
+    public void tellNext(TbMsg msg, String relationType) {
+        tellNext(msg, relationType.getTypes()); // <-- false positive
+    }
+
+    public void tellNext(TbMsg msg, Set<String> relationTypes) {
+        nodeCtx.tell(new TellNextMsg(msg, relationTypes));
+    }
+}
+
+class Baz {
+    public Map<Feature, Value> checkStateUpdated(Set<Feature> features) {
+        Map<Feature, Value> result = new HashMap<>();
+        for (Feature feature : features) {
+            Pair<Feature, Value> tmp = checkStateUpdated(feature);
+        }
+        return result;
+    }
+
+    private Pair<Feature, Value> checkStateUpdated(Feature feature) {
+        Value value = createValue(feature);
+        return Pair.of(feature, value);
+    }
+
+    public Map<Feature, Value> checkStateUpdated2(Set<Feature> features, String strs) {
+        Map<Feature, Value> result = new HashMap<>();
+        for (Feature feature : features) {
+            Pair<Feature, Value> tmp = checkStateUpdated2(features, strs); // bad
+        }
+        return result;
+    }
+
+    private Pair<Feature, Value> checkStateUpdated2(Feature feature, String str) {
+        Value value = createValue(feature);
+        return Pair.of(feature, value);
+    }
+}
+
+                            ]]></code>
+    </test-code>
 </test-data>

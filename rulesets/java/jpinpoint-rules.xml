@@ -324,10 +324,12 @@ class Good {
 ])]//MethodCall[@MethodName = ancestor::MethodDeclaration/@Name][not(VariableAccess or FieldAccess or SuperExpression or TypeExpression or MethodCall or AmbiguousName)]
 (: only if the number of parameters match: not an overloaded method with difference in numbers :)
 [ArgumentList/@Size = ancestor::MethodDeclaration/FormalParameters/@Size]
-(: not if a parameter is used in the call with calling a method on it :)
-[not(ArgumentList//MethodCall/VariableAccess/@Name = ancestor::MethodDeclaration/FormalParameters//VariableId/@Name)]
+(: not if a parameter is used in the call with calling a method on it or with it as param :)
+[not(ArgumentList//(MethodCall|ConstructorCall)//VariableAccess/@Name = ancestor::MethodDeclaration/FormalParameters//VariableId/@Name)]
 (: not if any parameter is used in the call in another position :)
 [not(ArgumentList/VariableAccess[((position() != index-of(ancestor::MethodDeclaration/FormalParameters/FormalParameter/VariableId/@Name, @Name)))])]
+(: not if any parameter is used in the call in singular form of method declaration :)
+[not(ArgumentList/VariableAccess[concat(@Name, 's') = ancestor::MethodDeclaration/FormalParameters/FormalParameter/VariableId/@Name])]
                 ]]></value>
             </property>
             <property name="tags" value="cpu,jpinpoint-rule,memory,performance,pitfall,sustainability-medium" type="String" description="classification"/>
