@@ -174,4 +174,25 @@ public class Foo extends Bar {
         ]]></code>
     </test-code>
 
+    <test-code>
+        <description>Issue #509: AvoidUnguardedMutableInheretedFieldsInSharedObjects for for-each-loop variable</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import org.springframework.stereotype.Service;
+
+@Service
+class Foo extends Bar {
+   private void renameOutgoingLinks(TenantId tenantId, RuleNodeId ruleNodeId, String oldLabel, String newLabel) {
+        List<EntityRelation> relations = ruleChainService.getRuleNodeRelations(tenantId, ruleNodeId);
+        for (EntityRelation relation : relations) {
+            if (relation.getType().equals(oldLabel)) {
+                relationService.deleteRelation(tenantId, relation);
+                relation.setType(newLabel);  //  <- false positive
+                relationService.saveRelation(tenantId, relation);
+            }
+        }
+    }
+}
+        ]]></code>
+    </test-code>
 </test-data>
