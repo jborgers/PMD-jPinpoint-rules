@@ -541,7 +541,7 @@ class Baz {
     </test-code>
 
     <test-code>
-        <description>1 violation - Fix request: AvoidInfiniteRecursion - same (interface) method on new object or cast field or simple other type #505</description>
+        <description>No violations - Fix request: AvoidInfiniteRecursion - same (interface) method on new object or cast field or simple other type #505</description>
         <expected-problems>0</expected-problems>
         <code><![CDATA[
 class Issue505 {
@@ -717,6 +717,32 @@ class Issue506_3Params_bad {
     }
     String getFieldValue(int index, String str, Map m) {
         return "dummy";
+    }
+}
+                            ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>No violations - Fix request: AvoidInfiniteRecursion false positive other types in method call #507</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+class Issue507 {
+    private final Map<ComponentType, List<Descriptor>> coreMap = new HashMap<>();
+    private final Map<ComponentType, List<Descriptor>> edgeMap = new HashMap<>();
+
+    public List<Descriptor> getComponents(Set<ComponentType> types, RuleType ruleType) {
+        if (ruleType.CORE.equals(ruleType)) {
+            return getComponents(types, coreMap); // <- false positive
+        } else if (ruleType.EDGE.equals(ruleType)) {
+            return getComponents(types, edgeMap); // <- false positive
+        } else {
+            throw new RuntimeException("Unsupported rule type " + ruleType);
+        }
+    }
+    private List<Descriptor> getComponents(Set<ComponentType> types, Map<ComponentType, List<Descriptor>> componentsMap) {
+        List<Descriptor> result = new ArrayList<>();
+        // some logic here
+        return Collections.unmodifiableList(result);
     }
 }
                             ]]></code>
