@@ -3122,7 +3122,7 @@ private List<Order> getOrdersGood(List<CompletableFuture<Order>> getOrdersFuture
 //(
    AssignmentExpression[@Operator='+=' or @Operator='-=']/*[1]
      |
-   UnaryExpression/(VariableAccess|FieldAccess)
+   UnaryExpression[@Operator='++' or @Operator='--']/(VariableAccess|FieldAccess)
   )[
       @Name = ancestor::ClassDeclaration//FieldDeclaration[pmd-java:modifiers()='volatile']/VariableDeclarator/VariableId/@Name
    ]

@@ -34,4 +34,21 @@ public class TryVolatileCompound {
 }
             ]]></code>
     </test-code>
+
+    <test-code>
+        <description>Fix request: AvoidIncrementOrDecrementForVolatileField false positive on "not" #500</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+class Issue500 {
+     private volatile boolean initialized;
+
+     protected boolean doProcess(Msg msg) {
+        if (!initialized) { // <- false positive
+          doInit();
+          initialized = true;
+        }
+     }
+}
+            ]]></code>
+    </test-code>
 </test-data>
