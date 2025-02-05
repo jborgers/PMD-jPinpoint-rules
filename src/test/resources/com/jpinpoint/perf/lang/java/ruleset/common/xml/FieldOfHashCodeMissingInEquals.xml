@@ -434,4 +434,38 @@ public class Klass {
      ]]></code>
     </test-code>
 
+    <test-code>
+        <description>No violation: FieldOfHashCodeMissingInEquals false positive cached hash code #503</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+@Data
+public abstract class Foo<T>  {
+
+    /** Cache the hash code */
+    private transient int hash; // Default to 0. <- false positive
+
+    private final String serviceId;
+    private final String sessionId;
+    private final TenantId tenantId;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Foo that = (Foo) o;
+        return sessionId.equals(that.sessionId) &&
+                tenantId.equals(that.tenantId);
+    }
+
+    @Override
+    public int hashCode() {
+        if (hash == 0) {
+            hash = Objects.hash(sessionId, tenantId);
+        }
+        return hash;
+    }
+}
+             ]]></code>
+    </test-code>
+
 </test-data>

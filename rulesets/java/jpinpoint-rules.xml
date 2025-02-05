@@ -320,7 +320,7 @@ class Good {
     ((.//UnaryExpression[@Operator=('++', '--')]|.//InfixExpression[@Operator=('+', '-')]/NumericLiteral[@ValueAsInt=1]|.//AssignmentExpression[@Operator=('+=', '-=')]/NumericLiteral[@ValueAsInt=1])
     or .//MethodCall[contains(@MethodName,'crement')]/VariableAccess[pmd-java:typeIs('java.lang.Number')])
     and .//InfixExpression[@Operator=('>', '>=','<', '<=')]
-(: same method name, not on a variable, field, super, type, methodCall or unknown or ctor or cast+varable: just on itself :)
+(: same method name :)
 ])]//MethodCall[@MethodName = ancestor::MethodDeclaration/@Name]
 (: only called on implicit or explicit this :)
 [(ArgumentList and count(*) = 1) or (ArgumentList and ThisExpression and count(*) = 2)]
@@ -1393,19 +1393,21 @@ class Good {
             <property name="xpath">
                 <value><![CDATA[
 //FieldDeclaration/VariableDeclarator[
-(@Name = ancestor::ClassBody[1]//MethodDeclaration[@Name='equals' and FormalParameters/@Size = 1]/Block//(FieldAccess|VariableAccess)/@Name) <
+((@Name = ancestor::ClassBody[1]//MethodDeclaration[@Name='equals' and FormalParameters/@Size = 1]/Block//(FieldAccess|VariableAccess)/@Name) <
 (@Name = ancestor::ClassBody[1]//MethodDeclaration[@Name='hashCode' and FormalParameters/@Size = 0]/Block//(FieldAccess|VariableAccess)/@Name)
-]/VariableId
+(: and the field is not used to assign a value to in the hashCode(), typically a hash variable to cache the calculated hashcode :)
+and not(@Name = ancestor::ClassBody[1]//MethodDeclaration[@Name='hashCode' and FormalParameters/@Size = 0]/Block//AssignmentExpression[@Operator='=']/(FieldAccess|VariableAccess)/@Name))
+]
 |
 //FieldDeclaration/VariableDeclarator[
 (@Name = ancestor::ClassBody[1]//MethodDeclaration[@Name='equals' and FormalParameters/@Size = 1]/Block//MethodCall[@MethodName='toLowerCase']/(FieldAccess|VariableAccess)/@Name) >
 (@Name = ancestor::ClassBody[1]//MethodDeclaration[@Name='hashCode' and FormalParameters/@Size = 0]/Block//MethodCall[@MethodName='toLowerCase']/(FieldAccess|VariableAccess)/@Name)
-]/VariableId
+]
 |
 //FieldDeclaration/VariableDeclarator[
 (@Name = ancestor::ClassBody[1]//MethodDeclaration[@Name='equals' and FormalParameters/@Size = 1]/Block//MethodCall[@MethodName='toUpperCase']/(FieldAccess|VariableAccess)/@Name) >
 (@Name = ancestor::ClassBody[1]//MethodDeclaration[@Name='hashCode' and FormalParameters/@Size = 0]/Block//MethodCall[@MethodName='toUpperCase']/(FieldAccess|VariableAccess)/@Name)
-]/VariableId
+]
 			]]>
                 </value>
             </property>
