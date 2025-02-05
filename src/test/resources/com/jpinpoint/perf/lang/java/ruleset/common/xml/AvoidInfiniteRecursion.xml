@@ -387,8 +387,8 @@ class Issue484_onThisAttributeCall {
 
     <test-code>
         <description>No violations - Issue484-more additional false positives if a parameter is used in the call with calling a method on it, and if any parameter is used in the call in another position</description>
-        <expected-problems>4</expected-problems>
-        <expected-linenumbers>33,43,55,86</expected-linenumbers>
+        <expected-problems>3</expected-problems>
+        <expected-linenumbers>33,43,55</expected-linenumbers>
         <code><![CDATA[
 import java.util.List;
 import my.lib.Request;
@@ -475,7 +475,7 @@ public class Foo9 {
     public String translate(Request request, String str) {
         String str2;
         Request req;
-        return translate(str2, req); // 'bad', but unsolved atm, both request and str not used, accepted false positive. Does it occur in real code?
+        return translate(str2, req); // good (fixed from 'bad')
     }
     public String translate(String str, Request request) {
         return convert(request);
@@ -565,4 +565,161 @@ class Issue505 {
 }
                             ]]></code>
     </test-code>
+
+    <test-code>
+        <description>7 violations - Fix request: AvoidInfiniteRecursion - this.field false positive #506</description>
+        <expected-problems>7</expected-problems>
+        <expected-linenumbers>13,23,56,68,93,106,143</expected-linenumbers>
+        <code><![CDATA[
+class Issue506 {
+    Object getFieldValue(int index) {
+        String fieldName = this.getFieldNameAt(index);
+        return fieldValueObject = this.getFieldValue(fieldName); // <- false positive
+    }
+    String getFieldValue(String fieldName) {
+        return "dummy";
+    }
+}
+class Issue506_Bad {
+     Object getFieldValue(String indexStr) {
+        String fieldName = this.getFieldNameAt(indexStr);
+        return fieldValueObject = this.getFieldValue(fieldName); // bad
+    }
+    String getFieldValue(int fieldName) {
+        return "dummy";
+    }
+}
+
+class Issue506_Bad2 {
+    Object getFieldValue(String fieldName, String indexStr) {
+        String fieldName = this.getFieldNameAt(index);
+        return fieldValueObject = this.getFieldValue(fieldName, indexStr); // bad
+    }
+    String getFieldValue(int fieldName) {
+        return "dummy";
+    }
+}
+
+class Issue506_primitive_fp {
+    Object getFieldValue(String fieldName) {
+        int index = this.getIndexOf(fieldName);
+        return fieldValueObject = this.getFieldValue(index);  // <- false positive
+    }
+    String getFieldValue(int index) {
+        return "dummy";
+    }
+}
+
+class Issue506_false_pos {
+    Object getFieldValue(int index, String str) {
+        String strLocal;
+        String fieldName = this.getFieldNameAt(index);
+        return fieldValueObject = this.getFieldValue(fieldName, strLocal); // <- false positive
+    }
+    String getFieldValue(String fieldName, String str) {
+        return "dummy";
+    }
+}
+
+class Issue506_Bad3 {
+    Object getFieldValue(int index, String str) {
+        String strLocal;
+        String fieldName = this.getFieldNameAt(index);
+        int index2;
+        return fieldValueObject = this.getFieldValue(index2, strLocal); // bad
+    }
+    String getFieldValue(String fieldName, String str) {
+        return "dummy";
+    }
+}
+
+class Issue506_FieldsBad {
+        String dummy;
+        int index2;
+    Object getFieldValue(int index, String str) {
+        String fieldName = this.getFieldNameAt(index);
+        return fieldValueObject = this.getFieldValue(index2, dummy); // bad
+    }
+    String getFieldValue(String fieldName, String str) {
+        return "dummy";
+    }
+}
+
+class Issue506_FieldsGood {
+        String strField;
+        int indexField;
+    Object getFieldValue(int index, String str) {
+        String fieldName = this.getFieldNameAt(index);
+        return fieldValueObject = this.getFieldValue(strField, indexField); // good
+    }
+    String getFieldValue(String fieldName, int index) {
+        return "dummy";
+    }
+}
+
+class Issue506_FieldsBad2 {
+        //String strField;
+        int indexField;
+    Object getFieldValue(int index, String str) {
+        String fieldName = this.getFieldNameAt(index);
+        String str2;
+        return fieldValueObject = this.getFieldValue(indexField, str2); // bad
+    }
+    String getFieldValue(String fieldName, int index) {
+        return "dummy";
+    }
+}
+
+class Issue506_FieldsBad3 {
+        //String strField;
+        int indexField;
+    Object getFieldValue(int index, String str) {
+        String fieldName = this.getFieldNameAt(index);
+        String str2;
+        return fieldValueObject = this.getFieldValue(indexField, str); // bad
+    }
+    String getFieldValue(String fieldName, int index) {
+        return "dummy";
+    }
+}
+
+class Issue506_FieldsGood2 {
+        String strField;
+        int indexField;
+    Object getFieldValue(int index, String str) {
+        String fieldName = this.getFieldNameAt(index);
+        String str2;
+        return fieldValueObject = this.getFieldValue(strField, indexField); // good
+    }
+    String getFieldValue(String fieldName, int index) {
+        return "dummy";
+    }
+}
+
+class Issue506_3Params_false_pos {
+    Object getFieldValue(int index, String str, List l) {
+        String strLocal;
+        String fieldName = this.getFieldNameAt(index);
+        Map mapLocal;
+        return fieldValueObject = this.getFieldValue(index, str, mapLocal); // <- false positive
+    }
+    String getFieldValue(int index, String str, Map m) {
+        return "dummy";
+    }
+}
+
+class Issue506_3Params_bad {
+    Object getFieldValue(int index, String str, List l) {
+        String strLocal;
+        String fieldName = this.getFieldNameAt(index);
+        List listLocal;
+        return fieldValueObject = this.getFieldValue(index, str, listLocal); // bad
+    }
+    String getFieldValue(int index, String str, Map m) {
+        return "dummy";
+    }
+}
+                            ]]></code>
+    </test-code>
+
 </test-data>

@@ -310,7 +310,6 @@ class Good {
         <description>Problem: If a method calls itself (recursion), and it doesn't have a proper and guaranteed stop condition, it may become an infinite loop and result in an OutOfMemoryError or StackOverflowError, and high CPU usage.
             Solution: Limit the number of recursive calls: use a counter to count up-to or down-from a maximum number of calls, for every recursive call, and stop when the maximum is reached. This maximum should not be a large number.
             Or better yet, rewrite into iterations for better performance and avoiding errors.
-            Note: This rule may result in a false positive when a method calls an overloaded method with the same name and the same number of parameters, just different types. It is recommended to rename one of the two methods for clarity.
         (jpinpoint-rules)</description>
         <priority>1</priority>
         <properties>
@@ -320,18 +319,80 @@ class Good {
     ((.//UnaryExpression[@Operator=('++', '--')]|.//InfixExpression[@Operator=('+', '-')]/NumericLiteral[@ValueAsInt=1]|.//AssignmentExpression[@Operator=('+=', '-=')]/NumericLiteral[@ValueAsInt=1])
     or .//MethodCall[contains(@MethodName,'crement')]/VariableAccess[pmd-java:typeIs('java.lang.Number')])
     and .//InfixExpression[@Operator=('>', '>=','<', '<=')]
-(: same method name, not on a variable, field, super, type, methodCall or unknown or ctor or cast+varable: just on itself :)
+(: same method name :)
 ])]//MethodCall[@MethodName = ancestor::MethodDeclaration/@Name]
 (: only called on implicit or explicit this :)
 [(ArgumentList and count(*) = 1) or (ArgumentList and ThisExpression and count(*) = 2)]
 (: only if the number of parameters match: not an overloaded method with difference in numbers :)
 [ArgumentList/@Size = ancestor::MethodDeclaration/FormalParameters/@Size]
-(: not if a parameter is used in the call with calling a method on it, or call a method or ctor with it as param :)
-[not(ArgumentList//(MethodCall|ConstructorCall)//VariableAccess/@Name = ancestor::MethodDeclaration/FormalParameters//VariableId/@Name)]
 (: not if any parameter is used in the call in another position :)
 [not(ArgumentList/VariableAccess[((position() != index-of(ancestor::MethodDeclaration/FormalParameters/FormalParameter/VariableId/@Name, @Name)))])]
-(: not if any parameter is used in the call in singular form of method declaration :)
-[not(ArgumentList/VariableAccess[concat(@Name, 's') = ancestor::MethodDeclaration/FormalParameters/FormalParameter/VariableId/@Name])]
+(: we check the first 3 arguments on type, which is complicated :)
+(: if the 1st parameter (if it exists) :)
+[ancestor::MethodDeclaration/FormalParameters[@Size = 0 or FormalParameter[1][(
+    (: its name equals the name of the 1st argument of the called method :)
+    VariableId/@Name = ancestor::MethodDeclaration//MethodCall[@MethodName = ancestor::MethodDeclaration/@Name]/ArgumentList/VariableAccess[1]/@Name or
+    (: or its classType is equal to the local var classtype :)
+    (ClassType/@SimpleName|PrimitiveType/@Kind) = ancestor::MethodDeclaration//LocalVariableDeclaration[
+        (: which name equals to the name of the 1st argument of the method call :)
+        .//VariableId/@Name = ancestor::MethodDeclaration//MethodCall[@MethodName = ancestor::MethodDeclaration/@Name]/ArgumentList/VariableAccess[1]/@Name
+    ][
+        (: and which classType is equal to the classtype of the first parameter :)
+        ((ClassType/@SimpleName|PrimitiveType/@Kind) = ancestor::MethodDeclaration/FormalParameters/FormalParameter[1]/(ClassType/@SimpleName|PrimitiveType/@Kind))
+    ]/(ClassType/@SimpleName|PrimitiveType/@Kind)
+    or
+    (: or its classType is equal to the field classtype :)
+    (ClassType/@SimpleName|PrimitiveType/@Kind) = ancestor::ClassBody//FieldDeclaration[
+        (: which name equals to the name of the 1st argument of the method call :)
+        .//VariableId/@Name = ..//MethodDeclaration//MethodCall[@MethodName = ancestor::MethodDeclaration/@Name]/ArgumentList/VariableAccess[1]/@Name
+    ][
+        (: and which classType is equal to the classtype of the first parameter :)
+        ((ClassType/@SimpleName|PrimitiveType/@Kind) = ..//MethodDeclaration/FormalParameters/FormalParameter[1]/(ClassType/@SimpleName|PrimitiveType/@Kind))
+    ]/(ClassType/@SimpleName|PrimitiveType/@Kind))
+]]]
+(: if the 2nd parameter (if it exists) :)
+[ancestor::MethodDeclaration/FormalParameters[@Size <= 1 or FormalParameter[2][(
+    (: its name equals the name of the 2nd argument of the called method :)
+    VariableId/@Name = ancestor::MethodDeclaration//MethodCall[@MethodName = ancestor::MethodDeclaration/@Name]/ArgumentList/VariableAccess[2]/@Name or
+    (: or its classType is equal to the local var classtype :)
+    (ClassType/@SimpleName|PrimitiveType/@Kind) = (ancestor::MethodDeclaration//LocalVariableDeclaration|ancestor::ClassBody//FieldDeclaration)[
+    (: which name equals to the name of the 2nd argument of the method call :)
+    .//VariableId/@Name = ancestor::MethodDeclaration//MethodCall[@MethodName = ancestor::MethodDeclaration/@Name]/ArgumentList/VariableAccess[2]/@Name][
+        (: and which classType is equal to the classtype of the 2nd parameter :)
+        ((ClassType/@SimpleName|PrimitiveType/@Kind) = ancestor::MethodDeclaration/FormalParameters/FormalParameter[2]/(ClassType/@SimpleName|PrimitiveType/@Kind))
+    ]/(ClassType/@SimpleName|PrimitiveType/@Kind)
+    or
+    (: or its classType is equal to the field classtype :)
+    (ClassType/@SimpleName|PrimitiveType/@Kind) = ancestor::ClassBody//FieldDeclaration[
+        (: which name equals to the name of the 2nd argument of the method call :)
+        .//VariableId/@Name = ..//MethodDeclaration//MethodCall[@MethodName = ancestor::MethodDeclaration/@Name]/ArgumentList/VariableAccess[2]/@Name
+    ][
+        (: and which classType is equal to the classtype of the 2nd parameter :)
+        ((ClassType/@SimpleName|PrimitiveType/@Kind) = ..//MethodDeclaration/FormalParameters/FormalParameter[2]/(ClassType/@SimpleName|PrimitiveType/@Kind))
+    ]/(ClassType/@SimpleName|PrimitiveType/@Kind))
+]]]
+(: if the 3rd parameter (if it exists) :)
+[ancestor::MethodDeclaration/FormalParameters[@Size <= 2 or FormalParameter[3][(
+    (: its name equals the name of the 3rd argument of the called method :)
+    VariableId/@Name = ancestor::MethodDeclaration//MethodCall[@MethodName = ancestor::MethodDeclaration/@Name]/ArgumentList/VariableAccess[3]/@Name or
+    (: or its classType is equal to the local var classtype :)
+    (ClassType/@SimpleName|PrimitiveType/@Kind) = (ancestor::MethodDeclaration//LocalVariableDeclaration|ancestor::ClassBody//FieldDeclaration)[
+    (: which name equals to the name of the 3rd argument of the method call :)
+    .//VariableId/@Name = ancestor::MethodDeclaration//MethodCall[@MethodName = ancestor::MethodDeclaration/@Name]/ArgumentList/VariableAccess[3]/@Name][
+        (: and which classType is equal to the classtype of the 3rd parameter :)
+        ((ClassType/@SimpleName|PrimitiveType/@Kind) = ancestor::MethodDeclaration/FormalParameters/FormalParameter[3]/(ClassType/@SimpleName|PrimitiveType/@Kind))
+    ]/(ClassType/@SimpleName|PrimitiveType/@Kind)
+    or
+    (: or its classType is equal to the field classtype :)
+    (ClassType/@SimpleName|PrimitiveType/@Kind) = ancestor::ClassBody//FieldDeclaration[
+        (: which name equals to the name of the 3rd argument of the method call :)
+        .//VariableId/@Name = ..//MethodDeclaration//MethodCall[@MethodName = ancestor::MethodDeclaration/@Name]/ArgumentList/VariableAccess[3]/@Name
+    ][
+        (: and which classType is equal to the classtype of the 3rd parameter :)
+        ((ClassType/@SimpleName|PrimitiveType/@Kind) = ..//MethodDeclaration/FormalParameters/FormalParameter[3]/(ClassType/@SimpleName|PrimitiveType/@Kind))
+    ]/(ClassType/@SimpleName|PrimitiveType/@Kind))
+]]]
+
                 ]]></value>
             </property>
             <property name="tags" value="cpu,jpinpoint-rule,memory,performance,pitfall,sustainability-medium" type="String" description="classification"/>
