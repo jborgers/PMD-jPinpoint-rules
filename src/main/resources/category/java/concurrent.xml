@@ -565,7 +565,7 @@ class BadMutebleTypes {
     (: not a field of this class, no param or local :)
     and ./VariableAccess[
                 not (@Name = ancestor::ClassDeclaration//FieldDeclaration/VariableDeclarator/VariableId/@Name
-                  or @Name = ancestor::Block/LocalVariableDeclaration/VariableDeclarator/VariableId/@Name
+                  or @Name = (ancestor::MethodDeclaration|ancestor::ConstructorDeclaration)//LocalVariableDeclaration/VariableDeclarator/VariableId/@Name
                   or @Name = (ancestor::MethodDeclaration|ancestor::ConstructorDeclaration)//FormalParameter/VariableId/@Name
                   or @Name = ancestor::CatchClause/CatchParameter/VariableId/@Name
                   or @Name = ancestor::LambdaExpression//LambdaParameter/VariableId/@Name
