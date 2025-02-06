@@ -195,4 +195,34 @@ class Foo extends Bar {
 }
         ]]></code>
     </test-code>
+
+    <test-code>
+        <description>Issue #502: AvoidUnguardedMutableInheritedFieldsInSharedObjects false positive in for/switch/... blocks</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import org.springframework.stereotype.Component;
+
+@Component
+public final class Foo extends AbstractService {
+    public void importResources(List<Resource> resources, User user) throws Exception {
+        for (ResourceData resourceData : resources) {
+            resourceData.setNewLink(new Link(user, resourceData)); // <- false positive
+        }
+    }
+    public void handle(Msg event) {
+        Id id = event.getId();
+        switch (id.getEntityType()) { // switch is needed to get false positive
+            case TENANT:
+                Set<Notification> toCancel = new HashSet<>();
+                requests.forEach((requestId, metadata) -> {
+                    if (metadata.getId().equals(id)) {
+                        toCancel.add(requestId); // <- false positive
+                    }
+                });
+                break;
+        }
+    }
+}
+        ]]></code>
+    </test-code>
 </test-data>
