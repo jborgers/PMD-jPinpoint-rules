@@ -3444,7 +3444,7 @@ public class RootController {
                 <property name="tags" value="bad-practice,cpu,jpinpoint-rule,multi-threading,performance,sustainability-low" type="String" description="classification"/>
                 <property name="xpath">
                     <value><![CDATA[
-//MethodCall[pmd-java:matchesSig('reactor.core.publisher.Flux#parallel(_)') and ./MethodCall[pmd-java:matchesSig('reactor.core.publisher.Flux#fromIterable(_)')]]
+//MethodCall[pmd-java:matchesSig('reactor.core.publisher.Flux#parallel(_*)') and ./MethodCall[pmd-java:matchesSig('reactor.core.publisher.Flux#fromIterable(_)')]]
                     ]]></value>
                 </property>
             </properties>
