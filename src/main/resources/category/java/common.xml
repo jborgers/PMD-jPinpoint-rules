@@ -2238,12 +2238,13 @@ class ValueGood {
 (: only if the number of parameters match: not an overloaded method with difference in numbers :)
 [ArgumentList/@Size = ancestor::MethodDeclaration/FormalParameters/@Size]
 (: not if any parameter is used in the call in another position :)
-[not(ArgumentList/VariableAccess[((position() != index-of(ancestor::MethodDeclaration/FormalParameters/FormalParameter/VariableId/@Name, @Name)))])]
+[not((ArgumentList/*[self::VariableAccess and ((position() != index-of(ancestor::MethodDeclaration/FormalParameters/FormalParameter/VariableId/@Name, @Image)))]))]
 (: we check the first 3 arguments on type, which is complicated :)
 (: if the 1st parameter (if it exists) :)
-[ancestor::MethodDeclaration/FormalParameters[@Size = 0 or FormalParameter[1][(
-    (: its name equals the name of the 1st argument of the called method :)
-    VariableId/@Name = ancestor::MethodDeclaration//MethodCall[@MethodName = ancestor::MethodDeclaration/@Name]/ArgumentList/VariableAccess[1]/@Name or
+(: its name equals the name of the 1st argument of the called method :)
+[ArgumentList/*[1]/@Image = ancestor::MethodDeclaration/FormalParameters/FormalParameter[1]/VariableId/@Name
+    or ArgumentList/MethodCall/TypeExpression/ClassType/@SimpleName = ancestor::MethodDeclaration/FormalParameters/FormalParameter[1]/ClassType/@SimpleName
+    or ancestor::MethodDeclaration/FormalParameters[@Size = 0 or FormalParameter[1][(
     (: or its classType is equal to the local var classtype :)
     (ClassType/@SimpleName|PrimitiveType/@Kind) = ancestor::MethodDeclaration//LocalVariableDeclaration[
         (: which name equals to the name of the 1st argument of the method call :)
@@ -2263,9 +2264,8 @@ class ValueGood {
     ]/(ClassType/@SimpleName|PrimitiveType/@Kind))
 ]]]
 (: if the 2nd parameter (if it exists) :)
-[ancestor::MethodDeclaration/FormalParameters[@Size <= 1 or FormalParameter[2][(
-    (: its name equals the name of the 2nd argument of the called method :)
-    VariableId/@Name = ancestor::MethodDeclaration//MethodCall[@MethodName = ancestor::MethodDeclaration/@Name]/ArgumentList/VariableAccess[2]/@Name or
+[ArgumentList/*[2]/@Image = ancestor::MethodDeclaration/FormalParameters/FormalParameter[2]/VariableId/@Name
+    or ancestor::MethodDeclaration/FormalParameters[@Size <= 1 or FormalParameter[2][(
     (: or its classType is equal to the local var classtype :)
     (ClassType/@SimpleName|PrimitiveType/@Kind) = (ancestor::MethodDeclaration//LocalVariableDeclaration|ancestor::ClassBody//FieldDeclaration)[
     (: which name equals to the name of the 2nd argument of the method call :)
@@ -2284,9 +2284,8 @@ class ValueGood {
     ]/(ClassType/@SimpleName|PrimitiveType/@Kind))
 ]]]
 (: if the 3rd parameter (if it exists) :)
-[ancestor::MethodDeclaration/FormalParameters[@Size <= 2 or FormalParameter[3][(
-    (: its name equals the name of the 3rd argument of the called method :)
-    VariableId/@Name = ancestor::MethodDeclaration//MethodCall[@MethodName = ancestor::MethodDeclaration/@Name]/ArgumentList/VariableAccess[3]/@Name or
+[ArgumentList/*[3]/@Image = ancestor::MethodDeclaration/FormalParameters/FormalParameter[3]/VariableId/@Name
+    or ancestor::MethodDeclaration/FormalParameters[@Size <= 2 or FormalParameter[3][(
     (: or its classType is equal to the local var classtype :)
     (ClassType/@SimpleName|PrimitiveType/@Kind) = (ancestor::MethodDeclaration//LocalVariableDeclaration|ancestor::ClassBody//FieldDeclaration)[
     (: which name equals to the name of the 3rd argument of the method call :)
@@ -2304,7 +2303,6 @@ class ValueGood {
         ((ClassType/@SimpleName|PrimitiveType/@Kind) = ..//MethodDeclaration/FormalParameters/FormalParameter[3]/(ClassType/@SimpleName|PrimitiveType/@Kind))
     ]/(ClassType/@SimpleName|PrimitiveType/@Kind))
 ]]]
-
                 ]]></value>
             </property>
             <property name="tags" value="cpu,jpinpoint-rule,memory,performance,pitfall,sustainability-medium" type="String" description="classification"/>
