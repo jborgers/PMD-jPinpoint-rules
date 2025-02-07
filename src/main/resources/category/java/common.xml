@@ -715,8 +715,8 @@ public class Foo {
                 <value>
                     <![CDATA[
 //MethodCall[pmd-java:matchesSig('org.slf4j.MDC#put(java.lang.String,java.lang.String)')]/ArgumentList/*[1][self::StringLiteral or self::VariableAccess]
-[not(@Image=ancestor::TryStatement//FinallyClause//MethodCall[pmd-java:matchesSig('org.slf4j.MDC#remove(java.lang.String)')]/ArgumentList/*[1]/@Image
-or ancestor::TryStatement//FinallyClause//MethodCall[pmd-java:matchesSig('org.slf4j.MDC#clear()')]
+[not(@Image=ancestor::MethodDeclaration//TryStatement//FinallyClause//MethodCall[pmd-java:matchesSig('org.slf4j.MDC#remove(java.lang.String)')]/ArgumentList/*[1]/@Image
+or ancestor::MethodDeclaration//TryStatement//FinallyClause//MethodCall[pmd-java:matchesSig('org.slf4j.MDC#clear()')]
 or @Image=ancestor::ClassBody//MethodDeclaration[@Name='afterCompletion' or @Name='postHandle']//MethodCall[pmd-java:matchesSig('org.slf4j.MDC#remove(java.lang.String)')]/ArgumentList/*[1]/@Image
 or ancestor::ClassBody//MethodDeclaration[@Name='afterCompletion' or @Name='postHandle']//MethodCall[pmd-java:matchesSig('org.slf4j.MDC#clear()')]
 (: Issue 326, doFinally, not sure to accept :)

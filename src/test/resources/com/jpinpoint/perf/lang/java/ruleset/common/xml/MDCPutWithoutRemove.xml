@@ -266,4 +266,31 @@ class Issue473_e {
      ]]></code>
     </test-code>
 
+    <test-code>
+        <description>no violation: Fix Request: MDCPutWithoutRemove false positive #518</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import org.slf4j.MDC;
+@Component
+@Aspect
+public class MDCServiceCallAspect {
+    private static final String KEY = "trace:service-call";
+
+    @Around("@annotation(MDCServiceCall) && execution(* *(..))")
+    public Object addMdcServiceCallVariables(ProceedingJoinPoint joinPoint) throws Throwable {
+        MDCServiceCall annotation = ((MethodSignature) joinPoint.getSignature()).getMethod().getAnnotation(MDCServiceCall.class);
+
+        if(!annotation.service().isBlank() && !annotation.operation().isBlank()) {
+            MDC.put(KEY, annotation.service() + " - " + annotation.operation()); // <- false positive
+        }
+
+        try {
+            return joinPoint.proceed();
+        } finally {
+            MDC.remove(KEY);
+        }
+    }
+}
+     ]]></code>
+    </test-code>
 </test-data>
