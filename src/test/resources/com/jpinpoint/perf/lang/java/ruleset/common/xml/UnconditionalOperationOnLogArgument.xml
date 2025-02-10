@@ -275,4 +275,34 @@ class Issue468_methodCall {
 ]]></code>
     </test-code>
 
+    <test-code>
+        <description>Fix Request: false positive of UnconditionalOperationOnLogArgument #522</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import org.slf4j.MDC;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+public class ResponseLogger {
+
+    public foo() {
+         if (log.isDebugEnabled()) {
+                // log request headers/body and response body after setting and before removing debugSession mdc tag, use traceId and spanId to link to incidents
+                debugLog(request, responseWrapper);
+         }
+    }
+    private void debugLog(HttpServletRequest request, ResponseWrapper responseWrapper) throws IOException {
+        // log request body after setting and before removing debugSession mdc tag
+        log.debug("request headers/body request: {} / {}", getHeadersString(request), request.getInputStream() != null ? new String(IOUtils.toByteArray(request.getInputStream()), StandardCharsets.UTF_8) : "n/a");  // <---- false positive
+        // log response body
+        String responseBody = new String(responseWrapper.getContentAsByteArray(), StandardCharsets.UTF_8);
+        String[] parts = SPLIT_PATTERN.split(responseBody);
+        for (int i = 0; i < parts.length; i++) {
+            log.debug("response body part {}/{}: {}", i + 1, parts.length, parts[i]);
+        }
+    }
+}
+]]></code>
+    </test-code>
+
 </test-data>
