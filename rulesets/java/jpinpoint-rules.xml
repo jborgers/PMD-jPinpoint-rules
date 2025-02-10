@@ -326,11 +326,11 @@ class Good {
 (: only if the number of parameters match: not an overloaded method with difference in numbers :)
 [ArgumentList/@Size = ancestor::MethodDeclaration/FormalParameters/@Size]
 (: not if any parameter is used in the call in another position :)
-[not((ArgumentList/*[self::VariableAccess and ((position() != index-of(ancestor::MethodDeclaration/FormalParameters/FormalParameter/VariableId/@Name, @Image)))]))]
+[not((ArgumentList/*[self::VariableAccess and ((position() != index-of(ancestor::MethodDeclaration/FormalParameters/FormalParameter/VariableId/@Name, concat('', @Name))))]))]
 (: we check the first 3 arguments on type, which is complicated :)
 (: if the 1st parameter (if it exists) :)
 (: its name equals the name of the 1st argument of the called method :)
-[ArgumentList/*[1]/@Image = ancestor::MethodDeclaration/FormalParameters/FormalParameter[1]/VariableId/@Name
+[concat(ArgumentList/*[1]/@Name, '') = ancestor::MethodDeclaration/FormalParameters/FormalParameter[1]/VariableId/@Name
     or ArgumentList/MethodCall/TypeExpression/ClassType/@SimpleName = ancestor::MethodDeclaration/FormalParameters/FormalParameter[1]/ClassType/@SimpleName
     or ancestor::MethodDeclaration/FormalParameters[@Size = 0 or FormalParameter[1][(
     (: or its classType is equal to the local var classtype :)
@@ -352,7 +352,7 @@ class Good {
     ]/(ClassType/@SimpleName|PrimitiveType/@Kind))
 ]]]
 (: if the 2nd parameter (if it exists) :)
-[ArgumentList/*[2]/@Image = ancestor::MethodDeclaration/FormalParameters/FormalParameter[2]/VariableId/@Name
+[concat(ArgumentList/*[2]/@Name, '') = ancestor::MethodDeclaration/FormalParameters/FormalParameter[2]/VariableId/@Name
     or ancestor::MethodDeclaration/FormalParameters[@Size <= 1 or FormalParameter[2][(
     (: or its classType is equal to the local var classtype :)
     (ClassType/@SimpleName|PrimitiveType/@Kind) = (ancestor::MethodDeclaration//LocalVariableDeclaration|ancestor::ClassBody//FieldDeclaration)[
@@ -372,7 +372,7 @@ class Good {
     ]/(ClassType/@SimpleName|PrimitiveType/@Kind))
 ]]]
 (: if the 3rd parameter (if it exists) :)
-[ArgumentList/*[3]/@Image = ancestor::MethodDeclaration/FormalParameters/FormalParameter[3]/VariableId/@Name
+[concat(ArgumentList/*[3]/@Name, '') = ancestor::MethodDeclaration/FormalParameters/FormalParameter[3]/VariableId/@Name
     or ancestor::MethodDeclaration/FormalParameters[@Size <= 2 or FormalParameter[3][(
     (: or its classType is equal to the local var classtype :)
     (ClassType/@SimpleName|PrimitiveType/@Kind) = (ancestor::MethodDeclaration//LocalVariableDeclaration|ancestor::ClassBody//FieldDeclaration)[
