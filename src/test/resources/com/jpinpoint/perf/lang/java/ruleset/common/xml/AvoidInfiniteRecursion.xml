@@ -748,4 +748,51 @@ class Issue507 {
                             ]]></code>
     </test-code>
 
+    <test-code>
+        <description>2 violations - Fix request: AvoidInfiniteRecursion false positive and undetected List.of #521</description>
+        <expected-problems>2</expected-problems>
+        <expected-linenumbers>11,12</expected-linenumbers>
+        <code><![CDATA[
+import java.util.List;
+
+public class Issue521 {
+
+    public static void applyFieldDeclaration(List<FieldDeclaration> fieldDeclarations, Object target, boolean throwExceptionOnMissingField) {
+        if (fieldDeclarations != null) {
+            for (FieldDeclaration declaration : fieldDeclarations) {
+                applyFieldDeclaration(declaration, target, throwExceptionOnMissingField); // <- false positive, but only with "bad, detected" line
+            }
+        }
+        applyFieldDeclaration(List.of(new FieldDeclaration("name", "value")), target, throwExceptionOnMissingField); // <- not detected
+        applyFieldDeclaration(fieldDeclarations, target, throwExceptionOnMissingField); // bad, detected
+    }
+
+    public static void applyFieldDeclaration(FieldDeclaration declaration, Object target, boolean throwExceptionOnMissingField) {
+        invokeSetterOrField(target, declaration.getName(), declaration.getValue(), throwExceptionOnMissingField);
+    }
+
+    private static void invokeSetterOrField(Object target, String name, Object value, boolean throwExceptionOnMissingField) {
+        // dummy
+    }
+
+    private static class FieldDeclaration {
+        private final String name;
+        private final Object value;
+
+        public FieldDeclaration(String name, Object value) {
+            this.name = name;
+            this.value = value;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public Object getValue() {
+            return value;
+        }
+    }
+}
+                            ]]></code>
+    </test-code>
 </test-data>
