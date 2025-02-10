@@ -407,19 +407,21 @@ class Foo {
 //MethodCall[pmd-java:matchesSig('java.util.stream.BaseStream#forEach(_)')]
 [ArgumentList[not(
     .//LambdaExpression[
-        (: if a lambda expression in a foreach has expression statements, they should all be logging :)
-        count(.//ExpressionStatement) > 0
-        and count(.//ExpressionStatement) = count(
-            .//ExpressionStatement/MethodCall[
-                (: supported logger libs :)
-                VariableAccess[pmd-java:typeIs('org.slf4j.Logger')
-                or pmd-java:typeIs('java.util.logging.Logger')
-                or pmd-java:typeIs('org.apache.commons.logging.Log')
-            ]
+        (
+            (: all expression statements in a lambda expression in a foreach should all be logging :)
+            count(.//ExpressionStatement) = count(
+                .//ExpressionStatement/MethodCall[
+                    (: supported logger libs :)
+                    VariableAccess[pmd-java:typeIs('org.slf4j.Logger')
+                    or pmd-java:typeIs('java.util.logging.Logger')
+                    or pmd-java:typeIs('org.apache.commons.logging.Log')
+                ]
             (: Slfj4 annotation makes the log variable AmbiguousName as there is no explicit log field :)
             or (AmbiguousName[@Name='log'] and ancestor::ClassDeclaration[pmd-java:hasAnnotation('lombok.extern.slf4j.Slf4j')])]
-        ) + count(.//ExpressionStatement/MethodCall[starts-with(@MethodName,'log')])
-    ]
+            ) + count(.//ExpressionStatement/MethodCall[starts-with(@MethodName,'log')])
+        )
+        (: and not a violation when it is a method call to do logging :)
+        and not(MethodCall) or MethodCall[matches(@MethodName,'trace|debug|info|warn|error|log','i')]    ]
     (: if a foreach has a method reference, it should be only for logging :)
     or .//MethodReference[
         (TypeExpression/ClassType[pmd-java:typeIs('lombok.extern.java.Log')]
