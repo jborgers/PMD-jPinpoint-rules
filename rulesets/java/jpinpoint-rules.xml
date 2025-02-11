@@ -3802,8 +3802,8 @@ public class Good {
    (
        (: -- GuardedBy annotations are matched on SimpleName, so it matches all known GuardedBy annotations :)
        (: -- net.jcip.annotations.GuardedBy, javax.annotation.concurrent.GuardedBy, com.google.errorprone.annotations.concurrent.GuardedBy :)
-       (: non-final, non-volatile and non-GuardedBy fields :)
-       @Name = ancestor::ClassBody//FieldDeclaration[
+       (: non-final, non-volatile and non-GuardedBy fields, of only the current class :)
+       @Name = ancestor::ClassBody[1]/FieldDeclaration[
                 not(pmd-java:modifiers() = ('final','volatile')
                 or ModifierList/Annotation[@SimpleName='GuardedBy'])
              ]//VariableId/@Name
@@ -3819,8 +3819,8 @@ public class Good {
            (: var is not a param :)
            @Name = ancestor::MethodDeclaration//FormalParameter/VariableId/@Name
            or
-           (: var is not a final, volatile or GuardedBy field of current class :)
-           @Name = ancestor::ClassDeclaration//FieldDeclaration[
+           (: var is not a final, volatile or GuardedBy field of only the current class :)
+           @Name = ancestor::ClassBody[1]/FieldDeclaration[
                     pmd-java:modifiers() = ('final','volatile')
                     or ModifierList/Annotation[@SimpleName='GuardedBy']
                  ]//VariableId/@Name
