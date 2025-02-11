@@ -108,4 +108,49 @@ public class Foo {
 ]]></code>
     </test-code>
 
+    <test-code>
+        <description>1 violation: Missed cases for AvoidMutableLists and no dealing with Lombok Issue #525</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>6</expected-linenumbers>
+        <code><![CDATA[
+import java.util.List;
+import lombok.Data;
+import lombok.Getter;
+
+public class UserPojo implements Entry {
+    private List<AccountPojo> accounts; // <- bad, missed case
+    private List<AccountError> errors;
+    public UserPojo(List<AccountPojo> accounts) {
+        this.accounts = accounts;
+    }
+}
+
+public class UserPojo implements Entry {
+    private List<AccountPojo> accounts;  // good
+    private List<AccountError> errors;
+    public UserPojo(List<AccountPojo> accounts) {
+        this.accounts = accounts;
+    }
+    public void foo() {
+        accounts.add(new AccountPojo());
+    }
+}
+
+@Data
+public class UserPojo implements Entry {
+    private List<AccountPojo> accounts; // ok, exposed by @Data, don't know if mutated
+    private List<AccountError> errors;
+    public UserPojo(List<AccountPojo> accounts) {
+        this.accounts = accounts;
+    }
+}
+
+public class UserPojo implements Entry {
+    @Getter private List<AccountPojo> accounts; // ok, exposed by @Getter, don't know if mutated
+    public UserPojo(List<AccountPojo> accounts) {
+        this.accounts = accounts;
+    }
+}]]></code>
+    </test-code>
+
 </test-data>
