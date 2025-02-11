@@ -6380,7 +6380,9 @@ public class AvoidSpringApplicationContextRecreation {
                 <value><![CDATA[
 //ReturnStatement//InfixExpression[@Operator = "+"]
 [ancestor::MethodDeclaration[pmd-java:hasAnnotation('org.springframework.web.bind.annotation.RequestMapping')]]
-[ancestor::MethodDeclaration//FormalParameter[pmd-java:hasAnnotation('org.springframework.web.bind.annotation.RequestParam')]]
+[ancestor::MethodDeclaration
+    [.//FormalParameter[pmd-java:hasAnnotation('org.springframework.web.bind.annotation.RequestParam')]]
+    [.//FormalParameter[pmd-java:typeIs('org.springframework.ui.Model')]]]
 ,
 //MethodCall[pmd-java:matchesSig('org.springframework.web.servlet.ModelAndView#setViewName(_*)')]
 [
