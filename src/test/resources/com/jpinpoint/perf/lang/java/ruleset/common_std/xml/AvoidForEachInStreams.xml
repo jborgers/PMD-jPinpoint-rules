@@ -196,5 +196,36 @@ class Issue341NoLombok {
      ]]></code>
     </test-code>
 
+    <test-code>
+        <description>1 violation: False positive in AvoidForEachInStream #530</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>18</expected-linenumbers>
+        <code><![CDATA[
+import java.util.stream.*;
+import java.util.*;
+
+public class FooGood {
+    public static void logStackTrace(ServiceExceptionLogger.LogAction logAction, Throwable exception, int batchSize) {
+        // Our tool drops messages when the stacktrace is too long. Split into batches and log separate to circumvent.
+        Arrays.stream(splitStackTraceIntoBatches(exception, batchSize)) // <- false positive
+                .forEach(stackTraceElements ->
+                        // log as warn - we can put the elements back together based on the traceId (MDC)
+                        logAction.log(Arrays.stream(stackTraceElements).map(StackTraceElement::toString)
+                                .collect(Collectors.joining(", " + System.lineSeparator()))));
+    }
+}
+
+class FooBad {
+    public static void logStackTrace(ServiceExceptionLogger.OtherAction otherAction, Throwable exception, int batchSize) {
+        // Our tool drops messages when the stacktrace is too long. Split into batches and log separate to circumvent.
+        Arrays.stream(splitStackTraceIntoBatches(exception, batchSize)) // <-- bad
+                .forEach(stackTraceElements ->
+                        // do some side effect
+                        otherAction.sideEffect(Arrays.stream(stackTraceElements).map(StackTraceElement::toString)
+                                .collect(Collectors.joining(", " + System.lineSeparator()))));
+    }
+}
+     ]]></code>
+    </test-code>
 
 </test-data>
