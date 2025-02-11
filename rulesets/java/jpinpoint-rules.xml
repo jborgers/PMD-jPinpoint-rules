@@ -1791,6 +1791,7 @@ class Good {
         or pmd-java:hasAnnotation('org.springframework.boot.context.properties.ConfigurationProperties')
         or pmd-java:hasAnnotation('jakarta.persistence.Entity')
         or pmd-java:hasAnnotation('javax.persistence.Entity')
+        or pmd-java:typeIs('java.lang.Throwable')
         or (
             ./ClassBody/MethodDeclaration[@Name='equals' and @Arity=1 and ./PrimitiveType[@Kind='boolean']]
             and ./ClassBody/MethodDeclaration[@Name='hashCode' and @Arity=0 and ./PrimitiveType[@Kind='int']]

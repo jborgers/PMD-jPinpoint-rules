@@ -160,4 +160,27 @@ public class Foo {}
             ]]></code>
     </test-code>
 
+    <test-code>
+        <description>false positives with MissingEqualsAndHashCodeWithGetterSetter #528</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import lombok.Getter;
+import lombok.ToString;
+
+@Getter // <- false positive
+@ToString
+public class TechnicalException extends Exception {
+    private final Throwable originalException;
+
+    public TechnicalException(String message) {
+        super(message);
+        originalException = null;
+    }
+    public TechnicalException(String message, final Throwable originalException) {
+        super(message);
+        this.originalException = originalException;
+    }
+}
+            ]]></code>
+    </test-code>
 </test-data>
