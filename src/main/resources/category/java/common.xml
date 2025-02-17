@@ -1454,6 +1454,42 @@ class Bad {
         </example>
     </rule>
 
+    <rule name="AvoidCalendar"
+          language="java"
+          message="A Calendar is inefficient in memory usage."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#imu01">
+        <description>Problem: A Calendar is a heavyweight object and expensive to create. &#13;
+            Solution: Use Date, Java 8+ java.time.[Local/Zoned]DateTime.
+        </description>
+        <priority>3</priority>
+        <properties>
+            <property name="xpath">
+                <value><![CDATA[
+//ClassType[pmd-java:typeIs('java.util.Calendar')]
+	         ]]></value>
+            </property>
+            <property name="tags" value="jpinpoint-rule,memory,performance,sustainability-medium" type="String" description="classification"/>
+        </properties>
+        <example>
+            <![CDATA[
+public class CalendarStuff {
+    Calendar field1; // bad
+
+    private Calendar bad1() {
+        return Calendar.getInstance();
+    }
+    private Date good1a() {
+        return new Date(); // now
+    }
+    private LocalDateTime good1b() {
+        return LocalDateTime.now();
+    }
+}
+            ]]>
+        </example>
+    </rule>
+
     <rule name="AvoidMutableLists"
           language="java"
           message="List is not modified after object construction, make it immutable or unmodifiable"
