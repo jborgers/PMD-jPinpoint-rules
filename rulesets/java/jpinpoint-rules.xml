@@ -2018,7 +2018,7 @@ class Bad {
 [not(pmd-java:typeIs('int'))][not(pmd-java:typeIs('long'))]
 [not(pmd-java:typeIs('float'))][not(pmd-java:typeIs('double'))]
 [not(pmd-java:typeIs('boolean'))][not(pmd-java:typeIs('char'))]
-]]></value>
+                ]]></value>
             </property>
         </properties>
         <example>
@@ -2916,9 +2916,14 @@ import static com.co.corporate.Constants.GREAT; // good
             <property name="xpath">
                 <value><![CDATA[
 (: variable access for unknown variable type :)
-//VariableAccess[not(pmd-java:typeIs('java.lang.Object'))]
+//VariableAccess
+[not(pmd-java:typeIs('java.lang.Object'))]
+[not(pmd-java:typeIs('byte'))][not(pmd-java:typeIs('short'))]
+[not(pmd-java:typeIs('int'))][not(pmd-java:typeIs('long'))]
+[not(pmd-java:typeIs('float'))][not(pmd-java:typeIs('double'))]
+[not(pmd-java:typeIs('boolean'))][not(pmd-java:typeIs('char'))]
 |
-(: shows just the first occurrence of the first unresolved/ambiguous type name :)
+(: the unresolved/ambiguous type names, except @Slf4j which pmd cannot resolve :)
 //AmbiguousName[not(ancestor::ClassDeclaration/ModifierList/Annotation[pmd-java:typeIs('lombok.extern.slf4j.Slf4j')])]
                 ]]></value>
             </property>

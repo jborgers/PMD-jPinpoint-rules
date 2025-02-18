@@ -73,4 +73,17 @@ public class MyProducerGood {
 }
      ]]></code>
     </test-code>
+
+    <test-code>
+        <description>No violation: unkown is evaluated as non-Object and also none-primitive</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+class Foo {
+    int bar() {
+        int count = 0;
+        return count += 5;
+    }
+}
+     ]]></code>
+    </test-code>
 </test-data>
