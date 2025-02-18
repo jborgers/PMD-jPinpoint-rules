@@ -2020,18 +2020,19 @@ class BufferFileStreaming {
             <property name="tags" value="cpu,io,jpinpoint-rule,performance,sustainability-high" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
-//MethodCall[TypeExpression[pmd-java:typeIs('java.nio.file.Files')]
-   and (@MethodName='newInputStream' and (not(ancestor::MethodDeclaration//ConstructorCall[pmd-java:typeIs('java.io.BufferedInputStream')]))
-      (: IOUtils.readXX buffers inputStream :)
-      and not(ancestor::MethodDeclaration//MethodCall[starts-with(@MethodName, 'read') and TypeExpression[pmd-java:typeIs('org.apache.commons.io.IOUtils')]]
-         (: IOUtils.copy buffers inputStream :)
-         or ancestor::MethodDeclaration//MethodCall[@MethodName = 'copy' and TypeExpression[pmd-java:typeIs('org.apache.commons.io.IOUtils')]]
-      )
-   or (@MethodName='newOutputStream' and not(ancestor::MethodDeclaration//ConstructorCall[pmd-java:typeIs('java.io.BufferedOutputStream')]
-        (: IOUtils.copy buffers inputStream to outputStream :)
-         or ancestor::MethodDeclaration//MethodCall[@MethodName = 'copy' and TypeExpression[pmd-java:typeIs('org.apache.commons.io.IOUtils')]]
-   )))
-]
+//MethodCall[TypeExpression[pmd-java:typeIs('java.nio.file.Files')]]
+(: the following methods use a buffer with File[Input/Output]Stream read/write method implementation of [Input/Output]Stream :)
+[not(ancestor::MethodDeclaration//MethodCall[pmd-java:matchesSig('java.io.InputStream#transferTo(java.io.OutputStream)')
+    or pmd-java:matchesSig('java.io.InputStream#readAllBytes()')
+    or pmd-java:matchesSig('java.io.InputStream#readNBytes(int)')
+    or pmd-java:matchesSig('java.io.InputStream#read(byte[])')
+    or pmd-java:matchesSig('java.io.InputStream#read(byte[],int,int)')
+    or pmd-java:matchesSig('java.nio.file.Files#copy(_*)')
+    or pmd-java:matchesSig('org.apache.commons.io.IOUtils#copy(_*)')])]
+[(@MethodName='newInputStream' and (not(ancestor::MethodDeclaration//ConstructorCall[pmd-java:typeIs('java.io.BufferedInputStream') or pmd-java:typeIs('java.io.BufferedReader')]))
+      and not(ancestor::MethodDeclaration//MethodCall[starts-with(@MethodName, 'read') and TypeExpression[pmd-java:typeIs('org.apache.commons.io.IOUtils')]])
+  or (@MethodName='newOutputStream' and not(ancestor::MethodDeclaration//ConstructorCall[pmd-java:typeIs('java.io.BufferedOutputStream') or pmd-java:typeIs('java.io.BufferedWriter')])
+))]
                 ]]></value>
             </property>
         </properties>
