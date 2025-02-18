@@ -1089,8 +1089,9 @@ public RetrieveCache(final @Value("${cache.expiryTimeMillis}") long timeToLiveMi
                     <![CDATA[
 (:- top level class :)
 //ClassDeclaration
-(: exclusions, the following annotations assume a non-value object -:)
+(: exclusions, the following annotations do implement equals and hashCode -:)
 [not(pmd-java:hasAnnotation('lombok.Data') or pmd-java:hasAnnotation('lombok.Value')or pmd-java:hasAnnotation('lombok.EqualsAndHashCode')
+(: exclusions, the following annotations assume a non-value object -:)
     or pmd-java:hasAnnotation('javax.ejb.Singleton') or pmd-java:hasAnnotation('jakarta.ejb.Singleton')
     or pmd-java:hasAnnotation('org.springframework.stereotype.Component') or pmd-java:hasAnnotation('org.springframework.stereotype.Controller')
     or pmd-java:hasAnnotation('org.springframework.stereotype.Service') or pmd-java:hasAnnotation('org.springframework.stereotype.Repository')
