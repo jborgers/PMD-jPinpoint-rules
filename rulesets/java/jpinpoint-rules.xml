@@ -1623,8 +1623,9 @@ class Good {
                     <![CDATA[
 (:- top level class :)
 //ClassDeclaration
-(: exclusions, the following annotations assume a non-value object -:)
+(: exclusions, the following annotations do implement equals and hashCode -:)
 [not(pmd-java:hasAnnotation('lombok.Data') or pmd-java:hasAnnotation('lombok.Value')or pmd-java:hasAnnotation('lombok.EqualsAndHashCode')
+(: exclusions, the following annotations assume a non-value object -:)
     or pmd-java:hasAnnotation('javax.ejb.Singleton') or pmd-java:hasAnnotation('jakarta.ejb.Singleton')
     or pmd-java:hasAnnotation('org.springframework.stereotype.Component') or pmd-java:hasAnnotation('org.springframework.stereotype.Controller')
     or pmd-java:hasAnnotation('org.springframework.stereotype.Service') or pmd-java:hasAnnotation('org.springframework.stereotype.Repository')
@@ -2016,7 +2017,8 @@ class Bad {
 [not(pmd-java:typeIs('byte'))][not(pmd-java:typeIs('short'))]
 [not(pmd-java:typeIs('int'))][not(pmd-java:typeIs('long'))]
 [not(pmd-java:typeIs('float'))][not(pmd-java:typeIs('double'))]
-[not(pmd-java:typeIs('boolean'))][not(pmd-java:typeIs('char'))]               ]]></value>
+[not(pmd-java:typeIs('boolean'))][not(pmd-java:typeIs('char'))]
+]]></value>
             </property>
         </properties>
         <example>
@@ -2913,8 +2915,11 @@ import static com.co.corporate.Constants.GREAT; // good
             <property name="tags" value="jpinpoint-rule" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
+(: variable access for unknown variable type :)
+//VariableAccess[not(pmd-java:typeIs('java.lang.Object'))]
+|
 (: shows just the first occurrence of the first unresolved/ambiguous type name :)
-head(.//AmbiguousName)
+//AmbiguousName[not(ancestor::ClassDeclaration/ModifierList/Annotation[pmd-java:typeIs('lombok.extern.slf4j.Slf4j')])]
                 ]]></value>
             </property>
         </properties>

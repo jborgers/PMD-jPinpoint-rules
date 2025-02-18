@@ -1877,7 +1877,8 @@ public enum Fruit {
 [not(pmd-java:typeIs('byte'))][not(pmd-java:typeIs('short'))]
 [not(pmd-java:typeIs('int'))][not(pmd-java:typeIs('long'))]
 [not(pmd-java:typeIs('float'))][not(pmd-java:typeIs('double'))]
-[not(pmd-java:typeIs('boolean'))][not(pmd-java:typeIs('char'))]               ]]></value>
+[not(pmd-java:typeIs('boolean'))][not(pmd-java:typeIs('char'))]
+                ]]></value>
             </property>
         </properties>
         <example>

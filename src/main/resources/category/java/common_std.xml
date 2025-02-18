@@ -513,8 +513,11 @@ public List<String> getEndpointsInfo(String... endpoints) {
             <property name="tags" value="jpinpoint-rule" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
-(: shows just the first occurrence of the first unresolved/ambiguous type name :)
-head(.//AmbiguousName)
+(: variable access for unknown variable type :)
+//VariableAccess[not(pmd-java:typeIs('java.lang.Object'))]
+|
+(: the unresolved/ambiguous type names, except @Slf4j which pmd cannot resolve :)
+//AmbiguousName[not(ancestor::ClassDeclaration/ModifierList/Annotation[pmd-java:typeIs('lombok.extern.slf4j.Slf4j')])]
                 ]]></value>
             </property>
         </properties>
