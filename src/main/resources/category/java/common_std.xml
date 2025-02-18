@@ -499,4 +499,41 @@ public List<String> getEndpointsInfo(String... endpoints) {
         </example>
     </rule>
 
+    <rule name="UnresolvedDependencies"
+          language="java"
+          message="A dependency cannot be resolved: a found type is undefined. Compilation and annotation processing is needed."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          externalInfoUrl="${doc_root}/JavaCodeQuality.md#ils02">
+        <description>Problem: When analyzing code, PMD could not resolve a used class (or annotation or other type). The compiled class needs to be in the classpath such that all rules will work correctly.
+            Solution: Compile all source code, process all annotations (like lombok), or at least the reported unresolved types.
+            Note: Only the first occurrence in a file is shown by this rule.
+        </description>
+        <priority>5</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+(: shows just the first occurrence of the first unresolved/ambiguous type name :)
+head(.//AmbiguousName)
+                ]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+public class FooBad {
+    OutputStream bad(Path path) throws IOException {
+        return Files.newOutputStream(path); // bad - 'Files' unknown
+    }
+}
+
+import java.nio.file.*;
+public class FooGood {
+    OutputStream good(Path path) throws IOException {
+        return Files.newOutputStream(path); // good - 'Files' known because of import, and bytecode on classpath
+    }
+}
+            ]]>
+        </example>
+    </rule>
+
 </ruleset>
