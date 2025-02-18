@@ -2905,10 +2905,9 @@ import static com.co.corporate.Constants.GREAT; // good
           language="java"
           message="A dependency cannot be resolved: a found type is undefined. Compilation and annotation processing is needed."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodeQuality.md#ils02">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodeQuality.md">
         <description>Problem: When analyzing code, PMD could not resolve a used class (or annotation or other type). The compiled class needs to be in the classpath such that all rules will work correctly.
-            Solution: Compile all source code, process all annotations (like lombok), or at least the reported unresolved types.
-            Note: Only the first occurrence in a file is shown by this rule.
+            Solution: Compile all source code, process all annotations (like lombok), or at least the reported unresolved types. Note: PMD cannot resolve all fancy ways and there may be false positives.
         (jpinpoint-rules)</description>
         <priority>5</priority>
         <properties>
@@ -2932,14 +2931,14 @@ import static com.co.corporate.Constants.GREAT; // good
             <![CDATA[
 public class FooBad {
     OutputStream bad(Path path) throws IOException {
-        return Files.newOutputStream(path); // bad - 'Files' unknown
+        return Files.newOutputStream(path); // bad - 'Files' and 'path' unknown types
     }
 }
 
 import java.nio.file.*;
 public class FooGood {
     OutputStream good(Path path) throws IOException {
-        return Files.newOutputStream(path); // good - 'Files' known because of import, and bytecode on classpath
+        return Files.newOutputStream(path); // good - 'Files' and 'path' types known because of import, and bytecode on classpath
     }
 }
             ]]>
