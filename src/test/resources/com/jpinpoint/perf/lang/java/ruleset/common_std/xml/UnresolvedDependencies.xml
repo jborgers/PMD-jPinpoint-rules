@@ -75,7 +75,7 @@ public class MyProducerGood {
     </test-code>
 
     <test-code>
-        <description>No violation: unkown is evaluated as non-Object and also none-primitive</description>
+        <description>No violation: unknown is evaluated as non-Object and also none-primitive</description>
         <expected-problems>0</expected-problems>
         <code><![CDATA[
 class Foo {
@@ -84,6 +84,33 @@ class Foo {
         return count += 5;
     }
 }
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>No violation: pmd seems not (always) able to resolve type of lambda params</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+class Issue544_lambda {
+    public TomcatServletWebServerFactory webServerFactory() {
+        TomcatServletWebServerFactory factory = new TomcatServletWebServerFactory();
+        factory.addConnectorCustomizers(connector -> connector.setProperty("prop", "test")); // <- false positive on 'connector'
+        return factory;
+    }
+}
+
+class TomcatServletWebServerFactory {
+    void addConnectionCustomizers(TomcatConnectorCustomizer... connector) {}
+}
+
+@FunctionalInterface
+public interface TomcatConnectorCustomizer {
+    void customize(Connector connector);
+}
+public class Connector {
+    public void setProperty(String name, String val) {}
+}
+
      ]]></code>
     </test-code>
 </test-data>
