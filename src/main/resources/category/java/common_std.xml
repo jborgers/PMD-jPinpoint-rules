@@ -499,13 +499,13 @@ public List<String> getEndpointsInfo(String... endpoints) {
         </example>
     </rule>
 
-    <rule name="UnresolvedDependencies"
+    <rule name="UnresolvedType"
           language="java"
-          message="A dependency cannot be resolved: a found type is undefined. Compilation and annotation processing is needed."
+          message="A type cannot be resolved. Make sure all sources are compiled and annotations processed."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           externalInfoUrl="${doc_root}/JavaCodeQuality.md">
-        <description>Problem: When analyzing code, PMD could not resolve a used class (or annotation or other type). The compiled class needs to be in the classpath such that all rules will work correctly.
-            Solution: Compile all source code, process all annotations (like lombok), or at least the reported unresolved types. Note: PMD cannot resolve all fancy ways and there may be false positives.
+        <description>Problem: When analyzing code, PMD could not resolve a used type (class, annotation or other type). Several rules make use of type information and assume it is available. If not, those rules typically fail to work correctly and will for instance show false positives.
+            Solution: Make sure all types can be resolved: compile all source code, process all annotations (like lombok). Note: this rule is still somewhat experimental and may show false positives.
         </description>
         <priority>5</priority>
         <properties>

@@ -30,7 +30,7 @@ class FooGood {
     </test-code>
 
     <test-code>
-        <description>violation: import missing - false positives and missed cases in UnresolvedDependencies #544</description>
+        <description>violation: import missing - false positives and missed cases in UnresolvedType #544</description>
         <expected-problems>1</expected-problems>
         <expected-linenumbers>5</expected-linenumbers>
         <code><![CDATA[
@@ -45,7 +45,7 @@ public class MyProducerBad1 {
     </test-code>
 
     <test-code>
-        <description>violation: @Slf4j missing - false positives and missed cases in UnresolvedDependencies #544</description>
+        <description>violation: @Slf4j missing - false positives and missed cases in UnresolvedType #544</description>
         <expected-problems>1</expected-problems>
         <expected-linenumbers>5</expected-linenumbers>
         <code><![CDATA[
