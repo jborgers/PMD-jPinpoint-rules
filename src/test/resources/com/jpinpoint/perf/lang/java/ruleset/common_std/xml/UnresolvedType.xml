@@ -113,4 +113,20 @@ public class Connector {
 
      ]]></code>
     </test-code>
+    <test-code>
+        <description>No violation: Slf4j log used as VariableAccess</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import lombok.extern.slf4j.Slf4j;
+@Slf4j
+public class EnvironmentLogService {
+    public void init() {
+        Environment.logEnv("server environment:", log);
+    }
+}
+class Environment {
+    void logEnv(String text, Log log) {}
+}
+     ]]></code>
+    </test-code>
 </test-data>

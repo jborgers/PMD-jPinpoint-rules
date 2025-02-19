@@ -2915,7 +2915,7 @@ import static com.co.corporate.Constants.GREAT; // good
             <property name="xpath">
                 <value><![CDATA[
 (: variable access for unknown variable type :)
-//VariableAccess
+(//VariableAccess
 [not(pmd-java:typeIs('java.lang.Object'))]
 [not(pmd-java:typeIs('byte'))][not(pmd-java:typeIs('short'))]
 [not(pmd-java:typeIs('int'))][not(pmd-java:typeIs('long'))]
@@ -2925,7 +2925,8 @@ import static com.co.corporate.Constants.GREAT; // good
 [not(@Name = ancestor::LambdaExpression//LambdaParameter/VariableId/@Name)]
 |
 (: the unresolved/ambiguous type names, except @Slf4j which pmd cannot resolve :)
-//AmbiguousName[not(ancestor::ClassDeclaration/ModifierList/Annotation[pmd-java:typeIs('lombok.extern.slf4j.Slf4j')])]
+//AmbiguousName)
+[not(ancestor::ClassDeclaration/ModifierList/Annotation[pmd-java:typeIs('lombok.extern.slf4j.Slf4j')])]
                 ]]></value>
             </property>
         </properties>
