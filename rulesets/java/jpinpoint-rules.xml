@@ -2907,11 +2907,11 @@ import static com.co.corporate.Constants.GREAT; // good
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodeQuality.md">
         <description>Problem: When analyzing code, PMD could not resolve a used type (class, annotation or other type). Several rules make use of type information and assume it is available. If not, those rules typically fail to work correctly and will for instance show false positives.
-            Solution: Make sure all types can be resolved: compile all source code, process all annotations (like lombok). Note: this rule is still somewhat experimental and may show false positives.
+            Solution: Make sure all types can be resolved: compile all source code, process all annotations (like lombok), compile generated code, make all dependencies available on the classpath, etc. Note: this rule is still somewhat experimental and may show false positives.
         (jpinpoint-rules)</description>
         <priority>5</priority>
         <properties>
-            <property name="tags" value="jpinpoint-rule" type="String" description="classification"/>
+            <property name="tags" value="confusing,jpinpoint-rule" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
 (: variable access for unknown variable type :)
