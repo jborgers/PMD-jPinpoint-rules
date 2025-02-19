@@ -524,7 +524,7 @@ public List<String> getEndpointsInfo(String... endpoints) {
 |
 (: the unresolved/ambiguous type names, except @Slf4j which pmd cannot resolve :)
 //AmbiguousName)
-[not(ancestor::ClassDeclaration/ModifierList/Annotation[pmd-java:typeIs('lombok.extern.slf4j.Slf4j')])]
+[not((ancestor::ClassDeclaration|ancestor::EnumDeclaration|ancestor::RecordDeclaration)/ModifierList/Annotation[pmd-java:typeIs('lombok.extern.slf4j.Slf4j')])]
                 ]]></value>
             </property>
         </properties>
