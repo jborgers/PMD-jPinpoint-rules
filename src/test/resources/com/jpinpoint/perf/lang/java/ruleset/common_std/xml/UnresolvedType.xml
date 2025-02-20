@@ -129,4 +129,27 @@ class Environment {
 }
      ]]></code>
     </test-code>
+
+    <test-code>
+        <description>No violation: Slf4j log used in enum, and record</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import lombok.extern.slf4j.Slf4j;
+@Slf4j
+enum IssueEnum {
+    Int8(1, Byte.class);
+    public void foo(){
+        log.debug("something");
+    }
+}
+
+@Slf4j
+record IssueRecord(String name) {
+    public void foo(){
+        log.debug("something");
+    }
+}
+     ]]></code>
+    </test-code>
+
 </test-data>
