@@ -235,7 +235,7 @@ switch (type) {
 //RecordDeclaration//RecordComponent/ClassType[(pmd-java:typeIs('java.util.Collection') or pmd-java:typeIs('java.util.Map'))
     and not(../VariableId/@Name = ancestor::RecordDeclaration/RecordBody/(CompactConstructorDeclaration|ConstructorDeclaration)
         //AssignmentExpression[(VariableAccess|FieldAccess)/@Name = .//MethodCall[contains(lower-case(@MethodName), 'copyof')]
-            /ArgumentList/(VariableAccess|FieldAccess)/@Name]/(VariableAccess|FieldAccess)/@Name)
+            /ArgumentList//(VariableAccess|FieldAccess)/@Name]/(VariableAccess|FieldAccess)/@Name)
 ]/..
 ]]></value>
             </property>
