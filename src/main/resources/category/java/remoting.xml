@@ -216,6 +216,27 @@ class Good {
                 </value>
             </property>
         </properties>
+        <example>
+            <![CDATA[
+class Bad {
+    public HttpClient bad(ConnectionManager conMgr) {
+        HttpClient client = HttpClientBuilder.create()
+                .setConnectionManager(conMgr)
+                .build(); // bad, disableConnectionState is missing
+        return client;
+    }
+}
+
+class Good {
+    public HttpClient good(ConnectionManager conMgr) {
+        return HttpClientBuilder.create()
+                .setConnectionManager(conMgr)
+                .disableConnectionState() // good
+                .build();
+    }
+}
+        ]]>
+        </example>
     </rule>
 
     <rule name="HttpClientBuilderWithoutPoolSize"
