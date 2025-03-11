@@ -140,6 +140,23 @@ public static JsonMapper createMapper() {
         ]]></value>
             </property>
         </properties>
+        <example>
+            <![CDATA[
+class Bad {
+    public String toJson(User user) {
+		return new Gson().toJson(user); // bad, new Gson() for each call
+	}
+}
+
+class Good {
+	private static final Gson GSON = new GsonBuilder().serializeNulls().create(); // good
+
+    public String toJson(User user) {
+		return GSON.toJson(user); // good, reuse GSON
+	}
+}
+        ]]>
+        </example>
     </rule>
 
 
@@ -199,6 +216,27 @@ public static JsonMapper createMapper() {
                 </value>
             </property>
         </properties>
+        <example>
+            <![CDATA[
+class Bad {
+    public HttpClient bad(ConnectionManager conMgr) {
+        HttpClient client = HttpClientBuilder.create()
+                .setConnectionManager(conMgr)
+                .build(); // bad, disableConnectionState is missing
+        return client;
+    }
+}
+
+class Good {
+    public HttpClient good(ConnectionManager conMgr) {
+        return HttpClientBuilder.create()
+                .setConnectionManager(conMgr)
+                .disableConnectionState() // good
+                .build();
+    }
+}
+        ]]>
+        </example>
     </rule>
 
     <rule name="HttpClientBuilderWithoutPoolSize"
