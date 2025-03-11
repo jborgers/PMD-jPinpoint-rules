@@ -219,12 +219,13 @@ switch (type) {
 
     <rule name="AvoidExposingMutableRecordState"
           language="java"
-          message="Avoid exposing mutable state of the record. Use copyOf in the compact constructor."
+          message="Avoid exposing mutable state of the record. Use copyOf in the (compact) constructor."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
 
           externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#voedos06">
-        <description>Problem: Internal state can be modified from outside of the record, through the implicit accessor method or by the caller of the constructor. Risk of thread-unsafety.
-            Solution: Use the record compact constructor to defensively copy the (possibly) mutable object such as a List, Set or Map, e.g. with List.copyOf().
+        <description>Problem: Internal state can be modified from outside the record, through the implicit accessor method or by the caller of the constructor. Risk of thread-unsafety.
+            Solution: Use the record compact constructor to defensively copy the (possibly) mutable object such as a List, Set or Map, e.g. with List.copyOf(). Make sure
+            to avoid NullPointerExceptions for null values in List.copyOf() methods. Beware that contained objects in collections can itself be mutable.
         (jpinpoint-rules)</description>
         <priority>3</priority>
         <properties>
@@ -232,9 +233,9 @@ switch (type) {
             <property name="xpath">
                 <value><![CDATA[
 //RecordDeclaration//RecordComponent/ClassType[(pmd-java:typeIs('java.util.Collection') or pmd-java:typeIs('java.util.Map'))
-    and not(../VariableId/@Name = ancestor::RecordDeclaration/RecordBody/CompactConstructorDeclaration
-        //AssignmentExpression[VariableAccess/@Name = .//MethodCall[@MethodName='copyOf']
-            /ArgumentList/VariableAccess/@Name]/VariableAccess/@Name)
+    and not(../VariableId/@Name = ancestor::RecordDeclaration/RecordBody/(CompactConstructorDeclaration|ConstructorDeclaration)
+        //AssignmentExpression[(VariableAccess|FieldAccess)/@Name = .//MethodCall[contains(lower-case(@MethodName), 'copyof')]
+            /ArgumentList/(VariableAccess|FieldAccess)/@Name]/(VariableAccess|FieldAccess)/@Name)
 ]/..
 ]]></value>
             </property>
@@ -246,7 +247,7 @@ record BadRecord(String name, List<String> list) {
 
 record GoodRecord(String name, List<String> list) {
     public GoodRecord {
-        list = List.copyOf(list);
+        list = list != null ? List.copyOf(list) : List.of();
     }
 }
             ]]>
