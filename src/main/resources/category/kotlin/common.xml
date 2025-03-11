@@ -418,6 +418,24 @@ class Foo {
                 </value>
             </property>
         </properties>
+        <example>
+            <![CDATA[
+class Bad {
+    public String formatDate(LocalDateTime date)  {
+        DateTimeFormatter dtf =  new DateTimeFormatterBuilder().toFormatter(); // bad, created each time
+        return dtf.format(date);
+    }
+}
+
+class Good {
+    private static final DateTimeFormatter DTF = new DateTimeFormatterBuilder().toFormatter();
+
+    public String formatDate(LocalDateTime date)  {
+        return DTF.format(date); // good, reuse thread-safe formatter
+    }
+}
+            ]]>
+        </example>
     </rule>
 
     <rule name="AvoidXPathAPIUsage"
