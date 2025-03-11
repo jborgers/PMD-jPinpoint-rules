@@ -1708,7 +1708,7 @@ Set<YourEnumType> set = EnumSet.allOf(YourEnumType.class);
 
     <rule name="AvoidExposingMutableRecordState"
           language="java"
-          message="Avoid exposing mutable state of the record. Use copyOf in the compact constructor."
+          message="Avoid exposing mutable state of the record. Use copyOf in the (compact) constructor."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
 
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#voedos06">
@@ -1722,9 +1722,9 @@ Set<YourEnumType> set = EnumSet.allOf(YourEnumType.class);
             <property name="xpath">
                 <value><![CDATA[
 //RecordDeclaration//RecordComponent/ClassType[(pmd-java:typeIs('java.util.Collection') or pmd-java:typeIs('java.util.Map'))
-    and not(../VariableId/@Name = ancestor::RecordDeclaration/RecordBody/CompactConstructorDeclaration
-        //AssignmentExpression[VariableAccess/@Name = .//MethodCall[@MethodName='copyOf']
-            /ArgumentList/VariableAccess/@Name]/VariableAccess/@Name)
+    and not(../VariableId/@Name = ancestor::RecordDeclaration/RecordBody/(CompactConstructorDeclaration|ConstructorDeclaration)
+        //AssignmentExpression[(VariableAccess|FieldAccess)/@Name = .//MethodCall[contains(lower-case(@MethodName), 'copyof')]
+            /ArgumentList/(VariableAccess|FieldAccess)/@Name]/(VariableAccess|FieldAccess)/@Name)
 ]/..
 ]]></value>
             </property>

@@ -4,9 +4,9 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
     <test-code>
-        <description>violation: Avoid exposing mutable record state, use copyOf in the compact constructor.</description>
-        <expected-problems>3</expected-problems>
-        <expected-linenumbers>8, 11, 20</expected-linenumbers>
+        <description>violation: Avoid exposing mutable record state, use copyOf in the (compact) constructor.</description>
+        <expected-problems>4</expected-problems>
+        <expected-linenumbers>8, 11, 20, 23</expected-linenumbers>
         <code><![CDATA[
 import java.util.*;
 import static java.util.List.copyOf;
@@ -28,6 +28,13 @@ record GoodRecord(String name, List<String> list) {
 }
 
 record SetRecord(String name, Set<String> set) { // bad 3
+}
+
+record BadRecordNonCompact(String name, List<String> list) { // bad 4
+  public BadRecordNonCompact(String name, List<String> list) {
+    this.name = name;
+    this.list = order(list); // bad, no copy
+  }
 }
 
 record MapRecord(String name, Map<String,String> map) {
@@ -75,6 +82,49 @@ record GoodRecordIf(String name, List<String> list) {
         }
         else {
             list = List.copyOf(list);
+        }
+    }
+}
+
+record GoodRecordNonCompact(String name, List<String> list) {
+    public GoodRecordNonCompact(String name, List<String> list) {
+        this.name = name;
+        if (list == null) {
+            this.list = null; // keep the state null when null is supplied.
+        }
+        else {
+            this.list = List.copyOf(list);
+        }
+    }
+}
+     ]]></code>
+    </test-code>
+    <test-code>
+        <description>violation: Avoid exposing mutable record state, use copyOf in constructor via util method.</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>3</expected-linenumbers>
+        <code><![CDATA[
+import java.util.List;
+
+public record MyRecord(List<SomeOtherRecord> otherRecords) { // bad, no copy
+    public MyRecord(List<OtherRecord> otherRecords) {
+        this.otherRecords = nonNull(otherRecords);
+    }
+    private static <T> List<T> nonNull(List<T> source) {
+        return source == null ? List.of() : source;
+    }
+}
+
+public record MyRecord(List<SomeOtherRecord> otherRecords) { // good, copy
+    public MyRecord(List<OtherRecord> otherRecords) {
+        this.otherRecords = nullSafeCopyOf(otherRecords);
+    }
+
+    private static <T> List<T> nullSafeCopyOf(List<T> source) {
+        if (source != null) {
+            return List.copyOf(source);
+        } else {
+            return List.of();
         }
     }
 }
