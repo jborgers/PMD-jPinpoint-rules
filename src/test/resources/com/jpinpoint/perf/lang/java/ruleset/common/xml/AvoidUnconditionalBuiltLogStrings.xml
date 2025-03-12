@@ -365,4 +365,50 @@ class Issue455_UnCond {
 }
 ]]></code>
     </test-code>
+
+    <test-code>
+        <description>AvoidUnconditionalBuiltLogStrings example</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>7</expected-linenumbers>
+        <code><![CDATA[
+import org.slf4j.Logger;
+class Foo {
+   private static final Logger LOG = new Logger();
+   public void bad(List values) {
+        var logLine = new StringBuilder();
+        for (String val : values) {
+            logLine.append(val + ", "); // bad
+        }
+        LOG.debug("log: {}.", logLine);
+    }
+    public void good(List values) {
+        if (LOG.isDebugEnabled()) {
+            var logLine = new StringBuilder();
+            for (String val : values) {
+                logLine.append(val + ", ");
+            }
+            LOG.debug("log: {}.", logLine);
+        }
+    }
+}
+]]></code>
+    </test-code>
+
+    <test-code>
+        <description>AvoidUnconditionalBuiltLogStrings false positive with conditional logging #557</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import lombok.extern.slf4j.Slf4j;
+@Slf4j
+public class Issue557 {
+    public void log() {
+        if (log.isInfoEnabled()) {
+            StringBuilder sb = new StringBuilder();
+            sb.append("a"); // <-- false positive
+            log.info("{}", sb);
+        }
+    }
+}
+]]></code>
+    </test-code>
 </test-data>

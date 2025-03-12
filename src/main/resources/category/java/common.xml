@@ -593,6 +593,11 @@ VariableAccess/@Name=(ancestor::ExpressionStatement|ancestor::ForeachStatement|a
   or VariableAccess[not(pmd-java:typeIs('org.slf4j.Logger')) and not(pmd-java:typeIs('java.util.logging.Logger')) and not(pmd-java:typeIs('org.apache.commons.logging.Log'))]]
     //VariableAccess/@Name
 )]
+(: only if unconditional, and not || before the log check in the if statement :)
+[not(ancestor::IfStatement//MethodCall[
+     @MethodName = ('isTraceEnabled', 'isDebugEnabled','isInfoEnabled', 'isLoggable')
+     and count(../../InfixExpression[@Operator='||' or @Operator='|' or @Operator='^']) = 0 ])
+]
 (: except if method name starts with 'log', and it is non-public, .. :)
 [not(ancestor::MethodDeclaration
 [starts-with(@Name, 'log') and @Visibility = 'private']
