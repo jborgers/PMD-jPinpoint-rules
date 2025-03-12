@@ -1117,6 +1117,11 @@ VariableAccess/@Name=(ancestor::ExpressionStatement|ancestor::ForeachStatement|a
   or VariableAccess[not(pmd-java:typeIs('org.slf4j.Logger')) and not(pmd-java:typeIs('java.util.logging.Logger')) and not(pmd-java:typeIs('org.apache.commons.logging.Log'))]]
     //VariableAccess/@Name
 )]
+(: only if unconditional, and not || before the log check in the if statement :)
+[not(ancestor::IfStatement//MethodCall[
+     @MethodName = ('isTraceEnabled', 'isDebugEnabled','isInfoEnabled', 'isLoggable')
+     and count(../../InfixExpression[@Operator='||' or @Operator='|' or @Operator='^']) = 0 ])
+]
 (: except if method name starts with 'log', and it is non-public, .. :)
 [not(ancestor::MethodDeclaration
 [starts-with(@Name, 'log') and @Visibility = 'private']
@@ -5578,6 +5583,23 @@ public class MyFeignClient {
         ]]></value>
             </property>
         </properties>
+        <example>
+            <![CDATA[
+class Bad {
+    public String toJson(User user) {
+		return new Gson().toJson(user); // bad, new Gson() for each call
+	}
+}
+
+class Good {
+	private static final Gson GSON = new GsonBuilder().serializeNulls().create(); // good
+
+    public String toJson(User user) {
+		return GSON.toJson(user); // good, reuse GSON
+	}
+}
+        ]]>
+        </example>
     </rule>
 
     <rule name="HttpClientBuilderPoolSettingsIgnored"
@@ -5660,6 +5682,27 @@ return HttpClientBuilder.create() // good
                 </value>
             </property>
         </properties>
+        <example>
+            <![CDATA[
+class Bad {
+    public HttpClient bad(ConnectionManager conMgr) {
+        HttpClient client = HttpClientBuilder.create()
+                .setConnectionManager(conMgr)
+                .build(); // bad, disableConnectionState is missing
+        return client;
+    }
+}
+
+class Good {
+    public HttpClient good(ConnectionManager conMgr) {
+        return HttpClientBuilder.create()
+                .setConnectionManager(conMgr)
+                .disableConnectionState() // good
+                .build();
+    }
+}
+        ]]>
+        </example>
     </rule>
 
     <rule name="HttpClientBuilderWithoutPoolSize"
