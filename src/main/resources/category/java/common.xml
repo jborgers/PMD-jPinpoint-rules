@@ -147,6 +147,29 @@ and not (preceding-sibling::SwitchLabel[@Default=true()])]
                 </value>
             </property>
         </properties>
+        <example>
+            <![CDATA[
+switch (type) {
+    case "One":
+        xmlNsExtValue = "same";
+        schemaLocation = 1;
+        startElement = N_INITN;
+        extra = new String("alsoSame");
+        extra = dummy;
+        extra = toString();
+        break;
+    case "Two":
+        xmlNsValue = LINT008; // good
+        xmlNsExtValue = "same"; // bad
+        schemaLocation = 1; // bad
+        startElement = Y_INITN; // good
+        extra = new String("alsoSame"); // bad
+        break;
+    default:
+        throw new IllegalArgumentException("Type " + type + " is not supported.");
+}
+            ]]>
+        </example>
     </rule>
 
     <rule name="AvoidImplicitlyRecompilingRegex" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java" message="String regex method, Pattern.matches or FileSystem.getPathMatcher is used.
@@ -178,13 +201,11 @@ self::VariableAccess and @Name=ancestor::ClassBody/FieldDeclaration/VariableDecl
         </properties>
         <example>
             <![CDATA[
-//bad
 String bad_replaceInnerLineBreakBySpace() {
     return text.replaceAll("([^\\.\\n])\\n", "$1 "); // bad
 }
 
-// good
-private static final Pattern INNER_LINE_BREAK_PATTERN = Pattern.compile("([^\\.\\n])\\n");
+private static final Pattern INNER_LINE_BREAK_PATTERN = Pattern.compile("([^\\.\\n])\\n"); // good
 
 String good_replaceInnerLineBreakBySpace() {
     return INNER_LINE_BREAK_PATTERN.matcher(text).replaceAll("$1 "); // good
@@ -249,11 +270,30 @@ class Good {
             <property name="tags" value="cpu,jpinpoint-rule,performance,sustainability-low" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
+(: x += y with only one preceding x += v or x = x + w :)
 //AssignmentExpression[@Operator='+='][VariableAccess/@Name=ancestor::Block//VariableDeclarator/VariableId[pmd-java:typeIs('java.lang.String')]/@Name]
-[VariableAccess/@Name = ../preceding-sibling::ExpressionStatement/AssignmentExpression[@Operator='+=']/VariableAccess/@Name]
+[(VariableAccess/@Name = ../preceding-sibling::ExpressionStatement/AssignmentExpression[@Operator='+=']/VariableAccess/@Name
+or
+VariableAccess/@Name = ../preceding-sibling::ExpressionStatement//InfixExpression[@Operator='+']/VariableAccess/@Name)
+and not (
+    VariableAccess/@Name = ../preceding-sibling::ExpressionStatement[2]/AssignmentExpression[@Operator='+=']/VariableAccess/@Name
+    or
+    VariableAccess/@Name = ../preceding-sibling::ExpressionStatement[2]//InfixExpression[@Operator='+']/VariableAccess/@Name
+)
+]
 |
-//InfixExpression[@Operator='+'][VariableAccess/@Name=../VariableAccess/@Name][VariableAccess/@Name=ancestor::Block//VariableDeclarator/VariableId[pmd-java:typeIs('java.lang.String')]/@Name]
-[VariableAccess/@Name = ../../preceding-sibling::ExpressionStatement//InfixExpression[@Operator='+']/VariableAccess/@Name]/..
+(: x = x + y with only one preceding x += v or x = x + w :)
+//InfixExpression[@Operator='+'][VariableAccess/@Name=ancestor::AssignmentExpression/VariableAccess/@Name][VariableAccess/@Name=ancestor::Block//VariableDeclarator/VariableId[pmd-java:typeIs('java.lang.String')]/@Name]
+[(VariableAccess/@Name = ancestor::ExpressionStatement/preceding-sibling::ExpressionStatement//InfixExpression[@Operator='+']/VariableAccess/@Name
+or
+VariableAccess/@Name = ancestor::ExpressionStatement/preceding-sibling::ExpressionStatement/AssignmentExpression[@Operator='+=']/VariableAccess/@Name)
+and not (
+    VariableAccess/@Name = ancestor::ExpressionStatement/preceding-sibling::ExpressionStatement[2]/AssignmentExpression[@Operator='+=']/VariableAccess/@Name
+    or
+    VariableAccess/@Name = ancestor::ExpressionStatement/preceding-sibling::ExpressionStatement[2]//InfixExpression[@Operator='+']/VariableAccess/@Name
+)
+]/..
+
 	]]></value>
             </property>
         </properties>
@@ -548,10 +588,23 @@ class Foo {
 (: variable in append following, not used in anything other than logging :)
 [not(
 VariableAccess/@Name=(ancestor::ExpressionStatement|ancestor::ForeachStatement|ancestor::DoStatement|ancestor::WhileStatement)
-  /(following-sibling::TryStatement|following-sibling::ExpressionStatement)//MethodCall
+  /(following-sibling::TryStatement|following-sibling::ExpressionStatement|following-sibling::ReturnStatement)//MethodCall
   [not(@MethodName=('trace', 'debug', 'info'))
   or VariableAccess[not(pmd-java:typeIs('org.slf4j.Logger')) and not(pmd-java:typeIs('java.util.logging.Logger')) and not(pmd-java:typeIs('org.apache.commons.logging.Log'))]]
     //VariableAccess/@Name
+)]
+(: only if unconditional, and not || before the log check in the if statement :)
+[not(ancestor::IfStatement//MethodCall[
+     @MethodName = ('isTraceEnabled', 'isDebugEnabled','isInfoEnabled', 'isLoggable')
+     and count(../../InfixExpression[@Operator='||' or @Operator='|' or @Operator='^']) = 0 ])
+]
+(: except if method name starts with 'log', and it is non-public, .. :)
+[not(ancestor::MethodDeclaration
+[starts-with(@Name, 'log') and @Visibility = 'private']
+(: and the method is called only conditionally: it is called inside an if :)
+[@Name=ancestor::ClassBody//MethodCall[ancestor::IfStatement/MethodCall[@MethodName = ('isTraceEnabled', 'isDebugEnabled','isInfoEnabled', 'isLoggable')]]/@MethodName]
+(: and it is not called not inside an if :)
+[not(@Name=ancestor::ClassBody//MethodCall[not(ancestor::IfStatement/MethodCall[@MethodName = ('isTraceEnabled', 'isDebugEnabled','isInfoEnabled', 'isLoggable')])]/@MethodName)]
 )]
 	]]></value>
             </property>
@@ -652,7 +705,6 @@ public class Foo {
         </properties>
     </rule>
 
-<!-- complex rule TODO ImplementEqualsHashCodeOnValueObjects -->
 
     <rule name="MDCPutWithoutRemove"
           message="MDC put is used without finally remove."
@@ -668,10 +720,27 @@ public class Foo {
                 <value>
                     <![CDATA[
 //MethodCall[pmd-java:matchesSig('org.slf4j.MDC#put(java.lang.String,java.lang.String)')]/ArgumentList/*[1][self::StringLiteral or self::VariableAccess]
-[not(@Image=ancestor::TryStatement//FinallyClause//MethodCall[pmd-java:matchesSig('org.slf4j.MDC#remove(java.lang.String)')]/ArgumentList/*[1]/@Image
-or ancestor::TryStatement//FinallyClause//MethodCall[pmd-java:matchesSig('org.slf4j.MDC#clear()')]
+[not(@Image=ancestor::MethodDeclaration//TryStatement//FinallyClause//MethodCall[pmd-java:matchesSig('org.slf4j.MDC#remove(java.lang.String)')]/ArgumentList/*[1]/@Image
+or ancestor::MethodDeclaration//TryStatement//FinallyClause//MethodCall[pmd-java:matchesSig('org.slf4j.MDC#clear()')]
 or @Image=ancestor::ClassBody//MethodDeclaration[@Name='afterCompletion' or @Name='postHandle']//MethodCall[pmd-java:matchesSig('org.slf4j.MDC#remove(java.lang.String)')]/ArgumentList/*[1]/@Image
 or ancestor::ClassBody//MethodDeclaration[@Name='afterCompletion' or @Name='postHandle']//MethodCall[pmd-java:matchesSig('org.slf4j.MDC#clear()')]
+(: Issue 326, doFinally, not sure to accept :)
+(:or @Image=ancestor::MethodDeclaration//MethodCall[@MethodName='doFinally']//MethodCall[pmd-java:matchesSig('org.slf4j.MDC#remove(java.lang.String)')]/ArgumentList/*[1]/@Image
+or ancestor::MethodDeclaration//MethodCall[@MethodName='doFinally']//MethodCall[pmd-java:matchesSig('org.slf4j.MDC#clear()')]:)
+(: Issue 473, a put in a method only called from a try block with a remove of that key, or a clear :)
+(: a put of a key not in a try statement nor with a doFinally :)
+or not(ancestor::TryStatement) and not(.//MethodCall[@MethodName='doFinally'])
+    (: if method is non-private -> violation :)
+    and not ((ancestor::MethodDeclaration/@Visibility!='private'
+        (: or in a method called from a non-try scope -> violation:)
+        or ancestor::MethodDeclaration/@Name = ancestor::ClassBody//MethodDeclaration[not(.//TryStatement)]//MethodCall/@MethodName)
+        (: or in a method not called from a try statement with a finally -> violation :)
+        or not(ancestor::MethodDeclaration/@Name=ancestor::ClassBody//TryStatement[.//FinallyClause]/Block//MethodCall/@MethodName)
+        (: or in a method called from a try statement and the key not removed / cleared in finally :)
+        or (ancestor::MethodDeclaration/@Name=ancestor::ClassBody//TryStatement[.//FinallyClause]/Block//MethodCall/@MethodName and
+        not(@Image = ancestor::ClassBody//TryStatement/FinallyClause//MethodCall[pmd-java:matchesSig('org.slf4j.MDC#remove(java.lang.String)')]/ArgumentList/*[1]/@Image
+        or ancestor::ClassBody//TryStatement//FinallyClause//MethodCall[pmd-java:matchesSig('org.slf4j.MDC#clear()')]
+    )))
 )]
 ]]>
                 </value>
@@ -730,7 +799,10 @@ class Good {
      (AmbiguousName[ancestor::ClassDeclaration[pmd-java:hasAnnotation('lombok.extern.slf4j.Slf4j')]])
   ]
   /ArgumentList[.//InfixExpression[@Operator='+'][(VariableAccess|MethodCall)[pmd-java:typeIs('java.lang.String')] or (StringLiteral and (VariableAccess or MethodCall))]]
-[not(ancestor::IfStatement/MethodCall[@MethodName = ('isTraceEnabled', 'isDebugEnabled','isInfoEnabled', 'isLoggable')])]
+    [not(ancestor::IfStatement//MethodCall[
+         @MethodName = ('isTraceEnabled', 'isDebugEnabled','isInfoEnabled', 'isLoggable')
+         and count(../../InfixExpression[@Operator='||' or @Operator='|' or @Operator='^']) = 0 ])
+    ]
 ]]></value>
             </property>
         </properties>
@@ -775,25 +847,51 @@ class Foo {
      (: Slfj4 annotation makes the log variable AmbiguousName as there is no explicit log field :)
      (AmbiguousName[ancestor::ClassDeclaration[pmd-java:hasAnnotation('lombok.extern.slf4j.Slf4j')]])
   ]
-(: only if unconditional :)
-  [not(ancestor::IfStatement/MethodCall[@MethodName = ('isTraceEnabled', 'isDebugEnabled','isInfoEnabled', 'isLoggable')])]
+(: only if unconditional, and not || before the log check in the if statement :)
+  [not(ancestor::IfStatement//MethodCall[
+                        @MethodName = ('isTraceEnabled', 'isDebugEnabled','isInfoEnabled', 'isLoggable')
+                        and count(../../InfixExpression[@Operator='||' or @Operator='|' or @Operator='^']) = 0 ])
+                      ]
 (: and not returned conditionally before :)
   [not(ancestor::ExpressionStatement/preceding-sibling::IfStatement[.//ReturnStatement and .//MethodCall[@MethodName = ('isTraceEnabled', 'isDebugEnabled','isInfoEnabled', 'isLoggable')]])]
 (: for operations in log with >0 arguments or toString(); except getters which are assumed as fast :)
-  /ArgumentList//MethodCall[(ArgumentList[@Size>0] or @MethodName='toString') and not(starts-with(@MethodName, 'get'))]
-			]]>
+  /ArgumentList//MethodCall[
+    (ArgumentList[@Size>0] or @MethodName='toString') and not(starts-with(@MethodName, 'get'))
+    (: if methods are chained, only report 1 in the chain :)
+    and not(ancestor::MethodCall[ArgumentList[@Size>0]]/MethodCall)
+  ]
+  (: except if method name contains log, trace, debug or info (case insensitive), and it is non-public :)
+  [not(ancestor::MethodDeclaration
+    [matches(@Name, 'trace|debug|info|log','i') and @Visibility = 'private']
+    (: and the method is called only conditionally: it is called inside an if and not prefixed with || :)
+    [@Name=ancestor::ClassBody//MethodCall[ancestor::IfStatement//MethodCall[
+           @MethodName = ('isTraceEnabled', 'isDebugEnabled','isInfoEnabled', 'isLoggable')
+           and count(../../InfixExpression[@Operator='||' or @Operator='|' or @Operator='^']) = 0
+       ]]/@MethodName]
+    (: and it is not called not inside an if :)
+    [not(@Name=ancestor::ClassBody//MethodCall[
+           not(
+             ancestor::IfStatement//MethodCall[
+                   @MethodName = ('isTraceEnabled', 'isDebugEnabled','isInfoEnabled', 'isLoggable')
+                   and count(../../InfixExpression[@Operator='||' or @Operator='|' or @Operator='^']) = 0
+             ]
+           )
+        ]/@MethodName)
+      ]
+   )]
+]]>
                 </value>
             </property>
         </properties>
         <example>
             <![CDATA[
-    LOG.debug("customer = {}", customer.toString()); // bad
-    LOG.debug("Complete Soap response: {}", getSoapMsgAsString(context.getMessage())); // bad
+LOG.debug("customer = {}", customer.toString()); // bad
+LOG.debug("Complete Soap response: {}", getSoapMsgAsString(context.getMessage())); // bad
 
-    LOG.debug("customer = {}", customer); // good
-    if (LOG.isDebugEnabled()) { // good
-        LOG.debug("Complete Soap response: {}", getSoapMsgAsString(context.getMessage()));
-    }
+LOG.debug("customer = {}", customer); // good
+if (LOG.isDebugEnabled()) { // good
+    LOG.debug("Complete Soap response: {}", getSoapMsgAsString(context.getMessage()));
+}
             ]]>
         </example>
     </rule>
@@ -881,7 +979,11 @@ class VMRData {
      (AmbiguousName[ancestor::ClassDeclaration[pmd-java:hasAnnotation('lombok.extern.slf4j.Slf4j')]])
   ]
   (: no violation if conditionally: only executed if level enabled is okay :)
-  [not(ancestor::IfStatement/MethodCall[@MethodName = ('isTraceEnabled', 'isDebugEnabled','isInfoEnabled', 'isLoggable')])]
+  [not(ancestor::IfStatement//MethodCall[
+       @MethodName = ('isTraceEnabled', 'isDebugEnabled','isInfoEnabled', 'isLoggable')
+       and count(../../InfixExpression[@Operator='||' or @Operator='|' or @Operator='^']) = 0
+     ])
+  ]
   (: no violation if return conditionally before :)
   [not(ancestor::ExpressionStatement/preceding-sibling::IfStatement[.//ReturnStatement and .//MethodCall[@MethodName = ('isTraceEnabled', 'isDebugEnabled','isInfoEnabled', 'isLoggable')]])]
   (: equals a declared var, with initializer not like obj.get[Xxx], we assume a simple getter is quick; except when in a loop :)
@@ -889,9 +991,17 @@ class VMRData {
      [@Name = ancestor::MethodDeclaration//VariableDeclarator[not(MethodCall[starts-with(@MethodName, 'get')] and not(ancestor::WhileStatement or ancestor::ForStatement or ancestor::DoStatement))]/VariableId/@Name]
      (: and it is not used in a return :)
      [not (@Name = ancestor::MethodDeclaration//VariableAccess[not(ancestor::MethodCall[@MethodName=('trace','debug','info')])]/@Name)]
-     (: method name starts with log, we assume it is called conditionally :)
-     [not(ancestor::MethodDeclaration[starts-with(@Name, 'log')]
- )]
+     (: except if method name starts with 'log', and it is non-public, .. :)
+     [not(ancestor::MethodDeclaration
+        [starts-with(@Name, 'log') and @Visibility = 'private']
+        (: and the method is called only conditionally: it is called inside an if :)
+        [@Name=ancestor::ClassBody//MethodCall[ancestor::IfStatement//MethodCall[
+               @MethodName = ('isTraceEnabled', 'isDebugEnabled','isInfoEnabled', 'isLoggable')
+               and count(../../InfixExpression[@Operator='||' or @Operator='|' or @Operator='^']) = 0
+            ]]/@MethodName]
+        (: and it is not called not inside an if :)
+        [not(@Name=ancestor::ClassBody//MethodCall[not(ancestor::IfStatement//MethodCall[@MethodName = ('isTraceEnabled', 'isDebugEnabled','isInfoEnabled', 'isLoggable')])]/@MethodName)]
+     )]
                 ]]></value>
             </property>
         </properties>
@@ -973,7 +1083,8 @@ public RetrieveCache(final @Value("${cache.expiryTimeMillis}") long timeToLiveMi
         <description>
             Problem: If equals and hashCode are not defined, they don't meet the programmer's expectations and the requirements for use with the collections API. It may result in unexpected, undesired behavior.&#13;
             Solution: Add proper equals and hashCode methods that meet the equals-hashCode contract to all objects which might anyhow be put in a Map, Set or other collection. Or use Lombok @EqualsAndHashCode, @Value or @Data. Also holds for inner classes.
-            If the object should never be checked for equality or used in a collection, also add those methods and let them throw UnsupportedOperationException to fail fast. @Xml... , @Entity, Throwable and Executor objects are ignored because they are assumed to be not used as value objects.
+            If the object should never be checked for equality or used in a collection, also add those methods and let them throw UnsupportedOperationException to fail fast.
+            @Xml... , @Entity, Throwable and Executor and some other objects are ignored because they are assumed to be not used as value objects.
             (jpinpoint-rules)</description>
         <priority>3</priority>
         <properties>
@@ -981,9 +1092,11 @@ public RetrieveCache(final @Value("${cache.expiryTimeMillis}") long timeToLiveMi
             <property name="xpath">
                 <value>
                     <![CDATA[
-(:- top level class - not annotated that would make it a non-value object -:)
+(:- top level class :)
 //ClassDeclaration
+(: exclusions, the following annotations do implement equals and hashCode -:)
 [not(pmd-java:hasAnnotation('lombok.Data') or pmd-java:hasAnnotation('lombok.Value')or pmd-java:hasAnnotation('lombok.EqualsAndHashCode')
+(: exclusions, the following annotations assume a non-value object -:)
     or pmd-java:hasAnnotation('javax.ejb.Singleton') or pmd-java:hasAnnotation('jakarta.ejb.Singleton')
     or pmd-java:hasAnnotation('org.springframework.stereotype.Component') or pmd-java:hasAnnotation('org.springframework.stereotype.Controller')
     or pmd-java:hasAnnotation('org.springframework.stereotype.Service') or pmd-java:hasAnnotation('org.springframework.stereotype.Repository')
@@ -996,15 +1109,19 @@ public RetrieveCache(final @Value("${cache.expiryTimeMillis}") long timeToLiveMi
     (: JAXB annotations: @XmlType, @XmlRootElement, @XmlAccessorType, @XmlAccessorOrder :)
     or ModifierList/Annotation[starts-with(@SimpleName, 'Xml')]
 )]
-[@Interface=false() and @Abstract=false() and not(pmd-java:typeIs('java.util.concurrent.Executor') or pmd-java:typeIs('java.lang.Throwable'))]
+[@Interface=false() and @Abstract=false() and not(
+    (: excluded types, assumed non-value objects :)
+    pmd-java:typeIs('java.util.concurrent.Executor')
+    or pmd-java:typeIs('java.lang.Throwable')
+    or pmd-java:typeIs('javax.ws.rs.ext.ContextResolver')
+    or pmd-java:typeIs('javax.ws.rs.client.ClientRequestFilter')
+)]
 /ClassBody[FieldDeclaration[@Static=false() and (not (pmd-java:hasAnnotation('javax.xml.bind.annotation.XmlElement')))
     and
     (: a getter with result type of a field :)
     (ancestor::ClassBody[1]/MethodDeclaration
        [(@Visibility='public' or ../../@Nested=true()) and @Static=false() and (starts-with(@Name, 'get') and string-length(@Name) > 3 or starts-with(@Name, 'is') and string-length(@Name) > 2)]
        [ClassType/@SimpleName=ancestor::ClassBody[1]/FieldDeclaration[@Static=false()]/ClassType/@SimpleName]
-    (: or a @Getter on class :)
-    or ancestor::ClassDeclaration[1][pmd-java:hasAnnotation('lombok.Getter')]
     )
     (: and class has no equals nor hashCode method :)
     and (not (ancestor::ClassBody[1]/MethodDeclaration[(@Visibility='public' or ../../@Nested=true()) and @Static=false() and (@Name='equals' and .//FormalParameters[@Size=1]) or (@Name='hashCode' and .//FormalParameters[@Size=0])]))
@@ -1015,7 +1132,6 @@ public RetrieveCache(final @Value("${cache.expiryTimeMillis}") long timeToLiveMi
             or ancestor::ClassDeclaration[1][ends-with(upper-case(@SimpleName), 'DTO')])
         (: or #fields == #getters :)
         or count(ancestor::ClassBody[1]/FieldDeclaration[@Static=false()]) = count(ancestor::ClassBody[1]/MethodDeclaration[(@Visibility='public' or ../../@Nested=true()) and @Static=false() and (starts-with(@Name, 'get') and string-length(@Name) > 3 or starts-with(@Name, 'is') and string-length(@Name) > 2)])
-        or ancestor::ClassDeclaration[1][pmd-java:hasAnnotation('lombok.Getter')]
         )
 ] (:-up to class -:)
 ]/..
@@ -1036,18 +1152,27 @@ class Getters { // bad
         return someState2;
     }
 }
-
-@Getter
-class LombokGetterBad { // bad
+class Good {
     private String someState1 = "some1";
     private String someState2 = "some2";
-}
 
-@Getter
-@EqualsAndHashCode
-class LombokGetterGood {
-    private String someState1 = "some1";
-    private String someState2 = "some2";
+    public String getSomeState1() {
+        return someState1;
+    }
+    public String getSomeState2() {
+        return someState2;
+    }
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Good good = (Good) o;
+        return Objects.equals(someState1, good.someState1) && Objects.equals(someState2, good.someState2);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(someState1, someState2);
+    }
 }
             ]]>
         </example>
@@ -1169,19 +1294,21 @@ class Good {
             <property name="xpath">
                 <value><![CDATA[
 //FieldDeclaration/VariableDeclarator[
-(@Name = ancestor::ClassBody[1]//MethodDeclaration[@Name='equals' and FormalParameters/@Size = 1]/Block//(FieldAccess|VariableAccess)/@Name) <
+((@Name = ancestor::ClassBody[1]//MethodDeclaration[@Name='equals' and FormalParameters/@Size = 1]/Block//(FieldAccess|VariableAccess)/@Name) <
 (@Name = ancestor::ClassBody[1]//MethodDeclaration[@Name='hashCode' and FormalParameters/@Size = 0]/Block//(FieldAccess|VariableAccess)/@Name)
-]/VariableId
+(: and the field is not used to assign a value to in the hashCode(), typically a hash variable to cache the calculated hashcode :)
+and not(@Name = ancestor::ClassBody[1]//MethodDeclaration[@Name='hashCode' and FormalParameters/@Size = 0]/Block//AssignmentExpression[@Operator='=']/(FieldAccess|VariableAccess)/@Name))
+]
 |
 //FieldDeclaration/VariableDeclarator[
 (@Name = ancestor::ClassBody[1]//MethodDeclaration[@Name='equals' and FormalParameters/@Size = 1]/Block//MethodCall[@MethodName='toLowerCase']/(FieldAccess|VariableAccess)/@Name) >
 (@Name = ancestor::ClassBody[1]//MethodDeclaration[@Name='hashCode' and FormalParameters/@Size = 0]/Block//MethodCall[@MethodName='toLowerCase']/(FieldAccess|VariableAccess)/@Name)
-]/VariableId
+]
 |
 //FieldDeclaration/VariableDeclarator[
 (@Name = ancestor::ClassBody[1]//MethodDeclaration[@Name='equals' and FormalParameters/@Size = 1]/Block//MethodCall[@MethodName='toUpperCase']/(FieldAccess|VariableAccess)/@Name) >
 (@Name = ancestor::ClassBody[1]//MethodDeclaration[@Name='hashCode' and FormalParameters/@Size = 0]/Block//MethodCall[@MethodName='toUpperCase']/(FieldAccess|VariableAccess)/@Name)
-]/VariableId
+]
 			]]>
                 </value>
             </property>
@@ -1333,6 +1460,42 @@ class Bad {
         </example>
     </rule>
 
+    <rule name="AvoidCalendar"
+          language="java"
+          message="A Calendar is inefficient in memory usage."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#imu01">
+        <description>Problem: A Calendar is a heavyweight object and expensive to create. &#13;
+            Solution: Use Date, Java 8+ java.time.[Local/Zoned]DateTime.
+        </description>
+        <priority>3</priority>
+        <properties>
+            <property name="xpath">
+                <value><![CDATA[
+//ClassType[pmd-java:typeIs('java.util.Calendar')]
+	         ]]></value>
+            </property>
+            <property name="tags" value="jpinpoint-rule,memory,performance,sustainability-medium" type="String" description="classification"/>
+        </properties>
+        <example>
+            <![CDATA[
+public class CalendarStuff {
+    Calendar field1; // bad
+
+    private Calendar bad1() {
+        return Calendar.getInstance();
+    }
+    private Date good1a() {
+        return new Date(); // now
+    }
+    private LocalDateTime good1b() {
+        return LocalDateTime.now();
+    }
+}
+            ]]>
+        </example>
+    </rule>
+
     <rule name="AvoidMutableLists"
           language="java"
           message="List is not modified after object construction, make it immutable or unmodifiable"
@@ -1340,21 +1503,26 @@ class Bad {
 
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#pml01">
         <description>Problem: A list which is unnecessarily mutable may accidentally be added to and cause a memory leak. &#13;
-            Solution: Make it impossible to modify the list after object construction/initialization: use Java 9 List.of, Java 11 List.copyOf, Collections.unmodifiableList or Guava ImmutableList.
+            Solution: For the list which is not actually modified, make it impossible to modify after object construction/initialization: use Java 9 List.of, Java 11 List.copyOf, Collections.unmodifiableList or Guava ImmutableList.
         </description>
         <priority>3</priority>
         <properties>
             <property name="tags" value="jpinpoint-rule,pitfall" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
+//ClassDeclaration[not(ModifierList/Annotation
+    [pmd-java:typeIs('lombok.Getter') or pmd-java:typeIs('lombok.Setter') or pmd-java:typeIs('lombok.Value') or
+     pmd-java:typeIs('lombok.Data')])]
 (: a field of type List :)
 //FieldDeclaration[//VariableId[pmd-java:typeIs('java.util.List')]]
+(: not for field with @Getter and @Setter, it is accessed outside of the class :)
+[not(ModifierList/Annotation[pmd-java:typeIs('lombok.Getter') or pmd-java:typeIs('lombok.Setter')])]
 (: exclude ConfigurationProperties classes :)
 [count(ancestor::ClassDeclaration/ModifierList/Annotation[@SimpleName='ConfigurationProperties']) = 0]
 (: exclude when JPA annotated :)
 [count(ModifierList/Annotation[@SimpleName=('OneToMany', 'ManyToMany')]) = 0]
 //VariableId[
-    (: with a method defined at that level that does not use the field with a modify operation (case field.modOp) :)
+    (: with no method defined at that level that uses the field with a modify operation (case field.modOp) :)
     not(@Name = ancestor::ClassBody/MethodDeclaration/Block//MethodCall[
         starts-with(@MethodName, 'add') or starts-with(@MethodName, 'remove') or
         @MethodName = ('set', 'clear', 'replaceAll', 'retainAll')
@@ -1367,7 +1535,7 @@ class Bad {
     ancestor::ClassBody/(Initializer|ConstructorDeclaration)//AssignmentExpression[ConstructorCall[pmd-java:typeIs('java.util.List')]]/(VariableAccess|FieldAccess)[1]/@Name = @Name
     or
     (: or constructor has a simple assignment to the field, param or literal: no arguments :)
-    ancestor::ClassBody/ConstructorDeclaration/Block//AssignmentExpression[VariableAccess[2][pmd-java:typeIs('java.util.List')]]/VariableAccess[1]/@Name = @Name
+    ancestor::ClassBody/ConstructorDeclaration/Block//AssignmentExpression[(VariableAccess|FieldAccess)[2][pmd-java:typeIs('java.util.List')]]/(VariableAccess|FieldAccess)[1]/@Name = @Name
 ]
 ]]></value>
             </property>
@@ -1412,21 +1580,31 @@ public class Good {
                 <value><![CDATA[
 (: append used in one chained statement on constructor of StringBuilder and with chained toString :)
 //MethodDeclaration//Block//MethodCall[@MethodName = "toString"]/MethodCall[@MethodName='append']
-[//ConstructorCall[pmd-java:typeIs('java.lang.StringBuilder') or pmd-java:typeIs('java.lang.StringBuffer')]]
+[.//ConstructorCall[pmd-java:typeIs('java.lang.AbstractStringBuilder')]]
 |
-(: or :)
-(: append on builder var, where var is allocated as StringBuilder :)
-//MethodDeclaration//Block//MethodCall[@MethodName='append']
-[//VariableAccess[pmd-java:typeIs('java.lang.StringBuilder') or pmd-java:typeIs('java.lang.StringBuffer')]]
-[(
-(: and toString is called on the var in same block :)
-../MethodCall[@MethodName='append']/VariableAccess/@Name = ancestor::Block//(ReturnStatement|ExpressionStatement)//MethodCall[@MethodName='toString']/VariableAccess/@Name
-(: and not append on var used in inner block like a ForStatement or IfStatement :)
-and not(../MethodCall[@MethodName='append']/VariableAccess/@Name = ancestor::Block//Block//MethodCall[@MethodName='append']/VariableAccess/@Name)
-(: and not append in lambda expression, issue 195 :)
-and not(ancestor::LambdaExpression)
-(: and var not passed as argument to method :)
-and not(../MethodCall[@MethodName='append']/VariableAccess/@Name = ancestor::MethodDeclaration//MethodCall/ArgumentList/VariableAccess/@Name))
+(: or local declared builder var with an append :)
+//MethodDeclaration//Block/LocalVariableDeclaration[
+    VariableDeclarator[
+        VariableId/@Name=ancestor::Block[1]//MethodCall[@MethodName='append']/VariableAccess/@Name
+    ]
+    /ConstructorCall/ClassType[pmd-java:typeIs('java.lang.AbstractStringBuilder')]
+]
+[
+    (: and toString is called (possibly chained) on the var in same block, with no other operations than append :)
+    ..//MethodCall[@MethodName='append']/VariableAccess/@Name=..//(ReturnStatement|ExpressionStatement|LocalVariableDeclaration)//MethodCall[@MethodName='toString']
+        [not(..//MethodCall[@MethodName!=('append') and @MethodName!=('toString')])]//VariableAccess/@Name
+]
+[
+    not(
+        ..//MethodCall[@MethodName='append']/VariableAccess[
+            (: and not append on var used in inner block like a ForStatement or IfStatement :)
+            @Name = ancestor::Block//Block//MethodCall[@MethodName='append']/VariableAccess/@Name
+            (: and not append in lambda expression, issue 195 :)
+            or ancestor::LambdaExpression
+            (: and var not passed as argument to method :)
+            or (@Name = ancestor::MethodDeclaration//MethodCall/ArgumentList/VariableAccess/@Name)
+        ]
+    )
 ]
 	         ]]></value>
             </property>
@@ -1513,7 +1691,7 @@ Set<YourEnumType> set = EnumSet.allOf(YourEnumType.class);
         </description>
         <priority>4</priority>
         <properties>
-            <property name="tags" value="jpinpoint-rule,unused,confusing" type="String" description="classification"/>
+            <property name="tags" value="jpinpoint-rule,confusing" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
 //ClassDeclaration/ModifierList/Annotation
@@ -1535,12 +1713,13 @@ Set<YourEnumType> set = EnumSet.allOf(YourEnumType.class);
 
     <rule name="AvoidExposingMutableRecordState"
           language="java"
-          message="Avoid exposing mutable state of the record. Use copyOf in the compact constructor."
+          message="Avoid exposing mutable state of the record. Use copyOf in the (compact) constructor."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
 
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#voedos06">
-        <description>Problem: Internal state can be modified from outside of the record, through the implicit accessor method or by the caller of the constructor. Risk of thread-unsafety.
-            Solution: Use the record compact constructor to defensively copy the (possibly) mutable object such as a List, Set or Map, e.g. with List.copyOf().
+        <description>Problem: Internal state can be modified from outside the record, through the implicit accessor method or by the caller of the constructor. Risk of thread-unsafety.
+            Solution: Use the record compact constructor to defensively copy the (possibly) mutable object such as a List, Set or Map, e.g. with List.copyOf(). Make sure
+            to avoid NullPointerExceptions for null values in List.copyOf() methods. Beware that contained objects in collections can itself be mutable.
         </description>
         <priority>3</priority>
         <properties>
@@ -1548,9 +1727,9 @@ Set<YourEnumType> set = EnumSet.allOf(YourEnumType.class);
             <property name="xpath">
                 <value><![CDATA[
 //RecordDeclaration//RecordComponent/ClassType[(pmd-java:typeIs('java.util.Collection') or pmd-java:typeIs('java.util.Map'))
-    and not(../VariableId/@Name = ancestor::RecordDeclaration/RecordBody/CompactConstructorDeclaration
-        //AssignmentExpression[VariableAccess/@Name = .//MethodCall[@MethodName='copyOf']
-            /ArgumentList/VariableAccess/@Name]/VariableAccess/@Name)
+    and not(../VariableId/@Name = ancestor::RecordDeclaration/RecordBody/(CompactConstructorDeclaration|ConstructorDeclaration)
+        //AssignmentExpression[(VariableAccess|FieldAccess)/@Name = .//MethodCall[contains(lower-case(@MethodName), 'copyof')]
+            /ArgumentList//(VariableAccess|FieldAccess)/@Name]/(VariableAccess|FieldAccess)/@Name)
 ]/..
 ]]></value>
             </property>
@@ -1562,7 +1741,7 @@ record BadRecord(String name, List<String> list) {
 
 record GoodRecord(String name, List<String> list) {
     public GoodRecord {
-        list = List.copyOf(list);
+        list = list != null ? List.copyOf(list) : List.of();
     }
 }
             ]]>
@@ -1688,15 +1867,24 @@ public enum Fruit {
             <property name="xpath">
                 <value><![CDATA[
 (: check key type in declaration :)
-//VariableDeclarator/../ClassType[pmd-java:typeIs('java.util.Map')]
+//VariableDeclarator/../ClassType[pmd-java:typeIs('java.util.Map') and not(..//ConstructorCall[pmd-java:matchesSig('java.util.TreeMap#new(java.util.Comparator)')])]
 (: first type argument does not implement Comparable :)
-/TypeArguments/ClassType[1][not(pmd-java:typeIs('java.lang.Comparable'))]
+/TypeArguments/ClassType[1][not(pmd-java:typeIs('java.lang.Comparable')) ]
 ,
 (: for when key type is missing in declaration (old style), check Map.put :)
-//MethodCall[pmd-java:matchesSig('java.util.Map#put(_,_)')]
+//MethodCall[pmd-java:matchesSig('java.util.Map#put(_,_)') and not(
+                (: if Map is TreeMap constructed with a Comparator, it is also fine :)
+                ./VariableAccess/@Name = ancestor::ClassDeclaration//FieldDeclaration[
+                    .//ConstructorCall[pmd-java:matchesSig('java.util.TreeMap#new(java.util.Comparator)')]
+                ]/VariableDeclarator/VariableId/@Name)
+             ]
 (: first arg does not implement Comparable :)
 /ArgumentList/*[1][not(pmd-java:typeIs('java.lang.Comparable'))]
-               ]]></value>
+[not(pmd-java:typeIs('byte'))][not(pmd-java:typeIs('short'))]
+[not(pmd-java:typeIs('int'))][not(pmd-java:typeIs('long'))]
+[not(pmd-java:typeIs('float'))][not(pmd-java:typeIs('double'))]
+[not(pmd-java:typeIs('boolean'))][not(pmd-java:typeIs('char'))]
+                ]]></value>
             </property>
         </properties>
         <example>
@@ -1717,7 +1905,6 @@ public enum Fruit {
         oldStyleMap.put("key", "value");
     }
 }
-
             ]]>
         </example>
     </rule>
@@ -1743,9 +1930,13 @@ public enum Fruit {
 (: declared variable used in Set by-element access :)
 //VariableId[@Name = ancestor::ClassBody//MethodCall[@MethodName = ('contains','containsAll','remove','removeAll','retainAll')]/VariableAccess/@Name]
     (: for 3 ways defined as a Set :)
-    [(ancestor::FieldDeclaration|ancestor::LocalVariableDeclaration|ancestor::FormalParameter)/ClassType[pmd-java:typeIs('java.util.Set')]
+    [(ancestor::FieldDeclaration|ancestor::LocalVariableDeclaration|ancestor::FormalParameter)/ClassType[pmd-java:typeIs('java.util.Set')
+                                                                                                         (: not when Set constructed with Comparator :)
+                                                                                                          and not(..//ConstructorCall[pmd-java:matchesSig('java.util.TreeSet#new(java.util.Comparator)')])
+                                                                                                         ]
     (: element type does not implement Comparable :)
-    /TypeArguments/ClassType[not(pmd-java:typeIs('java.lang.Comparable'))]]/../..
+    /TypeArguments/ClassType[not(pmd-java:typeIs('java.lang.Comparable'))]
+]/../..
                ]]></value>
             </property>
         </properties>
@@ -1825,23 +2016,31 @@ class BufferFileStreaming {
           language="java"
           message="Files.newInputStream or Files.newOutputStream is not buffered, add buffering."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#isio06">
         <description>Problem: Files.newInputStream or Files.newOutputStream is not buffered.
             The stream is read from/written to file byte by byte, where each operating system call has its overhead which makes it slow.
             Solution: Use buffering to read/write a chunk of bytes at once with much lower overhead.
             Use e.g. BufferedInputStream or BufferedOutputStream which has a buffer size of 8 kB to read/write at once. Make sure to close it after use.
+            Note that IOUtils methods take care of buffering the inputStream.
         </description>
         <priority>3</priority>
         <properties>
             <property name="tags" value="cpu,io,jpinpoint-rule,performance,sustainability-high" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
-//MethodCall[TypeExpression[pmd-java:typeIs('java.nio.file.Files')]
-   and (@MethodName='newInputStream' and (not(ancestor::MethodDeclaration//ConstructorCall[pmd-java:typeIs('java.io.BufferedInputStream')]))
+//MethodCall[TypeExpression[pmd-java:typeIs('java.nio.file.Files')]]
+(: the following methods use a buffer with File[Input/Output]Stream read/write method implementation of [Input/Output]Stream :)
+[not(ancestor::MethodDeclaration//MethodCall[pmd-java:matchesSig('java.io.InputStream#transferTo(java.io.OutputStream)')
+    or pmd-java:matchesSig('java.io.InputStream#readAllBytes()')
+    or pmd-java:matchesSig('java.io.InputStream#readNBytes(int)')
+    or pmd-java:matchesSig('java.io.InputStream#read(byte[])')
+    or pmd-java:matchesSig('java.io.InputStream#read(byte[],int,int)')
+    or pmd-java:matchesSig('java.nio.file.Files#copy(_*)')
+    or pmd-java:matchesSig('org.apache.commons.io.IOUtils#copy(_*)')])]
+[(@MethodName='newInputStream' and (not(ancestor::MethodDeclaration//ConstructorCall[pmd-java:typeIs('java.io.BufferedInputStream') or pmd-java:typeIs('java.io.BufferedReader')]))
       and not(ancestor::MethodDeclaration//MethodCall[starts-with(@MethodName, 'read') and TypeExpression[pmd-java:typeIs('org.apache.commons.io.IOUtils')]])
-   or (@MethodName='newOutputStream' and not(ancestor::MethodDeclaration//ConstructorCall[pmd-java:typeIs('java.io.BufferedOutputStream')])))
-]
+  or (@MethodName='newOutputStream' and not(ancestor::MethodDeclaration//ConstructorCall[pmd-java:typeIs('java.io.BufferedOutputStream') or pmd-java:typeIs('java.io.BufferedWriter')])
+))]
                 ]]></value>
             </property>
         </properties>
@@ -1921,8 +2120,9 @@ class Good {
             <property name="xpath">
                 <value><![CDATA[
 //MethodDeclaration[@Name='equals' and FormalParameters/@Size=1 and @Static=false() and ModifierList/@ExplicitModifiers='public']
+/Block[not(not(.//FieldAccess) and count(descendant::MethodCall)=1 and .//MethodCall[pmd-java:matchesSig('java.lang.Object#equals(_)')]/SuperExpression)]
 /ancestor::ClassBody[1]//MethodDeclaration[@Name='hashCode' and FormalParameters/@Size=0 and @Static=false() and ModifierList/@ExplicitModifiers='public']
-/Block[count(descendant::MethodCall)=1][//MethodCall[pmd-java:matchesSig('java.lang.Object#hashCode()')]/SuperExpression]
+/Block[count(descendant::MethodCall)=1][.//MethodCall[pmd-java:matchesSig('java.lang.Object#hashCode()')]/SuperExpression]
                 ]]></value>
             </property>
         </properties>
@@ -2027,12 +2227,13 @@ class Foo {
         or pmd-java:hasAnnotation('org.springframework.boot.context.properties.ConfigurationProperties')
         or pmd-java:hasAnnotation('jakarta.persistence.Entity')
         or pmd-java:hasAnnotation('javax.persistence.Entity')
+        or pmd-java:typeIs('java.lang.Throwable')
         or (
             ./ClassBody/MethodDeclaration[@Name='equals' and @Arity=1 and ./PrimitiveType[@Kind='boolean']]
             and ./ClassBody/MethodDeclaration[@Name='hashCode' and @Arity=0 and ./PrimitiveType[@Kind='int']]
         )
     )
-]/ModifierList/Annotation
+]/ModifierList/Annotation[1]
                 ]]></value>
             </property>
             <property name="tags" value="jpinpoint-rule,correctness" type="String" description="classification"/>
@@ -2059,6 +2260,141 @@ class EqualsHashCodeWithGetterSetterOkay {
 class ValueGood {
     String field1;
     String field2;
+}
+            ]]>
+        </example>
+    </rule>
+
+    <rule name="AvoidInfiniteRecursion"
+          language="java"
+          message="Avoid recursive calls without a proper stop condition."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          externalInfoUrl="${doc_root}/JavaPerformance.md#ipf01">
+        <description>Problem: If a method calls itself (recursion), and it doesn't have a proper and guaranteed stop condition, it may become an infinite loop and result in an OutOfMemoryError or StackOverflowError, and high CPU usage.
+            Solution: Limit the number of recursive calls: use a counter to count up-to or down-from a maximum number of calls, for every recursive call, and stop when the maximum is reached. This maximum should not be a large number.
+            Or better yet, rewrite into iterations for better performance and avoiding errors.
+        </description>
+        <priority>1</priority>
+        <properties>
+            <property name="xpath">
+                <value><![CDATA[
+//MethodDeclaration[not(.//IfStatement[
+    ((.//UnaryExpression[@Operator=('++', '--')]|.//InfixExpression[@Operator=('+', '-')]/NumericLiteral[@ValueAsInt=1]|.//AssignmentExpression[@Operator=('+=', '-=')]/NumericLiteral[@ValueAsInt=1])
+    or .//MethodCall[contains(@MethodName,'crement')]/VariableAccess[pmd-java:typeIs('java.lang.Number')])
+    and .//InfixExpression[@Operator=('>', '>=','<', '<=')]
+(: same method name :)
+])]//MethodCall[@MethodName = ancestor::MethodDeclaration/@Name]
+(: only called on implicit or explicit this :)
+[(ArgumentList and count(*) = 1) or (ArgumentList and ThisExpression and count(*) = 2)]
+(: only if the number of parameters match: not an overloaded method with difference in numbers :)
+[ArgumentList/@Size = ancestor::MethodDeclaration/FormalParameters/@Size]
+(: not if any parameter is used in the call in another position :)
+[not((ArgumentList/*[self::VariableAccess and ((position() != index-of(ancestor::MethodDeclaration/FormalParameters/FormalParameter/VariableId/@Name, concat('', @Name))))]))]
+(: we check the first 3 arguments on type, which is complicated :)
+(: if the 1st parameter (if it exists) :)
+(: its name equals the name of the 1st argument of the called method :)
+[concat(ArgumentList/*[1]/@Name, '') = ancestor::MethodDeclaration/FormalParameters/FormalParameter[1]/VariableId/@Name
+    or ArgumentList/MethodCall/TypeExpression/ClassType/@SimpleName = ancestor::MethodDeclaration/FormalParameters/FormalParameter[1]/ClassType/@SimpleName
+    or ancestor::MethodDeclaration/FormalParameters[@Size = 0 or FormalParameter[1][(
+    (: or its classType is equal to the local var classtype :)
+    (ClassType/@SimpleName|PrimitiveType/@Kind) = ancestor::MethodDeclaration//LocalVariableDeclaration[
+        (: which name equals to the name of the 1st argument of the method call :)
+        .//VariableId/@Name = ancestor::MethodDeclaration//MethodCall[@MethodName = ancestor::MethodDeclaration/@Name]/ArgumentList/VariableAccess[1]/@Name
+    ][
+        (: and which classType is equal to the classtype of the first parameter :)
+        ((ClassType/@SimpleName|PrimitiveType/@Kind) = ancestor::MethodDeclaration/FormalParameters/FormalParameter[1]/(ClassType/@SimpleName|PrimitiveType/@Kind))
+    ]/(ClassType/@SimpleName|PrimitiveType/@Kind)
+    or
+    (: or its classType is equal to the field classtype :)
+    (ClassType/@SimpleName|PrimitiveType/@Kind) = ancestor::ClassBody//FieldDeclaration[
+        (: which name equals to the name of the 1st argument of the method call :)
+        .//VariableId/@Name = ..//MethodDeclaration//MethodCall[@MethodName = ancestor::MethodDeclaration/@Name]/ArgumentList/VariableAccess[1]/@Name
+    ][
+        (: and which classType is equal to the classtype of the first parameter :)
+        ((ClassType/@SimpleName|PrimitiveType/@Kind) = ..//MethodDeclaration/FormalParameters/FormalParameter[1]/(ClassType/@SimpleName|PrimitiveType/@Kind))
+    ]/(ClassType/@SimpleName|PrimitiveType/@Kind))
+]]]
+(: if the 2nd parameter (if it exists) :)
+[concat(ArgumentList/*[2]/@Name, '') = ancestor::MethodDeclaration/FormalParameters/FormalParameter[2]/VariableId/@Name
+    or ancestor::MethodDeclaration/FormalParameters[@Size <= 1 or FormalParameter[2][(
+    (: or its classType is equal to the local var classtype :)
+    (ClassType/@SimpleName|PrimitiveType/@Kind) = (ancestor::MethodDeclaration//LocalVariableDeclaration|ancestor::ClassBody//FieldDeclaration)[
+    (: which name equals to the name of the 2nd argument of the method call :)
+    .//VariableId/@Name = ancestor::MethodDeclaration//MethodCall[@MethodName = ancestor::MethodDeclaration/@Name]/ArgumentList/VariableAccess[2]/@Name][
+        (: and which classType is equal to the classtype of the 2nd parameter :)
+        ((ClassType/@SimpleName|PrimitiveType/@Kind) = ancestor::MethodDeclaration/FormalParameters/FormalParameter[2]/(ClassType/@SimpleName|PrimitiveType/@Kind))
+    ]/(ClassType/@SimpleName|PrimitiveType/@Kind)
+    or
+    (: or its classType is equal to the field classtype :)
+    (ClassType/@SimpleName|PrimitiveType/@Kind) = ancestor::ClassBody//FieldDeclaration[
+        (: which name equals to the name of the 2nd argument of the method call :)
+        .//VariableId/@Name = ..//MethodDeclaration//MethodCall[@MethodName = ancestor::MethodDeclaration/@Name]/ArgumentList/VariableAccess[2]/@Name
+    ][
+        (: and which classType is equal to the classtype of the 2nd parameter :)
+        ((ClassType/@SimpleName|PrimitiveType/@Kind) = ..//MethodDeclaration/FormalParameters/FormalParameter[2]/(ClassType/@SimpleName|PrimitiveType/@Kind))
+    ]/(ClassType/@SimpleName|PrimitiveType/@Kind))
+]]]
+(: if the 3rd parameter (if it exists) :)
+[concat(ArgumentList/*[3]/@Name, '') = ancestor::MethodDeclaration/FormalParameters/FormalParameter[3]/VariableId/@Name
+    or ancestor::MethodDeclaration/FormalParameters[@Size <= 2 or FormalParameter[3][(
+    (: or its classType is equal to the local var classtype :)
+    (ClassType/@SimpleName|PrimitiveType/@Kind) = (ancestor::MethodDeclaration//LocalVariableDeclaration|ancestor::ClassBody//FieldDeclaration)[
+    (: which name equals to the name of the 3rd argument of the method call :)
+    .//VariableId/@Name = ancestor::MethodDeclaration//MethodCall[@MethodName = ancestor::MethodDeclaration/@Name]/ArgumentList/VariableAccess[3]/@Name][
+        (: and which classType is equal to the classtype of the 3rd parameter :)
+        ((ClassType/@SimpleName|PrimitiveType/@Kind) = ancestor::MethodDeclaration/FormalParameters/FormalParameter[3]/(ClassType/@SimpleName|PrimitiveType/@Kind))
+    ]/(ClassType/@SimpleName|PrimitiveType/@Kind)
+    or
+    (: or its classType is equal to the field classtype :)
+    (ClassType/@SimpleName|PrimitiveType/@Kind) = ancestor::ClassBody//FieldDeclaration[
+        (: which name equals to the name of the 3rd argument of the method call :)
+        .//VariableId/@Name = ..//MethodDeclaration//MethodCall[@MethodName = ancestor::MethodDeclaration/@Name]/ArgumentList/VariableAccess[3]/@Name
+    ][
+        (: and which classType is equal to the classtype of the 3rd parameter :)
+        ((ClassType/@SimpleName|PrimitiveType/@Kind) = ..//MethodDeclaration/FormalParameters/FormalParameter[3]/(ClassType/@SimpleName|PrimitiveType/@Kind))
+    ]/(ClassType/@SimpleName|PrimitiveType/@Kind))
+]]]
+                ]]></value>
+            </property>
+            <property name="tags" value="cpu,jpinpoint-rule,memory,performance,pitfall,sustainability-medium" type="String" description="classification"/>
+        </properties>
+        <example>
+            <![CDATA[
+class InfiniteRecursionBad {
+    private void foo() {
+        boolean success = tryRemoteCall();
+        if (!success) {
+            delay(10, MILLISECONDS);
+            foo(); // bad
+        }
+    }
+}
+
+class FiniteRecursionGood {
+    private static final int MAX_ATTEMPTS = 5;
+
+    private void foo(int attemptsLeft) {
+        boolean success = tryRemoteCall();
+        if (!success && attemptsLeft > 0 ) {
+            delay(10, MILLISECONDS);
+            foo(--attemptsLeft);
+        }
+    }
+}
+
+class IterationsBetter {
+    private static final int MAX_ATTEMPTS = 5;
+
+    private void foo() {
+        int attempt = 0;
+        boolean success = false;
+        while (!success && attempt++ < MAX_ATTEMPTS) {
+            success = tryRemoteCall();
+            if (!success) {
+                delay(10, MILLISECONDS);
+            }
+        }
+    }
 }
             ]]>
         </example>

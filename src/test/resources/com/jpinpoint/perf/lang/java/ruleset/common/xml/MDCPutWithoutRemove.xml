@@ -156,4 +156,141 @@ public class TracingInterceptor extends HandlerInterceptorAdapter {
      ]]></code>
     </test-code>
 
+    <!--test-code>
+        <description>no violation: Issue 326, doFinally </description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import org.slf4j.MDC;
+import org.springframework.security.web.server.authentication.ServerAuthenticationConverter;
+import reactor.core.publisher.Mono;
+import org.springframework.web.server.ServerWebExchange;
+
+class Issue326 {
+        private static final String MDC_REQUEST_ID_KEY = "Request-id";
+        private final ServerAuthenticationConverter authenticationConverter;
+
+       public Mono<Void> filter(ServerWebExchange serverWebExchange) {
+            MDC.put(MDC_REQUEST_ID_KEY, "something"); // <- false positive
+            return authenticationConverter.convert(serverWebExchange)
+                   .doFinally(signalType -> MDC.remove(MDC_REQUEST_ID_KEY));
+        }
+        public Mono<Void> filter2(ServerWebExchange serverWebExchange) {
+            MDC.put(MDC_REQUEST_ID_KEY, "something"); // <- false positive
+            return authenticationConverter.convert(serverWebExchange)
+                   .doFinally(signalType -> MDC.clear());
+        }
+}
+     ]]></code>
+    </test-code-->
+
+    <test-code>
+        <description>3 violations: Issue 473: put in called method</description>
+        <expected-problems>3</expected-problems>
+        <expected-linenumbers>29,59,73</expected-linenumbers>
+        <code><![CDATA[
+import org.slf4j.MDC;
+
+class Issue473_a {
+    public void foo() {
+        try {
+            MDC.put("a-key", "a-value"); // ok
+            bar();
+        } finally {
+            MDC.remove("a-key");
+            MDC.remove("b-key");
+        }
+    }
+    private void bar() {
+        MDC.put("b-key", "b-value"); // <--- false positive
+    }
+}
+
+class Issue473_b {
+    public void foo() {
+        try {
+            MDC.put("a-key", "a-value"); // ok
+            bar();
+        } finally {
+            MDC.remove("a-key");
+            MDC.remove("b-key");
+        }
+    }
+    private void bar() {
+        MDC.put("b-key", "b-value"); // bad - because called from non-try-finally place
+    }
+    void baz() {
+        bar();
+    }
+}
+class Issue473_c {
+    public void foo() {
+        try {
+            MDC.put("a-key", "a-value"); // ok
+            bar();
+        } finally {
+            MDC.clear();
+        }
+    }
+    private void bar() {
+        MDC.put("b-key", "b-value"); // <--- false positive
+    }
+}
+class Issue473_d {
+    public void foo() {
+        try {
+            MDC.put("a-key", "a-value"); // ok
+            bar();
+        } finally {
+            MDC.remove("a-key");
+        }
+    }
+
+    private void bar() {
+        MDC.put("b-key", "b-value"); // bad, key not removed
+    }
+}
+class Issue473_e {
+    public void foo() {
+        try {
+            MDC.put("a-key", "a-value"); // ok
+            bar();
+        } finally {
+            MDC.clear();
+        }
+    }
+
+    public void bar() {
+        MDC.put("b-key", "b-value"); // bad, method public
+    }
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>no violation: Fix Request: MDCPutWithoutRemove false positive #518</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import org.slf4j.MDC;
+@Component
+@Aspect
+public class MDCServiceCallAspect {
+    private static final String KEY = "trace:service-call";
+
+    @Around("@annotation(MDCServiceCall) && execution(* *(..))")
+    public Object addMdcServiceCallVariables(ProceedingJoinPoint joinPoint) throws Throwable {
+        MDCServiceCall annotation = ((MethodSignature) joinPoint.getSignature()).getMethod().getAnnotation(MDCServiceCall.class);
+
+        if(!annotation.service().isBlank() && !annotation.operation().isBlank()) {
+            MDC.put(KEY, annotation.service() + " - " + annotation.operation()); // <- false positive
+        }
+
+        try {
+            return joinPoint.proceed();
+        } finally {
+            MDC.remove(KEY);
+        }
+    }
+}
+     ]]></code>
+    </test-code>
 </test-data>

@@ -40,5 +40,22 @@ class Good {
      ]]></code>
     </test-code>
 
+    <test-code>
+        <description>no violation: false positive Issue #425</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.http.client.ClientHttpRequestFactory;
+
+public class Issue425 {
+    private ClientHttpRequestFactory getClientHttpRequestFactory(HttpClientConfiguration httpClientConfiguration) {
+        HttpComponentsClientHttpRequestFactory httpComponentsClientHttpRequestFactory = new HttpComponentsClientHttpRequestFactory();
+        CloseableHttpClient httpClient = createHttpClient(httpClientConfiguration);
+        httpComponentsClientHttpRequestFactory.setHttpClient(httpClient); // <--- false positive
+        return httpComponentsClientHttpRequestFactory;
+    }
+}
+     ]]></code>
+    </test-code>
 
 </test-data>

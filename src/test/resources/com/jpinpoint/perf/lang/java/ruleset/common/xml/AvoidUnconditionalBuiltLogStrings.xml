@@ -312,4 +312,103 @@ public class MyProducer {
 ]]></code>
     </test-code>
 
+    <test-code>
+        <description>false positive in AvoidUnconditionalBuiltLogStrings #430</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+class Issue430 {
+    String bar() {
+        StringBuilder messageBuilder = new StringBuilder();
+        messageBuilder.append("-"); // <-- false positive
+
+        log.info("message: {}" , messageBuilder);
+
+        return messageBuilder.toString();
+    }
+}
+]]></code>
+    </test-code>
+
+    <test-code>
+        <description>false positive in AvoidUnconditionalBuiltLogStrings #455</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>20</expected-linenumbers>
+        <code><![CDATA[
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+class Issue455_Cond {
+    private String logBar() {
+        StringBuilder messageBuilder = new StringBuilder();
+        messageBuilder.append("-"); // <-- false positive
+        log.info("message: {}" , messageBuilder);
+    }
+    private void logCond() {
+        if (log.isDebugEnabled()) {
+            logBar();
+        }
+    }
+}
+@Slf4j
+class Issue455_UnCond {
+    private String logBar() {
+        StringBuilder messageBuilder = new StringBuilder();
+        messageBuilder.append("-");   // bad
+        log.info("message: {}" , messageBuilder);
+    }
+    private void logUnCond() {
+        logBar();
+    }
+}
+]]></code>
+    </test-code>
+
+    <test-code>
+        <description>AvoidUnconditionalBuiltLogStrings example</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>7</expected-linenumbers>
+        <code><![CDATA[
+import org.slf4j.Logger;
+class Foo {
+   private static final Logger LOG = new Logger();
+   public void bad(List values) {
+        var logLine = new StringBuilder();
+        for (String val : values) {
+            logLine.append(val + ", "); // bad
+        }
+        LOG.debug("log: {}.", logLine);
+    }
+    public void good(List values) {
+        if (LOG.isDebugEnabled()) {
+            var logLine = new StringBuilder();
+            for (String val : values) {
+                logLine.append(val + ", ");
+            }
+            LOG.debug("log: {}.", logLine);
+        }
+    }
+}
+]]></code>
+    </test-code>
+
+    <test-code>
+        <description>AvoidUnconditionalBuiltLogStrings false positive with conditional logging #557</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import lombok.extern.slf4j.Slf4j;
+@Slf4j
+public class Issue557 {
+    public void log() {
+        if (log.isInfoEnabled()) {
+            StringBuilder sb = new StringBuilder();
+            sb.append("a"); // <-- false positive
+            log.info("{}", sb);
+        }
+    }
+}
+]]></code>
+    </test-code>
 </test-data>

@@ -219,8 +219,8 @@ class Exporter {
    (
        (: -- GuardedBy annotations are matched on SimpleName, so it matches all known GuardedBy annotations :)
        (: -- net.jcip.annotations.GuardedBy, javax.annotation.concurrent.GuardedBy, com.google.errorprone.annotations.concurrent.GuardedBy :)
-       (: non-final, non-volatile and non-GuardedBy fields :)
-       @Name = ancestor::ClassBody//FieldDeclaration[
+       (: non-final, non-volatile and non-GuardedBy fields, of only the current class :)
+       @Name = ancestor::ClassBody[1]/FieldDeclaration[
                 not(pmd-java:modifiers() = ('final','volatile')
                 or ModifierList/Annotation[@SimpleName='GuardedBy'])
              ]//VariableId/@Name
@@ -236,8 +236,8 @@ class Exporter {
            (: var is not a param :)
            @Name = ancestor::MethodDeclaration//FormalParameter/VariableId/@Name
            or
-           (: var is not a final, volatile or GuardedBy field of current class :)
-           @Name = ancestor::ClassDeclaration//FieldDeclaration[
+           (: var is not a final, volatile or GuardedBy field of only the current class :)
+           @Name = ancestor::ClassBody[1]/FieldDeclaration[
                     pmd-java:modifiers() = ('final','volatile')
                     or ModifierList/Annotation[@SimpleName='GuardedBy']
                  ]//VariableId/@Name
@@ -248,6 +248,8 @@ class Exporter {
              )
        )
      )
+     (: not in static inner class :)
+     and not (ancestor::ClassDeclaration[@Nested=true() and @Static=true()])
      (: field not on accessor method with assignment, annotated with framework annotation :)
      and not(
           ancestor::MethodDeclaration[
@@ -563,9 +565,10 @@ class BadMutebleTypes {
     (: not a field of this class, no param or local :)
     and ./VariableAccess[
                 not (@Name = ancestor::ClassDeclaration//FieldDeclaration/VariableDeclarator/VariableId/@Name
-                  or @Name = ancestor::Block/LocalVariableDeclaration/VariableDeclarator/VariableId/@Name
+                  or @Name = (ancestor::MethodDeclaration|ancestor::ConstructorDeclaration)//LocalVariableDeclaration/VariableDeclarator/VariableId/@Name
                   or @Name = (ancestor::MethodDeclaration|ancestor::ConstructorDeclaration)//FormalParameter/VariableId/@Name
                   or @Name = ancestor::CatchClause/CatchParameter/VariableId/@Name
+                  or @Name = ancestor::LambdaExpression//LambdaParameter/VariableId/@Name
                 )]
     (: not synchronized :)
     and not (ancestor::SynchronizedStatement or ancestor::MethodDeclaration[pmd-java:modifiers()='synchronized'])
@@ -970,43 +973,35 @@ public class Good {
    (: used in a class with guarded-by literal *IS NOT* a field (should be private final) :)
    @Name = ancestor::ClassDeclaration//FieldDeclaration[
         ModifierList/Annotation[@SimpleName='GuardedBy']//MemberValuePair/StringLiteral[
-             not(@ConstValue = ancestor::ClassDeclaration//FieldDeclaration/VariableDeclarator/VariableId/@Name)]
+             not(@ConstValue = 'this' or @ConstValue = ancestor::ClassDeclaration//FieldDeclaration/VariableDeclarator/VariableId/@Name)]
           ]/VariableDeclarator/VariableId/@Name
-    (: synchronized statement with 'this' has matching GuardedBy with String literal 'this' :)
-    and not (ancestor::SynchronizedStatement/ThisExpression[
-        ancestor::ClassDeclaration//FieldDeclaration//Annotation[@SimpleName='GuardedBy' and .//StringLiteral[@ConstValue='this']]
-    ])
-    (: synchronized method (non static?) has matching GuardedBy with String literal 'this' :)
-    and not (ancestor::MethodDeclaration[pmd-java:modifiers()='synchronized'][
-        ancestor::ClassDeclaration//FieldDeclaration//Annotation[@SimpleName='GuardedBy' and .//StringLiteral[@ConstValue='this']]
-    ])
 ]
              ]]></value>
                 </property>
             </properties>
             <example>
                 <![CDATA[
-        class Bad1 {
-            private final Object LOCK = new Object();
-            @GuardedBy("LOCK")
-            private String txt;
+class Bad1 {
+    private final Object LOCK = new Object();
+    @GuardedBy("LOCK")
+    private String txt;
 
-            public String getText() { return txt; } // bad
-            public synchronized void setText(String t) { txt = t; } // bad
-        }
+    public String getText() { return txt; } // bad
+    public synchronized void setText(String t) { txt = t; } // bad
+}
 
-        class Good1 {
-            private final Object LOCK = new Object();
-            @GuardedBy("LOCK")
-            private String txt;
+class Good1 {
+    private final Object LOCK = new Object();
+    @GuardedBy("LOCK")
+    private String txt;
 
-            public String getText() {
-                synchronized(LOCK) { return txt; }
-            }
-            public void setText(String t) {
-                synchronized(LOCK) { txt = t; }
-            }
-        }
+    public String getText() {
+        synchronized(LOCK) { return txt; }
+    }
+    public void setText(String t) {
+        synchronized(LOCK) { txt = t; }
+    }
+}
                 ]]>
             </example>
         </rule>
@@ -1039,16 +1034,16 @@ public class Good {
             </properties>
             <example>
                 <![CDATA[
-     public class Bad {
-        private static final DocumentBuilderFactory DB_FACTORY = DocumentBuilderFactory.newInstance(); // shared, bad
-     }
+ public class Bad {
+    private static final DocumentBuilderFactory DB_FACTORY = DocumentBuilderFactory.newInstance(); // shared, bad
+ }
 
-     public class Good {
-        public build() {
-            DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance(); // local var, good
-            // use dbFactory
-        }
-     }
+ public class Good {
+    public build() {
+        DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance(); // local var, good
+        // use dbFactory
+    }
+ }
                 ]]>
             </example>
         </rule>
@@ -1065,7 +1060,7 @@ public class Good {
 //(
    AssignmentExpression[@Operator='+=' or @Operator='-=']/*[1]
      |
-   UnaryExpression/(VariableAccess|FieldAccess)
+   UnaryExpression[@Operator='++' or @Operator='--']/(VariableAccess|FieldAccess)
   )[
       @Name = ancestor::ClassDeclaration//FieldDeclaration[pmd-java:modifiers()='volatile']/VariableDeclarator/VariableId/@Name
    ]
@@ -1075,22 +1070,22 @@ public class Good {
             </properties>
             <example>
                 <![CDATA[
-     public class Foo {
-        private volatile int i;
-        private volatile String str = "";
+ public class Foo {
+    private volatile int i;
+    private volatile String str = "";
 
-        public int bad() {
-            i++; // bad
-            - -i; // bad
-            i += 1; // bad
-            str += "a"; // bad
-        }
-        public int good(int v) {
-            i = 5; // good
-            i = v + 5; // good
-            str = "other"; // good
-        }
+    public int bad() {
+        i++; // bad
+        - -i; // bad
+        i += 1; // bad
+        str += "a"; // bad
     }
+    public int good(int v) {
+        i = 5; // good
+        i = v + 5; // good
+        str = "other"; // good
+    }
+}
                 ]]>
             </example>
         </rule>
@@ -1118,17 +1113,17 @@ public class Good {
             </properties>
             <example>
                 <![CDATA[
-    @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-    @Component
-    class Bad {
-        private volatile String id;
-    }
+@Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+@Component
+class Bad {
+    private volatile String id;
+}
 
-    @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-    @Component
-    class Good {
-        private String id;
-    }
+@Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+@Component
+class Good {
+    private String id;
+}
                 ]]>
             </example>
         </rule>
@@ -1150,31 +1145,32 @@ public class Good {
             </properties>
             <example>
                 <![CDATA[
-    public class Foo {
-        private Map<String, String> mapField;
+public class Foo {
+    private Map<String, String> mapField;
 
-        protected Map<String, String> bad() {
-          Map<String, String> addHeaders = MDC.getCopyOfContextMap();
+    protected Map<String, String> bad() {
+      Map<String, String> addHeaders = MDC.getCopyOfContextMap();
 
-          synchronized (this) { // bad
-              if (addHeaders == null) {
-                  addHeaders = new HashMap<>();
-              }
+      synchronized (this) { // bad
+          if (addHeaders == null) {
+              addHeaders = new HashMap<>();
           }
-          return addHeaders;
-        }
+      }
+      return addHeaders;
+    }
 
-      protected Map<String, String> good() {
-          Map<String, String> addHeaders = MDC.getCopyOfContextMap();
+    protected Map<String, String> good() {
+      Map<String, String> addHeaders = MDC.getCopyOfContextMap();
 
-          synchronized (this) {
-              if (mapField == null) {
-                  mapField = new HashMap<>();
-                  addHeaders = new HashMap<>();
-              }
+      synchronized (this) {
+          if (mapField == null) {
+              mapField = new HashMap<>();
+              addHeaders = new HashMap<>();
           }
-          return addHeaders;
-        }
+      }
+      return addHeaders;
+    }
+}
                 ]]>
             </example>
         </rule>
@@ -1210,28 +1206,28 @@ public class Good {
             </properties>
             <example>
                 <![CDATA[
-        private List<Order> getOrdersBad(List<CompletableFuture<Order>> getOrdersFutures) {
+private List<Order> getOrdersBad(List<CompletableFuture<Order>> getOrdersFutures) {
 
-            List<Order> orders = getOrdersFutures.stream()
-                .map(CompletableFuture::join) // bad, NO timeout provided above
-                .collect(Collectors.toList());
-            return orders;
-        }
+    List<Order> orders = getOrdersFutures.stream()
+        .map(CompletableFuture::join) // bad, NO timeout provided above
+        .collect(Collectors.toList());
+    return orders;
+}
 
-        private List<Order> getOrdersGood(List<CompletableFuture<Order>> getOrdersFutures) {
-            // added to deal with timeout
-            CompletableFuture<Void> allFuturesResult = CompletableFuture.allOf(getOrdersFutures.toArray(new CompletableFuture[getOrdersFutures.size()]));
-            try {
-                allFuturesResult.get(5L, TimeUnit.SECONDS); // good
-            } catch (Exception e) { // should make explicit Exceptions
-                //log error
-            }
-            List<Order> orders = getOrdersFutures.stream()
-                    .filter(future -> future.isDone() && !future.isCompletedExceptionally()) // keep only the ones completed - - added to deal with timeout
-                    .map(CompletableFuture::join) // good, timeout provided above
-                    .collect(Collectors.toList());
-            return orders;
-        }
+private List<Order> getOrdersGood(List<CompletableFuture<Order>> getOrdersFutures) {
+    // added to deal with timeout
+    CompletableFuture<Void> allFuturesResult = CompletableFuture.allOf(getOrdersFutures.toArray(new CompletableFuture[getOrdersFutures.size()]));
+    try {
+        allFuturesResult.get(5L, TimeUnit.SECONDS); // good
+    } catch (Exception e) { // should make explicit Exceptions
+        //log error
+    }
+    List<Order> orders = getOrdersFutures.stream()
+            .filter(future -> future.isDone() && !future.isCompletedExceptionally()) // keep only the ones completed - - added to deal with timeout
+            .map(CompletableFuture::join) // good, timeout provided above
+            .collect(Collectors.toList());
+    return orders;
+}
                 ]]>
             </example>
         </rule>
@@ -1258,21 +1254,21 @@ public class Good {
             </properties>
             <example>
                 <![CDATA[
-    public class Foo {
-        private final ExecutorService asyncPool = Executors.newFixedThreadPool(8);
+public class Foo {
+    private final ExecutorService asyncPool = Executors.newFixedThreadPool(8);
 
-        void bad() {
-            CompletableFuture<Pair<String, Boolean>>[] futures = accounts.stream()
-             .map(account -> CompletableFuture.supplyAsync(() -> isAccountBlocked(account))) // bad
-             .toArray(CompletableFuture[]::new);
-        }
-
-        void good() {
-            CompletableFuture<Pair<String, Boolean>>[] futures = accounts.stream()
-             .map(account -> CompletableFuture.supplyAsync(() -> isAccountBlocked(account), asyncPool)) // good
-             .toArray(CompletableFuture[]::new);
-        }
+    void bad() {
+        CompletableFuture<Pair<String, Boolean>>[] futures = accounts.stream()
+         .map(account -> CompletableFuture.supplyAsync(() -> isAccountBlocked(account))) // bad
+         .toArray(CompletableFuture[]::new);
     }
+
+    void good() {
+        CompletableFuture<Pair<String, Boolean>>[] futures = accounts.stream()
+         .map(account -> CompletableFuture.supplyAsync(() -> isAccountBlocked(account), asyncPool)) // good
+         .toArray(CompletableFuture[]::new);
+    }
+}
     ]]>
             </example>
         </rule>
@@ -1301,38 +1297,38 @@ public class Good {
             </properties>
             <example>
                 <![CDATA[
-    import java.util.concurrent.*;
-    import java.util.stream.*;
-    import java.util.*;
-    import org.springframework.web.client.RestTemplate;
+import java.util.concurrent.*;
+import java.util.stream.*;
+import java.util.*;
+import org.springframework.web.client.RestTemplate;
 
-    public class Foo {
-        final List<String> list = new ArrayList();
-        final ForkJoinPool myFjPool = new ForkJoinPool(10);
-        final ExecutorService myExePool = Executors.newFixedThreadPool(10);
+public class Foo {
+    final List<String> list = new ArrayList();
+    final ForkJoinPool myFjPool = new ForkJoinPool(10);
+    final ExecutorService myExePool = Executors.newFixedThreadPool(10);
 
-        void bad1() {
-            list.parallelStream().forEach(elem -> storeDataRemoteCall(elem)); // bad
-        }
-
-        void good1() {
-            CompletableFuture[] futures = list.stream().map(elem -> CompletableFuture.supplyAsync(() -> storeDataRemoteCall(elem), myExePool))
-                    .toArray(CompletableFuture[]::new);
-            CompletableFuture.allOf(futures).get(10, TimeUnit.MILLISECONDS));
-        }
-
-        void good2() throws ExecutionException, InterruptedException {
-            myFjPool.submit(() ->
-                    list.parallelStream().forEach(elem -> storeDataRemoteCall(elem))
-            ).get();
-        }
-
-        String storeDataRemoteCall(String elem) {
-            // do remote call, blocking. We don't use the returned value.
-            RestTemplate tmpl;
-            return "";
-        }
+    void bad1() {
+        list.parallelStream().forEach(elem -> storeDataRemoteCall(elem)); // bad
     }
+
+    void good1() {
+        CompletableFuture[] futures = list.stream().map(elem -> CompletableFuture.supplyAsync(() -> storeDataRemoteCall(elem), myExePool))
+                .toArray(CompletableFuture[]::new);
+        CompletableFuture.allOf(futures).get(10, TimeUnit.MILLISECONDS));
+    }
+
+    void good2() throws ExecutionException, InterruptedException {
+        myFjPool.submit(() ->
+                list.parallelStream().forEach(elem -> storeDataRemoteCall(elem))
+        ).get();
+    }
+
+    String storeDataRemoteCall(String elem) {
+        // do remote call, blocking. We don't use the returned value.
+        RestTemplate tmpl;
+        return "";
+    }
+}
     ]]>
             </example>
         </rule>
@@ -1387,41 +1383,40 @@ public class Good {
             </properties>
             <example>
                 <![CDATA[
-    @Component
-    @Data
-    public class VMRData {
-        private String channel;
-        private String vmrId;
-        private List<OrderDetails> orderList; // bad
-        private Headers headers;
-        private List<OrderReference> ordersRequiringAdditionalSignature;
-        private String authUser; // bad
-        private String executionDate;
-        private String minimumLevel;
-        private String sessionId; // bad
-        private String payloadData;
-        private String vmrUserId; // bad
-        private String userref; // bad
-        private String customerReference; // bad
-        private String contract; // bad
-    }
+@Component
+@Data
+public class VMRData {
+    private String channel;
+    private String vmrId;
+    private List<OrderDetails> orderList; // bad
+    private Headers headers;
+    private List<OrderReference> ordersRequiringAdditionalSignature;
+    private String authUser; // bad
+    private String executionDate;
+    private String minimumLevel;
+    private String sessionId; // bad
+    private String payloadData;
+    private String vmrUserId; // bad
+    private String userref; // bad
+    private String customerReference; // bad
+    private String contract; // bad
+}
 
-    @Component
-    @Setter
-    @Getter
-     class VMROrderDetails {
-        private static final String DESC_OF_ORDER = "order details"; // ok
-        private final VMROrderDetails finalOrder = new VMROrderDetails(); // ok
-        private OrderReference orderReference; // bad
-        private Account originatorAccount; // bad
-        private Amount amount;
-        private String action;
-        private List<CancellationHistory> cancellationHistories;
-        private String modifyType;
-        private String order; // bad
-        private String transactionRef; // bad
-    }
-
+@Component
+@Setter
+@Getter
+ class VMROrderDetails {
+    private static final String DESC_OF_ORDER = "order details"; // ok
+    private final VMROrderDetails finalOrder = new VMROrderDetails(); // ok
+    private OrderReference orderReference; // bad
+    private Account originatorAccount; // bad
+    private Amount amount;
+    private String action;
+    private List<CancellationHistory> cancellationHistories;
+    private String modifyType;
+    private String order; // bad
+    private String transactionRef; // bad
+}
     ]]>
             </example>
         </rule>
@@ -1430,14 +1425,14 @@ public class Good {
               message="Beware: parallelStream with the common pool is rarely a good choice."
               typeResolution="true"
               externalInfoUrl="${doc_root}/JavaCodePerformance.md#ia11">
-            <description>Problem: Collection.parallelStream uses the common pool, with #threads = #CPUs - 1. It is designed to distribute much CPU work over the cores. It is not for remote calls or other blocking calls.
-                In addition, parallelizing has overhead and risks, should only be used for much pure CPU processing.&#13;
+            <description>Problem: Collection.parallelStream uses the common pool, with #threads = #CPUs - 1. It is designed to distribute much CPU work over the cores. It is not designed for remote calls or other blocking calls.
+                In addition, parallelizing has CPU overhead and concurrency risks. It should only be used for much pure CPU processing, e.g. on collections with > 10.000 elements.&#13;
                 Solution: For remote/blocking calls: Use a dedicated thread pool with enough threads to get proper parallelism independent of the number of cores.
-                For pure CPU processing: use ordinary sequential streaming unless the work takes more than about 0,1 ms in sequential form and proves to be faster with parallelization.
+                For pure CPU processing: use ordinary sequential streaming unless the work takes more than about 0,1 ms in sequential form and proves to be faster with parallelization by measuring.
                 So only for large collections and much processing without having to wait.   (jpinpoint-rules)</description>
             <priority>2</priority>
             <properties>
-                <property name="tags" value="cpu,jpinpoint-rule,multi-threading,performance,sustainability-low,unpredictable" type="String" description="classification"/>
+                <property name="tags" value="cpu,jpinpoint-rule,multi-threading,performance,sustainability-medium,unpredictable" type="String" description="classification"/>
                 <property name="xpath">
                     <value><![CDATA[
 //MethodCall[
@@ -1452,50 +1447,50 @@ public class Good {
                 </property>
             </properties>
             <example>
-                <![CDATA[
-    import java.util.*;
-    import java.util.concurrent.*;
-    import java.util.stream.*;
+            <![CDATA[
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.stream.*;
 
-    public class Foo {
-        final Map<String, String> map = new HashMap();
-        final List<String> list = new ArrayList();
-        final List<String> hugeList = new ArrayList(); //1000+ elements
-        final ForkJoinPool myFjPool = new ForkJoinPool(10);
-        final ExecutorService myExePool = Executors.newFixedThreadPool(10);
+public class Foo {
+    final Map<String, String> map = new HashMap();
+    final List<String> list = new ArrayList();
+    final List<String> hugeList = new ArrayList(); //1000+ elements
+    final ForkJoinPool myFjPool = new ForkJoinPool(10);
+    final ExecutorService myExePool = Executors.newFixedThreadPool(10);
 
-        void bad1() {
-            list.parallelStream().forEach(elem -> someCall(elem)); // bad
-        }
-        void bad2() {
-            map.entrySet().parallelStream().forEach(entry -> someCall(entry.getValue())); // bad
-        }
-        void exceptionalProperUse() {
-           hugeList.parallelStream().forEach(elem -> heavyCalculations(elem)); // flagged but may be good, should suppress when proven to be faster than sequential form
-        }
-
-        void good1() {
-            CompletableFuture[] futures = list.stream().map(elem -> CompletableFuture.supplyAsync(() -> someCall(elem), myExePool))
-                    .toArray(CompletableFuture[]::new);
-            CompletableFuture.allOf(futures).get(3, TimeUnit.SECONDS);
-        }
-        void good2() throws ExecutionException, InterruptedException {
-            myFjPool.submit(() ->
-                    list.parallelStream().forEach(elem -> someCall(elem))
-            ).get();
-        }
-
-        String someCall(String elem) {
-            // do some call, don't know if remote or blocking. We don't use the returned value.
-            return "";
-        }
-
-        String heavyCalculations(String elem) {
-            // calculate a lot
-            return "";
-        }
+    void bad1() {
+        list.parallelStream().forEach(elem -> someCall(elem)); // bad
     }
-    ]]>
+    void bad2() {
+        map.entrySet().parallelStream().forEach(entry -> someCall(entry.getValue())); // bad
+    }
+    void exceptionalProperUse() {
+       hugeList.parallelStream().forEach(elem -> heavyCalculations(elem)); // flagged but may be good, should suppress when proven to be faster than sequential form
+    }
+
+    void good1() {
+        CompletableFuture[] futures = list.stream().map(elem -> CompletableFuture.supplyAsync(() -> someCall(elem), myExePool))
+                .toArray(CompletableFuture[]::new);
+        CompletableFuture.allOf(futures).get(3, TimeUnit.SECONDS);
+    }
+    void good2() throws ExecutionException, InterruptedException {
+        myFjPool.submit(() ->
+                list.parallelStream().forEach(elem -> someCall(elem))
+        ).get();
+    }
+
+    String someCall(String elem) {
+        // do some call, don't know if remote or blocking. We don't use the returned value.
+        return "";
+    }
+
+    String heavyCalculations(String elem) {
+        // calculate a lot
+        return "";
+    }
+}
+]]>
             </example>
         </rule>
 
@@ -1517,32 +1512,30 @@ public class Good {
                 <property name="tags" value="bad-practice,cpu,jpinpoint-rule,multi-threading,performance,sustainability-low" type="String" description="classification"/>
                 <property name="xpath">
                     <value><![CDATA[
-//MethodCall[pmd-java:matchesSig('reactor.core.publisher.Flux#parallel(_)') and ./MethodCall[pmd-java:matchesSig('reactor.core.publisher.Flux#fromIterable(_)')]]
+//MethodCall[pmd-java:matchesSig('reactor.core.publisher.Flux#parallel(_*)') and ./MethodCall[pmd-java:matchesSig('reactor.core.publisher.Flux#fromIterable(_)')]]
                     ]]></value>
                 </property>
             </properties>
-            <example>
-                <![CDATA[
-    import reactor.core.publisher.*;
+            <example><![CDATA[
+import reactor.core.publisher.*;
 
-    class FooBad {
-        public Flux<Account> getResponseAccounts(List<AccountKey> accountKeys, List<FieldName> requestedFields) {
-            return Flux.fromIterable(accountKeys)
-                    .parallel(schedulerProperties.getParallelism()) //bad
-                    .runOn(scheduler)
-                    .flatMap(accountKey -> constructAccountDetails(accountKey, requestedFields))
-                    .sequential();
-        }
+class FooBad {
+    public Flux<Account> getResponseAccounts(List<AccountKey> accountKeys, List<FieldName> requestedFields) {
+        return Flux.fromIterable(accountKeys)
+                .parallel(schedulerProperties.getParallelism()) //bad
+                .runOn(scheduler)
+                .flatMap(accountKey -> constructAccountDetails(accountKey, requestedFields))
+                .sequential();
     }
+}
 
-    class FooGood {
-        public Flux<Account> getResponseAccounts(List<AccountKey> accountKeys, List<FieldName> requestedFields) {
-            return Flux.fromIterable(accountKeys)
-                    .flatMap(accountKey -> constructAccountDetails(accountKey, requestedFields));
-        }
+class FooGood {
+    public Flux<Account> getResponseAccounts(List<AccountKey> accountKeys, List<FieldName> requestedFields) {
+        return Flux.fromIterable(accountKeys)
+                .flatMap(accountKey -> constructAccountDetails(accountKey, requestedFields));
     }
-                ]]>
-            </example>
+}
+            ]]></example>
         </rule>
 
         <rule name="AvoidMDCInReactor"
@@ -1581,31 +1574,31 @@ public class Good {
             </properties>
             <example>
                 <![CDATA[
-    import reactor.core.publisher.*;
-    import reactor.util.context.Context;
-    import org.slf4j.MDC;
-    import net.logstash.logback.argument.StructuredArguments;
+import reactor.core.publisher.*;
+import reactor.util.context.Context;
+import org.slf4j.MDC;
+import net.logstash.logback.argument.StructuredArguments;
 
-    class FooBad {
-      public Flux<ServerResponse> doIt(Map<String,String> contextMap) {
-          return Flux.fromIterable(service.doWork())
-              .doOnNext(s -> MDC.setContextMap(contextMap))
-              .doOnNext(
-                  response -> {
-                      log.info("your log"); // includes trace ids from MDC, put in a ServletFilter, specified by log configuration
-              });
-          }
-    }
+class FooBad {
+  public Flux<ServerResponse> doIt(Map<String,String> contextMap) {
+      return Flux.fromIterable(service.doWork())
+          .doOnNext(s -> MDC.setContextMap(contextMap))
+          .doOnNext(
+              response -> {
+                  log.info("your log"); // includes trace ids from MDC, put in a ServletFilter, specified by log configuration
+          });
+      }
+}
 
-    class FooGood {
-        public Flux<ServerResponse> doIt() {
-            // using deferContextual gives access to the read-only ContextView created in the ContextFilter
-            return Flux.deferContextual(contextView -> service.doWork()
-                .doOnNext(response -> {
-                    log.info("your log", StructuredArguments.entries((Map)contextView));
-                }));
-        }
+class FooGood {
+    public Flux<ServerResponse> doIt() {
+        // using deferContextual gives access to the read-only ContextView created in the ContextFilter
+        return Flux.deferContextual(contextView -> service.doWork()
+            .doOnNext(response -> {
+                log.info("your log", StructuredArguments.entries((Map)contextView));
+            }));
     }
+}
                 ]]>
             </example>
         </rule>
@@ -1678,4 +1671,66 @@ class Foo {
                 ]]></example>
         </rule>
 
+    <rule name="AvoidMutableCollectionInParallelStreamForEach"
+          message="Avoid using a mutable collection in a parallel stream forEach, it is a concurrency bug."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          language="java"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ia15">
+        <description>Problem: If a thread-unsafe collection is mutated in a parallelStream, this means that multiple threads access an unguarded shared variable which can cause data corruption and
+            visibility problems: a concurrency bug.&#13;
+            Solution: Using a thread-safe collection would fix the bug, however, the proper solution is to only use forEach for reporting/logging and let streams not have side effects.
+            Moreover, parallelization is only faster in the exceptional case with large collections and much CPU work per element. Always measure if really faster.(jpinpoint-rules)</description>
+        <priority>1</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,multi-threading,performance,pitfall" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+(: should match java.lang.Stream#forEach(java.util.function.Consumer) but also others like java.util.stream.IntStream#forEach(java.util.function.IntConsumer) :)
+//MethodCall[pmd-java:matchesSig('java.util.stream.BaseStream#forEach(_)')][.//MethodCall[@MethodName='parallel' or @MethodName='parallelStream']]
+[ArgumentList[
+    .//(LambdaExpression|MethodReference)[
+        (: a constructor of a thread-unsafe collection/map :)
+        .//VariableAccess/@Name = (ancestor::MethodDeclaration//LocalVariableDeclaration|ancestor::ClassBody/FieldDeclaration)/VariableDeclarator[
+            ConstructorCall[pmd-java:typeIs('java.util.ArrayList')]
+            or ConstructorCall[pmd-java:typeIs('java.util.HashMap')]
+            or ConstructorCall[pmd-java:typeIs('java.util.HashSet')]
+            or ConstructorCall[pmd-java:typeIs('java.util.LinkedList')]
+            or ConstructorCall[pmd-java:typeIs('java.util.TreeMap')]
+            or ConstructorCall[pmd-java:typeIs('java.util.TreeSet')]
+            or ConstructorCall[pmd-java:typeIs('java.util.EnumMap')]
+            or ConstructorCall[pmd-java:typeIs('java.util.ArrayDeque')]
+            or ConstructorCall[pmd-java:typeIs('java.util.PriorityQueue')]
+            or ArrayAllocation
+        ]/(VariableId|VariableAccess)/@Name]
+    ]
+]
+                ]]></value>
+            </property>
+        </properties>
+        <example><![CDATA[
+class AvoidMutableCollectionInParallelStreamForEach {
+
+    static List<String> names = List.of("Dory", "Gill", "Bruce", "Nemo", "Darla", "Marlin", "Jacques");
+    List<String> inUppercaseField = new ArrayList<>();
+
+    public static void main(String[] args) {
+        List<String> inUppercase = new ArrayList<>();
+
+        names.parallelStream().map(String::toUpperCase).forEach(name -> inUppercase.add(name)); // bad
+
+        System.out.println(names.size()); // 7
+        System.out.println(inUppercase.size()); // sometimes 6! As Venkat's demo!
+    }
+
+    public void noBug() {
+        List<String> inUppercase = Collections.synchronizedList(new ArrayList<>()); // thread-safe collection
+        names.parallelStream().map(String::toUpperCase).forEach(name -> inUppercase.add(name));
+    }
+
+    public void good() {
+        // pure functional form, proper solution. Note parallel may be faster, yet only with large collections. Always measure!
+        List<String> inUppercase = names.parallelStream().map(String::toUpperCase).toList(); // java 12+
+    }
+                ]]></example>
+    </rule>
 </ruleset>

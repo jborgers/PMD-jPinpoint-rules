@@ -439,7 +439,7 @@ class RetrieveCache {
 2. connectionRequestTimeout is for requesting a connection from the connection manager, which should be almost as quick, say below 250 ms.   
 
 If timeouts are long, requests will wait long for an unavailable service and cause high thread usage and possibly overload.   
-**Solution:** Set connectTimeout and connectionRequestTimeout to values based on network tests, for instance 200 ms and 250 ms. respectively.
+**Solution:** Set connectTimeout and connectionRequestTimeout to values based on network tests, for instance 200 ms and 250 ms. respectively.   
 **Rule name:** HttpClientImproperConnectionTimeouts    
 **Example:**
 ```java
@@ -550,6 +550,37 @@ class Good {
 }
 ```
 **See:** [IUOXAR09: XML related `XXXFactory.newInstance()` is called repeatedly.](JavaCodePerformance.md#IUOXAR09)   
+
+#### IBI24
+**Observation: HttpRoute is constructed without specifying the secure argument.**   
+**Problem:** For Apache HttpRoute, if you don't specify whether the route is secure, the default of non-secure is taken. This is unclear. If you use it to configure a connection manager for that route, and the actual route is secure,
+the key does not match, and the intended configuration will not be effectuated. Then, the default number of connections (2 for Http-Client version 4, and 5 for version 5) will be used which may cause requests to wait long for a connection to become available (without a proper timeout) resulting in bad responsiveness.   
+**Solution:** Always specify in the constructor whether the route is secure (true) or not (false) to make it clear.   
+**Note:** Covers Apache Http-Client 4 and 5.    
+**Rule name:** AvoidUnclearHttpRouteSecurity   
+**Example:**
+```java
+import org.apache.http.HttpHost;
+import org.apache.http.conn.routing.HttpRoute;
+import java.net.URL;
+
+public class Foo {
+  void bar() {
+    for (Route route : connectionProperties.routes()) {
+      URL url = new URL(route.host());
+      HttpHost httpHost = new HttpHost("https", url.getHost(), getPort(url));
+      HttpRoute httpRouteBad1 = new HttpRoute(httpHost); // bad
+      HttpRoute httpRouteBad2 = new HttpRoute(httpHost, null); // bad
+      final boolean secure = true;
+      HttpRoute httpRouteGood = new HttpRoute(httpHost, null, secure); // good
+      connectionManager.setMaxPerRoute(httpRouteGood, route.maxConnections());
+    }
+  }
+}
+```
+**See:** [HttpRoute v4](https://www.javadoc.io/static/org.apache.httpcomponents/httpclient/4.3.3/org/apache/http/conn/routing/HttpRoute.html) and
+[HttpRoute v5](https://hc.apache.org/httpcomponents-client-5.4.x/current/apidocs/org/apache/hc/client5/http/HttpRoute.html)
+
 
 Improper asynchrony
 -------------------
@@ -1619,7 +1650,7 @@ Better is using and sharing ObjectReaders and ObjectWriters created from ObjectM
 **Helpful:** Only configure objectMappers when initializing: right after construction, in one thread.   
 **Solution:** Create configured ObjectReaders and ObjectWriters from ObjectMapper and share those as field, since they are immutable and therefore guaranteed to be thread-safe.  
 **Exceptions:** A convertValue method is not provided by Reader/Writer, therefore use of an ObjectMapper as field cannot easily be avoided in this case. The AvoidObjectMapperAsField rule is not applied.
-Also when used like jaxMsgConverter.setObjectMapper(objectMapper) it is not considered a violation.    
+Also when used like jaxMsgConverter.setObjectMapper(objectMapper) it is not considered a violation. And, when the class implements ContextResolver&lt;ObjectMapper&gt;.    
 **Rule names:** AvoidObjectMapperAsField, AvoidModifyingObjectMapper   
 **Example:**   
 ```java
@@ -2049,7 +2080,8 @@ class BufferFileStreaming {
 **Observation: No buffering is added to the use of Files.newInputStream and Files.newOutputStream.**  
 **Problem:** Files.newInputStream or Files.newOutputStream is not buffered. The stream is read/written to file byte by byte, where each operating system call has its overhead which makes it slow.   
 **Solution:** Use buffering to read/write a chunk of bytes at once with much lower overhead. Use e.g. BufferedInputStream or BufferedOutputStream which has a buffer size of 8 kB by default to write at once. 
-Make sure to close (flush) a BufferedOutputStream after the last write, otherwise the last part may not be written to file.   
+Make sure to close (flush) a BufferedOutputStream after the last write, otherwise the last part may not be written to file.
+Note that IOUtils methods take care of buffering the inputStream.   
 **Rule name:** BufferFilesNewStream.   
 **Example:**
 ```java
@@ -2479,12 +2511,81 @@ class SingletonBMGood {
 }
 ```
 
+Improper program flow
+---------------------
+
+#### IPF01
+
+**Observation: A method calls itself, also known as recursion, and it doesn't have a proper and guaranteed stop condition.**  
+**Problem:** It may become an infinite loop and result in an OutOfMemoryError or StackOverflowError, and high CPU usage.  
+**Solution:** Limit the number of recursive calls: use a counter to count up-to or down-from a maximum number of calls, for every recursive call, and stop when the maximum is reached. This maximum should not be a large number. Or better yet, rewrite into iterations for better performance and avoiding errors.      
+**Rule name:** AvoidInfiniteRecursion.   
+**Note:** This rule may result in a false positive when a method calls an overloaded method with the same number of parameters, and just different type(s) for parameter number 4 or above. 
+It is recommended to rename one of the two methods for clarity.   
+**Note:** Be careful with recursive calls in general. Java currently does *not* optimize recursion, and it is typically expensive compared to iteration, most notably for large numbers of recursive calls. And large numbers involve the risk of OutOfMemoryError or StackOverflowError, and high CPU usage.   
+**Example:**
+```java
+class InfiniteRecursionBad {
+  private void foo() {
+    boolean success = tryRemoteCall();
+      if (!success) {
+        delay(10, MILLISECONDS);
+        foo(); // bad
+    }
+  }
+}
+
+class FiniteRecursionGood {
+  private static final int MAX_ATTEMPTS = 5;
+
+  private void foo(int attemptsLeft) {
+    boolean success = tryRemoteCall();
+    if (!success && attemptsLeft > 0) {
+      delay(10, MILLISECONDS);
+      foo(--attemptsLeft);
+    }
+  }
+}
+
+// when called from multiple threads, shared as a singleton, it needs to be thread-safe
+class FiniteRecursionSingletonThreadSafeGood {
+  private static final int MAX_ATTEMPTS = 5;
+  private final AtomicInteger attemptsLeft = new AtomicInteger(MAX_ATTEMPTS); // thread safe
+
+  private void foo() {
+    boolean success = tryRemoteCall();
+    if (!success && attemptsLeft.decrementAndGet() >= 0 ) {
+      delay(10, MILLISECONDS);
+      foo();
+    }
+  }
+}
+
+class IterationsBetter {
+  private static final int MAX_ATTEMPTS = 5;
+
+  private void foo() {
+    int attempt = 0;
+    boolean success = false;
+    while (!success && attempt++ < MAX_ATTEMPTS) {
+      success = tryRemoteCall();
+      if (!success) {
+        delay(10, MILLISECONDS);
+      }
+    }
+  }
+}
+```
+**See:** [TheServerSide: Five examples of recursion](https://www.theserverside.com/blog/Coffee-Talk-Java-News-Stories-and-Opinions/examples-Java-recursion-recursive-methods), 
+[Baeldung: Java recursion](https://www.baeldung.com/java-recursion)
+
 Unnecessary execution
 ---------------------
 
 #### UE01
 **Observation: A Calendar is unnecessarily created for a Date or time**  
-**Problem:** A Calendar is a heavyweight object and expensive to create. For example, to copy a Date:
+**Problem:** A Calendar is a heavyweight object and expensive to create.   
+**Example:** to copy a Date:
 
 ```java
 Calendar dateCalendar = Calendar.getInstance();
@@ -2511,7 +2612,7 @@ long time = System.currentTimeMillis();
 ```
 
 Or better yet instead of Date, use a [java.time.LocalDateTime](https://docs.oracle.com/en%2Fjava%2Fjavase%2F11%2Fdocs%2Fapi%2F%2F/java.base/java/time/LocalDateTime.html), which also has the advantage over java.util.Date that it is immutable.  
-**Rule name**: prototype ready, hit on Calendar.getInstance().getTime() usage and on two steps in same block.
+**Rule name**: AvoidCalendarDateCreation
 
 #### UE02
 

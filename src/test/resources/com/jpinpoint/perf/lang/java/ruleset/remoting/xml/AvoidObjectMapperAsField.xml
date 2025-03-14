@@ -69,4 +69,28 @@ class Fox {
      ]]></code>
     </test-code>
 
+    <test-code>
+        <description>violation: False positive in AvoidObjectMapperAsField #370</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import com.fasterxml.jackson.databind.ObjectMapper;
+import javax.ws.rs.ext.ContextResolver;
+
+public class MapperContextResolver implements ContextResolver<ObjectMapper> {
+
+    private final ObjectMapper mapper;
+
+    public MapperContextResolver() {
+        mapper = new ObjectMapper();
+        // do any configurations to mapper
+    }
+
+    @Override
+    public ObjectMapper getContext(Class<?> cls) {
+        return mapper;
+    }
+}
+     ]]></code>
+    </test-code>
+
 </test-data>

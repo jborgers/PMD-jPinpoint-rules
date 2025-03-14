@@ -110,12 +110,12 @@
         </properties>
         <example>
             <![CDATA[
-    private void bad(CriteriaQuery cq, Root<Customer> cust) {
-        cq.select(cust).where(cust.get("postalCode").in(codes)); // bad
-    }
-    private void good(CriteriaBuilder builder, CriteriaQuery cq, Root<Customer> cust, SubQuery<PostalCode> subquery) {
-        cq.select(cust).where(builder.in(cust.get("postalCode")).value(subquery));
-    }
+private void bad(CriteriaQuery cq, Root<Customer> cust) {
+    cq.select(cust).where(cust.get("postalCode").in(codes)); // bad
+}
+private void good(CriteriaBuilder builder, CriteriaQuery cq, Root<Customer> cust, SubQuery<PostalCode> subquery) {
+    cq.select(cust).where(builder.in(cust.get("postalCode")).value(subquery));
+}
             ]]>
         </example>
     </rule>
@@ -154,13 +154,13 @@
         </properties>
         <example>
             <![CDATA[
-    public SomeEntity findByQueryBad(TypedQuery<Object> query) {
-        final List<SomeEntity> entities = query.getResultList();
-        return !entities.isEmpty() ? entities.get(0) : null;
-    }
-    public SomeEntity findByQueryGood(TypedQuery<Object> query) throws NoResultException {
-        return query.getSingleResult();
-    }
+public SomeEntity findByQueryBad(TypedQuery<Object> query) {
+    final List<SomeEntity> entities = query.getResultList();
+    return !entities.isEmpty() ? entities.get(0) : null;
+}
+public SomeEntity findByQueryGood(TypedQuery<Object> query) throws NoResultException {
+    return query.getSingleResult();
+}
             ]]>
         </example>
     </rule>

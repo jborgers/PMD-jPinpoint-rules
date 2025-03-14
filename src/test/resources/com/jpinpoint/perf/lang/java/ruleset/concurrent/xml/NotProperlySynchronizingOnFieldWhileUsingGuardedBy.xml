@@ -208,7 +208,7 @@
     }
 
     public class HardToViolate2 {
-        @GuardedBy("Wrong_LOCK")
+        @GuardedBy("WRONG_LOCK")
         private String txt;
         private final Object LOCK = new Object();
         private final Object WRONG_LOCK = new Object();
@@ -225,5 +225,25 @@
         }
     }    ]]></code>
    </test-code>
+
+    <test-code>
+        <description>NotProperlySynchronizingOnFieldWhileUsingGuardedBy Issue #442, another rule catches this case
+            (NotProperlySynchronizingOnThisWhileUsingGuardedBy)</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+class Issue442 {
+        @GuardedBy("this")
+        private String txt;
+
+        public String getText() {
+            return txt; // <-- false positive
+        }
+
+        public void setText(String t) {
+            txt = t; //  <-- false positive
+        }
+}
+        ]]></code>
+    </test-code>
 
 </test-data>

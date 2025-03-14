@@ -148,12 +148,79 @@ class Issue391 extends Base {
   void bar(String text) {
     try {
      } catch (TechnicalException e) {
-            e.setText(text); // <--- false positive
+            e.setText(text); // <- false positive
      }
   }
 
     Issue(RestTemplate restTemplate) {
-        restTemplate.setErrorHandler(); // <--- false positive
+        restTemplate.setErrorHandler(); // <- false positive
+    }
+}
+        ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>Issue #496: AvoidUnguardedMutableInheritedFieldsInSharedObjects false positive for lambda</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import org.springframework.stereotype.Service;
+
+@Service
+public class Foo extends Bar {
+    public void baz(List<Response> list, List<Order> orders) {
+            list.stream().forEach(response1 -> response1.setOrders(orders)); // <- false positive;  note: misuse of forEach
+    }
+}
+        ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>Issue #509: AvoidUnguardedMutableInheretedFieldsInSharedObjects for for-each-loop variable</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import org.springframework.stereotype.Service;
+
+@Service
+class Foo extends Bar {
+   private void renameOutgoingLinks(TenantId tenantId, RuleNodeId ruleNodeId, String oldLabel, String newLabel) {
+        List<EntityRelation> relations = ruleChainService.getRuleNodeRelations(tenantId, ruleNodeId);
+        for (EntityRelation relation : relations) {
+            if (relation.getType().equals(oldLabel)) {
+                relationService.deleteRelation(tenantId, relation);
+                relation.setType(newLabel);  //  <- false positive
+                relationService.saveRelation(tenantId, relation);
+            }
+        }
+    }
+}
+        ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>Issue #502: AvoidUnguardedMutableInheritedFieldsInSharedObjects false positive in for/switch/... blocks</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import org.springframework.stereotype.Component;
+
+@Component
+public final class Foo extends AbstractService {
+    public void importResources(List<Resource> resources, User user) throws Exception {
+        for (ResourceData resourceData : resources) {
+            resourceData.setNewLink(new Link(user, resourceData)); // <- false positive
+        }
+    }
+    public void handle(Msg event) {
+        Id id = event.getId();
+        switch (id.getEntityType()) { // switch is needed to get false positive
+            case TENANT:
+                Set<Notification> toCancel = new HashSet<>();
+                requests.forEach((requestId, metadata) -> {
+                    if (metadata.getId().equals(id)) {
+                        toCancel.add(requestId); // <- false positive
+                    }
+                });
+                break;
+        }
     }
 }
         ]]></code>

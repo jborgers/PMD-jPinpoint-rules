@@ -44,4 +44,18 @@ public abstract class CacheKeyGenerator implements OtherThing { // good, does no
 ]]></code>
     </test-code>
 
+    <test-code>
+        <description>UseClearKeyGeneratorName uses a proper name, false positive, Issue #446</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import org.springframework.cache.interceptor.KeyGenerator;
+
+public class CustomerCacheKeyGenerator implements KeyGenerator { // <-- false positive
+   public Object generate(Object target, Method method, Object... params) {
+        // build key and return it
+   }
+}
+]]></code>
+    </test-code>
+
 </test-data>

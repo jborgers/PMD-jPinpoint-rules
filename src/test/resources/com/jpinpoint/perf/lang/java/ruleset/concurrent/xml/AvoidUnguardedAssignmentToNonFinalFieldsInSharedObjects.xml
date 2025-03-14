@@ -556,4 +556,61 @@ class Foo {
 }
         ]]></code>
     </test-code>
+
+    <test-code>
+        <description>Avoid unguarded assignment to non-final fields in shared objects: AvoidUnguardedAssignmentToNonFinalFieldsInSharedObjects - static inner class of @Component #492</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import org.springframework.stereotype.Component;
+
+@Component
+public final class Issue492Util {
+
+    public static class SomeID {
+        private String userID;
+
+        public String getUserID() {
+            if (userID == null) {
+                userID = initialUserID(); // <- false positive
+            }
+            return userID;
+        }
+   }
+}
+        ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>No violations - AvoidUnguardedAssignmentToNonFinalFieldsInSharedObjects false positive with static class #520</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+public class Foo {
+
+    public enum Type {
+        SMS, EMAIL
+    }
+
+    public String getProviders(Type type) {
+        String contact = null;
+        switch (type) {
+            case SMS:
+                contact = "1234567890"; // <- false postive
+                break;
+            case EMAIL:
+                contact = "me@example.com"; // <- false positive
+                break;
+        }
+        return contact;
+    }
+
+    public static class Info {
+        private boolean isDefault;
+        private String contact; // <- causes false positive
+    }
+}
+        ]]></code>
+    </test-code>
 </test-data>

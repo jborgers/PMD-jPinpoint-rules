@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>violation: AvoidUnclearHttpRouteSecurity client 4</description>
+        <expected-problems>2</expected-problems>
+        <expected-linenumbers>10,11</expected-linenumbers>
+        <code><![CDATA[
+// client 4
+import org.apache.http.conn.routing.HttpRoute;
+import org.apache.http.HttpHost;
+
+class Foo {
+    void bar() {
+        for (Route route : connectionProperties.routes()) {
+            URL url = new URL(route.host());
+            HttpHost httpHost = new HttpHost("https", url.getHost(), getPort(url));
+            HttpRoute httpRouteBad1 = new HttpRoute(httpHost); // bad
+            HttpRoute httpRouteBad2 = new HttpRoute(httpHost, null); // bad
+            HttpRoute httpRouteGood = new HttpRoute(httpHost, null, true);
+            connectionManager.setMaxPerRoute(httpRouteGood, route.maxConnections());
+        }
+    }
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>violation: AvoidUnclearHttpRouteSecurity client 5</description>
+        <expected-problems>2</expected-problems>
+        <expected-linenumbers>10,11</expected-linenumbers>
+        <code><![CDATA[
+//client 5
+import org.apache.hc.client5.http.HttpRoute;
+import org.apache.hc.core5.http.HttpHost;
+
+class Foo {
+    void bar() {
+        for (Route route : connectionProperties.routes()) {
+            URL url = new URL(route.host());
+            HttpHost httpHost = new HttpHost("https", url.getHost(), getPort(url));
+            HttpRoute httpRouteBad1 = new HttpRoute(httpHost); // bad
+            HttpRoute httpRouteBad2 = new HttpRoute(httpHost, null); // bad
+            HttpRoute httpRouteGood = new HttpRoute(httpHost, null, true);
+            connectionManager.setMaxPerRoute(httpRouteGood, route.maxConnections());
+        }
+    }
+}
+     ]]></code>
+    </test-code>
+</test-data>

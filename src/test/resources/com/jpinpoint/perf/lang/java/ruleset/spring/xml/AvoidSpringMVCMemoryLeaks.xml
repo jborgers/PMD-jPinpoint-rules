@@ -181,4 +181,20 @@ public class Foo {
 }
      ]]></code>
     </test-code>
+
+    <test-code>
+        <description>No violation. AvoidSpringMVCMemoryLeaks false positive on non MVC code #501</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+    @Component
+    public final class Foo {
+        @RequestMapping(value = "/customers", params = {"title"}, method = RequestMethod.GET)
+        @ResponseBody
+        public Customer getCustomer(@RequestParam String title) {
+            Id id = getCurrentUser().getId();
+            return checkNotNull(service.findCustomer(id, title), "Customer with title [" + title + "] is not found"); // <- false positive
+        }
+    }
+     ]]></code>
+    </test-code>
 </test-data>

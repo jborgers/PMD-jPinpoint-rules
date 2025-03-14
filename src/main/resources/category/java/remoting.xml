@@ -106,11 +106,11 @@ class Good {
         <example>
             <![CDATA[
 public static ObjectMapper createMapper() {
-return new ObjectMapper(); // bad
+    return new ObjectMapper(); // bad
 }
 
 public static JsonMapper createMapper() {
-return JsonMapper.builder().build(); // bad
+    return JsonMapper.builder().build(); // bad
 }
         ]]>
         </example>
@@ -140,6 +140,23 @@ return JsonMapper.builder().build(); // bad
         ]]></value>
             </property>
         </properties>
+        <example>
+            <![CDATA[
+class Bad {
+    public String toJson(User user) {
+		return new Gson().toJson(user); // bad, new Gson() for each call
+	}
+}
+
+class Good {
+	private static final Gson GSON = new GsonBuilder().serializeNulls().create(); // good
+
+    public String toJson(User user) {
+		return GSON.toJson(user); // good, reuse GSON
+	}
+}
+        ]]>
+        </example>
     </rule>
 
 
@@ -158,7 +175,12 @@ return JsonMapper.builder().build(); // bad
             <property name="tags" value="cpu,jpinpoint-rule,performance,sustainability-medium" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
-//ClassType[pmd-java:typeIs('javax.xml.datatype.XMLGregorianCalendar')]
+//(FieldDeclaration|LocalVariableDeclaration|ClassLiteral|TypeArguments)/ClassType[pmd-java:typeIs('javax.xml.datatype.XMLGregorianCalendar')]
+|
+(: the excluded abundant left-overs when others are not present :)
+//ClassType[pmd-java:typeIs('javax.xml.datatype.XMLGregorianCalendar')
+              and not (ancestor::ClassDeclaration//(FieldDeclaration|LocalVariableDeclaration|ClassLiteral|TypeArguments)/ClassType[pmd-java:typeIs('javax.xml.datatype.XMLGregorianCalendar')])
+           ]
 ]]></value>
             </property>
         </properties>
@@ -194,6 +216,27 @@ return JsonMapper.builder().build(); // bad
                 </value>
             </property>
         </properties>
+        <example>
+            <![CDATA[
+class Bad {
+    public HttpClient bad(ConnectionManager conMgr) {
+        HttpClient client = HttpClientBuilder.create()
+                .setConnectionManager(conMgr)
+                .build(); // bad, disableConnectionState is missing
+        return client;
+    }
+}
+
+class Good {
+    public HttpClient good(ConnectionManager conMgr) {
+        return HttpClientBuilder.create()
+                .setConnectionManager(conMgr)
+                .disableConnectionState() // good
+                .build();
+    }
+}
+        ]]>
+        </example>
     </rule>
 
     <rule name="HttpClientBuilderWithoutPoolSize"
@@ -372,14 +415,14 @@ return HttpClientBuilder.create() // good
         </properties>
         <example>
             <![CDATA[
-    RequestConfig requestConfig = RequestConfig.custom()
-    .setSocketTimeout(4000)
-    .build(); // bad, not all timeouts set
+RequestConfig requestConfig = RequestConfig.custom()
+                                           .setSocketTimeout(4000)
+                                           .build(); // bad, not all timeouts set
 
-    return HttpClientBuilder.create()
-    .setDefaultRequestConfig(requestConfig) // good
-    .build();
-    ]]>
+return HttpClientBuilder.create()
+                        .setDefaultRequestConfig(requestConfig) // good
+                        .build();
+]]>
         </example>
     </rule>
 
@@ -554,28 +597,28 @@ void good2() {
         </properties>
         <example>
             <![CDATA[
-    public class OldStyle {
-        private static final ObjectMapper staticObjectMapper = new ObjectMapper();
-        private final ObjectMapper mapperField = new ObjectMapper();
+public class OldStyle {
+    private static final ObjectMapper staticObjectMapper = new ObjectMapper();
+    private final ObjectMapper mapperField = new ObjectMapper();
 
-        static {
-            staticObjectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL); // good
-        }
-
-        public OldStyle() {
-            mapperField.setSerializationInclusion(JsonInclude.Include.NON_NULL); // good
-        }
-
-        ObjectMapper bad(ObjectMapper mapper) {
-            mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL); // bad
-            return mapper;
-        }
+    static {
+        staticObjectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL); // good
     }
 
-    public class NewStyle {
-        private static final ObjectWriter staticObjectWriter =
-            new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL).writer(); // good
+    public OldStyle() {
+        mapperField.setSerializationInclusion(JsonInclude.Include.NON_NULL); // good
     }
+
+    ObjectMapper bad(ObjectMapper mapper) {
+        mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL); // bad
+        return mapper;
+    }
+}
+
+public class NewStyle {
+    private static final ObjectWriter staticObjectWriter =
+        new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL).writer(); // good
+}
     ]]>
         </example>
     </rule>
@@ -598,8 +641,6 @@ void good2() {
                 </value>
             </property>
         </properties>
-        <example>
-        </example>
     </rule>
 
 
@@ -737,7 +778,7 @@ public class Foo {
             <property name="xpath">
                 <value><![CDATA[
 //MethodCall[pmd-java:matchesSig('org.springframework.http.client.HttpComponentsClientHttpRequestFactory#setHttpClient(_)')][VariableAccess/@Name =
-ancestor::MethodDeclaration//VariableDeclarator[ConstructorCall[pmd-java:typeIs('org.springframework.http.client.HttpComponentsClientHttpRequestFactory')][ArgumentList]]
+ancestor::MethodDeclaration//VariableDeclarator[ConstructorCall[pmd-java:typeIs('org.springframework.http.client.HttpComponentsClientHttpRequestFactory')][ArgumentList[@Size > 0]]]
 /VariableId/@Name]
 ]]>
                 </value>
@@ -900,22 +941,22 @@ and use it to replace the bad line in Bad example:
         </properties>
         <example>
             <![CDATA[
-    private ThreadPoolTaskExecutor bad() {
-        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor(); // bad
-        executor.setCorePoolSize(10);
-        executor.setMaxPoolSize(20);
-        executor.initialize();
-        return executor;
-    }
+private ThreadPoolTaskExecutor bad() {
+    ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor(); // bad
+    executor.setCorePoolSize(10);
+    executor.setMaxPoolSize(20);
+    executor.initialize();
+    return executor;
+}
 
-    private ThreadPoolTaskExecutor good() {
-        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(10);
-        executor.setQueueCapacity(10); // good
-        executor.setMaxPoolSize(20);
-        executor.initialize();
-        return executor;
-    }
+private ThreadPoolTaskExecutor good() {
+    ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+    executor.setCorePoolSize(10);
+    executor.setQueueCapacity(10); // good
+    executor.setMaxPoolSize(20);
+    executor.initialize();
+    return executor;
+}
     ]]>
         </example>
     </rule>
@@ -1058,6 +1099,7 @@ public class HttpClientStuff {
             Exceptions: A convertValue method is not provided by ObjectReader nor ObjectWriter, therefore in those cases
             this rule is not applied.
             Also, when used like jaxMsgConverter.setObjectMapper(objectMapper) it is not considered a violation.
+            And, when the class implements ContextResolver&lt;ObjectMapper&gt;.
             (jpinpoint-rules)
         </description>
         <priority>3</priority>
@@ -1070,6 +1112,8 @@ public class HttpClientStuff {
     [not(@Name = ancestor::ClassBody//MethodCall[pmd-java:matchesSig('com.fasterxml.jackson.databind.ObjectMapper#convertValue(_,_)')]/VariableAccess/@Name)]
     (: exception: do not match if used with jaxMsgConverter.setObjectMapper(objectMapper) :)
     [not(@Name = ancestor::ClassBody//MethodCall[pmd-java:matchesSig('org.springframework.http.converter.json.MappingJackson2HttpMessageConverter#setObjectMapper(_)')]/ArgumentList/VariableAccess/@Name)]
+    (: exception: do not match if class implements ContextResolver<ObjectMapper> :)
+    [not(ancestor::ClassDeclaration/ImplementsList/ClassType[pmd-java:typeIs('javax.ws.rs.ext.ContextResolver')]/TypeArguments/ClassType[pmd-java:typeIs('com.fasterxml.jackson.databind.ObjectMapper')])]
 ]]>
                 </value>
             </property>
@@ -1214,7 +1258,7 @@ public class Foo {
     [matches(upper-case(@Name), 'TIMEOUT|DURATIONOUT') or (contains(upper-case(@Name), 'MAX') and contains(upper-case(@Name), 'ROUTE'))]
 ]
 [NumericLiteral or
-    (VariableId/@Name=ancestor::ClassBody//ConstructorDeclaration//AssignmentExpression/*[1]/@Name
+    (VariableId/@Name=ancestor::ClassBody//ConstructorDeclaration//AssignmentExpression[NumericLiteral]/*[1]/@Name
     and not(VariableId/@Name=ancestor::ClassBody//ConstructorDeclaration//FormalParameter[pmd-java:hasAnnotation('org.springframework.beans.factory.annotation.Value')]/VariableId/@Name))
 ]
 ]]></value>
@@ -1273,22 +1317,66 @@ class AvoidHardcodedConnectionConfig {
         </properties>
         <example>
             <![CDATA[
-    import org.springframework.ws.soap.saaj.SaajSoapMessageFactory;
+import org.springframework.ws.soap.saaj.SaajSoapMessageFactory;
 
-    class Foo {
-        private final SaajSoapMessageFactory mfField; // bad, also possibly thread-unsafe
+class Foo {
+    private final SaajSoapMessageFactory mfField; // bad, also possibly thread-unsafe
 
-        public WebServiceTemplate getTemplate(final String uri, final HttpClientMessageSender httpClientMessageSender) throws SOAPException {
-            SoapMessageFactory saajSoapMessageFactory = new SaajSoapMessageFactory(MessageFactory.newInstance()); // bad
-            //..
+    public WebServiceTemplate getTemplate(final String uri, final HttpClientMessageSender httpClientMessageSender) throws SOAPException {
+        SoapMessageFactory saajSoapMessageFactory = new SaajSoapMessageFactory(MessageFactory.newInstance()); // bad
+        //..
+    }
+}
+
+//To solve, add to the above the proper implementing classes:
+static {
+    System.setProperty("javax.xml.transform.TransformerFactory", "com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl");
+    System.setProperty("javax.xml.soap.MessageFactory", "com.sun.xml.internal.messaging.saaj.soap.ver1_1.SOAPMessageFactory1_1Impl");
+}
+    ]]>
+        </example>
+    </rule>
+
+    <rule name="AvoidUnclearHttpRouteSecurity"
+          message="HttpRoute is constructed without specifying the secure argument, this is unclear."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          language="java"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi24">
+        <description>Problem: For Apache HttpRoute, if you don't specify whether the route is secure, the default of non-secure is taken. This is unclear. If you use it to configure a connection manager for that route, and the actual route is secure,
+            the key does not match, and the intended configuration will not be effectuated. The default number of connections (2 for Http-Client version 4, and 5 for version 5) is used which may cause requests to wait long for a connection (without a proper timeout) resulting in bad responsiveness.
+            Solution: Always specify in the constructor whether the route is secure (true) or not (false) to make it clear.
+            Note: Covers Apache Http-Client 4 and 5.
+            (jpinpoint-rules)
+        </description>
+        <priority>2</priority>
+        <properties>
+            <property name="tags" value="io,jpinpoint-rule,performance,pitfall" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+//ConstructorCall[pmd-java:typeIs('org.apache.http.conn.routing.HttpRoute') or pmd-java:typeIs('org.apache.hc.client5.http.HttpRoute')]/ArgumentList[@Size <= 2]
+    ]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+import org.apache.http.HttpHost;
+import org.apache.http.conn.routing.HttpRoute;
+import java.net.URL;
+
+public class Foo {
+        void bar() {
+            for (Route route : connectionProperties.routes()) {
+                URL url = new URL(route.host());
+                HttpHost httpHost = new HttpHost("https", url.getHost(), getPort(url));
+                HttpRoute httpRouteBad1 = new HttpRoute(httpHost); // bad
+                HttpRoute httpRouteBad2 = new HttpRoute(httpHost, null); // bad
+                boolean secure = true;
+                HttpRoute httpRouteGood = new HttpRoute(httpHost, null, secure);
+                connectionManager.setMaxPerRoute(httpRouteGood, route.maxConnections());
+            }
         }
     }
-
-    //To solve, add to the above the proper implementing classes:
-    static {
-        System.setProperty("javax.xml.transform.TransformerFactory", "com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl");
-        System.setProperty("javax.xml.soap.MessageFactory", "com.sun.xml.internal.messaging.saaj.soap.ver1_1.SOAPMessageFactory1_1Impl");
-    }
+}
     ]]>
         </example>
     </rule>

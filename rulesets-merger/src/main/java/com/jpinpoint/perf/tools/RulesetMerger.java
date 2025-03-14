@@ -56,7 +56,7 @@ public class RulesetMerger {
     }
 
     private static final String PATH_TO_CAT_RULES = "src/main/resources/category/%s/";
-    private static final String COMPANY_DOC_ROOT = "https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs";
+    private static final String COMPANY_DOC_ROOT = "https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs";
     private static final boolean IS_ADD_TAG_TO_DESCRIPTION_AND_DOC = true;
 
     // constants unlikely to have to change
@@ -69,7 +69,7 @@ public class RulesetMerger {
             "         xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" %n" +
             "         xsi:schemaLocation=\"http://pmd.sourceforge.net/ruleset/2.0.0 http://pmd.sourceforge.net/ruleset_2_0_0.xsd\"> ";
     private static final String MERGED_WITH_TEMPLATE = "merged with the %s ";
-    private static final String RESULT_DESC_LINE_TEMPLATE = "<description>%n         %s specific rules %sfor performance aware %s coding, sponsored by Rabobank. Uses PMD-7 format.%n</description>";
+    private static final String RESULT_DESC_LINE_TEMPLATE = "<description>%n         %s rules %sfor responsible %s coding, sponsored by Rabobank. Uses PMD-7.%n</description>";
     private static final String BEGIN_INCLUDED_FILE_COMMENT_TEMPLATE = "<!-- BEGIN Included file '%s' -->";
     private static final String END_INCLUDED_FILE_COMMENT_TEMPLATE = "<!-- END Included file '%s' -->";
     private static final String DESCRIPTION_END_TAG_PATTERN = DESCRIPTION_END_TAG.replace('<','.').replace('>', '.');

@@ -26,39 +26,42 @@ Improper use of BigDecimal
 
 #### IUOB01
 
-**Observation: the constructor BigDecimal(double) is used.** [This constructor (javadoc)](https://docs.oracle.com/en%2Fjava%2Fjavase%2F11%2Fdocs%2Fapi%2F%2F/java.base/java/math/BigDecimal.html#%3Cinit%3E(double)) 
+**Observation: the constructor BigDecimal(double) is used.** 
 
-```
-translates a double into a BigDecimal which is the exact decimal representation of the double's binary floating-point value.  
+[Javadoc of this constructor:](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/math/BigDecimal.html#%3Cinit%3E(double)) 
+
+```text
+Translates a double into a BigDecimal which is the exact decimal representation of the double's binary floating-point value. The scale of the returned BigDecimal is the smallest value such that (10scale × val) is an integer.
 
 Notes:
 
-1.  The results of this constructor can be somewhat unpredictable. One might assume that writing new BigDecimal(0.1) in Java creates a BigDecimal which is exactly equal to 0.1 (an unscaled value of 1, with a scale of 1), but it is actually equal to 0.1000000000000000055511151231257827021181583404541015625. This is because 0.1 cannot be represented exactly as a double (or, for that matter, as a binary fraction of any finite length). Thus, the value that is being passed in to the constructor is not exactly equal to 0.1, appearances notwithstanding.
-2.  The String constructor, on the other hand, is perfectly predictable: writing new BigDecimal("0.1") creates a BigDecimal which is exactly equal to 0.1, as one would expect. Therefore, it is generally recommended that the String constructor be used in preference to this one.
-3.  When a double must be used as a source for a BigDecimal, note that this constructor provides an exact conversion; it does not give the same result as converting the double to a String using the Double.toString(double) method and then using the BigDecimal(String) constructor. To get that result, use the static valueOf(double) method.
+1. The results of this constructor can be somewhat unpredictable. One might assume that writing new BigDecimal(0.1) in Java creates a BigDecimal which is exactly equal to 0.1 (an unscaled value of 1, with a scale of 1), but it is actually equal to 0.1000000000000000055511151231257827021181583404541015625. This is because 0.1 cannot be represented exactly as a double (or, for that matter, as a binary fraction of any finite length). Thus, the value that is being passed in to the constructor is not exactly equal to 0.1, appearances notwithstanding.
+2. The String constructor, on the other hand, is perfectly predictable: writing new BigDecimal("0.1") creates a BigDecimal which is exactly equal to 0.1, as one would expect. Therefore, it is generally recommended that the String constructor be used in preference to this one.
+3. When a double must be used as a source for a BigDecimal, note that this constructor provides an exact conversion; it does not give the same result as converting the double to a String using the Double.toString(double) method and then using the BigDecimal(String) constructor. To get that result, use the static valueOf(double) method.
 ```
-**Problem:** BigDecimal is intended to be used for amounts of e.g. euro’s with cents. It should e.g. represent 0,11 exactly. However, with the used constructor, one easily gets unexpected rounding, e.g.:
+**Problem:** BigDecimal is intended to be used for amounts of e.g. euro’s with cents. It should e.g. represent `0,11` exactly. However, with the used constructor, one easily gets unexpected rounding, e.g.:
 ```java
-System.out.println("result = " + new BigDecimal(0.105).setScale(2, BigDecimal.ROUND_HALF_UP));
+System.out.println("result = " + new BigDecimal(0.105).setScale(2, RoundingMode.HALF_UP));
 ```
+
 Results unexpectedly in:
-````java
+````text
 result = 0.10
 ````
-**Solution:** Use the factory method BigDecimal.valueOf(double) instead. E.g.:
+**Solution:** Use the factory method `BigDecimal.valueOf(double)` instead. E.g.:
 ````java
-System.out.println("result = " + BigDecimal.valueOf(0.105).setScale(2, BigDecimal.ROUND_HALF_UP));
+System.out.println("result = " + BigDecimal.valueOf(0.105).setScale(2, RoundingMode.HALF_UP));
 ````
 Results as expected in:
-````java
+````text
 result = 0.11
 ````
-Or use long for cents in stead of BigDecimal.
+Or use `long` for cents instead of `BigDecimal`.
 
 #### IUOB02
 
-**Observation: BigDecimal is instantiated with 0,1 or 10.**  
-**Problem:** These instances are already available as BigDecimal.ZERO, BigDecimal.ONE and BigDecimal.TEN  
+**Observation: BigDecimal is instantiated with `0`,`1`,`2` or `10`.**  
+**Problem:** These instances are already available as `BigDecimal.ZERO`, `BigDecimal.ONE`, `BigDecimal.TWO` (since Java 19!) and `BigDecimal.TEN`  
 **Solution:** Use the static instances.
 
 Improper amount representation
@@ -426,7 +429,8 @@ Ineffective Lambdas and Streams
 
 **Observation: forEach is used to perform a stream computation.**  
 **Problem:** Java Streams is a paradigm based on functional programming: the result should depend only on its input, not on any mutable state nor should it update any state.
-Use of forEach in a stream is actually iterative code masquerading as streams code. It is typically harder to read and less maintainable than the iterative form.  
+Use of forEach in a stream is actually iterative code masquerading as streams code. It is typically harder to read and less maintainable than the iterative form.
+For parallel streams, side effects are dangerous: accessing a thread-unsafe shared variable is a concurrency bug.  
 **Solution:** Use the for-each (enhanced-for) loop, or the pure functional form. The forEach operation should only be used to report (i.e. log) the result of a stream computation.    
 **See:** Effective Java 3rd Ed. Item 46: Prefer Side-Effect-Free Functions In Streams.   
 **Rule name:** AvoidForEachInStreams   
@@ -458,6 +462,42 @@ class AvoidForEachInStreams {
 }
 ````
 
+### ILS02
+
+**Observation: a stream pipeline has side effects, that is, a variable is modified.**  
+**Problem:** Java Streams is a paradigm based on functional programming: the result should depend only on its input, not on any mutable state nor should it update any state: not modify any variable (including thread-safe variables).
+By the spec, everything that does not contribute to the functional result, may be optimized away. So, side effects are not guaranteed to be executed.
+For parallel streams, side effects are dangerous: accessing a thread-unsafe shared variable is a concurrency bug. Accessing a (thread-safe) shared variable may cause data mix-up between the threads.
+So, using a thread-safe variable is not the solution.   
+**Solution:** Use the pure functional form: return a result based just on the input; do not modify any variable.    
+**See:**
+* Effective Java 3rd Ed. Item 46: Prefer Side-Effect-Free Functions In Streams  
+* Article from Brian Goetz: [An intro to the java.uti.stream library - the fine print](https://developer.ibm.com/articles/j-java-streams-1-brian-goetz/#the-fine-print4)
+* Java doc: [stream/package#SideEffects](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/stream/package-summary.html#SideEffects).
+
+**Rule name:** AvoidSideEffectsInStreams   
+**Example:**
+````java
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+class AvoidSideEffectsInStreams {
+    final String[] array = new String[]{"a", "b", "c"};
+
+    public List<String> getEndpointsInfo(final List<String> list, String... endpoints) {
+        AtomicReference<String> currentEndpoint = new AtomicReference<>();
+        return Arrays.stream(endpoints)
+                .peek(endpoint -> currentEndpoint.set(endpoint)) // bad
+                .peek(list::add)                                 // bad
+                .peek(endpoint -> log.debug(endpoint))           // peek is meant for something like this
+                .map(endpoint -> array[0] = endpoint)            // bad
+                .map(String::toLowerCase)
+                .map(list::remove)                               // bad
+                .map(pingInfo -> addEndpointInfo(pingInfo, currentEndpoint.get()))
+                .toList();
+    }
+}
+````
 Maintainability
 ---------------
 

@@ -74,4 +74,81 @@ class Issue273 {
      ]]></code>
     </test-code>
 
+    <test-code>
+        <description>violation: BufferFilesNewStream Issue #456</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import java.io.*;
+import java.nio.file.*;
+import org.apache.commons.io.IOUtils;
+
+class Issue456 {
+    void ioUtilsBad(InputStream in, String path) throws IOException {
+        OutputStream out = Files.newOutputStream(Paths.get(path)); // good after all, buffered
+        IOUtils.copy(in, out);
+    }
+    void ioUtilsGood1(InputStream in, String path) throws IOException {
+        OutputStream out = IOUtils.buffer(Files.newOutputStream(Paths.get(path)));
+        IOUtils.copy(in, out);
+    }
+    void ioUtilsGood2(InputStream in, String path) throws IOException {
+        OutputStream out = Files.newOutputStream(Paths.get(path));
+        IOUtils.copy(in, IOUtils.buffer(out));
+    }
+    void ioUtilsGood3(String pathIn, String pathOut) throws IOException {
+        InputStream in = Files.newInputStream(Paths.get(pathIn));
+        OutputStream out = Files.newOutputStream(Paths.get(pathOut));
+        IOUtils.copy(in, IOUtils.buffer(out)); // good, buffers inputStream
+    }
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>no violation: BufferFilesNewStream rule support for BufferedReader and BufferedWriter #539</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import java.io.*;
+import java.nio.file.*;
+
+class ReaderTestCases539 {
+    public static BufferedReader newBufferedReader(Path path) throws IOException {
+        return new BufferedReader(new InputStreamReader(Files.newInputStream(path))); // <- false positive
+    }
+    public static BufferedWriter newBufferedWriter(Path path) throws IOException {
+        return new BufferedWriter(new OutputStreamWriter(Files.newOutputStream(path))); // <- false positive
+    }
+}
+
+class BufferedTestCases539 {
+    void goodTransfer(InputStream in, Path pathOut) throws IOException {
+        in.transferTo(Files.newOutputStream(pathOut)); // <- false positive
+    }
+    void goodTransfer2(Path pathIn, OutputStream out) throws IOException {
+        Files.newInputStream(pathIn).transferTo(out); // <- false positive
+    }
+    byte[] goodReadAll(String pathIn) throws IOException {
+        InputStream in = Files.newInputStream(Paths.get(pathIn)); // <- false positive
+        return in.readAllBytes();
+    }
+    byte[] goodReadN(String pathIn) throws IOException {
+        InputStream in = Files.newInputStream(Paths.get(pathIn)); // <- false positive
+        return in.readNBytes(4096);
+    }
+    int goodReadArray(String pathIn) throws IOException {
+        InputStream in = Files.newInputStream(Paths.get(pathIn)); // <- false positive
+        byte[] buf = new byte[4096];
+        return in.read(buf);
+    }
+    int goodReadArray2(String pathIn) throws IOException {
+        InputStream in = Files.newInputStream(Paths.get(pathIn)); // <- false positive
+        byte[] buf = new byte[4096];
+        return in.read(buf, 0, 4096);
+    }
+    void goodCopy(Path pathIn, Path pathOut) throws IOException {
+        Files.copy(pathIn, Files.newOutputStream(pathOut)); // <- false positive
+    }
+}
+     ]]></code>
+    </test-code>
 </test-data>

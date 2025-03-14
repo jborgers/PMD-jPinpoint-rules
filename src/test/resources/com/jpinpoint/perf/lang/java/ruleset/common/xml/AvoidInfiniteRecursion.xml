@@ -1,0 +1,798 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>violation: endless recursion</description>
+        <expected-problems>5</expected-problems>
+        <expected-linenumbers>16,25,38,53,66</expected-linenumbers>
+        <code><![CDATA[
+import reactor.core.publisher.Mono;
+import java.time.Duration;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+
+public class Issue478_Bad1 {
+    private final AtomicBoolean lock = new AtomicBoolean(false);
+
+    private Mono<Void> waitForLock() {
+        return Mono.defer(() -> {
+            if (lock.compareAndSet(false, true)) {
+                return Mono.empty();
+            } else {
+                return Mono.delay(Duration.ofMillis(10))
+                        .then(waitForLock()); // bad: unbounded recursion
+            }
+        });
+    }
+}
+
+class Issue478_Bad2 {
+    private void foo() {
+        if (bar()) {
+            foo(); // bad
+        }
+    }
+    private boolean bar() {
+        return true;
+    }
+}
+
+class Issue478_Bad3 {
+    final int MAX_ATTEMPTS = 10;
+
+    private void foo(int attemptsLeft) {
+        if (bar() && attemptsLeft > 0) {
+            foo(attemptsLeft); // bad, no increment/decrement
+        }
+    }
+    private boolean bar() {
+        return true;
+    }
+}
+
+class Issue478_Bad4 {
+    private static final int MAX_ATTEMPTS = 10;
+
+    private void foo(int attemptsLeft) {
+        if (bar() && attemptsLeft > 0) {
+            attemptsLeft = attemptsLeft + 0;
+            attemptsLeft += 0;
+            foo(attemptsLeft); // bad, no increment/decrement
+        }
+    }
+    private boolean bar() {
+        return true;
+    }
+}
+
+class InfiniteRecursionBad {
+    private void foo() {
+        boolean success = tryRemoteCall();
+        if (!success) {
+            delay(10, MILLISECONDS);
+            foo(); // bad
+        }
+    }
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+    <description>No violation: bounded recursion, they have a proper stop condition</description>
+    <expected-problems>0</expected-problems>
+    <code><![CDATA[
+import reactor.core.publisher.Mono;
+import java.time.Duration;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+
+class Issue478_Good1 {
+    private final AtomicBoolean lock = new AtomicBoolean(false);
+
+    private Mono<Void> waitForLock(int attempt) {
+        return Mono.defer(() -> {
+            if(attempt >= 20) {
+                return Mono.error(new JWKException("Unable to acquire JWK refresh lock"));
+            } else if (lock.compareAndSet(false, true)) {
+                return Mono.empty();
+            } else {
+                return Mono.delay(Duration.ofMillis(50))
+                        .then(waitForLock(attempt+1));
+            }
+        });
+    }
+}
+
+class Issue478_Good2 {
+    private static final int MAX_ATTEMPTS = 10;
+
+    private void foo(int attemptsLeft) {
+        if (bar() && attemptsLeft > 0) {
+            foo(--attemptsLeft);
+        }
+    }
+    private boolean bar() {
+        return true;
+    }
+}
+
+class Issue478_Good3 {
+    private static final int MAX_ATTEMPTS = 10;
+    private int attemptsLeft = MAX_ATTEMPTS;
+
+    private void foo() {
+        if (bar() && attemptsLeft > 0) {
+            attemptsLeft--;
+            foo();
+        }
+    }
+    private boolean bar() {
+        return true;
+    }
+}
+
+class Issue478_Good4 {
+    private static final int MAX_ATTEMPTS = 10;
+    private int attemptsLeft = MAX_ATTEMPTS;
+
+    private void foo() {
+        if (bar() && attemptsLeft > 0) {
+            attemptsLeft = attemptsLeft - 1;
+            foo();
+        }
+    }
+    private boolean bar() {
+        return true;
+    }
+}
+
+class Issue478_Good5 {
+    private static final int MAX_ATTEMPTS = 10;
+    private int attemptsLeft = MAX_ATTEMPTS;
+
+    private void foo() {
+        if (bar() && attemptsLeft > 0) {
+            attemptsLeft -= 1;
+            foo();
+        }
+    }
+    private boolean bar() {
+        return true;
+    }
+}
+
+class Issue478_Good6 {
+    private static final int MAX_ATTEMPTS = 10;
+    private int attemptsLeft = MAX_ATTEMPTS;
+
+    private void foo() {
+        if (bar() && --attemptsLeft >= 0) {
+            foo();
+        }
+    }
+    private boolean bar() {
+        return true;
+    }
+}
+
+class Issue478_Good7 {
+    private static final int MAX_ATTEMPTS = 10;
+    private final AtomicInteger attemptsLeft = new AtomicInteger(MAX_ATTEMPTS); // thread safe
+
+    private void foo() {
+        if (bar() && attemptsLeft.decrementAndGet() >= 0) {
+            foo();
+        }
+    }
+    private boolean bar() {
+        return true;
+    }
+}
+
+class FiniteRecursionGood {
+    private static final int MAX_ATTEMPTS = 5;
+    private int attemptsLeft = MAX_ATTEMPTS;
+
+    private void foo() {
+        boolean success = tryRemoteCall();
+        if (!success && --attemptsLeft >= 0 ) {
+            delay(10, MILLISECONDS);
+            foo();
+        }
+    }
+}
+
+class FiniteRecursionGood2 {
+    private static final int MAX_ATTEMPTS = 5;
+
+    private void foo(int attemptsLeft) {
+        boolean success = tryRemoteCall();
+        if (!success && attemptsLeft > 0 ) {
+            delay(10, MILLISECONDS);
+            foo(--attemptsLeft);
+        }
+    }
+}
+
+// when shared as singleton, it needs to be thread-safe
+class FiniteRecursionThreadSafeGood {
+    private static final int MAX_ATTEMPTS = 5;
+    private final AtomicInteger attemptsLeft = new AtomicInteger(MAX_ATTEMPTS); // thread safe
+
+    private void foo() {
+        boolean success = tryRemoteCall();
+        if (!success && attemptsLeft.decrementAndGet() >= 0 ) {
+            delay(10, MILLISECONDS);
+            foo();
+        }
+    }
+}
+
+class IterationsBetter {
+    private static final int MAX_ATTEMPTS = 5;
+
+    private void foo() {
+        int attempt = 0;
+        boolean success = false;
+        while (!success && attempt++ < MAX_ATTEMPTS) {
+            success = tryRemoteCall();
+            if (!success) {
+                delay(10, MILLISECONDS);
+            }
+        }
+    }
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>Issue484 No violation: false positives on same method name but other class</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+class Issue484 {
+
+    private final Other other;
+
+    public String foo() {
+        return other.foo();
+    }
+}
+
+class Other {
+     public String foo() {
+        return "something";
+    }
+}
+
+@Service
+@RequiredArgsConstructor
+class RepoClient {
+
+    private final DetailRepository detailRepository;
+
+    public EventDocument save(EventDocument documentToSave) {
+        return detailRepository.save(documentToSave);
+    }
+}
+
+@Builder
+@Getter
+@EqualsAndHashCode
+@ToString
+final class IssueRecursion implements Comparable<IssueRecursion>{
+
+  private final String name;
+
+  @Override
+  public int compareTo(IssueRecursion issue) {
+    return name.compareTo(issue.getName());
+  }
+}
+
+class Listener extends ListenerSupport {
+
+    @Override
+    public boolean open(Context context) {
+        return super.open(context);
+    }
+}
+
+class Issue484_static {
+
+
+    public String foo() {
+        return Other2.foo();
+    }
+}
+
+class Other2 {
+     public static String foo() {
+        return "something";
+    }
+}
+
+class Issue484_unknownClass {
+
+    public String foo() {
+        return UnknownClass.foo();
+    }
+}
+
+class Issue484_unknownObject {
+
+    public String foo() {
+        return unknownObject.foo();
+    }
+}
+             ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>Issue484-review one violation and a false positives on same method name but overloaded method (currently only different number of arguments supported)</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>25</expected-linenumbers>
+        <code><![CDATA[
+import org.springframework.boot.json.JsonParser;
+import java.util.*;
+import my.app.Context;
+
+public class Deserializer {
+
+    public Map deserialize(JsonParser p, Context c) {
+        return getTarget();
+    }
+
+    public Map deserialize(JsonParser p) {
+        Context c = new Context();
+        return this.deserialize(p, c); // <- false positive
+    }
+}
+
+public class Deserializer {
+
+    public Map deserialize(JsonParser p, Context c) {
+        return getTarget();
+    }
+
+    public Map deserialize(JsonParser p, String str) {
+        Context c = new Context();
+        return this.deserialize(p, str); // bad
+    }
+}
+             ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>No violations - Issue484-additional false positive on same method name but a call on the result of another method call</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+class Issue484_onMethodCall {
+    public String foo() {
+        return other().foo(); // <- false positive
+    }
+}
+
+class Issue484_onThisAttributeCall {
+    Other other;
+    public String foo() {
+        return this.other.foo(); // <- false positive
+    }
+}
+                     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>No violations - Issue484-more additional false positives if a parameter is used in the call with calling a method on it, and if any parameter is used in the call in another position</description>
+        <expected-problems>3</expected-problems>
+        <expected-linenumbers>33,43,55</expected-linenumbers>
+        <code><![CDATA[
+import java.util.List;
+import my.lib.Request;
+
+public class Foo {
+    public String translate(Request request) {
+        return translate(request.getAccounts()); // method called on parameter, likely other type, good
+    }
+    public String translate(List<String> accounts) {
+        return convert(accounts);
+    }
+}
+
+public class Foo2 {
+    public String translate(Request request) {
+        return translate(Optional.ofNullable(request.getAccounts())); // extra calls in between don't change that, good
+    }
+    public String translate(List<String> accounts) {
+        return convert(accounts);
+    }
+}
+
+public class Foo3 {
+    public String translate(Request request, String str) {
+        return translate(str, request); // reversed order, good
+    }
+    public String translate(String str, Request request) {
+        return convert(request);
+    }
+}
+
+public class Foo4 {
+    public String translate(Request request, String str) {
+        return translate(request, str); // bad
+    }
+    public String translate(String str, Request request) {
+        return convert(request);
+    }
+}
+
+public class Foo5 {
+    public String translate(Request request, String str) {
+        String str2;
+        return translate(request, str2); // bad
+    }
+    public String translate(String str, Request request) {
+
+        return convert(request);
+    }
+}
+
+public class Foo6 {
+    public String translate(Request request, String str) {
+        String str2;
+        Request req;
+        return translate(req, str2); // bad
+    }
+    public String translate(String str, Request request) {
+        return convert(request);
+    }
+}
+
+public class Foo7 {
+    public String translate(Request request, String str) {
+        Request req;
+        return translate(str, req); // good
+    }
+    public String translate(String str, Request request) {
+        return convert(request);
+    }
+}
+
+public class Foo8 {
+    public String translate(Request request, String str) {
+        String str2;
+        return translate(str2, request); // good, request used at different position
+    }
+    public String translate(String str, Request request) {
+        return convert(request);
+    }
+}
+
+public class Foo9 {
+    public String translate(Request request, String str) {
+        String str2;
+        Request req;
+        return translate(str2, req); // good (fixed from 'bad')
+    }
+    public String translate(String str, Request request) {
+        return convert(request);
+    }
+}
+                     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>1 violation - Fix Request: AvoidInfiniteRecursion false positive for same number of params, other types #498</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>38</expected-linenumbers>
+        <code><![CDATA[
+        class Bar1 {
+    public void tellNext(TbMsg msg, String relationType) {
+        tellNext(msg, Collections.singleton(relationType)); // <-- false positive
+    }
+
+    public void tellNext(TbMsg msg, Set<String> relationTypes) {
+        nodeCtx.tell(new TellNextMsg(msg, relationTypes));
+    }
+}
+
+class Bar2 {
+    public void tellNext(TbMsg msg, String relationType) {
+        tellNext(msg, relationType.getTypes()); // <-- false positive
+    }
+
+    public void tellNext(TbMsg msg, Set<String> relationTypes) {
+        nodeCtx.tell(new TellNextMsg(msg, relationTypes));
+    }
+}
+
+class Baz {
+    public Map<Feature, Value> checkStateUpdated(Set<Feature> features) {
+        Map<Feature, Value> result = new HashMap<>();
+        for (Feature feature : features) {
+            Pair<Feature, Value> tmp = checkStateUpdated(feature);
+        }
+        return result;
+    }
+
+    private Pair<Feature, Value> checkStateUpdated(Feature feature) {
+        Value value = createValue(feature);
+        return Pair.of(feature, value);
+    }
+
+    public Map<Feature, Value> checkStateUpdated2(Set<Feature> features, String strs) {
+        Map<Feature, Value> result = new HashMap<>();
+        for (Feature feature : features) {
+            Pair<Feature, Value> tmp = checkStateUpdated2(features, strs); // bad
+        }
+        return result;
+    }
+
+    private Pair<Feature, Value> checkStateUpdated2(Feature feature, String str) {
+        Value value = createValue(feature);
+        return Pair.of(feature, value);
+    }
+}
+
+                            ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>No violations - Fix request: AvoidInfiniteRecursion - same (interface) method on new object or cast field or simple other type #505</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+class Issue505 {
+    public InputStream execute(Context context) {
+        InputStream stream = new ResourceCmd(id, name).execute(context); // <- false positive
+        return stream;
+    }
+
+    public InputStream execute2(Context context) {
+        InputStream stream = ((Other)field).execute2(context); // <- false positive
+        return stream;
+    }
+
+    public String sourceUrl(String url) {
+        try {
+            return sourceUrl(new URL(url)); // <- previously a false positive
+        } catch (MalformedURLException e) {
+            throw new IllegalArgumentException("malformed url: " + url, e);
+        }
+    }
+}
+                            ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>7 violations - Fix request: AvoidInfiniteRecursion - this.field false positive #506</description>
+        <expected-problems>7</expected-problems>
+        <expected-linenumbers>13,23,56,68,93,106,143</expected-linenumbers>
+        <code><![CDATA[
+class Issue506 {
+    Object getFieldValue(int index) {
+        String fieldName = this.getFieldNameAt(index);
+        return fieldValueObject = this.getFieldValue(fieldName); // <- false positive
+    }
+    String getFieldValue(String fieldName) {
+        return "dummy";
+    }
+}
+class Issue506_Bad {
+     Object getFieldValue(String indexStr) {
+        String fieldName = this.getFieldNameAt(indexStr);
+        return fieldValueObject = this.getFieldValue(fieldName); // bad
+    }
+    String getFieldValue(int fieldName) {
+        return "dummy";
+    }
+}
+
+class Issue506_Bad2 {
+    Object getFieldValue(String fieldName, String indexStr) {
+        String fieldName = this.getFieldNameAt(index);
+        return fieldValueObject = this.getFieldValue(fieldName, indexStr); // bad
+    }
+    String getFieldValue(int fieldName) {
+        return "dummy";
+    }
+}
+
+class Issue506_primitive_fp {
+    Object getFieldValue(String fieldName) {
+        int index = this.getIndexOf(fieldName);
+        return fieldValueObject = this.getFieldValue(index);  // <- false positive
+    }
+    String getFieldValue(int index) {
+        return "dummy";
+    }
+}
+
+class Issue506_false_pos {
+    Object getFieldValue(int index, String str) {
+        String strLocal;
+        String fieldName = this.getFieldNameAt(index);
+        return fieldValueObject = this.getFieldValue(fieldName, strLocal); // <- false positive
+    }
+    String getFieldValue(String fieldName, String str) {
+        return "dummy";
+    }
+}
+
+class Issue506_Bad3 {
+    Object getFieldValue(int index, String str) {
+        String strLocal;
+        String fieldName = this.getFieldNameAt(index);
+        int index2;
+        return fieldValueObject = this.getFieldValue(index2, strLocal); // bad
+    }
+    String getFieldValue(String fieldName, String str) {
+        return "dummy";
+    }
+}
+
+class Issue506_FieldsBad {
+        String dummy;
+        int index2;
+    Object getFieldValue(int index, String str) {
+        String fieldName = this.getFieldNameAt(index);
+        return fieldValueObject = this.getFieldValue(index2, dummy); // bad
+    }
+    String getFieldValue(String fieldName, String str) {
+        return "dummy";
+    }
+}
+
+class Issue506_FieldsGood {
+        String strField;
+        int indexField;
+    Object getFieldValue(int index, String str) {
+        String fieldName = this.getFieldNameAt(index);
+        return fieldValueObject = this.getFieldValue(strField, indexField); // good
+    }
+    String getFieldValue(String fieldName, int index) {
+        return "dummy";
+    }
+}
+
+class Issue506_FieldsBad2 {
+        //String strField;
+        int indexField;
+    Object getFieldValue(int index, String str) {
+        String fieldName = this.getFieldNameAt(index);
+        String str2;
+        return fieldValueObject = this.getFieldValue(indexField, str2); // bad
+    }
+    String getFieldValue(String fieldName, int index) {
+        return "dummy";
+    }
+}
+
+class Issue506_FieldsBad3 {
+        //String strField;
+        int indexField;
+    Object getFieldValue(int index, String str) {
+        String fieldName = this.getFieldNameAt(index);
+        String str2;
+        return fieldValueObject = this.getFieldValue(indexField, str); // bad
+    }
+    String getFieldValue(String fieldName, int index) {
+        return "dummy";
+    }
+}
+
+class Issue506_FieldsGood2 {
+        String strField;
+        int indexField;
+    Object getFieldValue(int index, String str) {
+        String fieldName = this.getFieldNameAt(index);
+        String str2;
+        return fieldValueObject = this.getFieldValue(strField, indexField); // good
+    }
+    String getFieldValue(String fieldName, int index) {
+        return "dummy";
+    }
+}
+
+class Issue506_3Params_false_pos {
+    Object getFieldValue(int index, String str, List l) {
+        String strLocal;
+        String fieldName = this.getFieldNameAt(index);
+        Map mapLocal;
+        return fieldValueObject = this.getFieldValue(index, str, mapLocal); // <- false positive
+    }
+    String getFieldValue(int index, String str, Map m) {
+        return "dummy";
+    }
+}
+
+class Issue506_3Params_bad {
+    Object getFieldValue(int index, String str, List l) {
+        String strLocal;
+        String fieldName = this.getFieldNameAt(index);
+        List listLocal;
+        return fieldValueObject = this.getFieldValue(index, str, listLocal); // bad
+    }
+    String getFieldValue(int index, String str, Map m) {
+        return "dummy";
+    }
+}
+                            ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>No violations - Fix request: AvoidInfiniteRecursion false positive other types in method call #507</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+class Issue507 {
+    private final Map<ComponentType, List<Descriptor>> coreMap = new HashMap<>();
+    private final Map<ComponentType, List<Descriptor>> edgeMap = new HashMap<>();
+
+    public List<Descriptor> getComponents(Set<ComponentType> types, RuleType ruleType) {
+        if (ruleType.CORE.equals(ruleType)) {
+            return getComponents(types, coreMap); // <- false positive
+        } else if (ruleType.EDGE.equals(ruleType)) {
+            return getComponents(types, edgeMap); // <- false positive
+        } else {
+            throw new RuntimeException("Unsupported rule type " + ruleType);
+        }
+    }
+    private List<Descriptor> getComponents(Set<ComponentType> types, Map<ComponentType, List<Descriptor>> componentsMap) {
+        List<Descriptor> result = new ArrayList<>();
+        // some logic here
+        return Collections.unmodifiableList(result);
+    }
+}
+                            ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>2 violations - Fix request: AvoidInfiniteRecursion false positive and undetected List.of #521</description>
+        <expected-problems>2</expected-problems>
+        <expected-linenumbers>11,12</expected-linenumbers>
+        <code><![CDATA[
+import java.util.List;
+
+public class Issue521 {
+
+    public static void applyFieldDeclaration(List<FieldDeclaration> fieldDeclarations, Object target, boolean throwExceptionOnMissingField) {
+        if (fieldDeclarations != null) {
+            for (FieldDeclaration declaration : fieldDeclarations) {
+                applyFieldDeclaration(declaration, target, throwExceptionOnMissingField); // <- false positive, but only with "bad, detected" line
+            }
+        }
+        applyFieldDeclaration(List.of(new FieldDeclaration("name", "value")), target, throwExceptionOnMissingField); // <- not detected
+        applyFieldDeclaration(fieldDeclarations, target, throwExceptionOnMissingField); // bad, detected
+    }
+
+    public static void applyFieldDeclaration(FieldDeclaration declaration, Object target, boolean throwExceptionOnMissingField) {
+        invokeSetterOrField(target, declaration.getName(), declaration.getValue(), throwExceptionOnMissingField);
+    }
+
+    private static void invokeSetterOrField(Object target, String name, Object value, boolean throwExceptionOnMissingField) {
+        // dummy
+    }
+
+    private static class FieldDeclaration {
+        private final String name;
+        private final Object value;
+
+        public FieldDeclaration(String name, Object value) {
+            this.name = name;
+            this.value = value;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public Object getValue() {
+            return value;
+        }
+    }
+}
+                            ]]></code>
+    </test-code>
+</test-data>

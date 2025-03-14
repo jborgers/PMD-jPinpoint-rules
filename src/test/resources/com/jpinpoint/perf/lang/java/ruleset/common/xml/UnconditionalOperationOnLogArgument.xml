@@ -142,4 +142,167 @@ public class MyProducer {
 ]]></code>
     </test-code>
 
+    <test-code>
+        <description>Fix Request for UnconditionalOperationOnLogArgument: Spurious violations on chained operations #415</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>9</expected-linenumbers>
+        <code><![CDATA[
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+public final class DataUtil {
+    public static void addTestData(URI uri, List<TransactionDocument> documents) {
+        String data = documents.stream()
+            .map(document -> document.toString() + "\n")
+            .collect(Collectors.joining());
+        log.info(WebClient.builder().build().post() // <--- 4x violation, should be 1 -- bad 1x
+            .uri(uri.resolve("/_bulk")) // <-- violation, not needed
+            .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+            .body(BodyInserters.fromValue(data)) // <-- violation, not needed
+            .exchange()
+            .flatMap(clientResponse -> clientResponse.bodyToMono(String.class)) // <-- violation, not needed
+            .block());
+    }
+}
+]]></code>
+    </test-code>
+
+    <test-code>
+        <description>Fix Request for UnconditionalOperationOnLogArgument false positive #455</description>
+        <expected-problems>2</expected-problems>
+        <expected-linenumbers>21,37</expected-linenumbers>
+        <code><![CDATA[
+class Issue455_onlyCond {
+    private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(Issue455_onlyCond.class);
+
+    void callLogConditionally(String faultCode) {
+        if (LOG.isDebugEnabled()) {
+             logFault(faultCode);
+        }
+    }
+    private String logFault(String faultCode) {
+        LOG.debug("Trying to get [{}]", faultCode.toUpperCase(Locale.US)); // false-positive, good
+    }
+}
+
+class Issue455_onlyUnCond {
+    private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(Issue455_onlyUnCond.class);
+
+    void callLogUnConditionally(String faultCode) {
+        logFault(faultCode);
+    }
+    private String logFault(String faultCode) {
+        LOG.debug("Trying to get [{}]", faultCode.toUpperCase(Locale.US)); // bad
+    }
+}
+
+class Issue455_CondUncond {
+    private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(Issue455_CondUncond.class);
+
+    void callLogConditionally(String faultCode) {
+        if (LOG.isDebugEnabled()) {
+             logFault(faultCode);
+        }
+    }
+    void callLogUnConditionally(String faultCode) {
+        logFault(faultCode);
+    }
+    private String logFault(String faultCode) {
+        LOG.debug("Trying to get [{}]", faultCode.toUpperCase(Locale.US)); // bad
+    }
+}
+
+]]></code>
+    </test-code>
+
+    <test-code>
+        <description>Fix Request for UnconditionalOperationOnLogArgument false positive #468</description>
+        <expected-problems>2</expected-problems>
+        <expected-linenumbers>15, 49</expected-linenumbers>
+        <code><![CDATA[
+import org.slf4j.*;
+
+class Issue468 {
+
+    private static final Logger log = LoggerFactory.getLogger(Issue468.class);
+
+    public void testGood(String faultCode) {
+        if (ids.contains("some-id") && log.isDebugEnabled()) {
+            log.debug("Getting [{}]", faultCode.toUpperCase(Locale.US));  // <-- false positive
+        }
+    }
+
+    public void testBad(String faultCode) {
+        if (ids.contains("some-id") || log.isDebugEnabled()) {
+            log.debug("Getting [{}]", faultCode.toUpperCase(Locale.US));  // bad
+        }
+    }
+
+    void callLogConditionally(String faultCode) {
+        if (ds.contains("some-id") && LOG.isDebugEnabled()) {
+             logFault(faultCode);
+        }
+    }
+    private String logFault(String faultCode) {
+        LOG.debug("Trying to get [{}]", faultCode.toUpperCase(Locale.US)); // false-positive, good
+    }
+}
+
+class Issue468_methodCall {
+    private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(Issue455_onlyCond.class);
+
+    void callLogConditionally(String faultCode) {
+        if ((ds.contains("some-other-id") || ds.contains("some-id")) && LOG.isDebugEnabled()) {
+             logFault2(faultCode);
+        }
+    }
+
+    void callLogConditionallyBad(String faultCode) {
+        if ((ds.contains("some-other-id") || ds.contains("some-id")) || LOG.isDebugEnabled()) {
+             logFault3(faultCode);
+        }
+    }
+
+    private String logFault2(String faultCode) {
+        LOG.debug("Trying to get [{}]", faultCode.toUpperCase(Locale.US)); // false-positive, good
+    }
+
+    private String logFault3(String faultCode) {
+        LOG.debug("Trying to get [{}]", faultCode.toUpperCase(Locale.US)); // bad
+    }
+
+}
+]]></code>
+    </test-code>
+
+    <test-code>
+        <description>Fix Request: false positive of UnconditionalOperationOnLogArgument #522</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import org.slf4j.MDC;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+public class ResponseLogger {
+
+    public foo() {
+         if (log.isDebugEnabled()) {
+                // log request headers/body and response body after setting and before removing debugSession mdc tag, use traceId and spanId to link to incidents
+                debugLog(request, responseWrapper);
+         }
+    }
+    private void debugLog(HttpServletRequest request, ResponseWrapper responseWrapper) throws IOException {
+        // log request body after setting and before removing debugSession mdc tag
+        log.debug("request headers/body request: {} / {}", getHeadersString(request), request.getInputStream() != null ? new String(IOUtils.toByteArray(request.getInputStream()), StandardCharsets.UTF_8) : "n/a");  // <---- false positive
+        // log response body
+        String responseBody = new String(responseWrapper.getContentAsByteArray(), StandardCharsets.UTF_8);
+        String[] parts = SPLIT_PATTERN.split(responseBody);
+        for (int i = 0; i < parts.length; i++) {
+            log.debug("response body part {}/{}: {}", i + 1, parts.length, parts[i]);
+        }
+    }
+}
+]]></code>
+    </test-code>
+
 </test-data>

@@ -4,8 +4,7 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
     <test-code>
-        <description>violati
-            on: NonComparableMapKeys</description>
+        <description>violation: NonComparableMapKeys</description>
         <expected-problems>6</expected-problems>
         <expected-linenumbers>4,5,9,10,11,16</expected-linenumbers>
         <code><![CDATA[
@@ -35,5 +34,43 @@ abstract class ComparableKey implements Comparable<ComparableKey> {
 }
      ]]></code>
     </test-code>
+
+    <test-code>
+        <description>violation: NonComparableMapKeys Issue #421</description>
+        <expected-problems>0</expected-problems>
+
+        <code><![CDATA[
+import java.util.HashMap;
+import java.util.Map;
+
+public final class Issue421 {
+    final int key = 3;
+    void foo() {
+        Map<Integer, Integer> map = new HashMap<>();
+        map.put(1,2); // <--- false positive
+        map.put(key, 4); // <--- false positive
+    }
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>false positive: NonComparableMapKeys Issue #470</description>
+        <expected-problems>0</expected-problems>
+
+        <code><![CDATA[
+import java.util.NavigableMap;
+import java.util.TreeMap;
+
+public class Issue470 {
+    private static final NavigableMap<Class, String> MAP = new TreeMap<>(Comparator.comparing(Class::getName)); // <--- false positive
+
+    public void foo() {
+            MAP.put(String.class, "String class"); // <--- false positive
+    }
+}
+     ]]></code>
+    </test-code>
+
 
 </test-data>
