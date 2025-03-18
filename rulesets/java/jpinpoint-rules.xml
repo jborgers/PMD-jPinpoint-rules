@@ -182,9 +182,13 @@ or
 AssignmentExpression/(StringLiteral|NumericLiteral)/@Image =
 ../preceding-sibling::SwitchFallthroughBranch//preceding-sibling::ExpressionStatement/AssignmentExpression/(StringLiteral|NumericLiteral)/@Image
 or
-(:-- assigning constructor with same argument or same argumentless method  --:)
-AssignmentExpression/(ConstructorCall/ArgumentList[@Size=1]/StringLiteral|MethodCall[ArgumentList[@Size=0]])/@Image =
-../preceding-sibling::SwitchFallthroughBranch//preceding-sibling::ExpressionStatement/AssignmentExpression/(ConstructorCall/ArgumentList[@Size=1]/StringLiteral|MethodCall[ArgumentList[@Size=0]])/@Image
+(:-- assigning constructor with same argument--:)
+AssignmentExpression/ConstructorCall/ArgumentList[@Size=1]/StringLiteral/@ConstValue =
+../preceding-sibling::SwitchFallthroughBranch//preceding-sibling::ExpressionStatement/AssignmentExpression/ConstructorCall/ArgumentList[@Size=1]/StringLiteral/@ConstValue
+or
+(:-- assigning same argumentless method possibly on a field of a type --:)
+AssignmentExpression/MethodCall[ArgumentList[@Size=0]]/concat(@MethodName, .//FieldAccess/@Name, .//FieldAccess//ClassType/@SimpleName) =
+../preceding-sibling::SwitchFallthroughBranch//preceding-sibling::ExpressionStatement/AssignmentExpression/MethodCall[ArgumentList[@Size=0]]/concat(@MethodName, .//FieldAccess/@Name, .//FieldAccess//ClassType/@SimpleName)
 )
 (:--default case allowed to have duplicates --:)
 and not (preceding-sibling::SwitchLabel[@Default=true()])]
