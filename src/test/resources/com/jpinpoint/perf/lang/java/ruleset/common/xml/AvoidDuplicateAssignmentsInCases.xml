@@ -6,6 +6,7 @@
     <test-code>
         <description>Avoid duplicate assignment in switch statements</description>
         <expected-problems>6</expected-problems>
+        <expected-linenumbers>31,32,33,36,37,38</expected-linenumbers>
         <code><![CDATA[
 import java.io.OutputStream;
 import java.math.BigDecimal;
@@ -37,14 +38,14 @@ public class AvoidDuplicateAssignmentsInCasesTest {
                 break;
             case "Two":
                 xmlNsValue = DOCUMENT_ATTRIB_XMLNS_LINT008; //ok
-                xmlNsExtValue = "same"; // violation
-                schemaLocation = 1; //violation
-                startElement = GENERAL_CSTMR_TRF_INITN; // violation
+                xmlNsExtValue = "same"; // violation 1
+                schemaLocation = 1; //violation 2
+                startElement = GENERAL_CSTMR_TRF_INITN; // violation 3
                 startElement = GENERAL_CSTMR_DBT_INITN; //ok
                 //dummy = GENERAL_CSTMR_TRF_INITN; // ok
-                extra = new String("alsoSame"); //violation
-                extra = dummy; // violation
-                extra = toString(); // violation
+                extra = new String("alsoSame"); //violation 4
+                extra = dummy; // violation 5
+                extra = toString(); // violation 6
                 break;
             default:
                 throw new IllegalArgumentException("Type " + type + " is not supported.");
@@ -130,4 +131,48 @@ class Foo {
 }
      ]]></code>
     </test-code>
+
+    <test-code>
+        <description>Duplicate assignment false positive #561</description>
+        <expected-problems>2</expected-problems>
+        <expected-linenumbers>12,18</expected-linenumbers>
+        <code><![CDATA[
+class Issue561 {
+    void bar(String statusCode) {
+        String errorCode;
+        switch (statusCode) {
+        case "A39" :
+             errorCode = ErrorCodes.NOT_ALLOWED.getErrorCode();
+             break;
+        case "A45" :
+             errorCode = ErrorCodes.NOT_AVAILABLE.getErrorCode(); // <-- false positive
+             break;
+        case "A46" :
+             errorCode = ErrorCodes.NOT_AVAILABLE.getErrorCode(); // bad
+             break;
+        case "B45" :
+             errorCode = getCode();
+             break;
+        case "B46" :
+             errorCode = getCode(); // bad
+             break;
+        }
+    }
+    String getCode() {
+        return "some code";
+    }
+}
+enum ErrorCodes {
+    NOT_ALLOWED, NOT_AVAILABLE;
+    private final String code;
+    ErrorCodes(String c) {
+        code = c;
+    }
+    String getErrorCode() {
+        return code;
+    }
+}
+     ]]></code>
+    </test-code>
+
 </test-data>
