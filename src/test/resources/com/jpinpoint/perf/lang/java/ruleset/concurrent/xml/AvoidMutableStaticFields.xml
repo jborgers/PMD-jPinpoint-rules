@@ -165,4 +165,46 @@ public class Issue405 {
 }
     ]]></code>
     </test-code>
+
+    <test-code>
+        <description>false positive for AvoidMutableStaticFields on wrapped Map of #560</description>
+        <expected-problems>4</expected-problems>
+        <expected-linenumbers>4,7,9,11</expected-linenumbers>
+        <code><![CDATA[
+import java.util.*;
+
+class Issue560 {
+    private static final EnumMap<AmorType, SchedType> AMOR_TYPE_MAPPING = // bad, mutable
+      new EnumMap<>(Map.of(AmorType.CUSTOM, SchedType.CUSTOM,
+                           AmorType.NONE, SchedType.NONE));
+   private static final EnumSet<AmorType> ENUM_SET_FROM_SET = // bad, mutable, missed case
+            EnumSet.copyOf(Set.of(AmorType.NONE, AmorType.CUSTOM));
+    private static final EnumSet<AmorType> ENUM_SET_FROM_LIST = // bad, mutable, missed case
+            EnumSet.copyOf(List.of(AmorType.NONE, AmorType.CUSTOM));
+    private static final EnumSet<AmorType> ENUM_SET_FROM_SET_ELEMS = // bad, mutable, missed case
+            EnumSet.of(AmorType.NONE, AmorType.CUSTOM);
+    private static final Set<AmorType> UNMOD_ENUM_SET_FROM_LIST =
+            Collections.unmodifiableSet(EnumSet.copyOf(List.of(AmorType.NONE, AmorType.CUSTOM))); // good, immutable
+    private static final Set<AmorType> UNMOD_ENUM_TYPE_SET_FROM_SET =
+            Collections.unmodifiableSet(EnumSet.of(AmorType.NONE, AmorType.CUSTOM));
+    public static void main(String[] args) {
+       ENUM_SET_FROM_SET.add(AmorType.OTHER); // valid
+        ENUM_SET_FROM_LIST.add(AmorType.OTHER); // valid
+        ENUM_SET_FROM_SET_ELEMS.add(AmorType.OTHER); // valid
+        //UNMOD_ENUM_SET_FROM_LIST.add(AmorType.OTHER); // thows UnsupportedOperationException
+        System.out.println(ENUM_SET_FROM_SET);
+    }
+}
+
+enum AmorType {
+    NONE, CUSTOM, OTHER;
+}
+enum SchedType {
+    NONE, CUSTOM;
+}
+
+
+    ]]></code>
+    </test-code>
+
 </test-data>

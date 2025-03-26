@@ -2406,15 +2406,25 @@ With Java 9 this can be much more compact:
 private static final List QUALIFIERS_Ok = List.of("alpha", "beta", "milestone");
 ```
 
+
 or by using Guava immutable collections like [ImmutableList](https://google.github.io/guava/releases/21.0/api/docs/com/google/common/collect/ImmutableList.html):
 
 ```java
 private static final List QUALIFIERS_Ok = ImmutableList.of("alpha", "beta", "milestone");
 ```
 
+Note that an`EnumMap`is mutable and lacks an`.of()`method, so initializing an immutable one is like:
+```java
+private static final Map<AmorType, SchedType> UNMOD_ENUM_MAP =
+    Collections.unmodifiableMap(new EnumMap<>(Map.of(AmorType.CUSTOM, SchedType.CUSTOM, AmorType.NONE, SchedType.NONE)));
+```
+An`EnumSet`is also mutable and has an`.of()`method, so initializing an immutable one is like:
+```java
+private static final Set<AmorType> UNMOD_ENUM_SET = Collections.unmodifiableSet(EnumSet.of(AmorType.NONE, AmorType.CUSTOM));
+```
 Note that for primitives Guava has: [ImmutableIntArray](http://google.github.io/guava/releases/22.0/api/docs/com/google/common/primitives/ImmutableIntArray.html), [ImmutableLongArray](http://google.github.io/guava/releases/22.0/api/docs/com/google/common/primitives/ImmutableLongArray.html) and [ImmutableDoubleArray](http://google.github.io/guava/releases/22.0/api/docs/com/google/common/primitives/ImmutableDoubleArray.html).
 
-If they really need to be mutable, make access thread-safe. Thread-safety can be achieved e.g. by proper synchronization and use the [@GuardedBy](#TUTC04) annotation or use of volatile. Consider lock contention.
+If they really need to be mutable, make access thread-safe. Thread-safety can be achieved e.g. by proper synchronization and use the [@GuardedBy](#TUTC04) annotation, use of volatile, or a suitable concurrent collection type like ConcurrentHashMap. Consider lock contention.
 
 **Rule name:** AvoidMutableStaticFields
 

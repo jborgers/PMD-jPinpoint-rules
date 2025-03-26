@@ -70,7 +70,7 @@ public static String good(CompletableFuture<String> complFuture) throws Exceptio
           typeResolution="true" externalInfoUrl="${doc_root}/JavaCodePerformance.md#tutc08">
         <description>
             Problem: Multiple threads typically access static fields. Unguarded assignment to a mutable or non-final static field is thread-unsafe and may cause corruption or visibility problems. To make this thread-safe, that is, guard the field e.g. with synchronized methods, may cause contention. &#13;
-            Solution: Make the fields final and unmodifiable.  If they really need to be mutable, make access thread-safe: use synchronized and @GuardedBy or use volatile. Consider lock contention.&#13;
+            Solution: Make the fields final and unmodifiable. If they really need to be mutable, make access thread-safe: use synchronized and @GuardedBy, use volatile or a suitable concurrent collection type. Consider lock contention.&#13;
             (jpinpoint-rules)</description>
         <priority>3</priority>
         <properties>
@@ -106,6 +106,7 @@ public static String good(CompletableFuture<String> complFuture) throws Exceptio
         or .//ArrayInitializer[@Length > 0]
         or .//ArrayAllocation[.//ArrayDimExpr/NumericLiteral[@ValueAsInt > 0]]
         or .//MethodCall[pmd-java:matchesSig('java.util.Arrays#asList(_*)') and not(ancestor::MethodCall[pmd-java:matchesSig('java.util.Collections#unmodifiableList(_*)')])]
+        or .//MethodCall/TypeExpression[pmd-java:typeIs('java.util.EnumSet') and not(ancestor::MethodCall[pmd-java:matchesSig('java.util.Collections#unmodifiableSet(_*)')])]
    )
 ],
 (: static-block allocations of non-empty arrays :)
