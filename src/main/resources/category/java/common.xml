@@ -899,16 +899,16 @@ if (LOG.isDebugEnabled()) { // good
             ]]>
         </example>
     </rule>
-
     <rule name="UsingSuppressWarningsHighRisk"
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           language="java"
           message="Using SuppressWarnings for a rule that is meant to prevent high risk problems."
-          externalInfoUrl="${doc_root}/JavaCodePerformance.md">
-        <description>Problem: This rule detects high risk problems, suppressing the violations without full knowledge can lead to incidents like customer data mix-up, corrupt data, server crashes or very bad performance. &#13;
-            Solution: Suppress warnings judiciously based on full knowledge and report reasons to suppress (false positives) to the rule maintainers so the rule can be fixed.
-            Note: This rule is to track use of SuppressWarnings for high risk rule violations, to be able to double-check. It doesn't necessarily need a fix.
-        </description>
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md">
+        <description>Problem: The suppressed rule detects high risk problems, suppressing the detected violations without full knowledge can lead to incidents like customer data mix-up, corrupt data, server crashes or very bad performance. &#13;
+            Solution: Only suppress violations (warnings) when you have complete understanding of the rule, and you are sure it does not apply.
+            When suppressing warnings, document your reasoning and report false positives to the rule maintainers to help improve rule accuracy.
+            Note: This rule is to track use of SuppressWarnings for high risk rule violations, to be able to double-check if suppression is correct. It doesn't necessarily need a fix.
+            (jpinpoint-rules)</description>
         <priority>4</priority>
         <properties>
             <property name="tags" value="data-mix-up,jpinpoint-rule,suspicious" type="String" description="classification"/>
@@ -928,21 +928,21 @@ if (LOG.isDebugEnabled()) { // good
 @SuppressWarnings({"pmd:AvoidUnguardedMutableFieldsInSharedObjects", "PMD.AvoidUserDataInSharedObjects"}) // suspicious, bad to suppress
 @Component @Data
 class VMRData {
-    private List<OrderDetails> custOrderList; // a bad idea to have in a singleton, should be solved instead of suppressed
+    private List<OrderDetails> customerOrderList; // a bad idea to have in a singleton, should be solved instead of suppressed
     //..
 }
              ]]>
         </example>
     </rule>
-
     <rule name="UsingSuppressWarnings"
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           language="java"
           message="Using SuppressWarnings."
-          externalInfoUrl="${doc_root}/JavaCodePerformance.md">
-        <description>Problem: This rule detects problems, suppressing them without full knowledge can lead to the problems this rule is trying to prevent. &#13;
-            Solution: Suppress warnings judiciously based on full knowledge and report reasons to suppress (false positives) to the rule maintainers so the rule can be fixed.
-            Note: This is just informational to track use of SuppressWarnings, to be able to double-check. It often doesn't need a fix. </description>
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md">
+        <description>Problem: The suppressed rule detects problems, suppressing the detected violations without full knowledge can lead to the problems the rule is trying to prevent. &#13;
+            Solution: Only suppress violations (warnings) when you have complete understanding of the rule, and you are sure it does not apply.
+            When suppressing warnings, document your reasoning and report false positives to the rule maintainers to help improve rule accuracy.
+            Note: This rule is just informational to track use of SuppressWarnings, to be able to double-check if suppression is correct. It often doesn't need a fix. (jpinpoint-rules)</description>
         <priority>5</priority>
         <properties>
             <property name="tags" value="jpinpoint-rule,suspicious" type="String" description="classification"/>
@@ -959,7 +959,7 @@ class VMRData {
         </properties>
         <example>
             <![CDATA[
-@SuppressWarnings("pmd:UnconditionalCreatedLogArguments") // Reason for suppression: the rule doesn't recognixe record getters (yet), and those are not expensive
+@SuppressWarnings("pmd:UnconditionalCreatedLogArguments") // Reason for suppression: the rule doesn't recognize record getters (yet), and those are not expensive
 public void process(ConsumerRecord consRecord) {
     ConsumerEvent event = consRecord.event(); // record getter
     log.info("Received event '{}'", event); // pmd:UnconditionalCreatedLogArguments suppressed
