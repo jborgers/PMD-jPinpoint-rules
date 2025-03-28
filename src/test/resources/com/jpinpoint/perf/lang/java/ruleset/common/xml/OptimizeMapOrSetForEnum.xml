@@ -203,4 +203,20 @@ class Issue387 {
 }
         ]]></code>
     </test-code>
+
+    <test-code>
+        <description>false positive in OptimizeMapOrSetForEnum #573</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import java.util.*;
+public class Issue573 {
+    private static final Map<String, String> map;
+
+    static {
+        map = new HashMap<>(); // <- false positive
+    }
+}
+        ]]></code>
+    </test-code>
+
 </test-data>
