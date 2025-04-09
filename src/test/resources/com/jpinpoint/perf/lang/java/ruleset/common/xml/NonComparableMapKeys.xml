@@ -13,7 +13,7 @@ import java.util.*;
 public class NonComparableMapKeys {
     Map<NonComparableKey, String> nckMap; // bad, with pmd7 we are able to test this, nice!
     Map<Runnable, String> rMap; // bad
-    Map<ComparableKey, String> ckMap; // good. Not available from classpath, type cannot be determined, then no violation
+    Map<ComparableKey, String> ckMap; // good.
     Map<Comparable, String> cMap; // good
     Map<String, String> sMap = new HashMap<>(); // good
     HashMap<Object, String> oMap; // bad, Object does not implement Comparable
@@ -27,7 +27,7 @@ public class NonComparableMapKeys {
     }
 }
 
-class NonComparableKey { // will not be available in classpath, unfortunately
+class NonComparableKey {
 }
 
 abstract class ComparableKey implements Comparable<ComparableKey> {
@@ -72,5 +72,22 @@ public class Issue470 {
      ]]></code>
     </test-code>
 
+    <test-code>
+        <description>no violation: prevent false positives in NonComparableMapKeys and NonComparableSetElements #568</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import java.util.*;
+
+public class NonComparableMapKeys {
+    Map<NonComparableKey, String> nckMap; // <-- false positive, cannot be resolved, should be assumed negative
+    Map<ComparableKey, String> ckMap; // <-- false positive, cannot be resolved, should be assumed negative
+    Map oldStyleMap = new HashMap(); // cannot check here
+
+    void putInOldStyleMap() {
+        oldStyleMap.put(new SomeUnresolvedClass(), "val"); // <-- false positive, cannot be resolved, should be assumed negative
+    }
+}
+     ]]></code>
+    </test-code>
 
 </test-data>
