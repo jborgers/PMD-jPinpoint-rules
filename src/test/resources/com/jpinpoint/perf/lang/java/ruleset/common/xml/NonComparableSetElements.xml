@@ -67,4 +67,21 @@ public class Issue470 {
      ]]></code>
     </test-code>
 
+    <test-code>
+        <description>no violation: prevent false positives in NonComparableMapKeys and NonComparableSetElements #568</description>
+        <expected-problems>0</expected-problems>
+
+        <code><![CDATA[
+import java.util.*;
+
+public class Issue568 {
+        Set<SomeUnresolvedType> someSet = new HashSet<>(); // <-- false positive, cannot be resolved, assume Comparable
+        boolean containsAllOf(Set otherSet) {
+            return someSet.containsAll(otherSet);
+        }
+}
+     ]]></code>
+    </test-code>
+
+
 </test-data>
