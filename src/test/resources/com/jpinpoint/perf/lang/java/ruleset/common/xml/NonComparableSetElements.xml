@@ -75,7 +75,7 @@ public class Issue470 {
 import java.util.*;
 
 public class Issue568 {
-        Set<SomeUnresolvedType> someSet = new HashSet<>();
+        Set<SomeUnresolvedType> someSet = new HashSet<>(); // <-- false positive, cannot be resolved, assume Comparable
         boolean containsAllOf(Set otherSet) {
             return someSet.containsAll(otherSet);
         }

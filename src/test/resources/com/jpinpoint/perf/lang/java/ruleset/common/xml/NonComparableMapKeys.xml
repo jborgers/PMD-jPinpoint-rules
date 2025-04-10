@@ -79,12 +79,12 @@ public class Issue470 {
 import java.util.*;
 
 public class NonComparableMapKeys {
-    Map<NonComparableKey, String> nckMap; // <-- false positive, cannot be resolved, should be assumed negative
-    Map<ComparableKey, String> ckMap; // <-- false positive, cannot be resolved, should be assumed negative
+    Map<NonComparableKey, String> nckMap; // <-- false positive, cannot be resolved, assume Comparable
+    Map<ComparableKey, String> ckMap; // <-- false positive, cannot be resolved, assume Comparable
     Map oldStyleMap = new HashMap(); // cannot check here
 
     void putInOldStyleMap() {
-        oldStyleMap.put(new SomeUnresolvedClass(), "val"); // <-- false positive, cannot be resolved, should be assumed negative
+        oldStyleMap.put(new SomeUnresolvedClass(), "val"); // <-- false positive, cannot be resolved, assume Comparable
     }
 }
      ]]></code>
