@@ -7,6 +7,9 @@
         <description>no violation: KeyGenerator with casting params </description>
         <expected-problems>0</expected-problems>
         <code><![CDATA[
+import java.lang.reflect.Method;
+import java.util.List;
+import java.util.Arrays;
 import org.springframework.cache.interceptor.KeyGenerator;
 import org.springframework.util.StringUtils;
 
@@ -39,8 +42,11 @@ public class GetAddressKeyGeneratorGood implements KeyGenerator {
     <test-code>
         <description>violation: return concatenated Object array</description>
         <expected-problems>2</expected-problems>
-        <expected-linenumbers>6,8</expected-linenumbers>
+        <expected-linenumbers>9,11</expected-linenumbers>
         <code><![CDATA[
+import java.lang.reflect.Method;
+import java.util.List;
+import java.util.Arrays;
 import org.springframework.cache.interceptor.KeyGenerator;
 import org.springframework.util.StringUtils;
 
@@ -58,8 +64,11 @@ public class Bad implements KeyGenerator {
     <test-code>
         <description>violation: define and then return concatenated Object array</description>
         <expected-problems>2</expected-problems>
-        <expected-linenumbers>6,8</expected-linenumbers>
+        <expected-linenumbers>9,11</expected-linenumbers>
         <code><![CDATA[
+import java.util.List;
+import java.util.Arrays;
+import java.lang.reflect.Method;
 import org.springframework.cache.interceptor.KeyGenerator;
 import org.springframework.util.StringUtils;
 
@@ -77,8 +86,9 @@ public class KeyGenerationBad2 implements KeyGenerator {
     <test-code>
         <description>violation: define and then return concatenated Object array</description>
         <expected-problems>1</expected-problems>
-        <expected-linenumbers>6</expected-linenumbers>
+        <expected-linenumbers>7</expected-linenumbers>
         <code><![CDATA[
+import java.lang.reflect.Method;
 import org.springframework.cache.interceptor.KeyGenerator;
 import org.springframework.util.StringUtils;
 
@@ -95,7 +105,13 @@ public class GetAddressKeyGeneratorBad implements KeyGenerator {
         <description>no violation: issue #133 - use params to do logging inside if-block checking on params.length</description>
         <expected-problems>0</expected-problems>
         <code><![CDATA[
- class Foo implements KeyGenerator {
+import java.lang.reflect.Method;
+import org.jetbrains.annotations.NotNull;
+import com.example.MessageBuilder;
+import org.springframework.cache.interceptor.KeyGenerator;
+import org.springframework.cache.interceptor.SimpleKey;
+
+class Foo implements KeyGenerator {
     @NotNull @Override
     public Object generate(Object target, Method method, Object... params) {
         if (params.length < 2 ) {
@@ -105,8 +121,8 @@ public class GetAddressKeyGeneratorBad implements KeyGenerator {
             throw new IllegalArgumentException(errorMessage);
         }
         String relationId = (String) params[0];
-        String securitiesAccountId = (String) params[1];
-        return new SimpleKey(appName, ClassUtils.getUserClass(target.getClass()).getName(), relationId, securitiesAccountId);
+        String accountId = (String) params[1];
+        return new SimpleKey(appName, ClassUtils.getUserClass(target.getClass()).getName(), relationId, accountId);
     }
 }
         ]]></code>
@@ -116,7 +132,11 @@ public class GetAddressKeyGeneratorBad implements KeyGenerator {
         <description>no violation: issue #149 - false positive for AvoidIdentityCacheKeys when used SimpleKey</description>
         <expected-problems>0</expected-problems>
         <code><![CDATA[
+import java.lang.reflect.Method;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.cache.interceptor.KeyGenerator;
 import org.springframework.cache.interceptor.SimpleKey;
+
 class Foo implements KeyGenerator {
     @NotNull @Override
     public Object generate(Object target, Method method, Object... params) {
@@ -129,8 +149,13 @@ class Foo implements KeyGenerator {
     <test-code>
         <description>1 violation: issue AvoidIdentityCacheKeys #142</description>
         <expected-problems>1</expected-problems>
-        <expected-linenumbers>10</expected-linenumbers>
+        <expected-linenumbers>15</expected-linenumbers>
         <code><![CDATA[
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
+import com.example.MyKeyGenerator;
+import com.example.MyCache;
 import org.springframework.cache.interceptor.KeyGenerator;
 import org.springframework.util.StringUtils;
 
@@ -143,7 +168,7 @@ class Foo implements KeyGenerator {
                 accParams.add(o.toString()); // bad
             }
         }
-        return UaccKeyGenerator.generate(UaccCache.UACC_CACHE_NAME, target, method, accParams);
+        return MyKeyGenerator.generate(MyCache.MY_CACHE_NAME, target, method, accParams);
     }
 }
 
@@ -156,7 +181,7 @@ class Bar implements KeyGenerator {
                 accParams.add(((User)o).toString()); // good, cast
             }
         }
-        return UaccKeyGenerator.generate(UaccCache.UACC_CACHE_NAME, target, method, accParams);
+        return MyKeyGenerator.generate(MyCache.MY_CACHE_NAME, target, method, accParams);
     }
 }
 
@@ -170,7 +195,7 @@ class Bee implements KeyGenerator {
                 accParams.add(u.toString()); // good, casted
             }
         }
-        return UaccKeyGenerator.generate(UaccCache.UACC_CACHE_NAME, target, method, accParams);
+        return MyKeyGenerator.generate(MyCache.MY_CACHE_NAME, target, method, accParams);
     }
 }
         ]]></code>
