@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+
+    <test-code>
+        <description>Violation: Comparator created in compareTo method</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>10</expected-linenumbers>
+        <code><![CDATA[
+import java.util.Comparator;
+
+public class BadPerson implements Comparable<BadPerson> {
+    private String firstName;
+    private String lastName;
+    private int age;
+
+    @Override
+    public int compareTo(BadPerson o) {
+        return Comparator.comparing(BadPerson::getFirstName) // bad, can be reused in static final
+                .thenComparing(BadPerson::getLastName)
+                .thenComparingInt(BadPerson::getAge)
+                .compare(this, o);
+    }
+
+    // getters omitted for brevity
+    public String getFirstName() { return firstName; }
+    public String getLastName() { return lastName; }
+    public int getAge() { return age; }
+}
+        ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>Violation: Comparator created in sort method</description>
+        <expected-problems>1</expected-problems>
+        <code><![CDATA[
+import java.util.Comparator;
+import java.util.Collections;
+import java.util.List;
+
+class Person {
+    private String firstName;
+    private String lastName;
+    private int age;
+
+    public String getFirstName() { return firstName; }
+    public String getLastName() { return lastName; }
+    public int getAge() { return age; }
+}
+
+public class BadSorting {
+    public static void sortPeople(List<Person> persons) {
+        Collections.sort(persons,
+                Comparator.comparingInt(Person::getAge) // bad, can be reused in static final
+                        .thenComparing(Person::getLastName)
+                        .thenComparing(Person::getFirstName));
+    }
+}
+        ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>No violation: Static final Comparator in comparable class</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import java.util.Comparator;
+
+public class GoodPerson implements Comparable<GoodPerson> {
+
+    private static final Comparator<GoodPerson> COMPARATOR =
+            Comparator.comparing(GoodPerson::getFirstName)
+                    .thenComparing(GoodPerson::getLastName)
+                    .thenComparingInt(GoodPerson::getAge);
+
+    private String firstName;
+    private String lastName;
+    private int age;
+
+    @Override
+    public int compareTo(GoodPerson o) {
+        return COMPARATOR.compare(this, o);
+    }
+
+    public String getFirstName() { return firstName; }
+    public String getLastName() { return lastName; }
+    public int getAge() { return age; }
+}
+        ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>No violation: Static final Comparator in sorting class</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import java.util.Comparator;
+import java.util.Collections;
+import java.util.List;
+
+class Person {
+    private String firstName;
+    private String lastName;
+    private int age;
+
+    public String getFirstName() { return firstName; }
+    public String getLastName() { return lastName; }
+    public int getAge() { return age; }
+}
+
+public class GoodSorting {
+    private static final Comparator<Person> PERSON_COMPARATOR =
+            Comparator.comparingInt(Person::getAge)
+                    .thenComparing(Person::getLastName)
+                    .thenComparing(Person::getFirstName);
+
+    public void sortPeople(List<Person> persons) {
+        Collections.sort(persons, PERSON_COMPARATOR);
+    }
+}
+        ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>Violation: using nullsFirst - expect one match only</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>18</expected-linenumbers>
+        <code><![CDATA[
+import java.util.Comparator;
+import java.util.Collections;
+import java.util.List;
+
+class Person {
+    private String firstName;
+    private String lastName;
+    private int age;
+
+    public String getFirstName() { return firstName; }
+    public String getLastName() { return lastName; }
+    public int getAge() { return age; }
+}
+
+public class NullComparator {
+    public void sortWithNulls(List<Person> persons) {
+        Comparator<Person> comparator =
+                Comparator.nullsFirst(Comparator.comparing(Person::getFirstName)); // bad, can be reused in static final
+        Collections.sort(persons, comparator);
+    }
+}
+        ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>No violation: Multiple static final comparators</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import java.util.Comparator;
+import java.util.Collections;
+import java.util.List;
+
+class Person {
+    private String firstName;
+    private String lastName;
+    private int age;
+
+    public String getFirstName() { return firstName; }
+    public String getLastName() { return lastName; }
+    public int getAge() { return age; }
+}
+
+public class MultipleComparators {
+    private static final Comparator<Person> BY_AGE =
+            Comparator.comparingInt(Person::getAge);
+
+    private static final Comparator<Person> BY_NAME =
+            Comparator.comparing(Person::getFirstName)
+                    .thenComparing(Person::getLastName);
+
+    public void sortByAge(List<Person> persons) {
+        Collections.sort(persons, BY_AGE);
+    }
+
+    public void sortByName(List<Person> persons) {
+        Collections.sort(persons, BY_NAME);
+    }
+}
+        ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>No violation: Non-comparator methods</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+public class NonComparatorClass {
+
+    public int compare(String a, String b) {
+        return this.comparing(Integer.valueOf(a), Integer.valueOf(b));
+    }
+
+    public int comparing(int a, int b) {
+        return Integer.compare(a, b);
+    }
+}
+        ]]></code>
+    </test-code>
+</test-data>

@@ -2422,5 +2422,63 @@ class IterationsBetter {
             ]]>
         </example>
     </rule>
+    <rule name="InitializeComparatorOnlyOnce"
+          language="java"
+          message="Avoid creating Comparator instances repeatedly. Initialize them as static final fields instead."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md">
+        <description>Problem: Creating Comparator instances repeatedly in methods like compareTo or sort calls is inefficient.&#13;
+            Solution: Initialize the Comparator as a static final field when not using external state and is thread safe.
+        </description>
+        <priority>2</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,sustainability-medium,cpu" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+//MethodCall[
+    (pmd-java:matchesSig('java.util.Comparator#comparing(_)')
+      or pmd-java:matchesSig('java.util.Comparator#comparingInt(_)')
+      or pmd-java:matchesSig('java.util.Comparator#comparingDouble(_)')
+      or pmd-java:matchesSig('java.util.Comparator#comparingLong(_)')
+      or pmd-java:matchesSig('java.util.Comparator#nullsFirst(_)')
+      or pmd-java:matchesSig('java.util.Comparator#nullsLast(_)')
+    )
+    (: not chained: AST is backwards with first call last element :)
+    and not(MethodCall[pmd-java:typeIs('java.util.Comparator')])
+    (: not used as argument to another Comparator method :)
+    and not(parent::ArgumentList/parent::MethodCall[
+        pmd-java:typeIs('java.util.Comparator')
+    ])
+    (: used in non-static-final way :)
+    and not(ancestor::ClassBody[1]/FieldDeclaration[pmd-java:modifiers() = ('final','static')])
+]
+            ]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+public class BadPerson implements Comparable<Person> {
+    @Override
+    public int compareTo(@NotNull Person o) {
+        return Comparator.comparing(Person::getFirstName)  // Bad: Creates new Comparator instance on each invocation
+                .thenComparing(Person::getLastName)
+                .thenComparingInt(Person::getAge)
+                .compare(this, o);
+    }
+}
 
+public class GoodPerson implements Comparable<Person> {
+    private static final Comparator<Person> COMPARE_AGE_LAST_FIRST =
+        Comparator.comparing(Person::getFirstName)
+            .thenComparing(Person::getLastName)
+            .thenComparingInt(Person::getAge);
+
+    @Override
+    public int compareTo(@NotNull Person o) {
+        return COMPARE_AGE_LAST_FIRST.compare(this, o);     // Good: Comparator initialized once as static final field
+    }
+}
+        ]]>
+        </example>
+    </rule>
 </ruleset>

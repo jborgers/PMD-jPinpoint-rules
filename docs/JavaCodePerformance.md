@@ -2654,6 +2654,75 @@ Note the use of explicit (Integer) cast to call the correct overloaded remove(In
 Suggested fix: create a category id variable of type Integer before the if statement so no further implicit boxing is done.  
 **Tip:** enable the compiler check on auto boxing/unboxing in eclipse.
 
+#### UE03
+
+**Observation: Creating new `Comparator` instances repeatedly**, e.g. in methods like `compareTo()` or collection sort operations.  
+**Problem:** Performance penalty from repeatedly creating objects, increasing garbage collection pressure and CPU usage, especially in frequently called methods or loops.  
+**Solution:** Initialize `Comparator` instances as `static final` fields. Make sure they don't use external state and are thread-safe.  
+
+Example 1: Creating a new Comparator in compareTo method:
+
+```java
+public int compareTo(Person other) {
+    return Comparator.comparing(Person::getFirstName)  // Creates new Comparator and inner lambda's each time
+            .thenComparing(Person::getLastName)
+            .compare(this, other);
+}
+```
+
+The Comparator is unnecessarily created on each method invocation. Initialize it as a static final field instead.
+
+Example 2: Proper initialization as static final field:
+
+```java
+private static final Comparator<Person> PERSON_COMPARATOR = 
+    Comparator.comparing(Person::getFirstName)
+            .thenComparing(Person::getLastName);
+
+public int compareTo(Person other) {
+    return PERSON_COMPARATOR.compare(this, other);  // Reuses existing Comparator
+}
+```
+
+Example 3: Creating a new Comparator for each TreeSet:
+```java
+public class PersonRepository {
+    public Set<Person> getPersonsSortedByName() {
+        return new TreeSet<>(Comparator.comparing(Person::getName));
+    }
+    
+    public List<Person> getSortedPersons() {
+        List<Person> persons = getPersons();
+        persons.sort(Comparator.comparing(Person::getName));
+        return persons;
+    }
+}
+```
+
+Suggested improvement (has less impact than example 2 where compareTo method is called many times, this is per collection creation or sort call only):
+
+```java
+public class PersonRepository {
+    private static final Comparator<Person> PERSON_BY_NAME_COMPARATOR = 
+        Comparator.comparing(Person::getName);
+    
+    public Set<Person> getPersonsSortedByName() {
+        return new TreeSet<>(PERSON_BY_NAME_COMPARATOR);
+    }
+    
+    public List<Person> getSortedPersons() {
+        List<Person> persons = getPersons();
+        persons.sort(PERSON_BY_NAME_COMPARATOR);
+        return persons;
+    }
+}
+```
+
+Note that local one-time Comparators may be acceptable in specific cases where the comparison is used only once or the logic needs to be dynamic.
+However, for frequently used or standard comparison operations, always use static final fields to avoid unnecessary object creation.
+
+**Rule name**: InitializeComparatorOnlyOnce
+
 Inefficient memory usage
 ------------------------
 
