@@ -479,14 +479,15 @@ class Good {
 /../..//MethodDeclaration[@Name='generate']
 (: select all variables in block, *[2] to select part after assignment :)
 /Block//
-
   (ReturnStatement|LocalVariableDeclaration/VariableDeclarator/*[2])
   (: where name matches the third Object... parameter name of generate method :)
   //VariableAccess[
      @Name = ancestor::MethodDeclaration//FormalParameter[3]/VariableId/@Name
      and not(
+        (: used with SimpleKey :)
+        ancestor::ConstructorCall//ClassType[pmd-java:typeIs("org.springframework.cache.interceptor.SimpleKey")]
         (: without an explicit cast :)
-        exists(../../..//CastExpression)
+        or exists(../../..//CastExpression)
         (: - exclude if in an if-block checking params.length to do error logging or so - :)
         or exists(ancestor::IfStatement//FieldAccess[@Name = 'length'])
      )
@@ -501,11 +502,12 @@ class Good {
    @Name = ancestor::ForeachStatement/LocalVariableDeclaration//VariableId/@Name
    and ../../MethodCall[@MethodName = 'toString']
 ]
-    ]]></value>
+           ]]></value>
             </property>
         </properties>
         <example>
             <![CDATA[
+import java.lang.reflect.Method;
 import org.springframework.cache.interceptor.KeyGenerator;
 import org.springframework.util.StringUtils;
 
