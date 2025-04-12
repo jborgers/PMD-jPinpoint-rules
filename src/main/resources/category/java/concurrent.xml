@@ -880,7 +880,8 @@ public class Good {
                 <property name="tags" value="jpinpoint-rule,multi-threading" type="String" description="classification"/>
                 <property name="xpath">
                     <value>
-                        <![CDATA[//MethodDeclaration[
+                        <![CDATA[
+//MethodDeclaration[
     (: method not synchronized or static :)
     (not(pmd-java:modifiers() = 'synchronized') or pmd-java:modifiers() = 'static')
     and not(pmd-java:hasAnnotation('org.springframework.beans.factory.annotation.Autowired')
@@ -895,7 +896,7 @@ public class Good {
    (: -- GuardedBy annotations are matched on SimpleName, so it matches all known GuardedBy annotations :)
    (: -- net.jcip.annotations.GuardedBy, javax.annotation.concurrent.GuardedBy, com.google.errorprone.annotations.concurrent.GuardedBy :)
    (: field GuardedBy("this") :)
-   and @Name = (ancestor::ClassDeclaration|ancestor::EnumDeclaration)//FieldDeclaration[
+   and @Name = (ancestor::ClassBody[1]|ancestor::EnumBody)/FieldDeclaration[
            ./ModifierList/Annotation[@SimpleName='GuardedBy'
        ]//MemberValuePair/StringLiteral[@Image='"this"']]/VariableDeclarator/VariableId/@Name
  ]
