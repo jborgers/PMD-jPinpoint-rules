@@ -1757,6 +1757,66 @@ class Foo {
         </example>
     </rule>
 
+    <rule name="InitializeComparatorOnlyOnce"
+          language="java"
+          message="Avoid creating Comparator instances repeatedly. Initialize them as static final fields instead."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md">
+        <description>Problem: Creating Comparator instances repeatedly in methods like compareTo or sort calls is inefficient.&#13;
+            Solution: Initialize the Comparator as a static final field when not using external state and is thread safe.
+        (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,sustainability-medium,cpu" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+//MethodCall[
+    (pmd-java:matchesSig('java.util.Comparator#comparing(_)')
+      or pmd-java:matchesSig('java.util.Comparator#comparingInt(_)')
+      or pmd-java:matchesSig('java.util.Comparator#comparingDouble(_)')
+      or pmd-java:matchesSig('java.util.Comparator#comparingLong(_)')
+      or pmd-java:matchesSig('java.util.Comparator#nullsFirst(_)')
+      or pmd-java:matchesSig('java.util.Comparator#nullsLast(_)')
+    )
+    (: not chained: AST is backwards with first call last element :)
+    and not(MethodCall[pmd-java:typeIs('java.util.Comparator')])
+    (: not used as argument to another Comparator method :)
+    and not(parent::ArgumentList/parent::MethodCall[
+        pmd-java:typeIs('java.util.Comparator')
+    ])
+    (: used in non-static-final way :)
+    and not(ancestor::ClassBody[1]/FieldDeclaration[pmd-java:modifiers() = ('final','static')])
+]
+            ]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+public class BadPerson implements Comparable<Person> {
+    @Override
+    public int compareTo(@NotNull Person o) {
+        return Comparator.comparing(Person::getFirstName)  // Bad: Creates new Comparator instance on each invocation
+                .thenComparing(Person::getLastName)
+                .thenComparingInt(Person::getAge)
+                .compare(this, o);
+    }
+}
+
+public class GoodPerson implements Comparable<Person> {
+    private static final Comparator<Person> COMPARE_AGE_LAST_FIRST =
+        Comparator.comparing(Person::getFirstName)
+            .thenComparing(Person::getLastName)
+            .thenComparingInt(Person::getAge);
+
+    @Override
+    public int compareTo(@NotNull Person o) {
+        return COMPARE_AGE_LAST_FIRST.compare(this, o);     // Good: Comparator initialized once as static final field
+    }
+}
+        ]]>
+        </example>
+    </rule>
+
     <rule name="MDCPutWithoutRemove"
           message="MDC put is used without finally remove."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
@@ -6199,14 +6259,15 @@ class Good {
 /../..//MethodDeclaration[@Name='generate']
 (: select all variables in block, *[2] to select part after assignment :)
 /Block//
-
   (ReturnStatement|LocalVariableDeclaration/VariableDeclarator/*[2])
   (: where name matches the third Object... parameter name of generate method :)
   //VariableAccess[
      @Name = ancestor::MethodDeclaration//FormalParameter[3]/VariableId/@Name
      and not(
+        (: used with SimpleKey :)
+        ancestor::ConstructorCall//ClassType[pmd-java:typeIs("org.springframework.cache.interceptor.SimpleKey")]
         (: without an explicit cast :)
-        exists(../../..//CastExpression)
+        or exists(../../..//CastExpression)
         (: - exclude if in an if-block checking params.length to do error logging or so - :)
         or exists(ancestor::IfStatement//FieldAccess[@Name = 'length'])
      )
@@ -6221,11 +6282,12 @@ class Good {
    @Name = ancestor::ForeachStatement/LocalVariableDeclaration//VariableId/@Name
    and ../../MethodCall[@MethodName = 'toString']
 ]
-    ]]></value>
+           ]]></value>
             </property>
         </properties>
         <example>
             <![CDATA[
+import java.lang.reflect.Method;
 import org.springframework.cache.interceptor.KeyGenerator;
 import org.springframework.util.StringUtils;
 
