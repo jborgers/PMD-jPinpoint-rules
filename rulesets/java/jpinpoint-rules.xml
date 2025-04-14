@@ -1771,7 +1771,7 @@ class Foo {
             <property name="xpath">
                 <value><![CDATA[
 //MethodCall[
-    (pmd-java:matchesSig('java.util.Comparator#comparing(_)')
+    (pmd-java:matchesSig('java.util.Comparator#comparing(_*)')
       or pmd-java:matchesSig('java.util.Comparator#comparingInt(_)')
       or pmd-java:matchesSig('java.util.Comparator#comparingDouble(_)')
       or pmd-java:matchesSig('java.util.Comparator#comparingLong(_)')

@@ -100,9 +100,9 @@ import java.util.Comparator;
 public class ReversedPerson implements Comparable<ReversedPerson> {
 
     private static final Comparator<ReversedPerson> COMPARATOR =
-            Comparator.comparing(GoodPerson::getFirstName)
-                    .thenComparing(GoodPerson::getLastName)
-                    .thenComparingInt(GoodPerson::getAge);
+            Comparator.comparing(ReversedPerson::getFirstName)
+                    .thenComparing(ReversedPerson::getLastName)
+                    .thenComparingInt(ReversedPerson::getAge);
 
     private String firstName;
     private String lastName;
@@ -113,6 +113,34 @@ public class ReversedPerson implements Comparable<ReversedPerson> {
         return COMPARATOR.reversed().compare(this, o); // bad, reversed creates new Comparator object
     }
 
+    public String getFirstName() { return firstName; }
+    public String getLastName() { return lastName; }
+    public int getAge() { return age; }
+}
+        ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>Violation: compare with multiple params</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>10</expected-linenumbers>
+        <code><![CDATA[
+import java.util.Comparator;
+
+public class BadPerson implements Comparable<BadPerson> {
+    private String firstName;
+    private String lastName;
+    private int age;
+
+    @Override
+    public int compareTo(BadPerson o) {
+        return Comparator.comparing(BadPerson::getFirstName, String.CASE_INSENSITIVE_ORDER) // bad, can be reused in static final
+                .thenComparing(BadPerson::getLastName)
+                .thenComparingInt(BadPerson::getAge)
+                .compare(this, o);
+    }
+
+    // getters omitted for brevity
     public String getFirstName() { return firstName; }
     public String getLastName() { return lastName; }
     public int getAge() { return age; }
