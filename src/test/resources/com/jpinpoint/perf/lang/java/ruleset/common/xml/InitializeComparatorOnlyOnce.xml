@@ -188,6 +188,40 @@ public class MultipleComparators {
     </test-code>
 
     <test-code>
+        <description>No violation: Multiple static final comparators, one fixed</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>24</expected-linenumbers>
+        <code><![CDATA[
+import java.util.Comparator;
+import java.util.Collections;
+import java.util.List;
+
+class Person {
+    private String firstName;
+    private String lastName;
+    private int age;
+
+    public String getFirstName() { return firstName; }
+    public String getLastName() { return lastName; }
+    public int getAge() { return age; }
+}
+
+public class MultipleComparators {
+    private static final Comparator<Person> BY_AGE =
+            Comparator.comparingInt(Person::getAge);
+
+    public void sortByAge(List<Person> persons) {
+        Collections.sort(persons, BY_AGE);
+    }
+
+    public void sortByAge2(List<Person> persons) {
+        Collections.sort(persons, Comparator.comparingInt(Person::getAge)); // bad, can also use BY_AGE
+    }
+}
+        ]]></code>
+    </test-code>
+
+    <test-code>
         <description>No violation: Non-comparator methods</description>
         <expected-problems>0</expected-problems>
         <code><![CDATA[

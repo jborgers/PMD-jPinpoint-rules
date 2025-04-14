@@ -1785,7 +1785,7 @@ class Foo {
         pmd-java:typeIs('java.util.Comparator')
     ])
     (: used in non-static-final way :)
-    and not(ancestor::ClassBody[1]/FieldDeclaration[pmd-java:modifiers() = ('final','static')])
+    and not(ancestor::FieldDeclaration[pmd-java:modifiers() = ('final') and pmd-java:modifiers() = ('static')])
 ]
             ]]></value>
             </property>
