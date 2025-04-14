@@ -121,7 +121,7 @@ public static String good(CompletableFuture<String> complFuture) throws Exceptio
            or ((pmd-java:typeIs('java.util.HashMap') or pmd-java:typeIs('java.util.EnumMap')) and not(ancestor::MethodCall[pmd-java:matchesSig('java.util.Collections#unmodifiableMap(_*)')]))
            or (pmd-java:typeIs('java.util.HashSet') and not(ancestor::MethodCall[pmd-java:matchesSig('java.util.Collections#unmodifiableSet(_*)')]))
        )
-  and not(../VariableAccess/@Name = ancestor::ClassDeclaration//FieldDeclaration[count(ModifierList/Annotation[@SimpleName='GuardedBy']) > 0]/VariableDeclarator/VariableId/@Name)
+  and not(../VariableAccess/@Name = ancestor::ClassBody[1]/FieldDeclaration[count(ModifierList/Annotation[@SimpleName='GuardedBy']) > 0]/VariableDeclarator/VariableId/@Name)
 ]
                 ]]></value>
             </property>
@@ -565,7 +565,7 @@ class BadMutebleTypes {
     and matches(@MethodName,"^(set|put|clear|add|remove|replace)")
     (: not a field of this class, no param or local :)
     and ./VariableAccess[
-                not (@Name = ancestor::ClassDeclaration//FieldDeclaration/VariableDeclarator/VariableId/@Name
+                not (@Name = ancestor::ClassBody[1]/FieldDeclaration/VariableDeclarator/VariableId/@Name
                   or @Name = (ancestor::MethodDeclaration|ancestor::ConstructorDeclaration)//LocalVariableDeclaration/VariableDeclarator/VariableId/@Name
                   or @Name = (ancestor::MethodDeclaration|ancestor::ConstructorDeclaration)//FormalParameter/VariableId/@Name
                   or @Name = ancestor::CatchClause/CatchParameter/VariableId/@Name
@@ -660,9 +660,9 @@ public class MutateInheritedFieldTryout extends SynchronizedTryout {
    (: -- net.jcip.annotations.GuardedBy, javax.annotation.concurrent.GuardedBy, com.google.errorprone.annotations.concurrent.GuardedBy :)
    //AssignmentExpression/*[1][
       (: is a field of class :)
-      @Name = ancestor::ClassDeclaration//FieldDeclaration/VariableDeclarator/VariableId/@Name
+      @Name = ancestor::ClassBody[1]/FieldDeclaration/VariableDeclarator/VariableId/@Name
       (: but not  final or volatile or GuardedBy :)
-      and not(@Name = ancestor::ClassDeclaration//FieldDeclaration[
+      and not(@Name = ancestor::ClassBody[1]/FieldDeclaration[
             pmd-java:modifiers()=('final','volatile')
             or ModifierList/Annotation[@SimpleName='GuardedBy']
         ]/VariableDeclarator/VariableId/@Name)
@@ -953,12 +953,12 @@ public class Good {
 (: a variable which should (potentially) be guarded and not var of synchronized statement itself :)
 //(AssignmentExpression/*[1]|VariableAccess[not(parent::SynchronizedStatement)])[
    (: used in a class with guarded-by literal *IS* a field (should be private final) :)
-   @Name = ancestor::ClassDeclaration//FieldDeclaration[ModifierList/Annotation[@SimpleName='GuardedBy']//MemberValuePair/StringLiteral[
-              @ConstValue = ancestor::ClassDeclaration//FieldDeclaration/VariableDeclarator/VariableId/@Name]
+   @Name = ancestor::ClassBody[1]/FieldDeclaration[ModifierList/Annotation[@SimpleName='GuardedBy']//MemberValuePair/StringLiteral[
+              @ConstValue = ancestor::ClassBody[1]/FieldDeclaration/VariableDeclarator/VariableId/@Name]
            ]/VariableDeclarator/VariableId/@Name
     (: and *IS NOT* in a synchronized block with the GuardedBy literal:)
     and not(ancestor::SynchronizedStatement/VariableAccess/@Name =
-       ancestor::ClassDeclaration//FieldDeclaration[ModifierList/Annotation[@SimpleName='GuardedBy']]//MemberValuePair/StringLiteral/@ConstValue)
+       ancestor::ClassBody[1]/FieldDeclaration[ModifierList/Annotation[@SimpleName='GuardedBy']]//MemberValuePair/StringLiteral/@ConstValue)
 ]
 ,
 //MethodDeclaration[
@@ -973,9 +973,9 @@ public class Good {
 (: a variable which should (potentially) be guarded and not var of synchronized statement itself :)
 //(AssignmentExpression/*[1]|VariableAccess[not(parent::SynchronizedStatement)])[
    (: used in a class with guarded-by literal *IS NOT* a field (should be private final) :)
-   @Name = ancestor::ClassDeclaration//FieldDeclaration[
+   @Name = ancestor::ClassBody[1]/FieldDeclaration[
         ModifierList/Annotation[@SimpleName='GuardedBy']//MemberValuePair/StringLiteral[
-             not(@ConstValue = 'this' or @ConstValue = ancestor::ClassDeclaration//FieldDeclaration/VariableDeclarator/VariableId/@Name)]
+             not(@ConstValue = 'this' or @ConstValue = ancestor::ClassBody[1]/FieldDeclaration/VariableDeclarator/VariableId/@Name)]
           ]/VariableDeclarator/VariableId/@Name
 ]
              ]]></value>
@@ -1064,7 +1064,7 @@ class Good1 {
      |
    UnaryExpression[@Operator='++' or @Operator='--']/(VariableAccess|FieldAccess)
   )[
-      @Name = ancestor::ClassDeclaration//FieldDeclaration[pmd-java:modifiers()='volatile']/VariableDeclarator/VariableId/@Name
+      @Name = ancestor::ClassBody[1]/FieldDeclaration[pmd-java:modifiers()='volatile']/VariableDeclarator/VariableId/@Name
    ]
                             ]]>
                     </value>
@@ -1140,7 +1140,7 @@ class Good {
                 <property name="xpath">
                     <value><![CDATA[
 //SynchronizedStatement[
-   count(./Block//(VariableAccess|FieldAccess)[@Name = ancestor::ClassDeclaration//FieldDeclaration//VariableId/@Name]) = 0
+   count(./Block//(VariableAccess|FieldAccess)[@Name = ancestor::ClassBody[1]/FieldDeclaration//VariableId/@Name]) = 0
 ]
                      ]]></value>
                 </property>
@@ -1692,7 +1692,7 @@ class Foo {
 [ArgumentList[
     .//(LambdaExpression|MethodReference)[
         (: a constructor of a thread-unsafe collection/map :)
-        .//VariableAccess/@Name = (ancestor::MethodDeclaration//LocalVariableDeclaration|ancestor::ClassBody/FieldDeclaration)/VariableDeclarator[
+        .//VariableAccess/@Name = (ancestor::MethodDeclaration//LocalVariableDeclaration|ancestor::ClassBody[1]/FieldDeclaration)/VariableDeclarator[
             ConstructorCall[pmd-java:typeIs('java.util.ArrayList')]
             or ConstructorCall[pmd-java:typeIs('java.util.HashMap')]
             or ConstructorCall[pmd-java:typeIs('java.util.HashSet')]
