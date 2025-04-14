@@ -91,6 +91,36 @@ public class GoodPerson implements Comparable<GoodPerson> {
     </test-code>
 
     <test-code>
+        <description>Violation: reversed creates new Comparator object</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>16</expected-linenumbers>
+        <code><![CDATA[
+import java.util.Comparator;
+
+public class ReversedPerson implements Comparable<ReversedPerson> {
+
+    private static final Comparator<ReversedPerson> COMPARATOR =
+            Comparator.comparing(GoodPerson::getFirstName)
+                    .thenComparing(GoodPerson::getLastName)
+                    .thenComparingInt(GoodPerson::getAge);
+
+    private String firstName;
+    private String lastName;
+    private int age;
+
+    @Override
+    public int compareTo(ReversedPerson o) {
+        return COMPARATOR.reversed().compare(this, o); // bad, reversed creates new Comparator object
+    }
+
+    public String getFirstName() { return firstName; }
+    public String getLastName() { return lastName; }
+    public int getAge() { return age; }
+}
+        ]]></code>
+    </test-code>
+
+    <test-code>
         <description>No violation: Static final Comparator in sorting class</description>
         <expected-problems>0</expected-problems>
         <code><![CDATA[

@@ -2657,9 +2657,11 @@ Suggested fix: create a category id variable of type Integer before the if state
 #### UE03
 
 **Observation: Creating new `Comparator` instances repeatedly**, e.g. in methods like `compareTo()` or collection sort operations.  
-**Problem:** Performance penalty from repeatedly creating objects, increasing garbage collection pressure and CPU usage, especially in frequently called methods or loops.  
-**Solution:** Initialize `Comparator` instances as `static final` fields. Make sure they don't use external state and are thread-safe.  
+**Problem:** Repeatedly creating the same object causes a performance penalty: it increases garbage collection pressure and CPU usage, 
+especially in frequently called methods or loops.  
+**Solution:** Initialize `Comparator` instances once as `static final` fields and reuse these instances.
 
+**Examples:**  
 Example 1: Creating a new Comparator in compareTo method:
 
 ```java
@@ -2717,10 +2719,8 @@ public class PersonRepository {
     }
 }
 ```
-
-Note that local one-time Comparators may be acceptable in specific cases where the comparison is used only once or the logic needs to be dynamic.
-However, for frequently used or standard comparison operations, always use static final fields to avoid unnecessary object creation.
-
+**Note:** local one-time Comparators may be acceptable in specific cases where the comparison is used only once or the logic needs to be dynamic.
+However, for frequently used or standard comparison operations, always use static final fields to avoid unnecessary object creation.  
 **Rule name**: InitializeComparatorOnlyOnce
 
 Inefficient memory usage
