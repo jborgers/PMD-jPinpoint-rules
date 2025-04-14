@@ -1777,6 +1777,7 @@ class Foo {
       or pmd-java:matchesSig('java.util.Comparator#comparingLong(_)')
       or pmd-java:matchesSig('java.util.Comparator#nullsFirst(_)')
       or pmd-java:matchesSig('java.util.Comparator#nullsLast(_)')
+      or pmd-java:matchesSig('java.util.Comparator#reversed()')
     )
     (: not chained: AST is backwards with first call last element :)
     and not(MethodCall[pmd-java:typeIs('java.util.Comparator')])
@@ -1787,7 +1788,7 @@ class Foo {
     (: used in non-static-final way :)
     and not(ancestor::FieldDeclaration[pmd-java:modifiers() = ('final') and pmd-java:modifiers() = ('static')])
 ]
-            ]]></value>
+]]></value>
             </property>
         </properties>
         <example>
