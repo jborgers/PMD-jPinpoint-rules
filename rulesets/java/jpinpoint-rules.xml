@@ -2369,7 +2369,7 @@ if (LOG.isDebugEnabled()) { // good
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           language="java"
           message="Using SuppressWarnings."
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodeQuality.md#M02">
         <description>Problem: The suppressed rule detects problems, suppressing the detected violations without full knowledge can lead to the problems the rule is trying to prevent. &#13;
             Solution: Only suppress violations (warnings) when you have complete understanding of the rule, and you are sure it does not apply.
             When suppressing warnings, document your reasoning and report false positives to the rule maintainers to help improve rule accuracy.
@@ -2403,7 +2403,7 @@ public void process(ConsumerRecord consRecord) {
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           language="java"
           message="Using SuppressWarnings for a rule that is meant to prevent high risk problems."
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodeQuality.md#M03">
         <description>Problem: The suppressed rule detects high risk problems, suppressing the detected violations without full knowledge can lead to incidents like customer data mix-up, corrupt data, server crashes or very bad performance. &#13;
             Solution: Only suppress violations (warnings) when you have complete understanding of the rule, and you are sure it does not apply.
             When suppressing warnings, document your reasoning and report false positives to the rule maintainers to help improve rule accuracy.
@@ -6200,14 +6200,15 @@ class Good {
 /../..//MethodDeclaration[@Name='generate']
 (: select all variables in block, *[2] to select part after assignment :)
 /Block//
-
   (ReturnStatement|LocalVariableDeclaration/VariableDeclarator/*[2])
   (: where name matches the third Object... parameter name of generate method :)
   //VariableAccess[
      @Name = ancestor::MethodDeclaration//FormalParameter[3]/VariableId/@Name
      and not(
+        (: used with SimpleKey :)
+        ancestor::ConstructorCall//ClassType[pmd-java:typeIs("org.springframework.cache.interceptor.SimpleKey")]
         (: without an explicit cast :)
-        exists(../../..//CastExpression)
+        or exists(../../..//CastExpression)
         (: - exclude if in an if-block checking params.length to do error logging or so - :)
         or exists(ancestor::IfStatement//FieldAccess[@Name = 'length'])
      )
@@ -6222,11 +6223,12 @@ class Good {
    @Name = ancestor::ForeachStatement/LocalVariableDeclaration//VariableId/@Name
    and ../../MethodCall[@MethodName = 'toString']
 ]
-    ]]></value>
+           ]]></value>
             </property>
         </properties>
         <example>
             <![CDATA[
+import java.lang.reflect.Method;
 import org.springframework.cache.interceptor.KeyGenerator;
 import org.springframework.util.StringUtils;
 
