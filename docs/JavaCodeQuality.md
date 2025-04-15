@@ -542,7 +542,7 @@ not work on line level. Two other options are:
 * `// NOPMD`: suppresses all PMD violations on the line, not just the one you want to suppress. Note that this has no effect in Sonar, just PMD.
 * `// NOSONAR`: suppresses all Sonar violations on the line, not just the one you want to suppress. Note that this notation has no effect in the PMD tool, just in Sonar.
 
-The `// NOPMD` is also generated when you use the Intellij PMD Plugin and right click and select `Suppress`.
+The `// NOPMD` is also generated when you use the [Intellij PMD Plugin](https://plugins.jetbrains.com/plugin/1137-pmd) and right click and select `Suppress`.
 It will specify the rule you want to suppress explicitly, and also ask you to specify a reason for the suppression.
 ```java
 @SuppressWarnings({"PMD.AvoidConcatInAppend", "PMD.UsingSuppressWarnings"}) //NOPMD - suppressed UsingSuppressWarnings - TODO explain reason for suppression
