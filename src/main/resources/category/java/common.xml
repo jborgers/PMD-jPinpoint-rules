@@ -925,7 +925,7 @@ if (LOG.isDebugEnabled()) { // good
         </properties>
         <example>
             <![CDATA[
-@SuppressWarnings({"pmd:AvoidUnguardedMutableFieldsInSharedObjects", "PMD.AvoidUserDataInSharedObjects"}) // suspicious, bad to suppress
+@SuppressWarnings({"PMD.AvoidUnguardedMutableFieldsInSharedObjects", "PMD.AvoidUserDataInSharedObjects"}) // suspicious, probably bad to suppress
 @Component @Data
 class VMRData {
     private List<OrderDetails> customerOrderList; // a bad idea to have in a singleton, should be solved instead of suppressed
@@ -959,10 +959,10 @@ class VMRData {
         </properties>
         <example>
             <![CDATA[
-@SuppressWarnings("pmd:UnconditionalCreatedLogArguments") // Reason for suppression: the rule doesn't recognize record getters (yet), and those are not expensive
+@SuppressWarnings("PMD.UnconditionalCreatedLogArguments") // Reason for suppression: the rule doesn't recognize record getters (yet), and those are not expensive
 public void process(ConsumerRecord consRecord) {
     ConsumerEvent event = consRecord.event(); // record getter
-    log.info("Received event '{}'", event); // pmd:UnconditionalCreatedLogArguments suppressed
+    log.info("Received event '{}'", event); // PMD.UnconditionalCreatedLogArguments suppressed
 }
              ]]>
         </example>

@@ -530,28 +530,32 @@ When suppressing warnings, document your reasoning and report false positives to
 **Rule name:** UsingSuppressWarnings  
 **Example:**
 ```java
-@SuppressWarnings("pmd:UnconditionalCreatedLogArguments") // Reason for suppression: the rule doesn't recognize record getters (yet), and those are not expensive
+@SuppressWarnings("PMD.UnconditionalCreatedLogArguments") // Reason for suppression: the rule doesn't recognize record getters (yet), and those are not expensive
 public void process(ConsumerRecord consRecord) {
     ConsumerEvent event = consRecord.event(); // record getter
-    log.info("Received event '{}'", event); // pmd:UnconditionalCreatedLogArguments suppressed
+    log.info("Received event '{}'", event); // PMD.UnconditionalCreatedLogArguments suppressed
 }
 ```
 **Note:** This rule is just informational to track use of SuppressWarnings, to be able to double-check if suppression is correct. It often doesn't need a fix.
 The @SuppressWarning is the preferred way to suppress a rule violation, because you can specify the exact rule you want to suppress. Downside is that it does
 not work on line level. Two other options are:
-* `// NOPMD`: suppresses all PMD violations on the line, not just the one you want to suppress.
-* `// NOSONAR`: suppresses all Sonar violations on the line, not just the one you want to suppress.
+* `// NOPMD`: suppresses all PMD violations on the line, not just the one you want to suppress. Note that this has no effect in Sonar, just PMD.
+* `// NOSONAR`: suppresses all Sonar violations on the line, not just the one you want to suppress. Note that this notation has no effect in the PMD tool, just in Sonar.
+
 The `// NOPMD` is also generated when you use the Intellij PMD Plugin and right click and select `Suppress`.
 It will specify the rule you want to suppress explicitly, and also ask you to specify a reason for the suppression.
 ```java
-@SuppressWarnings({"pmd:AvoidConcatInAppend", "pmd:UsingSuppressWarnings"}) //NOPMD - suppressed UsingSuppressWarnings - TODO explain reason for suppression
+@SuppressWarnings({"PMD.AvoidConcatInAppend", "PMD.UsingSuppressWarnings"}) //NOPMD - suppressed UsingSuppressWarnings - TODO explain reason for suppression
 class Foo implements KeyGenerator {
     // ...
 }
 ```
 In this example you see that you can use it to suppress the SuppressWarnings rule itself. This is not a good idea, because it is not clear why you are suppressing the rule.
 The Intellij PMD Plugin will give issues on information level about the usage of `// NOPMD` so they can be easily reviewed.
-The `// NOSONAR` is not checked by both PMD Plugin and Sonar, so be careful with its usage.
+The `// NOSONAR` is not checked by both PMD Plugin and Sonar, so avoid its usage.
+
+Take care in naming the correct rule name: use the prefix `PMD.` (notice capitals and the dot) so this works both in the IntelliJ PMD plugin _and_ in Sonar.
+Prefix `pmd:` only works in Sonar. Prefixes `pmd.` (notice non-capitals) and `PMD:` (notice semicolon) should not be used!
 
 ### M03
 
@@ -560,17 +564,16 @@ The `// NOSONAR` is not checked by both PMD Plugin and Sonar, so be careful with
 **Solution:** Only suppress violations (warnings) when you have complete understanding of the rule, and you are sure it does not apply.
 When suppressing warnings, document your reasoning and report false positives to the rule maintainers to help improve rule accuracy.  
 **Rule name:** UsingSuppressWarningsHighRisk  
-**Note:** This rule is to track use of SuppressWarnings for high risk rule violations, to be able to double-check if suppression is correct. It doesn't necessarily need a fix.   
+**Note:** This rule is to track use of SuppressWarnings for high risk rule violations, to be able to double-check if suppression is correct. It doesn't necessarily need a fix. The `@SuppressWarnings("pmd")` or `@SuppressWarnings("PMD")` are considered high risk as it suppresses many rules at once, use explicit rule list instead.       
 **Example:**  
 ```java
-@SuppressWarnings({"pmd:AvoidUnguardedMutableFieldsInSharedObjects", "PMD.AvoidUserDataInSharedObjects"}) // suspicious, bad to suppress
+@SuppressWarnings({"PMD.AvoidUnguardedMutableFieldsInSharedObjects", "PMD.AvoidUserDataInSharedObjects"}) // suspicious, probably bad to suppress
 @Component @Data
 class VMRData {
     private List<OrderDetails> customerOrderList; // a bad idea to have in a singleton, should be solved instead of suppressed
     //..
 }
 ```
-
 
 
 Improved Sonar rules
