@@ -583,14 +583,14 @@ void good2() {
         //MethodCall
             [matches(@MethodName, '^config.*|^set.*|^register.*|^find.*|^disable.*|^enable.*|^activate.*|^deactivate.*|^add.*|^clear.*')]
             [VariableAccess[@Name=ancestor::MethodDeclaration//FormalParameter[pmd-java:typeIs('com.fasterxml.jackson.databind.ObjectMapper')]/VariableId/@Name
-                or @Name=ancestor::ClassBody/FieldDeclaration[ClassType[pmd-java:typeIs('com.fasterxml.jackson.databind.ObjectMapper')]]/VariableDeclarator/VariableId/@Name]
+                or @Name=ancestor::ClassBody[1]/FieldDeclaration[ClassType[pmd-java:typeIs('com.fasterxml.jackson.databind.ObjectMapper')]]/VariableDeclarator/VariableId/@Name]
             ]
     ,
     (: modify operations on objectMapper in a constructor where objectMapper is a formal parameter or static field :)
     //ConstructorDeclaration//MethodCall
             [matches(@MethodName, '^config.*|^set.*|^register.*|^find.*|^disable.*|^enable.*|^activate.*|^deactivate.*|^add.*|^clear.*')]
             [VariableAccess/@Name=
-                (ancestor::ConstructorDeclaration//FormalParameter|ancestor::ClassBody//FieldDeclaration[pmd-java:modifiers()=('static')]/ClassType)[pmd-java:typeIs('com.fasterxml.jackson.databind.ObjectMapper')]/..//VariableId/@Name]
+                (ancestor::ConstructorDeclaration//FormalParameter|ancestor::ClassBody[1]/FieldDeclaration[pmd-java:modifiers()=('static')]/ClassType)[pmd-java:typeIs('com.fasterxml.jackson.databind.ObjectMapper')]/..//VariableId/@Name]
                     ]]>
                 </value>
             </property>
@@ -1204,7 +1204,7 @@ public class AxualProducerBad {
 (: any on-method: onRetry, onError, .. :)
 //MethodDeclaration//MethodCall[starts-with(@MethodName, 'on')]/MethodCall[pmd-java:matchesSig('io.github.resilience4j.retry.Retry#getEventPublisher()')]
 (: it is a field :)
-[VariableAccess/@Name = ancestor::ClassBody/FieldDeclaration//VariableId/@Name]
+[VariableAccess/@Name = ancestor::ClassBody[1]/FieldDeclaration//VariableId/@Name]
                 ]]></value>
             </property>
         </properties>

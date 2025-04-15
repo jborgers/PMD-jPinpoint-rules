@@ -25,7 +25,7 @@
 ]/ArgumentList[
         NumericLiteral[@ValueAsInt > 500]
         or
-        VariableAccess/@Name = (ancestor::ClassBody//FieldDeclaration|ancestor::MethodDeclaration)//VariableDeclarator[NumericLiteral[@ValueAsInt > 500]]/VariableId/@Name
+        VariableAccess/@Name = (ancestor::ClassBody[1]/FieldDeclaration|ancestor::MethodDeclaration)//VariableDeclarator[NumericLiteral[@ValueAsInt > 500]]/VariableId/@Name
 ]
 ]]>
                 </value>

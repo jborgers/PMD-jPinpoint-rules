@@ -208,7 +208,7 @@ public class AvoidSpringApplicationContextRecreation {
     .//ArgumentList//VariableAccess[
        @Name = ancestor::MethodDeclaration//(VariableDeclarator|FormalParameter)/VariableId/@Name
        or
-       @Name = ancestor::ClassDeclaration//FieldDeclaration[not(pmd-java:modifiers()='final')]//VariableId/@Name
+       @Name = ancestor::ClassBody[1]/FieldDeclaration[not(pmd-java:modifiers()='final')]//VariableId/@Name
     ]
 ]
 ,
@@ -218,14 +218,14 @@ public class AvoidSpringApplicationContextRecreation {
     .//ArgumentList/*[1][
        @Name = ancestor::MethodDeclaration//(VariableDeclarator|FormalParameter)/VariableId/@Name
        or
-       @Name = ancestor::ClassDeclaration//FieldDeclaration[not(pmd-java:modifiers()='final')]//VariableId/@Name
+       @Name = ancestor::ClassBody[1]/FieldDeclaration[not(pmd-java:modifiers()='final')]//VariableId/@Name
     ]
     or
     (: but in first arg also check sub-args of e.g. method calls :)
     .//ArgumentList/*[1]//ArgumentList/VariableAccess[
        @Name = ancestor::MethodDeclaration//(VariableDeclarator|FormalParameter)/VariableId/@Name
        or
-       @Name = ancestor::ClassDeclaration//FieldDeclaration[not(pmd-java:modifiers()='final')]//VariableId/@Name
+       @Name = ancestor::ClassBody[1]/FieldDeclaration[not(pmd-java:modifiers()='final')]//VariableId/@Name
     ]
 ]
                 ]]></value>

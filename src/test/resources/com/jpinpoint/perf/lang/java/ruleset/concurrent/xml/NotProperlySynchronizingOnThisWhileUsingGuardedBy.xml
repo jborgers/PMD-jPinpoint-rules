@@ -281,4 +281,49 @@ public enum Category {
      ]]></code>
     </test-code>
 
+    <test-code>
+        <description>Fix Request: False positive in the NotProperlySynchronizingOnThisWhileUsingGuardedBy rule #576</description>
+        <expected-problems>2</expected-problems>
+        <expected-linenumbers>16,34</expected-linenumbers>
+        <code><![CDATA[
+import net.jcip.annotations.GuardedBy;
+
+class Issue576 {
+    @GuardedBy("this")
+    private String txt1;
+    private String txt2;
+
+    public void modifyTextSafe() {
+        synchronized(this) {
+            txt1 += "-appended";
+            txt2 += "-appended";
+        }
+    }
+
+    public boolean modifyTextUnSafe() {
+      txt1 += "-appended"; // bad
+      txt2 += "-appended"; // <-- false positive
+    }
+
+    static class InnerIssue {
+        private String txt1;
+        @GuardedBy("this")
+        private String txt2;
+
+        public void modifyTextSafe() {
+          synchronized(this) {
+            txt1 += "-appended";
+            txt2 += "-appended";
+          }
+      }
+
+      public boolean modifyTextUnSafe() {
+        txt1 += "-appended"; // <-- false positive
+        txt2 += "-appended"; // bad
+      }
+    }
+}
+     ]]></code>
+    </test-code>
+
 </test-data>

@@ -280,7 +280,7 @@ record GoodRecord(String name, List<String> list) {
 /ArgumentList/*[1][(self::StringLiteral and string-length(@Image) > 5 and
 (matches(@Image, '[\.\$\|\(\)\[\]\{\}\^\?\*\+\\]+')))
 or
-self::VariableAccess and @Name=ancestor::ClassBody/FieldDeclaration/VariableDeclarator[StringLiteral[string-length(@Image) > 5 and
+self::VariableAccess and @Name=ancestor::ClassBody[1]/FieldDeclaration/VariableDeclarator[StringLiteral[string-length(@Image) > 5 and
 (matches(@Image, '[\.\$\|\(\)\[\]\{\}\^\?\*\+\\]+'))] or not(StringLiteral)]/VariableId/@Name]
 ]]></value>
             </property>
@@ -316,9 +316,9 @@ String good_replaceInnerLineBreakBySpace() {
 //ConstructorCall[pmd-java:matchesSig('java.io.ByteArrayOutputStream#new()') or pmd-java:matchesSig('java.io.StringWriter#new()')
 or
 ((pmd-java:matchesSig('java.io.ByteArrayOutputStream#new(int)') and (ArgumentList/NumericLiteral/@ValueAsInt <=32
-        or ArgumentList/VariableAccess/@Name = ancestor::ClassBody/FieldDeclaration/VariableDeclarator[NumericLiteral/@ValueAsInt <= 32]/VariableId/@Name))
+        or ArgumentList/VariableAccess/@Name = ancestor::ClassBody[1]/FieldDeclaration/VariableDeclarator[NumericLiteral/@ValueAsInt <= 32]/VariableId/@Name))
     or (pmd-java:matchesSig('java.io.StringWriter#new(int)') and (ArgumentList/NumericLiteral/@ValueAsInt <=16
-        or ArgumentList/VariableAccess/@Name = ancestor::ClassBody/FieldDeclaration/VariableDeclarator[NumericLiteral/@ValueAsInt <= 16]/VariableId/@Name))
+        or ArgumentList/VariableAccess/@Name = ancestor::ClassBody[1]/FieldDeclaration/VariableDeclarator[NumericLiteral/@ValueAsInt <= 16]/VariableId/@Name))
 )
 ]
 	]]></value>
@@ -384,7 +384,7 @@ class Good {
     ]/(ClassType/@SimpleName|PrimitiveType/@Kind)
     or
     (: or its classType is equal to the field classtype :)
-    (ClassType/@SimpleName|PrimitiveType/@Kind) = ancestor::ClassBody//FieldDeclaration[
+    (ClassType/@SimpleName|PrimitiveType/@Kind) = ancestor::ClassBody[1]/FieldDeclaration[
         (: which name equals to the name of the 1st argument of the method call :)
         .//VariableId/@Name = ..//MethodDeclaration//MethodCall[@MethodName = ancestor::MethodDeclaration/@Name]/ArgumentList/VariableAccess[1]/@Name
     ][
@@ -396,7 +396,7 @@ class Good {
 [concat(ArgumentList/*[2]/@Name, '') = ancestor::MethodDeclaration/FormalParameters/FormalParameter[2]/VariableId/@Name
     or ancestor::MethodDeclaration/FormalParameters[@Size <= 1 or FormalParameter[2][(
     (: or its classType is equal to the local var classtype :)
-    (ClassType/@SimpleName|PrimitiveType/@Kind) = (ancestor::MethodDeclaration//LocalVariableDeclaration|ancestor::ClassBody//FieldDeclaration)[
+    (ClassType/@SimpleName|PrimitiveType/@Kind) = (ancestor::MethodDeclaration//LocalVariableDeclaration|ancestor::ClassBody[1]/FieldDeclaration)[
     (: which name equals to the name of the 2nd argument of the method call :)
     .//VariableId/@Name = ancestor::MethodDeclaration//MethodCall[@MethodName = ancestor::MethodDeclaration/@Name]/ArgumentList/VariableAccess[2]/@Name][
         (: and which classType is equal to the classtype of the 2nd parameter :)
@@ -404,7 +404,7 @@ class Good {
     ]/(ClassType/@SimpleName|PrimitiveType/@Kind)
     or
     (: or its classType is equal to the field classtype :)
-    (ClassType/@SimpleName|PrimitiveType/@Kind) = ancestor::ClassBody//FieldDeclaration[
+    (ClassType/@SimpleName|PrimitiveType/@Kind) = ancestor::ClassBody[1]/FieldDeclaration[
         (: which name equals to the name of the 2nd argument of the method call :)
         .//VariableId/@Name = ..//MethodDeclaration//MethodCall[@MethodName = ancestor::MethodDeclaration/@Name]/ArgumentList/VariableAccess[2]/@Name
     ][
@@ -416,7 +416,7 @@ class Good {
 [concat(ArgumentList/*[3]/@Name, '') = ancestor::MethodDeclaration/FormalParameters/FormalParameter[3]/VariableId/@Name
     or ancestor::MethodDeclaration/FormalParameters[@Size <= 2 or FormalParameter[3][(
     (: or its classType is equal to the local var classtype :)
-    (ClassType/@SimpleName|PrimitiveType/@Kind) = (ancestor::MethodDeclaration//LocalVariableDeclaration|ancestor::ClassBody//FieldDeclaration)[
+    (ClassType/@SimpleName|PrimitiveType/@Kind) = (ancestor::MethodDeclaration//LocalVariableDeclaration|ancestor::ClassBody[1]/FieldDeclaration)[
     (: which name equals to the name of the 3rd argument of the method call :)
     .//VariableId/@Name = ancestor::MethodDeclaration//MethodCall[@MethodName = ancestor::MethodDeclaration/@Name]/ArgumentList/VariableAccess[3]/@Name][
         (: and which classType is equal to the classtype of the 3rd parameter :)
@@ -424,7 +424,7 @@ class Good {
     ]/(ClassType/@SimpleName|PrimitiveType/@Kind)
     or
     (: or its classType is equal to the field classtype :)
-    (ClassType/@SimpleName|PrimitiveType/@Kind) = ancestor::ClassBody//FieldDeclaration[
+    (ClassType/@SimpleName|PrimitiveType/@Kind) = ancestor::ClassBody[1]/FieldDeclaration[
         (: which name equals to the name of the 3rd argument of the method call :)
         .//VariableId/@Name = ..//MethodDeclaration//MethodCall[@MethodName = ancestor::MethodDeclaration/@Name]/ArgumentList/VariableAccess[3]/@Name
     ][
@@ -2081,7 +2081,7 @@ class Bad {
 (: for when key type is missing in declaration (old style), check Map.put :)
 //MethodCall[pmd-java:matchesSig('java.util.Map#put(_,_)') and not(
                 (: if Map is TreeMap constructed with a Comparator, it is also fine :)
-                ./VariableAccess/@Name = ancestor::ClassDeclaration//FieldDeclaration[
+                ./VariableAccess/@Name = ancestor::ClassBody[1]/FieldDeclaration[
                     .//ConstructorCall[pmd-java:matchesSig('java.util.TreeMap#new(java.util.Comparator)')]
                 ]/VariableDeclarator/VariableId/@Name)
              ]
@@ -2211,7 +2211,7 @@ class Foo {
 ]
 |
 //Initializer//AssignmentExpression[(pmd-java:typeIs('java.util.Map') and not (pmd-java:typeIs('java.util.EnumMap'))) or (pmd-java:typeIs('java.util.Set') and not(pmd-java:typeIs('java.util.EnumSet')))]
-    [VariableAccess/@Name = ancestor::ClassBody/FieldDeclaration[ClassType/TypeArguments/ClassType[1][pmd-java:typeIs('java.lang.Enum') or @SimpleName = //EnumDeclaration/@SimpleName]]/VariableDeclarator/@Name]
+    [VariableAccess/@Name = ancestor::ClassBody[1]/FieldDeclaration[ClassType/TypeArguments/ClassType[1][pmd-java:typeIs('java.lang.Enum') or @SimpleName = //EnumDeclaration/@SimpleName]]/VariableDeclarator/@Name]
     /(MethodCall|ConstructorCall)
         [not ((pmd-java:typeIs('java.util.EnumSet') or pmd-java:typeIs('java.util.EnumMap')) or
         (: Set.of() with 1 or 2 elems and Map.of() with 1 key+value don't have the HashSet/Map overhead :)
@@ -3308,7 +3308,7 @@ private List<Order> getOrdersGood(List<CompletableFuture<Order>> getOrdersFuture
      |
    UnaryExpression[@Operator='++' or @Operator='--']/(VariableAccess|FieldAccess)
   )[
-      @Name = ancestor::ClassDeclaration//FieldDeclaration[pmd-java:modifiers()='volatile']/VariableDeclarator/VariableId/@Name
+      @Name = ancestor::ClassBody[1]/FieldDeclaration[pmd-java:modifiers()='volatile']/VariableDeclarator/VariableId/@Name
    ]
                             ]]>
                     </value>
@@ -3420,7 +3420,7 @@ class FooGood {
 [ArgumentList[
     .//(LambdaExpression|MethodReference)[
         (: a constructor of a thread-unsafe collection/map :)
-        .//VariableAccess/@Name = (ancestor::MethodDeclaration//LocalVariableDeclaration|ancestor::ClassBody/FieldDeclaration)/VariableDeclarator[
+        .//VariableAccess/@Name = (ancestor::MethodDeclaration//LocalVariableDeclaration|ancestor::ClassBody[1]/FieldDeclaration)/VariableDeclarator[
             ConstructorCall[pmd-java:typeIs('java.util.ArrayList')]
             or ConstructorCall[pmd-java:typeIs('java.util.HashMap')]
             or ConstructorCall[pmd-java:typeIs('java.util.HashSet')]
@@ -3521,7 +3521,7 @@ class AvoidMutableCollectionInParallelStreamForEach {
            or ((pmd-java:typeIs('java.util.HashMap') or pmd-java:typeIs('java.util.EnumMap')) and not(ancestor::MethodCall[pmd-java:matchesSig('java.util.Collections#unmodifiableMap(_*)')]))
            or (pmd-java:typeIs('java.util.HashSet') and not(ancestor::MethodCall[pmd-java:matchesSig('java.util.Collections#unmodifiableSet(_*)')]))
        )
-  and not(../VariableAccess/@Name = ancestor::ClassDeclaration//FieldDeclaration[count(ModifierList/Annotation[@SimpleName='GuardedBy']) > 0]/VariableDeclarator/VariableId/@Name)
+  and not(../VariableAccess/@Name = ancestor::ClassBody[1]/FieldDeclaration[count(ModifierList/Annotation[@SimpleName='GuardedBy']) > 0]/VariableDeclarator/VariableId/@Name)
 ]
                 ]]></value>
             </property>
@@ -3864,9 +3864,9 @@ class Exporter {
    (: -- net.jcip.annotations.GuardedBy, javax.annotation.concurrent.GuardedBy, com.google.errorprone.annotations.concurrent.GuardedBy :)
    //AssignmentExpression/*[1][
       (: is a field of class :)
-      @Name = ancestor::ClassDeclaration//FieldDeclaration/VariableDeclarator/VariableId/@Name
+      @Name = ancestor::ClassBody[1]/FieldDeclaration/VariableDeclarator/VariableId/@Name
       (: but not  final or volatile or GuardedBy :)
-      and not(@Name = ancestor::ClassDeclaration//FieldDeclaration[
+      and not(@Name = ancestor::ClassBody[1]/FieldDeclaration[
             pmd-java:modifiers()=('final','volatile')
             or ModifierList/Annotation[@SimpleName='GuardedBy']
         ]/VariableDeclarator/VariableId/@Name)
@@ -4393,7 +4393,7 @@ class BadMutebleTypes {
     and matches(@MethodName,"^(set|put|clear|add|remove|replace)")
     (: not a field of this class, no param or local :)
     and ./VariableAccess[
-                not (@Name = ancestor::ClassDeclaration//FieldDeclaration/VariableDeclarator/VariableId/@Name
+                not (@Name = ancestor::ClassBody[1]/FieldDeclaration/VariableDeclarator/VariableId/@Name
                   or @Name = (ancestor::MethodDeclaration|ancestor::ConstructorDeclaration)//LocalVariableDeclaration/VariableDeclarator/VariableId/@Name
                   or @Name = (ancestor::MethodDeclaration|ancestor::ConstructorDeclaration)//FormalParameter/VariableId/@Name
                   or @Name = ancestor::CatchClause/CatchParameter/VariableId/@Name
@@ -4616,12 +4616,12 @@ class Good {
 (: a variable which should (potentially) be guarded and not var of synchronized statement itself :)
 //(AssignmentExpression/*[1]|VariableAccess[not(parent::SynchronizedStatement)])[
    (: used in a class with guarded-by literal *IS* a field (should be private final) :)
-   @Name = ancestor::ClassDeclaration//FieldDeclaration[ModifierList/Annotation[@SimpleName='GuardedBy']//MemberValuePair/StringLiteral[
-              @ConstValue = ancestor::ClassDeclaration//FieldDeclaration/VariableDeclarator/VariableId/@Name]
+   @Name = ancestor::ClassBody[1]/FieldDeclaration[ModifierList/Annotation[@SimpleName='GuardedBy']//MemberValuePair/StringLiteral[
+              @ConstValue = ancestor::ClassBody[1]/FieldDeclaration/VariableDeclarator/VariableId/@Name]
            ]/VariableDeclarator/VariableId/@Name
     (: and *IS NOT* in a synchronized block with the GuardedBy literal:)
     and not(ancestor::SynchronizedStatement/VariableAccess/@Name =
-       ancestor::ClassDeclaration//FieldDeclaration[ModifierList/Annotation[@SimpleName='GuardedBy']]//MemberValuePair/StringLiteral/@ConstValue)
+       ancestor::ClassBody[1]/FieldDeclaration[ModifierList/Annotation[@SimpleName='GuardedBy']]//MemberValuePair/StringLiteral/@ConstValue)
 ]
 ,
 //MethodDeclaration[
@@ -4636,9 +4636,9 @@ class Good {
 (: a variable which should (potentially) be guarded and not var of synchronized statement itself :)
 //(AssignmentExpression/*[1]|VariableAccess[not(parent::SynchronizedStatement)])[
    (: used in a class with guarded-by literal *IS NOT* a field (should be private final) :)
-   @Name = ancestor::ClassDeclaration//FieldDeclaration[
+   @Name = ancestor::ClassBody[1]/FieldDeclaration[
         ModifierList/Annotation[@SimpleName='GuardedBy']//MemberValuePair/StringLiteral[
-             not(@ConstValue = 'this' or @ConstValue = ancestor::ClassDeclaration//FieldDeclaration/VariableDeclarator/VariableId/@Name)]
+             not(@ConstValue = 'this' or @ConstValue = ancestor::ClassBody[1]/FieldDeclaration/VariableDeclarator/VariableId/@Name)]
           ]/VariableDeclarator/VariableId/@Name
 ]
              ]]></value>
@@ -4685,7 +4685,8 @@ class Good1 {
                 <property name="tags" value="jpinpoint-rule,multi-threading" type="String" description="classification"/>
                 <property name="xpath">
                     <value>
-                        <![CDATA[//MethodDeclaration[
+                        <![CDATA[
+//MethodDeclaration[
     (: method not synchronized or static :)
     (not(pmd-java:modifiers() = 'synchronized') or pmd-java:modifiers() = 'static')
     and not(pmd-java:hasAnnotation('org.springframework.beans.factory.annotation.Autowired')
@@ -4700,7 +4701,7 @@ class Good1 {
    (: -- GuardedBy annotations are matched on SimpleName, so it matches all known GuardedBy annotations :)
    (: -- net.jcip.annotations.GuardedBy, javax.annotation.concurrent.GuardedBy, com.google.errorprone.annotations.concurrent.GuardedBy :)
    (: field GuardedBy("this") :)
-   and @Name = (ancestor::ClassDeclaration|ancestor::EnumDeclaration)//FieldDeclaration[
+   and @Name = (ancestor::ClassBody[1]|ancestor::EnumBody)/FieldDeclaration[
            ./ModifierList/Annotation[@SimpleName='GuardedBy'
        ]//MemberValuePair/StringLiteral[@Image='"this"']]/VariableDeclarator/VariableId/@Name
  ]
@@ -4738,7 +4739,7 @@ class Good1 {
                 <property name="xpath">
                     <value><![CDATA[
 //SynchronizedStatement[
-   count(./Block//(VariableAccess|FieldAccess)[@Name = ancestor::ClassDeclaration//FieldDeclaration//VariableId/@Name]) = 0
+   count(./Block//(VariableAccess|FieldAccess)[@Name = ancestor::ClassBody[1]/FieldDeclaration//VariableId/@Name]) = 0
 ]
                      ]]></value>
                 </property>
@@ -5222,7 +5223,7 @@ public class XMLConversion {
 (: any on-method: onRetry, onError, .. :)
 //MethodDeclaration//MethodCall[starts-with(@MethodName, 'on')]/MethodCall[pmd-java:matchesSig('io.github.resilience4j.retry.Retry#getEventPublisher()')]
 (: it is a field :)
-[VariableAccess/@Name = ancestor::ClassBody/FieldDeclaration//VariableId/@Name]
+[VariableAccess/@Name = ancestor::ClassBody[1]/FieldDeclaration//VariableId/@Name]
                 ]]></value>
             </property>
         </properties>
@@ -5282,14 +5283,14 @@ public class Foo {
         //MethodCall
             [matches(@MethodName, '^config.*|^set.*|^register.*|^find.*|^disable.*|^enable.*|^activate.*|^deactivate.*|^add.*|^clear.*')]
             [VariableAccess[@Name=ancestor::MethodDeclaration//FormalParameter[pmd-java:typeIs('com.fasterxml.jackson.databind.ObjectMapper')]/VariableId/@Name
-                or @Name=ancestor::ClassBody/FieldDeclaration[ClassType[pmd-java:typeIs('com.fasterxml.jackson.databind.ObjectMapper')]]/VariableDeclarator/VariableId/@Name]
+                or @Name=ancestor::ClassBody[1]/FieldDeclaration[ClassType[pmd-java:typeIs('com.fasterxml.jackson.databind.ObjectMapper')]]/VariableDeclarator/VariableId/@Name]
             ]
     ,
     (: modify operations on objectMapper in a constructor where objectMapper is a formal parameter or static field :)
     //ConstructorDeclaration//MethodCall
             [matches(@MethodName, '^config.*|^set.*|^register.*|^find.*|^disable.*|^enable.*|^activate.*|^deactivate.*|^add.*|^clear.*')]
             [VariableAccess/@Name=
-                (ancestor::ConstructorDeclaration//FormalParameter|ancestor::ClassBody//FieldDeclaration[pmd-java:modifiers()=('static')]/ClassType)[pmd-java:typeIs('com.fasterxml.jackson.databind.ObjectMapper')]/..//VariableId/@Name]
+                (ancestor::ConstructorDeclaration//FormalParameter|ancestor::ClassBody[1]/FieldDeclaration[pmd-java:modifiers()=('static')]/ClassType)[pmd-java:typeIs('com.fasterxml.jackson.databind.ObjectMapper')]/..//VariableId/@Name]
                     ]]>
                 </value>
             </property>
@@ -6609,7 +6610,7 @@ public class AvoidSpringApplicationContextRecreation {
     .//ArgumentList//VariableAccess[
        @Name = ancestor::MethodDeclaration//(VariableDeclarator|FormalParameter)/VariableId/@Name
        or
-       @Name = ancestor::ClassDeclaration//FieldDeclaration[not(pmd-java:modifiers()='final')]//VariableId/@Name
+       @Name = ancestor::ClassBody[1]/FieldDeclaration[not(pmd-java:modifiers()='final')]//VariableId/@Name
     ]
 ]
 ,
@@ -6619,14 +6620,14 @@ public class AvoidSpringApplicationContextRecreation {
     .//ArgumentList/*[1][
        @Name = ancestor::MethodDeclaration//(VariableDeclarator|FormalParameter)/VariableId/@Name
        or
-       @Name = ancestor::ClassDeclaration//FieldDeclaration[not(pmd-java:modifiers()='final')]//VariableId/@Name
+       @Name = ancestor::ClassBody[1]/FieldDeclaration[not(pmd-java:modifiers()='final')]//VariableId/@Name
     ]
     or
     (: but in first arg also check sub-args of e.g. method calls :)
     .//ArgumentList/*[1]//ArgumentList/VariableAccess[
        @Name = ancestor::MethodDeclaration//(VariableDeclarator|FormalParameter)/VariableId/@Name
        or
-       @Name = ancestor::ClassDeclaration//FieldDeclaration[not(pmd-java:modifiers()='final')]//VariableId/@Name
+       @Name = ancestor::ClassBody[1]/FieldDeclaration[not(pmd-java:modifiers()='final')]//VariableId/@Name
     ]
 ]
                 ]]></value>
@@ -6985,7 +6986,7 @@ public SomeEntity findByQueryGood(TypedQuery<Object> query) throws NoResultExcep
 ]/ArgumentList[
         NumericLiteral[@ValueAsInt > 500]
         or
-        VariableAccess/@Name = (ancestor::ClassBody//FieldDeclaration|ancestor::MethodDeclaration)//VariableDeclarator[NumericLiteral[@ValueAsInt > 500]]/VariableId/@Name
+        VariableAccess/@Name = (ancestor::ClassBody[1]/FieldDeclaration|ancestor::MethodDeclaration)//VariableDeclarator[NumericLiteral[@ValueAsInt > 500]]/VariableId/@Name
 ]
 ]]>
                 </value>
