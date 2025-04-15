@@ -198,7 +198,7 @@ switch (type) {
 /ArgumentList/*[1][(self::StringLiteral and string-length(@Image) > 5 and
 (matches(@Image, '[\.\$\|\(\)\[\]\{\}\^\?\*\+\\]+')))
 or
-self::VariableAccess and @Name=ancestor::ClassBody/FieldDeclaration/VariableDeclarator[StringLiteral[string-length(@Image) > 5 and
+self::VariableAccess and @Name=ancestor::ClassBody[1]/FieldDeclaration/VariableDeclarator[StringLiteral[string-length(@Image) > 5 and
 (matches(@Image, '[\.\$\|\(\)\[\]\{\}\^\?\*\+\\]+'))] or not(StringLiteral)]/VariableId/@Name]
 ]]></value>
             </property>
@@ -234,9 +234,9 @@ String good_replaceInnerLineBreakBySpace() {
 //ConstructorCall[pmd-java:matchesSig('java.io.ByteArrayOutputStream#new()') or pmd-java:matchesSig('java.io.StringWriter#new()')
 or
 ((pmd-java:matchesSig('java.io.ByteArrayOutputStream#new(int)') and (ArgumentList/NumericLiteral/@ValueAsInt <=32
-        or ArgumentList/VariableAccess/@Name = ancestor::ClassBody/FieldDeclaration/VariableDeclarator[NumericLiteral/@ValueAsInt <= 32]/VariableId/@Name))
+        or ArgumentList/VariableAccess/@Name = ancestor::ClassBody[1]/FieldDeclaration/VariableDeclarator[NumericLiteral/@ValueAsInt <= 32]/VariableId/@Name))
     or (pmd-java:matchesSig('java.io.StringWriter#new(int)') and (ArgumentList/NumericLiteral/@ValueAsInt <=16
-        or ArgumentList/VariableAccess/@Name = ancestor::ClassBody/FieldDeclaration/VariableDeclarator[NumericLiteral/@ValueAsInt <= 16]/VariableId/@Name))
+        or ArgumentList/VariableAccess/@Name = ancestor::ClassBody[1]/FieldDeclaration/VariableDeclarator[NumericLiteral/@ValueAsInt <= 16]/VariableId/@Name))
 )
 ]
 	]]></value>
@@ -1676,7 +1676,7 @@ class Foo {
 ]
 |
 //Initializer//AssignmentExpression[(pmd-java:typeIs('java.util.Map') and not (pmd-java:typeIs('java.util.EnumMap'))) or (pmd-java:typeIs('java.util.Set') and not(pmd-java:typeIs('java.util.EnumSet')))]
-    [VariableAccess/@Name = ancestor::ClassBody/FieldDeclaration[ClassType/TypeArguments/ClassType[1][pmd-java:typeIs('java.lang.Enum') or @SimpleName = //EnumDeclaration/@SimpleName]]/VariableDeclarator/@Name]
+    [VariableAccess/@Name = ancestor::ClassBody[1]/FieldDeclaration[ClassType/TypeArguments/ClassType[1][pmd-java:typeIs('java.lang.Enum') or @SimpleName = //EnumDeclaration/@SimpleName]]/VariableDeclarator/@Name]
     /(MethodCall|ConstructorCall)
         [not ((pmd-java:typeIs('java.util.EnumSet') or pmd-java:typeIs('java.util.EnumMap')) or
         (: Set.of() with 1 or 2 elems and Map.of() with 1 key+value don't have the HashSet/Map overhead :)
@@ -1893,7 +1893,7 @@ public enum Fruit {
 (: for when key type is missing in declaration (old style), check Map.put :)
 //MethodCall[pmd-java:matchesSig('java.util.Map#put(_,_)') and not(
                 (: if Map is TreeMap constructed with a Comparator, it is also fine :)
-                ./VariableAccess/@Name = ancestor::ClassDeclaration//FieldDeclaration[
+                ./VariableAccess/@Name = ancestor::ClassBody[1]/FieldDeclaration[
                     .//ConstructorCall[pmd-java:matchesSig('java.util.TreeMap#new(java.util.Comparator)')]
                 ]/VariableDeclarator/VariableId/@Name)
              ]
@@ -2329,7 +2329,7 @@ class ValueGood {
     ]/(ClassType/@SimpleName|PrimitiveType/@Kind)
     or
     (: or its classType is equal to the field classtype :)
-    (ClassType/@SimpleName|PrimitiveType/@Kind) = ancestor::ClassBody//FieldDeclaration[
+    (ClassType/@SimpleName|PrimitiveType/@Kind) = ancestor::ClassBody[1]/FieldDeclaration[
         (: which name equals to the name of the 1st argument of the method call :)
         .//VariableId/@Name = ..//MethodDeclaration//MethodCall[@MethodName = ancestor::MethodDeclaration/@Name]/ArgumentList/VariableAccess[1]/@Name
     ][
@@ -2341,7 +2341,7 @@ class ValueGood {
 [concat(ArgumentList/*[2]/@Name, '') = ancestor::MethodDeclaration/FormalParameters/FormalParameter[2]/VariableId/@Name
     or ancestor::MethodDeclaration/FormalParameters[@Size <= 1 or FormalParameter[2][(
     (: or its classType is equal to the local var classtype :)
-    (ClassType/@SimpleName|PrimitiveType/@Kind) = (ancestor::MethodDeclaration//LocalVariableDeclaration|ancestor::ClassBody//FieldDeclaration)[
+    (ClassType/@SimpleName|PrimitiveType/@Kind) = (ancestor::MethodDeclaration//LocalVariableDeclaration|ancestor::ClassBody[1]/FieldDeclaration)[
     (: which name equals to the name of the 2nd argument of the method call :)
     .//VariableId/@Name = ancestor::MethodDeclaration//MethodCall[@MethodName = ancestor::MethodDeclaration/@Name]/ArgumentList/VariableAccess[2]/@Name][
         (: and which classType is equal to the classtype of the 2nd parameter :)
@@ -2349,7 +2349,7 @@ class ValueGood {
     ]/(ClassType/@SimpleName|PrimitiveType/@Kind)
     or
     (: or its classType is equal to the field classtype :)
-    (ClassType/@SimpleName|PrimitiveType/@Kind) = ancestor::ClassBody//FieldDeclaration[
+    (ClassType/@SimpleName|PrimitiveType/@Kind) = ancestor::ClassBody[1]/FieldDeclaration[
         (: which name equals to the name of the 2nd argument of the method call :)
         .//VariableId/@Name = ..//MethodDeclaration//MethodCall[@MethodName = ancestor::MethodDeclaration/@Name]/ArgumentList/VariableAccess[2]/@Name
     ][
@@ -2361,7 +2361,7 @@ class ValueGood {
 [concat(ArgumentList/*[3]/@Name, '') = ancestor::MethodDeclaration/FormalParameters/FormalParameter[3]/VariableId/@Name
     or ancestor::MethodDeclaration/FormalParameters[@Size <= 2 or FormalParameter[3][(
     (: or its classType is equal to the local var classtype :)
-    (ClassType/@SimpleName|PrimitiveType/@Kind) = (ancestor::MethodDeclaration//LocalVariableDeclaration|ancestor::ClassBody//FieldDeclaration)[
+    (ClassType/@SimpleName|PrimitiveType/@Kind) = (ancestor::MethodDeclaration//LocalVariableDeclaration|ancestor::ClassBody[1]/FieldDeclaration)[
     (: which name equals to the name of the 3rd argument of the method call :)
     .//VariableId/@Name = ancestor::MethodDeclaration//MethodCall[@MethodName = ancestor::MethodDeclaration/@Name]/ArgumentList/VariableAccess[3]/@Name][
         (: and which classType is equal to the classtype of the 3rd parameter :)
@@ -2369,7 +2369,7 @@ class ValueGood {
     ]/(ClassType/@SimpleName|PrimitiveType/@Kind)
     or
     (: or its classType is equal to the field classtype :)
-    (ClassType/@SimpleName|PrimitiveType/@Kind) = ancestor::ClassBody//FieldDeclaration[
+    (ClassType/@SimpleName|PrimitiveType/@Kind) = ancestor::ClassBody[1]/FieldDeclaration[
         (: which name equals to the name of the 3rd argument of the method call :)
         .//VariableId/@Name = ..//MethodDeclaration//MethodCall[@MethodName = ancestor::MethodDeclaration/@Name]/ArgumentList/VariableAccess[3]/@Name
     ][
@@ -2422,5 +2422,64 @@ class IterationsBetter {
             ]]>
         </example>
     </rule>
+    <rule name="InitializeComparatorOnlyOnce"
+          language="java"
+          message="Avoid creating Comparator instances repeatedly. Initialize them as static final fields instead."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#UE03">
+        <description>Problem: Creating Comparator instances repeatedly in methods like compareTo or sort calls is inefficient.&#13;
+            Solution: Initialize the Comparator once as a static final field and reuse.
+        </description>
+        <priority>2</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,sustainability-medium,cpu" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+//MethodCall[
+    (pmd-java:matchesSig('java.util.Comparator#comparing(_*)')
+      or pmd-java:matchesSig('java.util.Comparator#comparingInt(_)')
+      or pmd-java:matchesSig('java.util.Comparator#comparingDouble(_)')
+      or pmd-java:matchesSig('java.util.Comparator#comparingLong(_)')
+      or pmd-java:matchesSig('java.util.Comparator#nullsFirst(_)')
+      or pmd-java:matchesSig('java.util.Comparator#nullsLast(_)')
+      or pmd-java:matchesSig('java.util.Comparator#reversed()')
+    )
+    (: not chained: AST is backwards with first call last element :)
+    and not(MethodCall[pmd-java:typeIs('java.util.Comparator')])
+    (: not used as argument to another Comparator method :)
+    and not(parent::ArgumentList/parent::MethodCall[
+        pmd-java:typeIs('java.util.Comparator')
+    ])
+    (: used in non-static-final way :)
+    and not(ancestor::FieldDeclaration[pmd-java:modifiers() = ('final') and pmd-java:modifiers() = ('static')])
+]
+]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+public class BadPerson implements Comparable<Person> {
+    @Override
+    public int compareTo(@NotNull Person o) {
+        return Comparator.comparing(Person::getFirstName)  // Bad: Creates new Comparator instance on each invocation
+                .thenComparing(Person::getLastName)
+                .thenComparingInt(Person::getAge)
+                .compare(this, o);
+    }
+}
 
+public class GoodPerson implements Comparable<Person> {
+    private static final Comparator<Person> COMPARE_AGE_LAST_FIRST =
+        Comparator.comparing(Person::getFirstName)
+            .thenComparing(Person::getLastName)
+            .thenComparingInt(Person::getAge);
+
+    @Override
+    public int compareTo(@NotNull Person o) {
+        return COMPARE_AGE_LAST_FIRST.compare(this, o);     // Good: Comparator initialized once as static final field
+    }
+}
+        ]]>
+        </example>
+    </rule>
 </ruleset>
