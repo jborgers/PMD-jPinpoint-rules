@@ -9,3 +9,5 @@ fi
 cd rulesets-merger
 ../mvnw install exec:java -Dexec.args="$ARG1"
 cd ..
+echo "Temporary workaround: copy jpinpoint-java-ruleset.xml to jpinpoint-ruleset.xml so it can be found by IntelliJ PMD plugin 2.0.4 and older"
+cp rulesets/java/jpinpoint-java-rules.xml rulesets/java/jpinpoint-rules.xml
