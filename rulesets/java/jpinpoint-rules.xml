@@ -1761,9 +1761,9 @@ class Foo {
           language="java"
           message="Avoid creating Comparator instances repeatedly. Initialize them as static final fields instead."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#UE03">
         <description>Problem: Creating Comparator instances repeatedly in methods like compareTo or sort calls is inefficient.&#13;
-            Solution: Initialize the Comparator as a static final field when not using external state and is thread safe.
+            Solution: Initialize the Comparator once as a static final field and reuse.
         (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
