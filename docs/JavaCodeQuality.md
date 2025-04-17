@@ -575,6 +575,44 @@ class VMRData {
 }
 ```
 
+### M04
+
+**Observation: UnresolvedType found during PMD analysis.**  
+**Problem:** When compiled code is missing, not all rules can be applied or work correctly.  
+**Solution:** Add the needed compiled Java classes to the classpath of the PMD tool.  
+**Note:** Using the **PMD plugin in IntelliJ**, make sure to first build the project and then run the PMD analysis.
+Make sure that annotation processing is enabled, for instance when using Lombok annotations.
+Sometimes code needs to be generated first, for instance when using open api generator. A run of 
+the build tool can help, for instance `mvn package` or `gradle build`.
+
+Using the [**Maven Sonar plugin**](https://github.com/SonarSource/sonar-scanner-maven) together 
+with the [**Sonar PMD plugin**](https://github.com/jborgers/sonar-pmd-jpinpoint), make sure to use correct settings.
+Check if overrides are used that prevent all classes from being on the classpath. Make sure that code
+is generated and compiled before the sonar task is run. For instance, use `mvn clean package sonar:sonar`
+command to run the sonar task after packaging. Make sure that if you need to override settings of the sonar that
+all compiled sources can still be found, e.g. class files and jars. For instance, use `sonar.java.binaries` to point
+to the correct `target/classes` location. Note that these overrides can both be specified on the command
+line using `-D`, as in `mvn -Dsonar.java.binaries=target/classes sonar:sonar`, but also inside the `pom.xml` file:
+
+The following line caused UnresolvedType problems (and note that Java 21 is now supported by Sonar-PMD plugin):
+```xml
+<!-- set binaries to code instead of compiled classes because SonarQube does not support Java 21 yet -->
+<sonar.java.binaries>src/main</sonar.java.binaries>
+```
+Using [**PMD from the command line**](https://github.com/pmd/pmd), make sure to add the classpath of the project to the PMD command line.
+In example command line below, notice `--aux-classpath=target/classes:$(cat classpath.txt)` option. 
+Both the compiled classes of the project and the jars of used dependencies need to be present.
+
+```bash
+pmd check --rulesets jpinpoint-java-rules.xml --dir src/main/java --format text --aux-classpath=target/classes:$(cat classpath.txt) --report-file java-issues-$(date +"%Y%m%d_%H%M").txt
+```
+
+To generate the list of classpath dependencies in a maven project, use the following command:
+```bash
+mvn dependency:build-classpath -Dmdep.outputFile=classpath.txt
+```
+**Rule name:** UnresolvedType
+
 
 Improved Sonar rules
 --------------------
