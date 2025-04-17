@@ -594,8 +594,9 @@ all compiled sources can still be found, e.g. class files and jars. For instance
 to the correct `target/classes` location. Note that these overrides can both be specified on the command
 line using `-D`, as in `mvn -Dsonar.java.binaries=target/classes sonar:sonar`, but also inside the `pom.xml` file:
 
+The following line caused UnresolvedType problems (and note that Java 21 is now supported by Sonar-PMD plugin):
 ```xml
-<!-- not pointing to class files, causing UnresolvedType issues -->
+<!-- set binaries to code instead of compiled classes because SonarQube does not support Java 21 yet -->
 <sonar.java.binaries>src/main</sonar.java.binaries>
 ```
 Using [**PMD from the command line**](https://github.com/pmd/pmd), make sure to add the classpath of the project to the PMD command line.
