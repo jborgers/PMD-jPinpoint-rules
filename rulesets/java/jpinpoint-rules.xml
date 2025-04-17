@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<ruleset name="jpinpoint-rules" 
+<ruleset name="jpinpoint-java-rules" 
          xmlns="http://pmd.sourceforge.net/ruleset/2.0.0" 
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
          xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 http://pmd.sourceforge.net/ruleset_2_0_0.xsd"> 
@@ -18,7 +18,7 @@
           externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#pml05">
         <description>Problem: A proxy object is created by Contexts and Dependency Injection (CDI) for explicit references, they are not de-referenced implicitly and become a memory leak. &#13;
             Solution: Destroy the reference explicitly.
-        (jpinpoint-rules)</description>
+        (jpinpoint-java-rules)</description>
         <priority>1</priority>
         <properties>
             <property name="tags" value="jpinpoint-rule,memory,performance,sustainability-low" type="String" description="classification"/>
@@ -64,7 +64,7 @@ public class CDIStuff {
           externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#imu01">
         <description>Problem: A Calendar is a heavyweight object and expensive to create. &#13;
             Solution: Use Date, Java 8+ java.time.[Local/Zoned]DateTime.
-        (jpinpoint-rules)</description>
+        (jpinpoint-java-rules)</description>
         <priority>3</priority>
         <properties>
             <property name="xpath">
@@ -133,7 +133,7 @@ public enum Animal {
         <description>Problem: java.text.NumberFormat: DecimalFormat and ChoiceFormat are thread-unsafe.&#13;
             Solution: usual solution is to create a new local one when needed in a method.
             (jpinpoint-rules)
-        (jpinpoint-rules)</description>
+        (jpinpoint-java-rules)</description>
         <priority>1</priority>
         <properties>
             <property name="tags" value="jpinpoint-rule,multi-threading" type="String" description="classification"/>
@@ -230,7 +230,7 @@ switch (type) {
         <description>Problem: Internal state can be modified from outside the record, through the implicit accessor method or by the caller of the constructor. Risk of thread-unsafety.
             Solution: Use the record compact constructor to defensively copy the (possibly) mutable object such as a List, Set or Map, e.g. with List.copyOf(). Make sure
             to avoid NullPointerExceptions for null values in List.copyOf() methods. Beware that contained objects in collections can itself be mutable.
-        (jpinpoint-rules)</description>
+        (jpinpoint-java-rules)</description>
         <priority>3</priority>
         <properties>
             <property name="tags" value="jpinpoint-rule,multi-threading" type="String" description="classification"/>
@@ -351,7 +351,7 @@ class Good {
         <description>Problem: If a method calls itself (recursion), and it doesn't have a proper and guaranteed stop condition, it may become an infinite loop and result in an OutOfMemoryError or StackOverflowError, and high CPU usage.
             Solution: Limit the number of recursive calls: use a counter to count up-to or down-from a maximum number of calls, for every recursive call, and stop when the maximum is reached. This maximum should not be a large number.
             Or better yet, rewrite into iterations for better performance and avoiding errors.
-        (jpinpoint-rules)</description>
+        (jpinpoint-java-rules)</description>
         <priority>1</priority>
         <properties>
             <property name="xpath">
@@ -489,7 +489,7 @@ class IterationsBetter {
             Solution: Stream-through: use streaming all the way, don't store the whole thing in memory, don't use byte arrays.
             Often, functionality can be achieved in a streaming way.
             Note: not a problem for small files.
-        (jpinpoint-rules)</description>
+        (jpinpoint-java-rules)</description>
         <priority>2</priority>
         <properties>
             <property name="tags" value="jpinpoint-rule,memory,performance,sustainability-medium" type="String" description="classification"/>
@@ -531,7 +531,7 @@ class Good {
           externalInfoUrl="">
         <description>Problem: Lombok annotations for fields [@Getter, @Setter, @EqualsAndHashCode, @Value, @Data] are of no use and confusing in case the class has no fields.&#13;
             Solution: Remove the Lombok annotation.
-        (jpinpoint-rules)</description>
+        (jpinpoint-java-rules)</description>
         <priority>4</priority>
         <properties>
             <property name="tags" value="jpinpoint-rule,confusing" type="String" description="classification"/>
@@ -622,7 +622,7 @@ class ConcatsExample {
           externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#pml01">
         <description>Problem: A list which is unnecessarily mutable may accidentally be added to and cause a memory leak. &#13;
             Solution: For the list which is not actually modified, make it impossible to modify after object construction/initialization: use Java 9 List.of, Java 11 List.copyOf, Collections.unmodifiableList or Guava ImmutableList.
-        (jpinpoint-rules)</description>
+        (jpinpoint-java-rules)</description>
         <priority>3</priority>
         <properties>
             <property name="tags" value="jpinpoint-rule,pitfall" type="String" description="classification"/>
@@ -690,7 +690,7 @@ public class Good {
         <description>Problem: the time to find element is O(n); n = the number of enum values. This identical processing is executed for every call. Considered problematic when n > 3.
             Solution: use a static field-to-enum-value Map. Access time is O(1), provided the hashCode is well-defined.
             For one String field, usually toString returns that field. Implement a fromString method to provide the reverse conversion by using the map.
-        (jpinpoint-rules)</description>
+        (jpinpoint-java-rules)</description>
         <priority>3</priority>
         <properties>
             <property name="tags" value="cpu,jpinpoint-rule,performance,sustainability-medium" type="String" description="classification"/>
@@ -879,7 +879,7 @@ class Good {
           externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#iuosf01">
         <description>Problem: Creating a security provider is expensive because of loading of algorithms and other classes. Additionally, it uses synchronized which leads to lock contention when used with multiple threads.
             Solution: This only needs to happen once in the JVM lifetime, because once loaded, the provider is typically available from the Security class. Create the security provider only once: only in case it is nog available from the Security class, yet.
-        (jpinpoint-rules)</description>
+        (jpinpoint-java-rules)</description>
         <priority>2</priority>
         <properties>
             <property name="tags" value="cpu,io,jpinpoint-rule,performance,sustainability-high" type="String" description="classification"/>
@@ -1170,7 +1170,7 @@ class Foo {
         <description>Problem: Creating a StringBuilder and using append is more verbose, less readable and less maintainable than simply using String concatenation (+).
             For one statement resulting in a String, creating a StringBuilder and using append is not faster than simply using concatenation.&#13;
             Solution: Simply concatenate Strings in one statement, it is more concise, better readable and more maintainable.
-        (jpinpoint-rules)</description>
+        (jpinpoint-java-rules)</description>
         <priority>3</priority>
         <properties>
             <property name="tags" value="bad-practice,jpinpoint-rule" type="String" description="classification"/>
@@ -1311,7 +1311,7 @@ public class Foo {
             The stream is read-from/written-to file byte by byte, where each operating system call has its overhead, which makes it slow.
             Solution: Use buffering to read/write a chunk of bytes at once with much lower overhead.
             Use BufferedOutput/InputStream which has a buffer size of 8 kB by default to write at once. Make sure to close it after use.
-        (jpinpoint-rules)</description>
+        (jpinpoint-java-rules)</description>
         <priority>3</priority>
         <properties>
             <property name="tags" value="cpu,io,jpinpoint-rule,performance,sustainability-high" type="String" description="classification"/>
@@ -1352,7 +1352,7 @@ class BufferFileStreaming {
             Solution: Use buffering to read/write a chunk of bytes at once with much lower overhead.
             Use e.g. BufferedInputStream or BufferedOutputStream which has a buffer size of 8 kB to read/write at once. Make sure to close it after use.
             Note that IOUtils methods take care of buffering the inputStream.
-        (jpinpoint-rules)</description>
+        (jpinpoint-java-rules)</description>
         <priority>3</priority>
         <properties>
             <property name="tags" value="cpu,io,jpinpoint-rule,performance,sustainability-high" type="String" description="classification"/>
@@ -1395,7 +1395,7 @@ class Foo {
           externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodeQuality.md#ieah03">
         <description>Problem: Equal objects may have different hashCodes and end-up in different buckets of a Map/Set. Strange things can happen like adding an object to a Set and not being able to find it back.
             Solution: When objects are equal, hashCode needs to be equal, too. Use the same fields in equals and hashCode and use identical conversions like toUpperCase() in both when needed. Don't use equalsIgnoreCase. (jpinpoint-rules)
-        (jpinpoint-rules)</description>
+        (jpinpoint-java-rules)</description>
         <priority>1</priority>
         <properties>
             <property name="tags" value="correctness,jpinpoint-rule" type="String" description="classification"/>
@@ -1568,7 +1568,7 @@ class Bad {
         <description>Problem: when equals is implemented, hashCode needs to be implemented, too; and if objects are equal, hashCode needs to be equal, too. If hashCode only calls super.hashCode, it is effectively not implemented.
             Strange things can happen, for instance, if super.hashCode calls Object.hashCode, it is unique for each object and when used in Set or as key in Map, equal objects can duplicate in Set, and keys not found in Map.
             Solution: implement hashCode properly, consistent with equals. Meet the equals and hashCode contracts. If objects are equal, hashCode needs to be equal, too. See Effective Java.
-        (jpinpoint-rules)</description>
+        (jpinpoint-java-rules)</description>
         <priority>1</priority>
         <properties>
             <property name="tags" value="correctness,jpinpoint-rule" type="String" description="classification"/>
@@ -1725,7 +1725,7 @@ class Good {
           externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodeQuality.md#m01">
         <description>Problem: Variables like 'var3' and fields like 'FOUR = 4', do not express what they are used for. This is bad for maintainability.&#13;
             Solution: Let variable names express what they are used for, like 'key' and 'MAX_KEYS = 4'
-        (jpinpoint-rules)</description>
+        (jpinpoint-java-rules)</description>
         <priority>3</priority>
         <properties>
             <property name="tags" value="bad-practice,confusing,jpinpoint-rule" type="String" description="classification"/>
@@ -1764,7 +1764,7 @@ class Foo {
           externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#UE03">
         <description>Problem: Creating Comparator instances repeatedly in methods like compareTo or sort calls is inefficient.&#13;
             Solution: Initialize the Comparator once as a static final field and reuse.
-        (jpinpoint-rules)</description>
+        (jpinpoint-java-rules)</description>
         <priority>2</priority>
         <properties>
             <property name="tags" value="jpinpoint-rule,sustainability-medium,cpu" type="String" description="classification"/>
@@ -1892,7 +1892,7 @@ class Good {
           externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodeQuality.md#ieah01">
         <description>Problem: If only the @Setter and/or @Getter annotation is used, and equals and hashcode are not defined, this is probably a mistake. The object has fields and if used in a collection or with equality, it will not behave as expected.
             Solution: include equals and hashCode e.g. by @EqualsAndHashCode or usually better @Data instead of @Setter/@Getter, however, are setters really needed? Prefer immutability, so @Value, combined with @Builder, with @Singular for collection fields.
-        (jpinpoint-rules)</description>
+        (jpinpoint-java-rules)</description>
         <priority>3</priority>
         <properties>
             <property name="xpath">
@@ -2065,7 +2065,7 @@ class Bad {
             If this is not implemented, access will be slow.
             Solution: Implement Comparable for your Map keys. Do not use classes for the keys which don't implement Comparable, like Thread, Class and Object. At least not for Maps which can grow large.
             Note that equals and hashCode must be implemented properly for the keys, and compareTo must be compatible with equals.
-        (jpinpoint-rules)</description>
+        (jpinpoint-java-rules)</description>
         <priority>3</priority>
         <properties>
             <property name="tags" value="cpu,jpinpoint-rule,performance,sustainability-low" type="String" description="classification"/>
@@ -2130,7 +2130,7 @@ class Bad {
             Access methods by element which are affected: contains[All], retainAll, remove[All].
             Solution: Implement Comparable for your own Set elements. Avoid using large Sets with elements of types which don't implement Comparable, like Thread, Class and Object. At least when using access by element.
             Note that equals and hashCode must be implemented properly for the elements, and compareTo must be compatible with equals.
-        (jpinpoint-rules)</description>
+        (jpinpoint-java-rules)</description>
         <priority>3</priority>
         <properties>
             <property name="tags" value="cpu,jpinpoint-rule,performance,sustainability-low" type="String" description="classification"/>
@@ -2189,7 +2189,7 @@ class Foo {
           externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#iuoc03">
         <description>Problem: A HashMap and HashSet are rather greedy in memory usage.&#13;
             Solution: Use an EnumMap or EnumSet. It is represented internally with arrays which is extremely compact and efficient.
-        (jpinpoint-rules)</description>
+        (jpinpoint-java-rules)</description>
         <priority>3</priority>
         <properties>
             <property name="tags" value="cpu,jpinpoint-rule,memory,performance,sustainability-medium" type="String" description="classification"/>
@@ -2288,7 +2288,7 @@ class Foo {
           externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#il06">
         <description>Problem: Creation of a log argument with a toString or other operation(s) may be expensive, while depending on the log level, the result may not be used.&#13;
             Solution: Create the log argument conditionally on the log level, within an if statement. For just 'obj.toString()', just pass 'obj' to the log method and leave it to SLF4J to call toString() only if needed.
-        (jpinpoint-rules)</description>
+        (jpinpoint-java-rules)</description>
         <priority>2</priority>
         <properties>
             <property name="tags" value="cpu,jpinpoint-rule,performance,sustainability-medium" type="String" description="classification"/>
@@ -2507,7 +2507,7 @@ class VMRData {
         <description>
             Problem: Use of FileItem.get and FileItem.getString could exhaust memory since they load the entire file into memory&#13;
             Solution: Use streaming methods and buffering.
-        (jpinpoint-rules)</description>
+        (jpinpoint-java-rules)</description>
         <priority>2</priority>
         <properties>
             <property name="tags" value="io,jpinpoint-rule,memory,performance,sustainability-medium" type="String" description="classification"/>
@@ -2542,7 +2542,7 @@ public class FileStuff {
           externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#ue01">
         <description>Problem: A Calendar is a heavyweight object and expensive to create. &#13;
             Solution: Use 'new Date()', Java 8+ java.time.[Local/Zoned]DateTime.now().
-        (jpinpoint-rules)</description>
+        (jpinpoint-java-rules)</description>
         <priority>2</priority>
         <properties>
             <property name="tags" value="cpu,jpinpoint-rule,memory,performance,sustainability-medium" type="String" description="classification"/>
@@ -2589,7 +2589,7 @@ public class DateStuff {
           externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#isu04">
         <description>Concatenation of Strings is used inside an StringBuilder.append argument. Problem: Each statement with one or more +-operators creates a hidden temporary StringBuilder, a char[] and a new String object, which all have to be garbage collected.&#13;
             Solution: Use an extra fluent append instead of concatenation.
-        (jpinpoint-rules)</description>
+        (jpinpoint-java-rules)</description>
         <priority>2</priority>
         <properties>
             <property name="tags" value="cpu,jpinpoint-rule,performance,sustainability-low" type="String" description="classification"/>
@@ -2631,7 +2631,7 @@ public class StringStuff {
           externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#isu02">
         <description>A String is built in a loop by concatenation. Problem: Each statement with one or more +-operators creates a hidden temporary StringBuilder, a char[] and a new String object, which all have to be garbage collected. &#13;
             Solution: Use the StringBuilder append method.
-        (jpinpoint-rules)</description>
+        (jpinpoint-java-rules)</description>
         <priority>2</priority>
         <properties>
             <property name="tags" value="cpu,jpinpoint-rule,performance,sustainability-medium" type="String" description="classification"/>
@@ -2680,7 +2680,7 @@ public class StringStuff {
             Use of forEach is actually iterative code masquerading as streams code. It is typically harder to read and less maintainable than the iterative form.
             For parallel streams, side effects are dangerous: accessing a thread-unsafe shared variable is a concurrency bug.
             Solution: Use the for-each (enhanced-for) loop, internal iterator, or the pure functional form. The forEach operation should only be used to report (i.e. log) the result of a stream computation.
-        (jpinpoint-rules)</description>
+        (jpinpoint-java-rules)</description>
         <priority>4</priority>
         <properties>
             <property name="tags" value="bad-practice,jpinpoint-rule,pitfall" type="String" description="classification"/>
@@ -2753,7 +2753,7 @@ letters.forEach(l -> map.put(l, 0));
             By the spec, everything that does not contribute to the result, may be optimized away. So, side effects are not guaranteed to be executed!
             For parallel streams, side effects are dangerous: accessing a thread-unsafe shared variable is a concurrency bug. Accessing a (thread-safe) shared variable may cause data mix-up between the threads.
             Solution: Use the pure functional form: return a result based just on the input; do not modify any variable.
-        (jpinpoint-rules)</description>
+        (jpinpoint-java-rules)</description>
         <priority>3</priority>
         <properties>
             <property name="tags" value="bad-practice,data-mix-up,jpinpoint-rule,pitfall" type="String" description="classification"/>
@@ -2791,7 +2791,7 @@ public List<String> getEndpointsInfo(String... endpoints) {
             Solution: make the field either transient, make its class implement Serializable or interface extend Serializable.
             Note: Classes extending Throwable do, by inheritance, implement Serializable, yet are excluded in this rule, since they are typically never actually serialized.
             An exception to this exception is when extending RemoteException, then fields should be transient or serializable.
-        (jpinpoint-rules)</description>
+        (jpinpoint-java-rules)</description>
         <priority>2</priority>
         <properties>
             <property name="tags" value="jpinpoint-rule,pitfall,replaces-sonar-rule" type="String" description="classification"/>
@@ -2861,7 +2861,7 @@ class Baz extends RemoteException {
             Solution: extract the lambda expression code block(s) into one or more well-named separate method(s).
             Note: A violation when the depth of lambda-with-code-block nesting exceeds (by default) 1,
             or the depth of lambda-single-expression in lambda nesting exceeds (by default) 4.
-        (jpinpoint-rules)</description>
+        (jpinpoint-java-rules)</description>
         <priority>3</priority>
         <properties>
             <property name="tags" value="brain-overload,jpinpoint-rule,replaces-sonar-rule" type="String" description="classification"/>
@@ -2910,7 +2910,7 @@ class Foo {
           externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodeQuality.md#isr03">
         <description>Problem: lambda expressions with many statements are hard to understand and maintain.
             Solution: extract the lambda expression code block into one or more well-named separate method(s).
-        (jpinpoint-rules)</description>
+        (jpinpoint-java-rules)</description>
         <priority>3</priority>
         <properties>
             <property name="tags" value="brain-overload,jpinpoint-rule,replaces-sonar-rule" type="String" description="classification"/>
@@ -2962,7 +2962,7 @@ class Foo {
           externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodeQuality.md#isr01">
         <description>Importing a class statically allows you to use its public static members easily: without qualifying them with the class name. Problem: if you import too many classes statically, your code can become confusing and difficult to maintain. The default maximum = 3.
             Solution: Import class members individually.
-        (jpinpoint-rules)</description>
+        (jpinpoint-java-rules)</description>
         <priority>2</priority>
         <properties>
             <property name="tags" value="confusing,jpinpoint-rule,pitfall,replaces-sonar-rule" type="String" description="classification"/>
@@ -2997,10 +2997,10 @@ import static com.co.corporate.Constants.GREAT; // good
           language="java"
           message="A type cannot be resolved. Make sure all sources are compiled and annotations processed."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodeQuality.md">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodeQuality.md#M04">
         <description>Problem: When analyzing code, PMD could not resolve a used type (class, annotation or other type). Several rules make use of type information and assume it is available. If not, those rules typically fail to work correctly and will for instance show false positives.
             Solution: Make sure all types can be resolved: compile all source code, process all annotations (like lombok), compile generated code, make all dependencies available on the classpath, etc. Note: this rule is still somewhat experimental and may show false positives.
-        (jpinpoint-rules)</description>
+        (jpinpoint-java-rules)</description>
         <priority>5</priority>
         <properties>
             <property name="tags" value="confusing,jpinpoint-rule" type="String" description="classification"/>
@@ -4857,7 +4857,7 @@ class SingletonGood {
             Default pool size and timeouts will be used, possibly resulting in very slow connection use.&#13;
             Solution: Provide your own supplier with explicit pool sizing and timeouts by a class implementing Supplier.
             (jpinpoint-rules)
-        (jpinpoint-rules)</description>
+        (jpinpoint-java-rules)</description>
         <priority>2</priority>
         <properties>
             <property name="tags" value="confusing,jpinpoint-rule,performance,suspicious" type="String" description="classification"/>
@@ -4965,7 +4965,7 @@ class Good {
           externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#ibi11">
         <description>Problem: Hystrix is not actively maintained anymore.&#13;
             Solution: Netflix recommends to use open source alternatives like resilience4j. (jpinpoint-rules)
-        (jpinpoint-rules)</description>
+        (jpinpoint-java-rules)</description>
         <priority>3</priority>
         <properties>
             <property name="tags" value="deprecated,jpinpoint-rule" type="String" description="classification"/>
@@ -4989,7 +4989,7 @@ class Good {
             constructor because it is replaced by the one provided to the setter. &#13;
             Solution: Don't use both on the same factory, provide the HttpClient only once to the factory.
             (jpinpoint-rules)
-        (jpinpoint-rules)</description>
+        (jpinpoint-java-rules)</description>
         <priority>2</priority>
         <properties>
             <property name="tags" value="confusing,jpinpoint-rule" type="String" description="classification"/>
@@ -5039,7 +5039,7 @@ class Good {
             Solution: If possible, use Axiom SOAP messaging which uses the faster StAX. If you have/want to stick to
             SAAJ, set the proper system properties to prevent the excessive class loading.
             (jpinpoint-rules)
-        (jpinpoint-rules)</description>
+        (jpinpoint-java-rules)</description>
         <priority>2</priority>
         <properties>
             <property name="tags" value="cpu,jpinpoint-rule,performance,sustainability-high" type="String" description="classification"/>
@@ -5082,7 +5082,7 @@ static {
             difficult to manage and tune these settings.&#13;
             Solution: use property files, e.g. yml, to define the values for these settings for each called service.
             (jpinpoint-rules)
-        (jpinpoint-rules)</description>
+        (jpinpoint-java-rules)</description>
         <priority>3</priority>
         <properties>
             <property name="tags" value="bad-practice,jpinpoint-rule,performance" type="String" description="classification"/>
@@ -5141,7 +5141,7 @@ class AvoidHardcodedConnectionConfig {
             1. https://github.com/jborgers/http-client-monitor or 2. micrometer and apache http client 4 and 5 metrics with spring boot actuator, help here.&#13;
             Solution: Use the HttpHost constructor with 2 (including port) or preferably 3 arguments (including port and
             protocol). (jpinpoint-rules)
-        (jpinpoint-rules)</description>
+        (jpinpoint-java-rules)</description>
         <priority>2</priority>
         <properties>
             <property name="tags" value="confusing,jpinpoint-rule,suspicious" type="String" description="classification"/>
@@ -5177,7 +5177,7 @@ class Foo {
         <description>Problem: JAXB utility methods do not reuse JAXBContext when more that one context is used. &#13;
             Solution: use JAXB API directly for marshalling and unmarshalling to gain all the performance benefits as
             described in IUOXAR04 and IUOXAR06.
-        (jpinpoint-rules)</description>
+        (jpinpoint-java-rules)</description>
         <priority>2</priority>
         <properties>
             <property name="tags" value="cpu,jpinpoint-rule,performance,sustainability-high" type="String" description="classification"/>
@@ -5214,7 +5214,7 @@ public class XMLConversion {
             Solution: Only call EventPublisher.onRetry (that is, add a consumer) in the same scope as the Retry instance
             lives. Note there is no way to unregister a consumer.
             (jpinpoint-rules)
-        (jpinpoint-rules)</description>
+        (jpinpoint-java-rules)</description>
         <priority>1</priority>
         <properties>
             <property name="tags" value="jpinpoint-rule,memory,performance,sustainability-high" type="String" description="classification"/>
@@ -5267,7 +5267,7 @@ public class Foo {
             to create ObjectReaders and ObjectWriters from ObjectMapper and pass those around since they are immutable
             and
             therefore thread-safe. (jpinpoint-rules)
-        (jpinpoint-rules)</description>
+        (jpinpoint-java-rules)</description>
         <priority>2</priority>
         <properties>
             <property name="tags" value="jpinpoint-rule,multi-threading" type="String" description="classification"/>
@@ -5336,7 +5336,7 @@ public class NewStyle {
             Also, when used like jaxMsgConverter.setObjectMapper(objectMapper) it is not considered a violation.
             And, when the class implements ContextResolver&lt;ObjectMapper&gt;.
             (jpinpoint-rules)
-        (jpinpoint-rules)</description>
+        (jpinpoint-java-rules)</description>
         <priority>3</priority>
         <properties>
             <property name="tags" value="jpinpoint-rule,multi-threading" type="String" description="classification"/>
@@ -5376,7 +5376,7 @@ class GoodStyle {
         <description>Problem: For troubleshooting Reactor, Blockhound can be used. It needs proper stack traces which
             can be achieved by Hooks.onOperatorDebug(). This can have much CPU overhead. &#13;
             Solution: Remove Hooks.onOperatorDebug() when not debugging. (jpinpoint-rules)
-        (jpinpoint-rules)</description>
+        (jpinpoint-java-rules)</description>
         <priority>2</priority>
         <properties>
             <property name="tags" value="cpu,jpinpoint-rule,performance,sustainability-high" type="String" description="classification"/>
@@ -5410,7 +5410,7 @@ public class Foo {
             in all requests for that connection.&#13;
             Solution: Create/build HttpClient with proper connection pooling and timeouts once, and then use it for
             requests. (jpinpoint-rules)
-        (jpinpoint-rules)</description>
+        (jpinpoint-java-rules)</description>
         <priority>2</priority>
         <properties>
             <property name="tags" value="cpu,jpinpoint-rule,performance,sustainability-high" type="String" description="classification"/>
@@ -5453,7 +5453,7 @@ class Foo {
             Solution: Always specify in the constructor whether the route is secure (true) or not (false) to make it clear.
             Note: Covers Apache Http-Client 4 and 5.
             (jpinpoint-rules)
-        (jpinpoint-rules)</description>
+        (jpinpoint-java-rules)</description>
         <priority>2</priority>
         <properties>
             <property name="tags" value="io,jpinpoint-rule,performance,pitfall" type="String" description="classification"/>
@@ -5496,7 +5496,7 @@ public class Foo {
             with the poorly performing DatatypeFactory.
             Solution: Add a converter for alternative date handling with Java 8+ java.time.
             (jpinpoint-rules)
-        (jpinpoint-rules)</description>
+        (jpinpoint-java-rules)</description>
         <priority>2</priority>
         <properties>
             <property name="tags" value="cpu,jpinpoint-rule,performance,sustainability-medium" type="String" description="classification"/>
@@ -5524,7 +5524,7 @@ public class Foo {
             &#13;
             Solution: Since the Axual Producer is thread-safe, it should be shared e.g. from a static field.
             (jpinpoint-rules)
-        (jpinpoint-rules)</description>
+        (jpinpoint-java-rules)</description>
         <priority>1</priority>
         <properties>
             <property name="tags" value="cpu,jpinpoint-rule,performance,sustainability-high" type="String" description="classification"/>
@@ -5570,7 +5570,7 @@ public class AxualProducerBad {
         Problem: It buffers all incoming and outgoing streams fully in memory which may result in high memory usage.
         &#13;
         Solution: Avoid multiple reads of the response body, so it is not needed. (jpinpoint-rules)
-    (jpinpoint-rules)</description>
+    (jpinpoint-java-rules)</description>
     <priority>3</priority>
     <properties>
         <property name="tags" value="cpu,jpinpoint-rule,memory,performance,sustainability-high" type="String" description="classification"/>
@@ -5611,7 +5611,7 @@ public class Foo {
             latency.&#13;
             Solution: switch to a Feign client that supports HTTP connection pooling with mTLS, for instance Apache
             HttpClient 4 with disableConnectionState and proper connection pool size and timeouts. (jpinpoint-rules)
-        (jpinpoint-rules)</description>
+        (jpinpoint-java-rules)</description>
         <priority>2</priority>
         <properties>
             <property name="tags" value="cpu,jpinpoint-rule,performance,sustainability-high" type="String" description="classification"/>
@@ -5658,7 +5658,7 @@ public class MyFeignClient {
             instances, from a static field. Pay attention
             to use thread-safe (custom) adapters and serializers.
             (jpinpoint-rules)
-        (jpinpoint-rules)</description>
+        (jpinpoint-java-rules)</description>
         <priority>2</priority>
         <properties>
             <property name="tags" value="cpu,jpinpoint-rule,performance,sustainability-high" type="String" description="classification"/>
@@ -5701,7 +5701,7 @@ class Good {
             setDefaultMaxPerRoute on that ConnectionManager or
             2. not use a ConnectionManager and call setMaxConnTotal and setMaxConnPerRoute on the client directly
             (jpinpoint-rules)
-        (jpinpoint-rules)</description>
+        (jpinpoint-java-rules)</description>
         <priority>2</priority>
         <properties>
             <property name="tags" value="correctness,jpinpoint-rule,resilience" type="String" description="classification"/>
@@ -5753,7 +5753,7 @@ return HttpClientBuilder.create() // good
             Then performance will suffer due to a full TLS handshake for each request.&#13;
             Solution: HttpClients should disable connection state tracking in order to reuse TLS connections, since
             service calls for one pool have the same user identity/security context for all sessions. (jpinpoint-rules)
-        (jpinpoint-rules)</description>
+        (jpinpoint-java-rules)</description>
         <priority>2</priority>
         <properties>
             <property name="tags" value="cpu,jpinpoint-rule,performance,sustainability-high" type="String" description="classification"/>
@@ -5805,7 +5805,7 @@ class Good {
             Either use 1. setConnectionManager and call setMaxTotal and setDefaultMaxPerRoute on that connection
             manager, or 2. no ConnectionManager: call setMaxConnTotal and setMaxConnPerRoute on the client directly.
             (jpinpoint-rules)
-        (jpinpoint-rules)</description>
+        (jpinpoint-java-rules)</description>
         <priority>2</priority>
         <properties>
             <property name="tags" value="jpinpoint-rule,performance,resilience" type="String" description="classification"/>
@@ -5868,7 +5868,7 @@ return HttpClientBuilder.create() // good, setConnectionManager called, pool con
             Solution: Set the timeouts explicitly to proper reasoned values. See best practice values via the link. Use
             the setDefaultRequestConfig with a method with a RequestConfig object on HttpClient builders to set the
             timeouts.(jpinpoint-rules)
-        (jpinpoint-rules)</description>
+        (jpinpoint-java-rules)</description>
         <priority>2</priority>
         <properties>
             <property name="tags" value="io,jpinpoint-rule,performance,pitfall,resilience" type="String" description="classification"/>
@@ -5942,7 +5942,7 @@ return HttpClientBuilder.create()
             possibly overload. &#13;
             Solution: Set connectTimeout and connectionRequestTimeout to values based om tests, for instance 200 ms and
             250 ms. respectively (jpinpoint-rules)
-        (jpinpoint-rules)</description>
+        (jpinpoint-java-rules)</description>
         <priority>2</priority>
         <properties>
             <property name="tags" value="io,jpinpoint-rule,performance,sustainability-low,resilience" type="String" description="classification"/>
@@ -6043,7 +6043,7 @@ public class HttpClientStuff {
             Solution: Since ObjectMapper/JsonMapper objects are thread-safe after configuration in one thread, they can
             be shared afterward between requests and reused. So, reuse created instances, from a static field.
             (jpinpoint-rules)
-        (jpinpoint-rules)</description>
+        (jpinpoint-java-rules)</description>
         <priority>2</priority>
         <properties>
             <property name="tags" value="cpu,jpinpoint-rule,performance,sustainability-high" type="String" description="classification"/>
@@ -6085,7 +6085,7 @@ public static JsonMapper createMapper() {
             results in 3 x 3 x 3 = 27 calls instead of 1. This may cause it not being able to restart.&#13;
             Solution: Have the retry mechanism in one location in the chain only, recommended only the one closest to
             the user. (jpinpoint-rules)
-        (jpinpoint-rules)</description>
+        (jpinpoint-java-rules)</description>
         <priority>5</priority>
         <properties>
             <property name="tags" value="cpu,jpinpoint-rule,performance,resilience,suspicious,sustainability-low" type="String" description="classification"/>
@@ -6126,7 +6126,7 @@ public class Foo {
             Solution: Call setQueueCapacity, for instance with a value equal to CorePoolSize.
             Note that the pool will only grow beyond CorePoolSize up to MaxPoolSize when the queue is full.
             (jpinpoint-rules)
-        (jpinpoint-rules)</description>
+        (jpinpoint-java-rules)</description>
         <priority>2</priority>
         <properties>
             <property name="tags" value="bad-practice,jpinpoint-rule,memory,performance,sustainability-low" type="String" description="classification"/>
@@ -6169,7 +6169,7 @@ private ThreadPoolTaskExecutor good() {
             and connections may not (or not quick enough) become available from the pool.&#13;
             Solution: Use ClosableHttpClient to allow for invoking close on it to properly close the connection. Or use
             HttpComponentsClientHttpRequestFactory(httpClient) to let it manage closing. (jpinpoint-rules)
-        (jpinpoint-rules)</description>
+        (jpinpoint-java-rules)</description>
         <priority>2</priority>
         <properties>
             <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
@@ -6592,7 +6592,7 @@ public class AvoidSpringApplicationContextRecreation {
             Also avoid to return a ModelAndView object created using non-static and non-final methods because it may
             cause a MemoryLeak.
             Solution: Although multiple solutions exist you can make use of model attributes together with a redirectUrl, example:
-            redirect:/redirectUrl?someAttribute={someAttribute}.(jpinpoint-rules)</description>
+            redirect:/redirectUrl?someAttribute={someAttribute}.(jpinpoint-java-rules)</description>
         <priority>1</priority>
         <properties>
             <property name="tags" value="jpinpoint-rule,memory,performance,sustainability-low" type="String" description="classification"/>
