@@ -2430,7 +2430,7 @@ if (LOG.isDebugEnabled()) { // good
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           language="java"
           message="Using SuppressWarnings."
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodeQuality.md#M02">
         <description>Problem: The suppressed rule detects problems, suppressing the detected violations without full knowledge can lead to the problems the rule is trying to prevent. &#13;
             Solution: Only suppress violations (warnings) when you have complete understanding of the rule, and you are sure it does not apply.
             When suppressing warnings, document your reasoning and report false positives to the rule maintainers to help improve rule accuracy.
@@ -2451,10 +2451,10 @@ if (LOG.isDebugEnabled()) { // good
         </properties>
         <example>
             <![CDATA[
-@SuppressWarnings("pmd:UnconditionalCreatedLogArguments") // Reason for suppression: the rule doesn't recognize record getters (yet), and those are not expensive
+@SuppressWarnings("PMD.UnconditionalCreatedLogArguments") // Reason for suppression: the rule doesn't recognize record getters (yet), and those are not expensive
 public void process(ConsumerRecord consRecord) {
     ConsumerEvent event = consRecord.event(); // record getter
-    log.info("Received event '{}'", event); // pmd:UnconditionalCreatedLogArguments suppressed
+    log.info("Received event '{}'", event); // PMD.UnconditionalCreatedLogArguments suppressed
 }
              ]]>
         </example>
@@ -2464,7 +2464,7 @@ public void process(ConsumerRecord consRecord) {
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           language="java"
           message="Using SuppressWarnings for a rule that is meant to prevent high risk problems."
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodeQuality.md#M03">
         <description>Problem: The suppressed rule detects high risk problems, suppressing the detected violations without full knowledge can lead to incidents like customer data mix-up, corrupt data, server crashes or very bad performance. &#13;
             Solution: Only suppress violations (warnings) when you have complete understanding of the rule, and you are sure it does not apply.
             When suppressing warnings, document your reasoning and report false positives to the rule maintainers to help improve rule accuracy.
@@ -2486,7 +2486,7 @@ public void process(ConsumerRecord consRecord) {
         </properties>
         <example>
             <![CDATA[
-@SuppressWarnings({"pmd:AvoidUnguardedMutableFieldsInSharedObjects", "PMD.AvoidUserDataInSharedObjects"}) // suspicious, bad to suppress
+@SuppressWarnings({"PMD.AvoidUnguardedMutableFieldsInSharedObjects", "PMD.AvoidUserDataInSharedObjects"}) // suspicious, probably bad to suppress
 @Component @Data
 class VMRData {
     private List<OrderDetails> customerOrderList; // a bad idea to have in a singleton, should be solved instead of suppressed
