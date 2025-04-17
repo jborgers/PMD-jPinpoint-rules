@@ -361,4 +361,65 @@ public class Issue468_PublicLog {
 ]]></code>
     </test-code>
 
+    <test-code>
+        <description>Fix Request: UnconditionalCreatedLogArguments should recognize record getters. #569</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>14</expected-linenumbers>
+        <code><![CDATA[
+import org.slf4j.Logger;
+class Issue569 {
+    private Logger log;
+
+    void bar1(MyRecord obj) {
+      String logObj = obj.topic();
+      log.debug("record topic: {}", logObj); // <- false positive
+    }
+
+    void bar2(WannabeRecord obj) {
+      String logObj = obj.topic();
+      log.debug("wannabe record topic: {}", logObj); // <- false positive
+      long logObj2 = obj.doStuff(5);
+      log.debug("wannabe record done stuff: {}", logObj2); // bad
+    }
+
+   void bar3() {
+      WannabeRecord obj = newWR();
+      String logObj = obj.topic();
+      log.debug("wannabe record topic: {}", logObj); // <- false positive
+    }
+}
+
+record MyRecord (
+    String topic,
+    Long documentId,
+    long offset
+) {}
+
+class WannabeRecord {
+    String topic;
+    Long documentId;
+    long offset;
+    WannabeRecord(String topic, Long documentId, long offset) {
+        this.topic = topic;
+        this.documentId = documentId;
+        this.offset = offset;
+    }
+
+    public String topic() {
+        return topic;
+    }
+    public Long documentId() {
+        return documentId;
+    }
+    public long offset() {
+        return offset;
+    }
+    public long doStuff(long index) {
+        long result; // = do the stuff
+        return result;
+    }
+}
+]]></code>
+    </test-code>
+
 </test-data>
