@@ -19,7 +19,7 @@ public class RulesetMerger {
     private static final String LSEP = System.lineSeparator();
     public static final String J_PINPOINT = "jPinpoint";
 
-    public static final String JPINPOINT_RULES = "jpinpoint-rules";
+    public static final String JPINPOINT_JAVA_RULES = "jpinpoint-java-rules";
 
     public static final String JPINPOINT_KOTLIN_RULES = "jpinpoint-kotlin-rules";
 
@@ -48,7 +48,7 @@ public class RulesetMerger {
 
     static {
         Map<Language, String> map = new EnumMap<>(Language.class);
-        map.put(Language.JAVA, JPINPOINT_RULES);
+        map.put(Language.JAVA, JPINPOINT_JAVA_RULES);
         map.put(Language.KOTLIN, JPINPOINT_KOTLIN_RULES);
         RESULT_COMPANY_RULES_NAMES = Collections.unmodifiableMap(map);
         // same for now, can also be different?
@@ -84,7 +84,7 @@ public class RulesetMerger {
 
         // validity check: also another RulesetMerger code base with different constant values exists
         if (COMPANY_SPECIFIC.equals(J_PINPOINT) &&
-                (RESULT_COMPANY_RULES_NAMES.get(Language.JAVA).equals(JPINPOINT_RULES) && RESULT_ALL_RULES_NAMES.get(Language.JAVA).equals(JPINPOINT_RULES)) ||
+                (RESULT_COMPANY_RULES_NAMES.get(Language.JAVA).equals(JPINPOINT_JAVA_RULES) && RESULT_ALL_RULES_NAMES.get(Language.JAVA).equals(JPINPOINT_JAVA_RULES)) ||
                 (RESULT_COMPANY_RULES_NAMES.get(Language.KOTLIN).equals(JPINPOINT_KOTLIN_RULES) && RESULT_ALL_RULES_NAMES.get(Language.KOTLIN).equals(JPINPOINT_KOTLIN_RULES))
         ) {
             // valid, merge only in jpinpoint-rules.xml or jpinpoint-kotlin-rules.xml
