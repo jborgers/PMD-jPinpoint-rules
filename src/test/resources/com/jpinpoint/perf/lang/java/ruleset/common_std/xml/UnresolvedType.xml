@@ -114,7 +114,7 @@ public class Connector {
      ]]></code>
     </test-code>
     <test-code>
-        <description>No violation: Slf4j log used as VariableAccess</description>
+        <description>No violation: Slf4j 'log' used as VariableAccess</description>
         <expected-problems>0</expected-problems>
         <code><![CDATA[
 import lombok.extern.slf4j.Slf4j;
@@ -131,8 +131,9 @@ class Environment {
     </test-code>
 
     <test-code>
-        <description>No violation: Slf4j log used in enum, and record</description>
-        <expected-problems>0</expected-problems>
+        <description>1 violation: Slf4j 'log' used in enum, or record</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>13</expected-linenumbers>
         <code><![CDATA[
 import lombok.extern.slf4j.Slf4j;
 @Slf4j
@@ -146,10 +147,32 @@ enum IssueEnum {
 @Slf4j
 record IssueRecord(String name) {
     public void foo(){
+        unknownType.doIt(); // bad
         log.debug("something");
     }
 }
      ]]></code>
     </test-code>
 
+    <test-code>
+        <description>No violation: Fix Request: false positive in UnresolvedType #581
+        </description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import lombok.Builder;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import java.time.LocalDateTime;
+
+@Builder
+public record Issue581 (
+            Long documentId,
+            @JsonFormat(pattern = Issue581.DATE_TIME_PATTERN) // works fine, can resolve
+            LocalDateTime requestedOn,
+            @JsonFormat(pattern = DATE_TIME_PATTERN) // <-- false positive, cannot resolve
+            LocalDateTime refusedOn
+) {
+        private static final String DATE_TIME_PATTERN = "yyyy-MM-dd'T'HH:mm:ss";
+}
+     ]]></code>
+    </test-code>
 </test-data>
