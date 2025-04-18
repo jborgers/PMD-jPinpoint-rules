@@ -3027,10 +3027,14 @@ import static com.co.corporate.Constants.GREAT; // good
 [not(pmd-java:typeIs('boolean'))][not(pmd-java:typeIs('char'))]
 (: pmd seems not (always) able to resolve type of lambda params :)
 [not(@Name = ancestor::LambdaExpression//LambdaParameter/VariableId/@Name)]
+(: pmd seems not able to resolve record fields :)
+[not(@Name = ancestor::RecordDeclaration/RecordBody/FieldDeclaration/VariableDeclarator/VariableId/@Name)]
 |
 (: the unresolved/ambiguous type names, except @Slf4j which pmd cannot resolve :)
 //AmbiguousName)
-[not((ancestor::ClassDeclaration|ancestor::EnumDeclaration|ancestor::RecordDeclaration)/ModifierList/Annotation[pmd-java:typeIs('lombok.extern.slf4j.Slf4j')])]
+[not(@Name='log' and
+    ((ancestor::ClassDeclaration|ancestor::EnumDeclaration|ancestor::RecordDeclaration)/ModifierList/Annotation[pmd-java:typeIs('lombok.extern.slf4j.Slf4j')]))]
+
                 ]]></value>
             </property>
         </properties>
