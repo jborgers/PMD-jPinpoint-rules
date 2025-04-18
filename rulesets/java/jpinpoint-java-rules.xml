@@ -2316,9 +2316,21 @@ class Foo {
   ]
   (: no violation if return conditionally before :)
   [not(ancestor::ExpressionStatement/preceding-sibling::IfStatement[.//ReturnStatement and .//MethodCall[@MethodName = ('isTraceEnabled', 'isDebugEnabled','isInfoEnabled', 'isLoggable')]])]
-  (: equals a declared var, with initializer not like obj.get[Xxx], we assume a simple getter is quick; except when in a loop :)
+  (: equals a declared var, with initializer not like obj.getXxx(), we assume a simple getter is quick; except when in a loop :)
   /ArgumentList//VariableAccess
-     [@Name = ancestor::MethodDeclaration//VariableDeclarator[not(MethodCall[starts-with(@MethodName, 'get')] and not(ancestor::WhileStatement or ancestor::ForStatement or ancestor::DoStatement))]/VariableId/@Name]
+     [@Name = ancestor::MethodDeclaration//VariableDeclarator[
+        (: a getter should have no arguments and start with 'get' :)
+        not((MethodCall[ArgumentList/@Size=0
+            and (starts-with(@MethodName, 'get')
+                (: or a non-arg method from a record :)
+                or VariableAccess[
+                    pmd-java:typeIs('java.lang.Record')
+                    (: or from a class with name ending with Record, a wanna-be record :)
+                    or @Name=ancestor::MethodDeclaration//(FormalParameter/VariableId|LocalVariableDeclaration/VariableDeclarator[VariableId])[../ClassType[ends-with(@SimpleName, 'Record')]]/@Name
+                ]
+            )
+        ])
+        and not(ancestor::WhileStatement or ancestor::ForStatement or ancestor::DoStatement))]/VariableId/@Name]
      (: and it is not used in a return :)
      [not (@Name = ancestor::MethodDeclaration//VariableAccess[not(ancestor::MethodCall[@MethodName=('trace','debug','info')])]/@Name)]
      (: except if method name starts with 'log', and it is non-public, .. :)
@@ -2430,7 +2442,7 @@ if (LOG.isDebugEnabled()) { // good
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           language="java"
           message="Using SuppressWarnings."
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodeQuality.md#M02">
         <description>Problem: The suppressed rule detects problems, suppressing the detected violations without full knowledge can lead to the problems the rule is trying to prevent. &#13;
             Solution: Only suppress violations (warnings) when you have complete understanding of the rule, and you are sure it does not apply.
             When suppressing warnings, document your reasoning and report false positives to the rule maintainers to help improve rule accuracy.
@@ -2451,10 +2463,10 @@ if (LOG.isDebugEnabled()) { // good
         </properties>
         <example>
             <![CDATA[
-@SuppressWarnings("pmd:UnconditionalCreatedLogArguments") // Reason for suppression: the rule doesn't recognize record getters (yet), and those are not expensive
+@SuppressWarnings("PMD.UnconditionalCreatedLogArguments") // Reason for suppression: the rule doesn't recognize record getters (yet), and those are not expensive
 public void process(ConsumerRecord consRecord) {
     ConsumerEvent event = consRecord.event(); // record getter
-    log.info("Received event '{}'", event); // pmd:UnconditionalCreatedLogArguments suppressed
+    log.info("Received event '{}'", event); // PMD.UnconditionalCreatedLogArguments suppressed
 }
              ]]>
         </example>
@@ -2464,7 +2476,7 @@ public void process(ConsumerRecord consRecord) {
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           language="java"
           message="Using SuppressWarnings for a rule that is meant to prevent high risk problems."
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodeQuality.md#M03">
         <description>Problem: The suppressed rule detects high risk problems, suppressing the detected violations without full knowledge can lead to incidents like customer data mix-up, corrupt data, server crashes or very bad performance. &#13;
             Solution: Only suppress violations (warnings) when you have complete understanding of the rule, and you are sure it does not apply.
             When suppressing warnings, document your reasoning and report false positives to the rule maintainers to help improve rule accuracy.
@@ -2486,7 +2498,7 @@ public void process(ConsumerRecord consRecord) {
         </properties>
         <example>
             <![CDATA[
-@SuppressWarnings({"pmd:AvoidUnguardedMutableFieldsInSharedObjects", "PMD.AvoidUserDataInSharedObjects"}) // suspicious, bad to suppress
+@SuppressWarnings({"PMD.AvoidUnguardedMutableFieldsInSharedObjects", "PMD.AvoidUserDataInSharedObjects"}) // suspicious, probably bad to suppress
 @Component @Data
 class VMRData {
     private List<OrderDetails> customerOrderList; // a bad idea to have in a singleton, should be solved instead of suppressed
@@ -2997,7 +3009,7 @@ import static com.co.corporate.Constants.GREAT; // good
           language="java"
           message="A type cannot be resolved. Make sure all sources are compiled and annotations processed."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodeQuality.md">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodeQuality.md#M04">
         <description>Problem: When analyzing code, PMD could not resolve a used type (class, annotation or other type). Several rules make use of type information and assume it is available. If not, those rules typically fail to work correctly and will for instance show false positives.
             Solution: Make sure all types can be resolved: compile all source code, process all annotations (like lombok), compile generated code, make all dependencies available on the classpath, etc. Note: this rule is still somewhat experimental and may show false positives.
         (jpinpoint-java-rules)</description>

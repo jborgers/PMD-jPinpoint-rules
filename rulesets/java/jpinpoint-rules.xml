@@ -2316,9 +2316,21 @@ class Foo {
   ]
   (: no violation if return conditionally before :)
   [not(ancestor::ExpressionStatement/preceding-sibling::IfStatement[.//ReturnStatement and .//MethodCall[@MethodName = ('isTraceEnabled', 'isDebugEnabled','isInfoEnabled', 'isLoggable')]])]
-  (: equals a declared var, with initializer not like obj.get[Xxx], we assume a simple getter is quick; except when in a loop :)
+  (: equals a declared var, with initializer not like obj.getXxx(), we assume a simple getter is quick; except when in a loop :)
   /ArgumentList//VariableAccess
-     [@Name = ancestor::MethodDeclaration//VariableDeclarator[not(MethodCall[starts-with(@MethodName, 'get')] and not(ancestor::WhileStatement or ancestor::ForStatement or ancestor::DoStatement))]/VariableId/@Name]
+     [@Name = ancestor::MethodDeclaration//VariableDeclarator[
+        (: a getter should have no arguments and start with 'get' :)
+        not((MethodCall[ArgumentList/@Size=0
+            and (starts-with(@MethodName, 'get')
+                (: or a non-arg method from a record :)
+                or VariableAccess[
+                    pmd-java:typeIs('java.lang.Record')
+                    (: or from a class with name ending with Record, a wanna-be record :)
+                    or @Name=ancestor::MethodDeclaration//(FormalParameter/VariableId|LocalVariableDeclaration/VariableDeclarator[VariableId])[../ClassType[ends-with(@SimpleName, 'Record')]]/@Name
+                ]
+            )
+        ])
+        and not(ancestor::WhileStatement or ancestor::ForStatement or ancestor::DoStatement))]/VariableId/@Name]
      (: and it is not used in a return :)
      [not (@Name = ancestor::MethodDeclaration//VariableAccess[not(ancestor::MethodCall[@MethodName=('trace','debug','info')])]/@Name)]
      (: except if method name starts with 'log', and it is non-public, .. :)
