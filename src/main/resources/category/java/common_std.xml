@@ -104,6 +104,14 @@ public class DateStuff {
 (//ForStatement | //ForeachStatement | //WhileStatement | //DoStatement)//AssignmentExpression[
     (: a += ...;  - a being a string OR a = ... + a + ...; - a being a string :)
     @Operator = '+=' or (@Operator = '=' and ./InfixExpression[@Operator="+"])
+    (: and not a local var in shared block :)
+    and not(VariableAccess/@Name = (
+      ancestor::ForeachStatement[1] |
+      ancestor::ForStatement[1] |
+      ancestor::WhileStatement[1] |
+      ancestor::DoStatement[1]
+   )//LocalVariableDeclaration/VariableDeclarator/VariableId/@Name)
+
 ]/VariableAccess[pmd-java:typeIs('java.lang.String')]
 /.. (: Go up to report on the StatementExpression :)
 	]]>
