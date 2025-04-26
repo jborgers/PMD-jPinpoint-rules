@@ -4269,7 +4269,13 @@ public class Good {
      or (pmd-java:hasAnnotation('javax.persistence.PersistenceContext') or pmd-java:hasAnnotation('jakarta.persistence.PersistenceContext'))
      or (pmd-java:hasAnnotation('javax.ejb.EJB') or pmd-java:hasAnnotation('jakarta.ejb.EJB'))
      or (pmd-java:hasAnnotation('javax.inject.Inject') or pmd-java:hasAnnotation('jakarta.inject.Inject'))
-     or pmd-java:hasAnnotation('org.springframework.beans.factory.annotation.Value')
+     (: @Value field that is allowed if not assigned to elsewhere, unguarded :)
+     or (
+          (: exclude @Value as long as there is no assignment elsewhere in the class, except annotated with @VisibleForTesting :)
+          (: using @SimpleName matching for @VisibleForTesting annotation, as there exist multiple implementations :)
+          pmd-java:hasAnnotation('org.springframework.beans.factory.annotation.Value')
+          and not(./VariableDeclarator/VariableId/@Name = ancestor::ClassDeclaration[1]//AssignmentExpression[not(ancestor::MethodDeclaration/ModifierList/Annotation/@SimpleName='VisibleForTesting')]/FieldAccess/@Name)
+     )
      or ModifierList/Annotation[@SimpleName='GuardedBy']
    )
    (: not in static inner class :)
@@ -4354,7 +4360,7 @@ class Bad {
 }
 
 @Service
-class BadMutebleTypes {
+class BadMutableTypes {
     private final Date date = new Date(); // bad, Date is mutable
     private volatile StringBuilder strBuilder = new StringBuilder(); // bad, mutable type
     private final StringBuffer strBuffer = new StringBuffer(); // bad, mutable type

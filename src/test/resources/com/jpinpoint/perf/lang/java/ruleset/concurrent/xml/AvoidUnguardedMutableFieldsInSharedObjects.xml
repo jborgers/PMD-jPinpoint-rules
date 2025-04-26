@@ -5,8 +5,8 @@
         xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
     <test-code>
         <description>Avoid unguarded mutable fields in shared objects</description>
-        <expected-problems>6</expected-problems>
-        <expected-linenumbers>91,101,139,162,322,342</expected-linenumbers>
+        <expected-problems>7</expected-problems>
+        <expected-linenumbers>59, 91,101,139,162,322,342</expected-linenumbers>
         <code><![CDATA[
 import com.google.common.annotations.VisibleForTesting;
 import lombok.Data;
@@ -66,10 +66,10 @@ class AService1 {
     //private final String string3OK = new String();
 
     @Value("${batchService.http.url}")
-    private String url; // violation on next line, of additional unguarded accessor method
+    private String url; // bad: violation on next line, of additional unguarded accessor method
 
     public void setUrlViolate(final String url) {
-        this.url = url; // bad: unguarded accessor method TODO
+        this.url = url; // bad: unguarded accessor method, flagged at field level
     }
 }
 
