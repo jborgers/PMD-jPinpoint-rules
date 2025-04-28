@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>WrongUseOfGuardedBy</description>
+        <expected-problems>11</expected-problems>
+        <expected-linenumbers>11,37,52,67,81,94,103,111,113,131,136</expected-linenumbers>
+        <code><![CDATA[
+import lombok.Getter;
+import lombok.Synchronized;
+import net.jcip.annotations.GuardedBy;
+
+import java.util.HashMap;
+import java.util.Map;
+
+class WrongUseOfGuardedBy {
+    public static final String FIELD = "field"; // bad: should be private and initialized with new Object() or new Object[0]
+
+    @GuardedBy(FIELD) // bad, not a String literal
+    private static String txt;
+
+    // no guarding: no synchronized, promise not met, reported by other rule when GuardedBy use correct
+    public static String getText() {
+        return txt;
+    }
+}
+
+class RightUseOfGuardedBy {
+    private static final Object LOCK = new Object(); // proper lock object, static because the guarded field is static
+
+    @GuardedBy("LOCK") // good, String literal referring to existing, proper lock object
+    private static String txt;
+
+    public static String getText() {
+        synchronized(LOCK) { // guarding as promised by @GuardedBy
+            return txt;
+        }
+    }
+}
+
+class WrongGuardedByUsage2 {
+
+    private final String FIELD = "field";
+
+    @GuardedBy(FIELD) // bad, not a String literal
+    private String txt;
+
+    public String getText() {
+        synchronized(FIELD) {
+            return txt;
+        }
+    }
+    public void setText(String t) {
+        txt = t; // other rule says bad
+    }
+}
+
+class WrongGuardedByLockUsage {
+
+    private static final String nonObject = "field"; // bad, used in GuardedBy and not an initialized Object or Object[]
+
+    @GuardedBy("nonObject")
+    private static String txt;
+
+    public static String getText() {
+        synchronized(nonObject) {
+            return txt; // good
+        }
+    }
+
+}
+
+class WrongGuardedByLockUsage2 {
+
+    private static Object nonFinal = new Object(); // bad, used in GuardedBy and nonFinal
+
+    @GuardedBy("nonFinal")
+    private static String txt;
+
+    public static String getText() {
+        synchronized(nonFinal) {
+            return txt; // good
+        }
+    }
+}
+
+class WrongGuardedByLockUsage3 {
+
+    final Object nonPrivate = new Object(); // bad, used in GuardedBy and nonPrivate
+
+    @GuardedBy("nonPrivate")
+    private String txt;
+
+    public String getText() {
+        synchronized(nonPrivate) {
+            return txt; // good
+        }
+    }
+}
+@Getter
+class Issue537_1 {
+    @GuardedBy("lock") // bad, no lock object
+    private Map<String, String> cachedData = new HashMap<>();
+}
+
+@Getter
+class Issue537_2 {
+    private final Object[] lockArray = new Object[0];
+    private final Object lockObject = new Object();
+
+    @GuardedBy("lockObject") // bad, lock object exists, yet, not used
+    private Map<String, String> cachedData = new HashMap<>();
+}
+
+@Getter
+class Issue537_a {
+    private final Object[] lockArray = new Object[0];
+    private final Object lockObject = new Object();
+    private final Integer lockInteger = 0; // bad, lock not Object nor Object[]
+
+    @GuardedBy("lockInteger") // bad, lock object exists, yet, not used
+    private Map<String, String> cachedData = new HashMap<>();
+}
+
+
+class Issue537_3 {
+    private final Object[] lock = new Object[0];
+    @GuardedBy("lock") // good, lock object exists and used
+    private Map<String, String> cachedData = new HashMap<>();
+    public Map<String, String> getCachedData() {
+        synchronized(lock) {
+            return cachedData;
+        }
+    }
+}
+
+@Getter
+class Issue537_4 {
+    @GuardedBy("this") // bad, no 'this' lock object used
+    private Map<String, String> cachedData = new HashMap<>();
+}
+
+class Issue537_5 {
+    @GuardedBy("this") // bad, 'this' lock object not used
+    private Map<String, String> cachedData = new HashMap<>();
+    public Map<String, String> getData() {
+        return cachedData; // NotProperlySynchronizingOnThisWhileUsingGuardedBy
+    }
+}
+class Issue537_6 {
+    @GuardedBy("this") // good, 'this' lock object used
+    private Map<String, String> cachedData = new HashMap<>();
+    public synchronized Map<String, String> getData() {
+        return cachedData;
+    }
+}
+
+class Issue537_7 {
+    @GuardedBy("this") // good, 'this' lock object used
+    private Map<String, String> cachedData = new HashMap<>();
+    public Map<String, String> getData() {
+        synchronized(this) {
+            return cachedData;
+        }
+    }
+}
+class Issue537_8 {
+    @GuardedBy("$lock") // good, lombok '$lock' object used as lock
+    @Getter(onMethod=@__({@Synchronized}))
+    private Map<String, String> cachedData = new HashMap<>();
+}
+
+@Getter(onMethod=@__({@Synchronized}))
+class Issue537_9 {
+    @GuardedBy("$lock") // good, lombok '$lock' object used as lock
+    private Map<String, String> cachedData = new HashMap<>();
+}
+
+class Issue537_10 {
+    @GuardedBy("$lock") // good, lombok '$lock' object used as lock
+    private Map<String, String> cachedData = new HashMap<>();
+
+    @Synchronized
+    public Map<String, String> getCachedData() {
+        return cachedData;
+    }
+}
+    ]]></code>
+    </test-code>
+
+</test-data>

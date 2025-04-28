@@ -1741,4 +1741,68 @@ class AvoidMutableCollectionInParallelStreamForEach {
     }
                 ]]></example>
     </rule>
+
+    <rule name="WrongUseOfGuardedBy"
+          message="@GuardedBy or locking is used in a wrong way, this may indicate a concurrency bug."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          language="java"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#tutc14">
+        <description>Problem: Wrong use of locking and '@GuardedBy' may result in thread-unsafety and concurrency bugs. It may obstruct other GuardedBy rules which check whether the promise of guarding is actually met, it may disguise high risk violations.
+            Solution: Use '@GuardedBy' properly: use a private final lock object constructed with 'new Object()' or 'new Object[0]'; a String literal of the lock name as '@GuardedBy' argument; and use that explicit or 'this' lock with 'synchronized'; or '$lock' or '$LOCK' with lombok '@Synchronized'. (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,multi-threading,confusing,pitfall" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+(: GuardedBy argument is not a String Literal :)
+//FieldDeclaration/ModifierList/Annotation[@SimpleName='GuardedBy']//MemberValuePair[not(StringLiteral)]
+|
+(: GuardedBy argument being non-'this' refers to a field that is not an Object, nor Object[], nor a Lombok lock :)
+//FieldDeclaration/ModifierList/Annotation[@SimpleName='GuardedBy']//MemberValuePair/StringLiteral[not(@ConstValue = 'this') and not(@ConstValue = '$lock' or @ConstValue = '$LOCK')
+    and not(@ConstValue = ancestor::ClassBody[1]//FieldDeclaration//VariableId/@Name)]
+|
+(: GuardedBy argument being non-'this' is not used in a synchronized statement, nor with @Synchronized lombok annotation on class or method level :)
+//FieldDeclaration/ModifierList/Annotation[@SimpleName='GuardedBy']//MemberValuePair/StringLiteral[not(@ConstValue = 'this')
+    and not(@ConstValue = ancestor::ClassBody[1]//SynchronizedStatement/VariableAccess/@Name) and not(ancestor::ClassDeclaration[1]//ModifierList//Annotation[@SimpleName='Synchronized'])]
+|
+(: GuardedBy argument being 'this' is not used as modifier nor as in a synchronized statement:)
+//FieldDeclaration/ModifierList/Annotation[@SimpleName='GuardedBy']//MemberValuePair/StringLiteral[@ConstValue = 'this'
+    and not(ancestor::ClassBody[1]//MethodDeclaration/ModifierList/@ExplicitModifiers='synchronized' or ancestor::ClassBody[1]//SynchronizedStatement/ThisExpression)]
+|
+(: a field that is not both private and final, not an allocated Object nor Object[0], and used as GuardedBy argument on another field :)
+//FieldDeclaration/VariableDeclarator/VariableId[not(pmd-java:modifiers()=('private') and pmd-java:modifiers()=('final')) or not(
+    ../ConstructorCall[pmd-java:typeIsExactly('java.lang.Object')])
+    and not(../ArrayAllocation[pmd-java:typeIsExactly('java.lang.Object[]')]//ArrayDimensions[@Size=1]//NumericLiteral[@ValueAsInt=0]
+)][@Name = ancestor::ClassBody[1]//FieldDeclaration/ModifierList/Annotation[@SimpleName='GuardedBy']//MemberValuePair/StringLiteral/@ConstValue]
+                ]]></value>
+            </property>
+        </properties>
+        <example><![CDATA[
+class WrongUseOfGuardedByExample {
+    public static final String FIELD = "field"; // bad: should be 'private' and initialized with 'new Object()' or 'new Object[0]'
+
+    @GuardedBy(FIELD) // bad, not a String literal
+    private static String txt;
+
+    // no guarding: no synchronized, promise not met, reported by other rule when GuardedBy use correct
+    public static String getText() {
+        return txt;
+    }
+}
+
+class RightUseOfGuardedByExample {
+    private static final Object LOCK = new Object(); // proper lock object, 'static' because the guarded field is 'static'
+
+    @GuardedBy("LOCK") // good, String literal referring to existing, proper lock object
+    private static String txt;
+
+    public static String getText() {
+        synchronized(LOCK) { // guarding as promised by @GuardedBy
+            return txt;
+        }
+    }
+}
+                ]]></example>
+    </rule>
+
 </ruleset>
