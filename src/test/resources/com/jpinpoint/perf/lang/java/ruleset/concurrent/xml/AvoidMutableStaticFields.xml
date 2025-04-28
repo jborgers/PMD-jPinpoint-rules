@@ -202,9 +202,73 @@ enum AmorType {
 enum SchedType {
     NONE, CUSTOM;
 }
-
-
     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>false positive for AvoidMutableStaticFields on non-direct arrays #563</description>
+        <expected-problems>3</expected-problems>
+        <expected-linenumbers>7,9,12</expected-linenumbers>
+        <code><![CDATA[
+import java.util.Arrays;
+import java.util.List;
+
+class Issue563 {
+
+    private static final Avatar defaultAvatar = new Avatar("application/png", new byte[]{-119, 80, 78}); // <-- false positive, assume array is safely contained
+    private static final byte[] defaultAvatarBytes = new byte[]{-119, 80, 78}; // bad: direct array
+    private static final Avatar2d defaultAvatarBytes2dInObject = new Avatar2d(new byte[][]{{-119, 80, 78},{1,2,3}}); // <-- false positive
+    private static final byte[][] defaultAvatarBytes2d = new byte[][]{{-119, 80, 78},{1,2,3}}; // bad: direct array
+
+    private static final AvatarList avatarList = new AvatarList(Arrays.asList(1,2,3)); // false positive, assume List is safely contained
+    private static final List avatars = Arrays.asList(1,2,3); // bad: basically modifyable ArrayList
+
+    private static final CLOptionDescriptor D_NONGUI_OPT = new CLOptionDescriptor("a");
+    private static final CLOptionDescriptor D_REMOTE_OPT = new CLOptionDescriptor("b");
+    private static final CLOptionDescriptor D_REPORT_GENERATING_OPT = // <-- false positive
+            new CLOptionDescriptor(
+                    new CLOptionDescriptor[]{ D_NONGUI_OPT, D_REMOTE_OPT });
+
+    private static final Avatar defaultAvatar2;
+
+    static {
+        final byte[] bytes = {-119, 80, 78};
+        defaultAvatar2 = new Avatar("application/png", bytes); // no issue found here
+        bytes[2] = 0;
+    }
+
+
+    private static class Avatar {
+        private String contentType;
+        private byte[] data;
+        public Avatar(String contentType, byte[] bytes) {
+            this.contentType = contentType;
+            this.data = bytes; // should be a warning here instead to make defensive copy?
+        }
+        String getContentType() {
+            return contentType;
+        }
+        byte[] getData() {
+            return data;
+        }
+    }
+
+    private static class Avatar2d {
+        public Avatar2d(byte[][] bytes) {}
+    }
+
+    private static class AvatarList {
+        public <T> AvatarList(List<T> list) {}
+    }
+
+    private static class CLOptionDescriptor {
+
+        public CLOptionDescriptor(String a) {}
+
+        public CLOptionDescriptor(CLOptionDescriptor[] clOptionDescriptors) {}
+    }
+}
+]]></code>
     </test-code>
 
 </test-data>

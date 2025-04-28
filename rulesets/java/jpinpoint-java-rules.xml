@@ -3527,10 +3527,10 @@ class AvoidMutableCollectionInParallelStreamForEach {
            or ((pmd-java:typeIs('java.util.HashMap') or pmd-java:typeIs('java.util.EnumMap')) and not(ancestor::MethodCall[pmd-java:matchesSig('java.util.Collections#unmodifiableMap(_*)')]))
            or (pmd-java:typeIs('java.util.HashSet') and not(ancestor::MethodCall[pmd-java:matchesSig('java.util.Collections#unmodifiableSet(_*)')]))
         ]
-        or .//ArrayInitializer[@Length > 0]
-        or .//ArrayAllocation[.//ArrayDimExpr/NumericLiteral[@ValueAsInt > 0]]
-        or .//MethodCall[pmd-java:matchesSig('java.util.Arrays#asList(_*)') and not(ancestor::MethodCall[pmd-java:matchesSig('java.util.Collections#unmodifiableList(_*)')])]
-        or .//MethodCall/TypeExpression[pmd-java:typeIs('java.util.EnumSet') and not(ancestor::MethodCall[pmd-java:matchesSig('java.util.Collections#unmodifiableSet(_*)')])]
+        or ./VariableDeclarator/ArrayAllocation/ArrayInitializer[@Length > 0]
+        or ./VariableDeclarator/ArrayAllocation[.//ArrayDimExpr/NumericLiteral[@ValueAsInt > 0]]
+        or ./VariableDeclarator/MethodCall[pmd-java:matchesSig('java.util.Arrays#asList(_*)') and not(ancestor::MethodCall[pmd-java:matchesSig('java.util.Collections#unmodifiableList(_*)')])]
+        or ./VariableDeclarator/MethodCall/TypeExpression[pmd-java:typeIs('java.util.EnumSet') and not(ancestor::MethodCall[pmd-java:matchesSig('java.util.Collections#unmodifiableSet(_*)')])]
    )
 ],
 (: static-block allocations of non-empty arrays :)
@@ -3547,7 +3547,7 @@ class AvoidMutableCollectionInParallelStreamForEach {
        )
   and not(../VariableAccess/@Name = ancestor::ClassBody[1]/FieldDeclaration[count(ModifierList/Annotation[@SimpleName='GuardedBy']) > 0]/VariableDeclarator/VariableId/@Name)
 ]
-                ]]></value>
+]]></value>
             </property>
         </properties>
         <example><![CDATA[
