@@ -4842,29 +4842,29 @@ public class Foo {
             </property>
         </properties>
         <example><![CDATA[
-class WrongUseOfGuardedByExample {
-    public static final String FIELD = "field"; // bad: should be 'private' and initialized with 'new Object()' or 'new Object[0]'
+class WrongUseOfGuardedBy {
+  public static final String FIELD = "field"; // bad: should be private and initialized with new Object() or new Object[0]
 
-    @GuardedBy(FIELD) // bad, not a String literal
-    private static String txt;
+  @GuardedBy(FIELD) // bad, not a String literal
+  private static Map<String, String> cachedData = new HashMap<>();
 
-    // no guarding: no synchronized, promise not met, reported by other rule when GuardedBy use correct
-    public static String getText() {
-        return txt;
-    }
+  // no guarding: no synchronized, promise not met, reported by another rule when GuardedBy is used correctly
+  public static String getValue(String key) {
+    return cachedData.get(key);
+  }
 }
 
-class RightUseOfGuardedByExample {
-    private static final Object LOCK = new Object(); // proper lock object, 'static' because the guarded field is 'static'
+class RightUseOfGuardedBy {
+  private static final Object LOCK = new Object(); // proper lock object, static because the guarded field is static
 
-    @GuardedBy("LOCK") // good, String literal referring to existing, proper lock object
-    private static String txt;
+  @GuardedBy("LOCK") // good, String literal referring to an existing, proper lock object
+  private static final Map<String, String> cachedData = new HashMap<>();
 
-    public static String getText() {
-        synchronized(LOCK) { // guarding as promised by @GuardedBy
-            return txt;
-        }
+  public static String getValue(String key) {
+    synchronized(LOCK) { // guarding as promised by @GuardedBy
+      return cachedData.get(key);
     }
+  }
 }
                 ]]></example>
     </rule>
