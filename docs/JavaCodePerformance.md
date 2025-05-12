@@ -2521,6 +2521,80 @@ class SingletonBMGood {
 }
 ```
 
+#### TUTC14
+**Observation: Locking and describing the locking behaviour with `@GuardedBy` is applied in a wrong way or not meeting best practices.**   
+**Problem:** Wrong use of locking and `@GuardedBy` may result in thread-unsafety and concurrency bugs. It may obstruct other GuardedBy rules which check whether the promise of guarding is actually met, it may disguise high risk violations.  
+**Solution:** Use `@GuardedBy` properly: 
+* use a private final lock object constructed with `new Object()` or `new Object[0]` 
+* a String literal of the lock object name as `@GuardedBy` argument 
+* and use that explicit or `this` lock with proper use of `synchronized`; 
+* or use `$lock` or `$LOCK` as lock name when you use Lombok `@Synchronized`.   
+
+**Notes:**  
+* Lombok has `@Synchronized` which uses generated lock objects: `$lock` for instance fields and `$LOCK` for static fields. Use those as your GuardedBy argument. See [Lombok @Synchronized](https://projectlombok.org/features/Synchronized)   
+* You can add `@Synchronized` on all your generated getters and setters with `@Getter(onMethod=@__({@Synchronized})` and `@Setter(onMethod=@__({@Synchronized})`, see [Lombok @Getter and @Setter](https://projectlombok.org/features/GetterSetter)   
+* If you need to be Serializable, use a new Object[0] as lock object. An empty array is Serializable while new Object() is not. See [Lombok Synchronized small print](https://projectlombok.org/features/Synchronized).   
+* If you share state like a cache Map as shown below in the examples, also the access of the Map and its elements needs to be thread-safe. 
+The easiest and preferred way is to initialize the Map once and make it final immutable, thereby making it inherently thread-safe hence no need for locking nor @GuardedBy. 
+If it needs to be mutable, assign a thread-safe Map like ConcurrentHashMap with immutable elements to a final field.   
+
+**Rule name:** WrongUseOfGuardedBy   
+**See:** 
+**Example:**
+```java
+class WrongUseOfGuardedBy {
+  public static final String FIELD = "field"; // bad: should be private and initialized with new Object() or new Object[0]
+
+  @GuardedBy(FIELD) // bad, not a String literal
+  private static Map<String, String> cachedData = new HashMap<>();
+
+  // no guarding: no synchronized, promise not met, reported by another rule when GuardedBy use correct
+  public static String getValue(String key) {
+    return cachedData.get(key);
+  }
+}
+
+class RightUseOfGuardedBy {
+  private static final Object LOCK = new Object(); // proper lock object, static because the guarded field is static
+
+  @GuardedBy("LOCK") // good, String literal referring to an existing, proper lock object
+  private static final Map<String, String> cachedData = new HashMap<>();
+
+  public static String getValue(String key) {
+    synchronized(LOCK) { // guarding as promised by @GuardedBy
+      return cachedData.get(key);
+    }
+  }
+}
+
+class NoThisLockUsedBad {
+  @GuardedBy("this") // bad, 'this' lock object not used
+  private Map<String, String> cachedData = new HashMap<>();
+  public Map<String, String> getData() {
+    return cachedData; // NotProperlySynchronizingOnThisWhileUsingGuardedBy
+  }
+}
+
+class ThisLockUsedGood {
+  @GuardedBy("this") // bad, 'this' lock object not used
+  private final Map<String, String> cachedData = new HashMap<>();
+  public synchronized Map<String, String> getData() {
+    return cachedData; 
+  }
+}
+@Getter
+class NoActualLockObjectBad {
+  @GuardedBy("lock") // bad, no lock object exists
+  private Map<String, String> cachedData = new HashMap<>();
+}
+
+@Getter(onMethod=@__({@Synchronized}))
+class LombokInstanceLockUsedGood {
+  @GuardedBy("$lock") // good, lombok '$lock' object used as lock
+  private Map<String, String> cachedData = new HashMap<>();
+}
+```
+
 Improper program flow
 ---------------------
 
