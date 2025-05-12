@@ -5776,7 +5776,7 @@ return HttpClientBuilder.create() // good
           language="java"
           message="A HttpClient builder is used and disableConnectionState is not called. HTTP client tracks connection state while using TLS"
           externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#ibi07">
-        <description>Problem: NTLM authenticated connections and SSL/TLS connections with client certificate
+        <description>Problem: [For Apache HttpClient version 4 and 5] NTLM authenticated connections and SSL/TLS connections with client certificate
             authentication are stateful: they have a specific user identity/security context per session. If HttpClients
             have enabled connection state tracking which is the default, established TLS connections will not be reused
             because it is assumed that the user identity or security context may differ.
@@ -5791,8 +5791,11 @@ return HttpClientBuilder.create() // good
                 <value><![CDATA[
 //MethodCall[
     pmd-java:matchesSig('org.apache.http.impl.client.HttpClientBuilder#create()')
+    or pmd-java:matchesSig('org.apache.hc.client5.http.impl.classic.HttpClientBuilder#create()')
     or pmd-java:matchesSig('org.apache.http.impl.client.HttpClients#custom()')
+    or pmd-java:matchesSig('org.apache.hc.client5.http.impl.classic.HttpClients#custom()')
     or pmd-java:matchesSig('org.apache.http.impl.nio.client.HttpAsyncClientBuilder#build()')
+    or pmd-java:matchesSig('org.apache.hc.client5.http.impl.async.HttpAsyncClientBuilder#build()')
 ][
     not(ancestor::MethodDeclaration//MethodCall[@MethodName='disableConnectionState'])
 ]
