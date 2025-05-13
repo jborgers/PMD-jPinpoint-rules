@@ -347,7 +347,7 @@ class Good {
           language="java"
           message="Avoid recursive calls without a proper stop condition."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaPerformance.md#ipf01">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#ipf01">
         <description>Problem: If a method calls itself (recursion), and it doesn't have a proper and guaranteed stop condition, it may become an infinite loop and result in an OutOfMemoryError or StackOverflowError, and high CPU usage.
             Solution: Limit the number of recursive calls: use a counter to count up-to or down-from a maximum number of calls, for every recursive call, and stop when the maximum is reached. This maximum should not be a large number.
             Or better yet, rewrite into iterations for better performance and avoiding errors.
@@ -5841,7 +5841,7 @@ return HttpClientBuilder.create() // good
           externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#ibi07">
         <description>Problem: [For Apache HttpClient version 4 and 5] NTLM authenticated connections and SSL/TLS connections with client certificate
             authentication are stateful: they have a specific user identity/security context per session. If HttpClients
-            have enabled connection state tracking which is the default, established TLS connections will not be reused
+            have enabled connection state tracking, which is the default, established TLS connections will not be reused
             because it is assumed that the user identity or security context may differ.
             Then performance will suffer due to a full TLS handshake for each request.&#13;
             Solution: HttpClients should disable connection state tracking in order to reuse TLS connections, since
