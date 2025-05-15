@@ -39,7 +39,7 @@ public static <T> void collectAllCollectionReplyFromThreads(CompletionService<Li
     <rule name="AvoidFutureGetWithoutTimeout"
           message="Avoid future.get without timeout"
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
-          typeResolution="true" externalInfoUrl="${doc_root}/JavaCodePerformance.md">
+          typeResolution="true" externalInfoUrl="${doc_root}/JavaCodePerformance.md#ia06">
         <description>
             Problem: Stalls indefinitely in case of hanging threads and consumes a thread.&#13;
             Solution: Provide a timeout value and handle the timeout.

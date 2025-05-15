@@ -3236,7 +3236,7 @@ class Foo {
     <rule name="AvoidFutureGetWithoutTimeout"
           message="Avoid future.get without timeout"
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
-          typeResolution="true" externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md">
+          typeResolution="true" externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#ia06">
         <description>
             Problem: Stalls indefinitely in case of hanging threads and consumes a thread.&#13;
             Solution: Provide a timeout value and handle the timeout.
