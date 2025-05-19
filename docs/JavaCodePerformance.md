@@ -581,6 +581,42 @@ public class Foo {
 **See:** [HttpRoute v4](https://www.javadoc.io/static/org.apache.httpcomponents/httpclient/4.3.3/org/apache/http/conn/routing/HttpRoute.html) and
 [HttpRoute v5](https://hc.apache.org/httpcomponents-client-5.4.x/current/apidocs/org/apache/hc/client5/http/HttpRoute.html)
 
+#### IBI25
+**Observation: ClientHttpRequestInterceptor is not releasing the connection when it throws an Exception.**   
+**Problem:** If the interceptor throws an exception after receiving a response, resources are not released as happens with normal program flow.
+It causes the connection not to be released to the connection pool, which leads to pool exhaustion and unresponsiveness.   
+**Solution:** Release resources by closing the response via ClientHttpResponse.close() when throwing an Exception.   
+**Rule name:** HttpInterceptorNotReleasingOnException   
+**Example:**
+```java
+import org.springframework.http.HttpRequest;
+import org.springframework.http.client.*;
+
+class ValidatingClientHttpRequestInterceptor implements ClientHttpRequestInterceptor {
+  public ClientHttpResponse intercept(HttpRequest request, byte[] body, ClientHttpRequestExecution execution) throws IOException {
+    final ClientHttpResponse response = execution.execute(request, body);
+    someValidationBad(response);
+    someValidationGood(response);
+    return response;
+  }
+
+  private static void someValidationBad(ClientHttpResponse response) {
+    if (!response.getHeaders().containsKey("X-Some-Header")) {
+      // Log error
+      throw new MyException("validation error"); // bad, close missing
+    }
+  }
+
+  private static void someValidationGood(ClientHttpResponse response) throws MyException {
+    if (!response.getHeaders().containsKey("X-Some-Header")) {
+      // log error
+      response.close(); // good
+      throw new MyException("validation error");
+    }
+  }
+}
+```
+**See:** [ClientHttpRequestInterceptor javadoc](https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/http/client/ClientHttpRequestInterceptor.html)  
 
 Improper asynchrony
 -------------------
