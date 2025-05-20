@@ -1384,4 +1384,57 @@ public class Foo {
         </example>
     </rule>
 
+    <rule name="HttpInterceptorNotReleasingOnException"
+          message="ClientHttpRequestInterceptor is not releasing the connection when it throws an Exception."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          language="java"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi25">
+        <description>Problem: If the interceptor throws an exception after receiving a response, resources are not released as happens with normal program flow.
+            It causes the connection not to be released to the connection pool, which leads to pool exhaustion and unresponsiveness.
+            Solution: Release resources by closing the response via ClientHttpResponse.close() when throwing an Exception.
+            (jpinpoint-rules)
+        </description>
+        <priority>1</priority>
+        <properties>
+            <property name="tags" value="io,jpinpoint-rule,performance,pitfall" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+//ClassDeclaration[pmd-java:typeIs('org.springframework.http.client.ClientHttpRequestInterceptor')]
+//IfStatement[.//VariableAccess[pmd-java:typeIs('org.springframework.http.client.ClientHttpResponse')]
+and not(Block//MethodCall[pmd-java:matchesSig('org.springframework.http.client.ClientHttpResponse#close()')]
+    or ancestor::ClassBody/MethodDeclaration[@Name='intercept']//TryStatement/CatchClause/Block//MethodCall[pmd-java:matchesSig('org.springframework.http.client.ClientHttpResponse#close()')])]
+//ThrowStatement
+    ]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+import org.springframework.http.HttpRequest;
+import org.springframework.http.client.*;
+
+class ValidatingClientHttpRequestInterceptorBadEx implements ClientHttpRequestInterceptor {
+    public ClientHttpResponse intercept(HttpRequest request, byte[] body, ClientHttpRequestExecution execution) throws IOException {
+        final ClientHttpResponse response = execution.execute(request, body);
+        if (!response.getHeaders().containsKey("X-Some-Header")) {
+            // Log error
+            throw new MyException("validation error"); // bad, must call response.close()
+        }
+        return response;
+    }
+}
+class ValidatingClientHttpRequestInterceptorGoodEx implements ClientHttpRequestInterceptor {
+    public ClientHttpResponse intercept(HttpRequest request, byte[] body, ClientHttpRequestExecution execution) throws IOException {
+        final ClientHttpResponse response = execution.execute(request, body);
+        if (!response.getHeaders().containsKey("X-Some-Header")) {
+            // Log error
+            response.close(); // good
+            throw new MyException("validation error");
+        }
+        return response;
+    }
+}
+    ]]>
+        </example>
+    </rule>
+
 </ruleset>

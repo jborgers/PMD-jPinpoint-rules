@@ -581,6 +581,56 @@ public class Foo {
 **See:** [HttpRoute v4](https://www.javadoc.io/static/org.apache.httpcomponents/httpclient/4.3.3/org/apache/http/conn/routing/HttpRoute.html) and
 [HttpRoute v5](https://hc.apache.org/httpcomponents-client-5.4.x/current/apidocs/org/apache/hc/client5/http/HttpRoute.html)
 
+#### IBI25
+**Observation: ClientHttpRequestInterceptor is not releasing the connection when it throws an Exception.**   
+**Problem:** If the interceptor throws an exception after receiving a response, resources are not released as happens with normal program flow.
+It causes the connection not to be released to the connection pool, which leads to pool exhaustion and unresponsiveness.   
+**Solution:** Release resources by closing the response via ClientHttpResponse.close() when throwing an Exception.   
+**Rule name:** HttpInterceptorNotReleasingOnException   
+**Example:**
+```java
+import org.springframework.http.HttpRequest;
+import org.springframework.http.client.*;
+
+class ValidatingClientHttpRequestInterceptorBadExample implements ClientHttpRequestInterceptor {
+    
+  public ClientHttpResponse intercept(HttpRequest request, byte[] body, ClientHttpRequestExecution execution) throws IOException {
+    final ClientHttpResponse response = execution.execute(request, body);
+    someValidation(response);
+    return response;
+  }
+  
+  public static void someValidation(ClientHttpResponse response) throws MyException {
+    if (!response.getHeaders().containsKey("X-Some-Header")) {
+      // log error
+      throw new MyException("some error"); // bad: exception thrown without response.close() call 
+    }
+  }
+}
+
+class ValidatingClientHttpRequestInterceptorGoodExample implements ClientHttpRequestInterceptor {
+
+  public ClientHttpResponse intercept(HttpRequest request, byte[] body, ClientHttpRequestExecution execution) throws IOException {
+    final ClientHttpResponse response = execution.execute(request, body);
+    try {
+      someValidation(response);
+    } catch (MyException e) {
+      // log error
+      response.close(); // good: resources released
+      throw new MyOtherException(e);
+    }
+    return response;
+  }
+
+  public static void someValidation(ClientHttpResponse response) throws MyException {
+    if (!response.getHeaders().containsKey("X-Some-Header")) {
+      throw new MyException("some error");
+    }
+  }
+}
+
+```
+**See:** [ClientHttpRequestInterceptor javadoc](https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/http/client/ClientHttpRequestInterceptor.html)  
 
 Improper asynchrony
 -------------------

@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>violation: HttpInterceptorNotClosedOnException</description>
+        <expected-problems>2</expected-problems>
+        <expected-linenumbers>22, 41</expected-linenumbers>
+        <code><![CDATA[
+import org.springframework.http.HttpRequest;
+import org.springframework.http.client.ClientHttpRequestExecution;
+import org.springframework.http.client.ClientHttpRequestInterceptor;
+import org.springframework.http.client.ClientHttpResponse;
+
+import java.io.IOException;
+
+class ValidatingClientHttpRequestInterceptorBad1 implements ClientHttpRequestInterceptor {
+    @Override
+    public ClientHttpResponse intercept(HttpRequest request, byte[] body, ClientHttpRequestExecution execution) throws IOException {
+        final ClientHttpResponse response = execution.execute(request, body);
+
+        // should call ClientHttpResponse.close() and release resources if an exception is thrown
+        someValidation(response);
+
+        return response;
+    }
+
+    public static void someValidation(ClientHttpResponse response) {
+        if (!response.getHeaders().containsKey("X-Some-Header")) {
+            // Log error
+            throw new RuntimeException("some error"); // bad
+        }
+    }
+}
+
+class ValidatingClientHttpRequestInterceptorBad2 implements ClientHttpRequestInterceptor {
+    @Override
+    public ClientHttpResponse intercept(HttpRequest request, byte[] body, ClientHttpRequestExecution execution) throws IOException {
+        final ClientHttpResponse response = execution.execute(request, body);
+
+        // should call ClientHttpResponse.close() and release resources if an exception is thrown
+        someValidation(response);
+
+        return response;
+    }
+
+    public static void someValidation(ClientHttpResponse response) throws MyException {
+        if (!response.getHeaders().containsKey("X-Some-Header")) {
+            // log error
+            throw new MyException("some error"); // bad
+        }
+    }
+}
+class MyException extends IOException {
+    MyException(String message) { super(message); }
+}
+
+class ValidatingClientHttpRequestInterceptorGood implements ClientHttpRequestInterceptor {
+    @Override
+    public ClientHttpResponse intercept(HttpRequest request, byte[] body, ClientHttpRequestExecution execution) throws IOException {
+        final ClientHttpResponse response = execution.execute(request, body);
+
+        // should call ClientHttpResponse.close() and release resources if an exception is thrown
+        try {
+            someValidation(response);
+        } catch (MyException e) {
+            // log error
+            response.close(); // good
+            throw new RuntimeException(e);
+        }
+
+        return response;
+    }
+
+    public static void someValidation(ClientHttpResponse response) throws MyException {
+        if (!response.getHeaders().containsKey("X-Some-Header")) {
+            throw new MyException("some error");
+        }
+    }
+}
+
+class ValidatingClientHttpRequestInterceptorGood2 implements ClientHttpRequestInterceptor {
+    @Override
+    public ClientHttpResponse intercept(HttpRequest request, byte[] body, ClientHttpRequestExecution execution) throws IOException {
+        final ClientHttpResponse response = execution.execute(request, body);
+
+        // should call ClientHttpResponse.close() and release resources if an exception is thrown
+        someValidation(response);
+
+        return response;
+    }
+
+    public static void someValidation(ClientHttpResponse response) throws MyException {
+        if (!response.getHeaders().containsKey("X-Some-Header")) {
+            // log error
+            response.close(); // good
+            throw new MyException("some error");
+        }
+    }
+}
+]]></code>
+    </test-code>
+
+</test-data>
