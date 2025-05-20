@@ -592,29 +592,43 @@ It causes the connection not to be released to the connection pool, which leads 
 import org.springframework.http.HttpRequest;
 import org.springframework.http.client.*;
 
-class ValidatingClientHttpRequestInterceptor implements ClientHttpRequestInterceptor {
+class ValidatingClientHttpRequestInterceptorBadExample implements ClientHttpRequestInterceptor {
+    
   public ClientHttpResponse intercept(HttpRequest request, byte[] body, ClientHttpRequestExecution execution) throws IOException {
     final ClientHttpResponse response = execution.execute(request, body);
-    someValidationBad(response);
-    someValidationGood(response);
+    someValidation(response);
     return response;
   }
-
-  private static void someValidationBad(ClientHttpResponse response) {
-    if (!response.getHeaders().containsKey("X-Some-Header")) {
-      // Log error
-      throw new MyException("validation error"); // bad, close missing
-    }
-  }
-
-  private static void someValidationGood(ClientHttpResponse response) throws MyException {
+  
+  public static void someValidation(ClientHttpResponse response) throws MyException {
     if (!response.getHeaders().containsKey("X-Some-Header")) {
       // log error
-      response.close(); // good
-      throw new MyException("validation error");
+      throw new MyException("some error"); // bad: exception thrown without response.close() call 
     }
   }
 }
+
+class ValidatingClientHttpRequestInterceptorGoodExample implements ClientHttpRequestInterceptor {
+
+  public ClientHttpResponse intercept(HttpRequest request, byte[] body, ClientHttpRequestExecution execution) throws IOException {
+    final ClientHttpResponse response = execution.execute(request, body);
+    try {
+      someValidation(response);
+    } catch (MyException e) {
+      // log error
+      response.close(); // good: resources released
+      throw new MyOtherException(e);
+    }
+    return response;
+  }
+
+  public static void someValidation(ClientHttpResponse response) throws MyException {
+    if (!response.getHeaders().containsKey("X-Some-Header")) {
+      throw new MyException("some error");
+    }
+  }
+}
+
 ```
 **See:** [ClientHttpRequestInterceptor javadoc](https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/http/client/ClientHttpRequestInterceptor.html)  
 

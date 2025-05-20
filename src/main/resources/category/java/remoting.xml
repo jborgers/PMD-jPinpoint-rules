@@ -1412,28 +1412,26 @@ and not(Block//MethodCall[pmd-java:matchesSig('org.springframework.http.client.C
 import org.springframework.http.HttpRequest;
 import org.springframework.http.client.*;
 
-class ValidatingClientHttpRequestInterceptor implements ClientHttpRequestInterceptor {
-  public ClientHttpResponse intercept(HttpRequest request, byte[] body, ClientHttpRequestExecution execution) throws IOException {
-    final ClientHttpResponse response = execution.execute(request, body);
-    someValidationBad(response);
-    someValidationGood(response);
-    return response;
-  }
-
-  private static void someValidationBad(ClientHttpResponse response) {
-    if (!response.getHeaders().containsKey("X-Some-Header")) {
-      // Log error
-      throw new MyException("validation error"); // bad, close missing
+class ValidatingClientHttpRequestInterceptorBadEx implements ClientHttpRequestInterceptor {
+    public ClientHttpResponse intercept(HttpRequest request, byte[] body, ClientHttpRequestExecution execution) throws IOException {
+        final ClientHttpResponse response = execution.execute(request, body);
+        if (!response.getHeaders().containsKey("X-Some-Header")) {
+            // Log error
+            throw new MyException("validation error"); // bad, must call response.close()
+        }
+        return response;
     }
-  }
-
-  private static void someValidationGood(ClientHttpResponse response) throws MyException {
-    if (!response.getHeaders().containsKey("X-Some-Header")) {
-      // log error
-      response.close(); // good
-      throw new MyException("validation error");
+}
+class ValidatingClientHttpRequestInterceptorGoodEx implements ClientHttpRequestInterceptor {
+    public ClientHttpResponse intercept(HttpRequest request, byte[] body, ClientHttpRequestExecution execution) throws IOException {
+        final ClientHttpResponse response = execution.execute(request, body);
+        if (!response.getHeaders().containsKey("X-Some-Header")) {
+            // Log error
+            response.close(); // good
+            throw new MyException("validation error");
+        }
+        return response;
     }
-  }
 }
     ]]>
         </example>
