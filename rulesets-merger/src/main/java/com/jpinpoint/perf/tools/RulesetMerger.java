@@ -176,7 +176,7 @@ public class RulesetMerger {
                 mergeFileIntoLines(new File(ourProjectRulesDir, eachFileName), mergedFileLines);
             }
             if (IS_ADD_TAG_TO_DESCRIPTION_AND_DOC) {
-                mergedFileLines = addTagToDescriptionAndDoc(mergedFileLines, String.format("(%s)%s", resultRulesName, DESCRIPTION_END_TAG));
+                mergedFileLines = addTagToDescriptionAndDoc(mergedFileLines, String.format("(%s)%s", "jpinpoint-rules", DESCRIPTION_END_TAG));
             }
             mergedFileLines.add(RESULT_END_LINE);
 
