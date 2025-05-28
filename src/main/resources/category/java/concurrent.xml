@@ -221,10 +221,14 @@ class Exporter {
        (: -- GuardedBy annotations are matched on SimpleName, so it matches all known GuardedBy annotations :)
        (: -- net.jcip.annotations.GuardedBy, javax.annotation.concurrent.GuardedBy, com.google.errorprone.annotations.concurrent.GuardedBy :)
        (: non-final, non-volatile and non-GuardedBy fields, of only the current class :)
-       @Name = ancestor::ClassBody[1]/FieldDeclaration[
+       (@Name = ancestor::ClassBody[1]/FieldDeclaration[
                 not(pmd-java:modifiers() = ('final','volatile')
                 or ModifierList/Annotation[@SimpleName='GuardedBy'])
              ]//VariableId/@Name
+          (: var is not a field (via this) and is not a param :)
+          and not(not(./ThisExpression) and @Name = ancestor::MethodDeclaration//FormalParameter/VariableId/@Name)
+          (: var is not a local preceding defined var :)
+          and not(ancestor::ExpressionStatement[./AssignmentExpression/VariableAccess[1]/@Name = preceding-sibling::LocalVariableDeclaration//VariableId/@Name]))
        or (
          (: extends a base class :)
          ancestor::ClassDeclaration//ExtendsList

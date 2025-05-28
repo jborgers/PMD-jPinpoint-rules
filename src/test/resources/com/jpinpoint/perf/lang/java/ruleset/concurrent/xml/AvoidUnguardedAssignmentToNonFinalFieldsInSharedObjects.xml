@@ -139,7 +139,7 @@ class AComponent5_Good {
 }
 
 @Component
-class AnotherComponent {
+class Foo {
     private String url;
     private String boringField;
     private volatile String volatileGood;
@@ -149,11 +149,11 @@ class AnotherComponent {
         String urlx = url;
         boringField = url; // bad - unguarded accessor method - 140
         urlx += "x";
-        //url += "/"; // TODO
+        url += "/"; // good, is param
         this.url = url; // bad - unguarded accessor method - 143
-        // TODO check below for field hiding (bad practice)
-        //String boringField = "foo";
-        //boringField = "bar";
+        // field hiding (bad practice, but good for this rule)
+        String boringField = "foo";
+        boringField = "bar";
     }
 
     public void setVolatileGood(String vol) {
