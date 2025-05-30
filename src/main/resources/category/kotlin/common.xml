@@ -3,7 +3,6 @@
     <description>jPinpoint rule set for performance aware Kotlin coding, sponsored by Rabobank.</description>
 
     <rule name="AvoidInMemoryStreamingDefaultConstructor"
-          since="7.0"
           language="kotlin"
           message="The default capacity or smaller is used for ByteArrayOutputStream or StringWriter, it usually needs expensive expansions."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
@@ -48,7 +47,6 @@ class AvoidInMemoryStreamingDefaultConstructor {
     </rule>
 
     <rule name="AvoidStringBuffer" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-          since="7.0"
           language="kotlin"
           message="StringBuffer is used. It introduces locking overhead, use StringBuilder."
           typeResolution="true"
@@ -80,7 +78,6 @@ class AvoidStringBuffer {
         </example>
     </rule>
     <rule name="AvoidDecimalAndChoiceFormatAsField"
-          since="7.0"
           language="kotlin"
           message="Avoid using NumberFormat, DecimalFormat or ChoiceFormat as field since it is thread-unsafe."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
@@ -488,7 +485,7 @@ class FooGood {
     </rule>
 
     <rule name="AvoidImplicitlyRecompilingRegex"
-          class="net.sourceforge.pmd.lang.rule.XPathRule"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           dfa="false"
           language="kotlin"
           message="String regex method, Pattern.matches or FileSystem.getPathMatcher is used. Implicitly compiles a regex pattern, can be expensive."

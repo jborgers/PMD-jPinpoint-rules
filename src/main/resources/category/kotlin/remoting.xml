@@ -3,7 +3,6 @@
     <description>jPinpoint rule set for performance aware Kotlin coding, sponsored by Rabobank.</description>
 
     <rule name="HttpClientBuilderWithoutDisableConnectionState"
-          since="7.0"
           language="kotlin"
           message="A HttpClient builder is used and disableConnectionState is not called. HTTP client tracks connection state while using TLS."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
@@ -46,7 +45,6 @@
     </rule>
 
     <rule name="AvoidDeprecatedHystrix"
-          since="7.0"
           language="kotlin"
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           message="Netflix Hystrix is deprecated. Use an alternative like resilience4j"
