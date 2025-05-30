@@ -104,17 +104,20 @@ class Good {
                 <value><![CDATA[
 //MethodDeclaration[
     pmd-java:modifiers() = 'public'
+    and (pmd-java:hasAnnotation('org.springframework.web.portlet.bind.annotation.ActionMapping')
+        or pmd-java:hasAnnotation('org.springframework.web.portlet.bind.annotation.RenderMapping'))
+    and
+       (  .//FormalParameter[
+                    pmd-java:typeIs('org.springframework.ui.ModelMap')
+                    or pmd-java:hasAnnotation('org.springframework.web.bind.annotation.ModelAttribute')
+                  ]
+          or
 
-    and .//FormalParameter[
-            pmd-java:typeIs('org.springframework.ui.ModelMap')
-            or
-            pmd-java:hasAnnotation('org.springframework.web.bind.annotation.ModelAttribute')]
-
-    and .//FormalParameter[
-            (pmd-java:typeIs('javax.portlet.RenderRequest') or pmd-java:typeIs('javax.portlet.PortletRequest'))
-            or
-            pmd-java:hasAnnotation('org.springframework.web.portlet.bind.annotation.RenderMapping')
-        ]
+          .//FormalParameter[
+                    pmd-java:typeIs('javax.portlet.RenderRequest')
+                    or pmd-java:typeIs('javax.portlet.PortletRequest')
+                  ]
+        )
 ]
                 ]]></value>
             </property>
