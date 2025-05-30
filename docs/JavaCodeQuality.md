@@ -26,39 +26,42 @@ Improper use of BigDecimal
 
 #### IUOB01
 
-**Observation: the constructor BigDecimal(double) is used.** [This constructor (javadoc)](https://docs.oracle.com/en%2Fjava%2Fjavase%2F11%2Fdocs%2Fapi%2F%2F/java.base/java/math/BigDecimal.html#%3Cinit%3E(double)) 
+**Observation: the constructor BigDecimal(double) is used.** 
 
-```
-translates a double into a BigDecimal which is the exact decimal representation of the double's binary floating-point value.  
+[Javadoc of this constructor:](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/math/BigDecimal.html#%3Cinit%3E(double)) 
+
+```text
+Translates a double into a BigDecimal which is the exact decimal representation of the double's binary floating-point value. The scale of the returned BigDecimal is the smallest value such that (10scale × val) is an integer.
 
 Notes:
 
-1.  The results of this constructor can be somewhat unpredictable. One might assume that writing new BigDecimal(0.1) in Java creates a BigDecimal which is exactly equal to 0.1 (an unscaled value of 1, with a scale of 1), but it is actually equal to 0.1000000000000000055511151231257827021181583404541015625. This is because 0.1 cannot be represented exactly as a double (or, for that matter, as a binary fraction of any finite length). Thus, the value that is being passed in to the constructor is not exactly equal to 0.1, appearances notwithstanding.
-2.  The String constructor, on the other hand, is perfectly predictable: writing new BigDecimal("0.1") creates a BigDecimal which is exactly equal to 0.1, as one would expect. Therefore, it is generally recommended that the String constructor be used in preference to this one.
-3.  When a double must be used as a source for a BigDecimal, note that this constructor provides an exact conversion; it does not give the same result as converting the double to a String using the Double.toString(double) method and then using the BigDecimal(String) constructor. To get that result, use the static valueOf(double) method.
+1. The results of this constructor can be somewhat unpredictable. One might assume that writing new BigDecimal(0.1) in Java creates a BigDecimal which is exactly equal to 0.1 (an unscaled value of 1, with a scale of 1), but it is actually equal to 0.1000000000000000055511151231257827021181583404541015625. This is because 0.1 cannot be represented exactly as a double (or, for that matter, as a binary fraction of any finite length). Thus, the value that is being passed in to the constructor is not exactly equal to 0.1, appearances notwithstanding.
+2. The String constructor, on the other hand, is perfectly predictable: writing new BigDecimal("0.1") creates a BigDecimal which is exactly equal to 0.1, as one would expect. Therefore, it is generally recommended that the String constructor be used in preference to this one.
+3. When a double must be used as a source for a BigDecimal, note that this constructor provides an exact conversion; it does not give the same result as converting the double to a String using the Double.toString(double) method and then using the BigDecimal(String) constructor. To get that result, use the static valueOf(double) method.
 ```
-**Problem:** BigDecimal is intended to be used for amounts of e.g. euro’s with cents. It should e.g. represent 0,11 exactly. However, with the used constructor, one easily gets unexpected rounding, e.g.:
+**Problem:** BigDecimal is intended to be used for amounts of e.g. euro’s with cents. It should e.g. represent `0,11` exactly. However, with the used constructor, one easily gets unexpected rounding, e.g.:
 ```java
-System.out.println("result = " + new BigDecimal(0.105).setScale(2, BigDecimal.ROUND_HALF_UP));
+System.out.println("result = " + new BigDecimal(0.105).setScale(2, RoundingMode.HALF_UP));
 ```
+
 Results unexpectedly in:
-````java
+````text
 result = 0.10
 ````
-**Solution:** Use the factory method BigDecimal.valueOf(double) instead. E.g.:
+**Solution:** Use the factory method `BigDecimal.valueOf(double)` instead. E.g.:
 ````java
-System.out.println("result = " + BigDecimal.valueOf(0.105).setScale(2, BigDecimal.ROUND_HALF_UP));
+System.out.println("result = " + BigDecimal.valueOf(0.105).setScale(2, RoundingMode.HALF_UP));
 ````
 Results as expected in:
-````java
+````text
 result = 0.11
 ````
-Or use long for cents in stead of BigDecimal.
+Or use `long` for cents instead of `BigDecimal`.
 
 #### IUOB02
 
-**Observation: BigDecimal is instantiated with 0,1 or 10.**  
-**Problem:** These instances are already available as BigDecimal.ZERO, BigDecimal.ONE and BigDecimal.TEN  
+**Observation: BigDecimal is instantiated with `0`,`1`,`2` or `10`.**  
+**Problem:** These instances are already available as `BigDecimal.ZERO`, `BigDecimal.ONE`, `BigDecimal.TWO` (since Java 19!) and `BigDecimal.TEN`  
 **Solution:** Use the static instances.
 
 Improper amount representation
@@ -347,8 +350,8 @@ Potential Session Data Mix-up
 Session data mixup is one of the worst problems that can occur. Customers seeing data of other customers is bad, for the users and for the reputation of the company. Therefore, we want to have defence mechanisms to protect against these problems. There can be several causes of session data mixup, like:
 
 *   a response over a connection being bound to the wrong request, so request-response mixup.
-*   shared variables like singleton fields, e.g. in a Spring @Controller, @Component, etc.
-*   cache key mixup.
+*   shared variables like singleton fields, e.g. in a servlet, Spring @Component, JavaEE @Singleton.
+*   cache key mixup: when two users use the same key in a shared cache. See [caching pitfalls](https://github.com/jborgers/PMD-jPinpoint-rules/blob/master/docs/JavaCodePerformance.md#improper-caching).
 
 #### PSDM01
 
@@ -426,7 +429,8 @@ Ineffective Lambdas and Streams
 
 **Observation: forEach is used to perform a stream computation.**  
 **Problem:** Java Streams is a paradigm based on functional programming: the result should depend only on its input, not on any mutable state nor should it update any state.
-Use of forEach in a stream is actually iterative code masquerading as streams code. It is typically harder to read and less maintainable than the iterative form.  
+Use of forEach in a stream is actually iterative code masquerading as streams code. It is typically harder to read and less maintainable than the iterative form.
+For parallel streams, side effects are dangerous: accessing a thread-unsafe shared variable is a concurrency bug.  
 **Solution:** Use the for-each (enhanced-for) loop, or the pure functional form. The forEach operation should only be used to report (i.e. log) the result of a stream computation.    
 **See:** Effective Java 3rd Ed. Item 46: Prefer Side-Effect-Free Functions In Streams.   
 **Rule name:** AvoidForEachInStreams   
@@ -458,6 +462,42 @@ class AvoidForEachInStreams {
 }
 ````
 
+### ILS02
+
+**Observation: a stream pipeline has side effects, that is, a variable is modified.**  
+**Problem:** Java Streams is a paradigm based on functional programming: the result should depend only on its input, not on any mutable state nor should it update any state: not modify any variable (including thread-safe variables).
+By the spec, everything that does not contribute to the functional result, may be optimized away. So, side effects are not guaranteed to be executed.
+For parallel streams, side effects are dangerous: accessing a thread-unsafe shared variable is a concurrency bug. Accessing a (thread-safe) shared variable may cause data mix-up between the threads.
+So, using a thread-safe variable is not the solution.   
+**Solution:** Use the pure functional form: return a result based just on the input; do not modify any variable.    
+**See:**
+* Effective Java 3rd Ed. Item 46: Prefer Side-Effect-Free Functions In Streams  
+* Article from Brian Goetz: [An intro to the java.uti.stream library - the fine print](https://developer.ibm.com/articles/j-java-streams-1-brian-goetz/#the-fine-print4)
+* Java doc: [stream/package#SideEffects](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/stream/package-summary.html#SideEffects).
+
+**Rule name:** AvoidSideEffectsInStreams   
+**Example:**
+````java
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+class AvoidSideEffectsInStreams {
+    final String[] array = new String[]{"a", "b", "c"};
+
+    public List<String> getEndpointsInfo(final List<String> list, String... endpoints) {
+        AtomicReference<String> currentEndpoint = new AtomicReference<>();
+        return Arrays.stream(endpoints)
+                .peek(endpoint -> currentEndpoint.set(endpoint)) // bad
+                .peek(list::add)                                 // bad
+                .peek(endpoint -> log.debug(endpoint))           // peek is meant for something like this
+                .map(endpoint -> array[0] = endpoint)            // bad
+                .map(String::toLowerCase)
+                .map(list::remove)                               // bad
+                .map(pingInfo -> addEndpointInfo(pingInfo, currentEndpoint.get()))
+                .toList();
+    }
+}
+````
 Maintainability
 ---------------
 
@@ -466,7 +506,7 @@ Maintainability
 **Observation: Variable does not have a meaningful name, like 'var3' and fields like 'FOUR = 4'**  
 **Problem:** Variable does not express what it is used for. This is bad for maintainability.  
 **Solution:** Let variable names express what they are used for, like 'key' and 'MAX_KEYS = 4'.    
-**Rule name:** ImproperVariableName
+**Rule name:** ImproperVariableName  
 **Example:**
 ````java
 class Foo {
@@ -480,6 +520,99 @@ private static final int SIXTIES_START = 1960; // good
     }
 }
 ````
+
+### M02
+
+**Observation: @SuppressWarnings is used**  
+**Problem:** The suppressed rule detects problems, suppressing the detected violations without full knowledge can lead to the problems the rule is trying to prevent.  
+**Solution:** Only suppress violations (warnings) when you have complete understanding of the rule, and you are sure it does not apply.
+When suppressing warnings, document your reasoning and report false positives to the rule maintainers to help improve rule accuracy.  
+**Rule name:** UsingSuppressWarnings  
+**Example:**
+```java
+@SuppressWarnings("PMD.UnconditionalCreatedLogArguments") // Reason for suppression: the rule doesn't recognize record getters (yet), and those are not expensive
+public void process(ConsumerRecord consRecord) {
+    ConsumerEvent event = consRecord.event(); // record getter
+    log.info("Received event '{}'", event); // PMD.UnconditionalCreatedLogArguments suppressed
+}
+```
+**Note:** This rule is just informational to track use of SuppressWarnings, to be able to double-check if suppression is correct. It often doesn't need a fix.
+The @SuppressWarning is the preferred way to suppress a rule violation, because you can specify the exact rule you want to suppress. Downside is that it does
+not work on line level. Two other options are:
+* `// NOPMD`: suppresses all PMD violations on the line, not just the one you want to suppress. Note that this has no effect in Sonar, just PMD.
+* `// NOSONAR`: suppresses all Sonar violations on the line, not just the one you want to suppress. Note that this notation has no effect in the PMD tool, just in Sonar.
+
+The `// NOPMD` is also generated when you use the [Intellij PMD Plugin](https://plugins.jetbrains.com/plugin/1137-pmd) and right click and select `Suppress`.
+It will specify the rule you want to suppress explicitly, and also ask you to specify a reason for the suppression.
+```java
+@SuppressWarnings({"PMD.AvoidConcatInAppend", "PMD.UsingSuppressWarnings"}) //NOPMD - suppressed UsingSuppressWarnings - TODO explain reason for suppression
+class Foo implements KeyGenerator {
+    // ...
+}
+```
+In this example you see that you can use it to suppress the SuppressWarnings rule itself. This is not a good idea, because it is not clear why you are suppressing the rule.
+The Intellij PMD Plugin will give issues on information level about the usage of `// NOPMD` so they can be easily reviewed.
+The `// NOSONAR` is not checked by both PMD Plugin and Sonar, so avoid its usage.
+
+Take care in naming the correct rule name: use the prefix `PMD.` (notice capitals and the dot) so this works both in the IntelliJ PMD plugin _and_ in Sonar.
+Prefix `pmd:` only works in Sonar. Prefixes `pmd.` (notice non-capitals) and `PMD:` (notice semicolon) should not be used!
+
+### M03
+
+**Observation: @SuppressWarnings is used for high risk problems**  
+**Problem:** The suppressed rule detects high risk problems, suppressing the detected violations without full knowledge can lead to incidents like customer data mix-up, corrupt data, server crashes or very bad performance.  
+**Solution:** Only suppress violations (warnings) when you have complete understanding of the rule, and you are sure it does not apply.
+When suppressing warnings, document your reasoning and report false positives to the rule maintainers to help improve rule accuracy.  
+**Rule name:** UsingSuppressWarningsHighRisk  
+**Note:** This rule is to track use of SuppressWarnings for high risk rule violations, to be able to double-check if suppression is correct. It doesn't necessarily need a fix. The `@SuppressWarnings("pmd")` or `@SuppressWarnings("PMD")` are considered high risk as it suppresses many rules at once, use explicit rule list instead.       
+**Example:**  
+```java
+@SuppressWarnings({"PMD.AvoidUnguardedMutableFieldsInSharedObjects", "PMD.AvoidUserDataInSharedObjects"}) // suspicious, probably bad to suppress
+@Component @Data
+class VMRData {
+    private List<OrderDetails> customerOrderList; // a bad idea to have in a singleton, should be solved instead of suppressed
+    //..
+}
+```
+
+### M04
+
+**Observation: UnresolvedType found during PMD analysis.**  
+**Problem:** When compiled code is missing, not all rules can be applied or work correctly.  
+**Solution:** Add the needed compiled Java classes to the classpath of the PMD tool.  
+**Note:** Using the **PMD plugin in IntelliJ**, make sure to first build the project and then run the PMD analysis.
+Make sure that annotation processing is enabled, for instance when using Lombok annotations.
+Sometimes code needs to be generated first, for instance when using open api generator. A run of 
+the build tool can help, for instance `mvn package` or `gradle build`.
+
+Using the [**Maven Sonar plugin**](https://github.com/SonarSource/sonar-scanner-maven) together 
+with the [**Sonar PMD plugin**](https://github.com/jborgers/sonar-pmd-jpinpoint), make sure to use correct settings.
+Check if overrides are used that prevent all classes from being on the classpath. Make sure that code
+is generated and compiled before the sonar task is run. For instance, use `mvn clean package sonar:sonar`
+command to run the sonar task after packaging. Make sure that if you need to override settings of the sonar that
+all compiled sources can still be found, e.g. class files and jars. For instance, use `sonar.java.binaries` to point
+to the correct `target/classes` location. Note that these overrides can both be specified on the command
+line using `-D`, as in `mvn -Dsonar.java.binaries=target/classes sonar:sonar`, but also inside the `pom.xml` file:
+
+The following line caused UnresolvedType problems (and note that Java 21 is now supported by Sonar-PMD plugin):
+```xml
+<!-- set binaries to code instead of compiled classes because SonarQube does not support Java 21 yet -->
+<sonar.java.binaries>src/main</sonar.java.binaries>
+```
+Using [**PMD from the command line**](https://github.com/pmd/pmd), make sure to add the classpath of the project to the PMD command line.
+In example command line below, notice `--aux-classpath=target/classes:$(cat classpath.txt)` option. 
+Both the compiled classes of the project and the jars of used dependencies need to be present.
+
+```bash
+pmd check --rulesets jpinpoint-java-rules.xml --dir src/main/java --format text --aux-classpath=target/classes:$(cat classpath.txt) --report-file java-issues-$(date +"%Y%m%d_%H%M").txt
+```
+
+To generate the list of classpath dependencies in a maven project, use the following command:
+```bash
+mvn dependency:build-classpath -Dmdep.outputFile=classpath.txt
+```
+**Rule name:** UnresolvedType
+
 
 Improved Sonar rules
 --------------------
@@ -529,3 +662,4 @@ or the depth of lambda-single-expression in lambda nesting exceeds (by default) 
 **Solution:** extract the lambda expression code block into one or more separate method(s).     
 **Rule name:** LimitNestingInLambdas   
 **Sonar rule(s):** java:S5612 - Lambdas should not have too many lines (inadequate rule).   
+

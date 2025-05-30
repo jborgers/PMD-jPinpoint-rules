@@ -1,2 +1,2 @@
 #!/bin/sh
-mvn test -Pkotlin-pmd7 
+./mvnw test -Pkotlin-pmd7

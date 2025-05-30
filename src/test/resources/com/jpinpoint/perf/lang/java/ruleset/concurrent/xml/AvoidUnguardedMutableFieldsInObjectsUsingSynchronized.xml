@@ -139,6 +139,8 @@ public class Good {
         <expected-problems>0</expected-problems>
         <code><![CDATA[
 package com.jpinpoint.tryout;
+import jakarta.inject.Inject;
+import net.jcip.annotations.GuardedBy;
 import java.util.Date;
 
 public class Good {
@@ -195,9 +197,10 @@ public class GoodForThisRule {
     <test-code>
         <description>Avoid unguarded mutable fields in objects using synchronized, fields of known mutable types initialized in constructor</description>
         <expected-problems>4</expected-problems>
-        <expected-linenumbers>4,5, 10,11</expected-linenumbers>
+        <expected-linenumbers>5,6, 11,12</expected-linenumbers>
         <code><![CDATA[
-    import java.util.*;
+import net.jcip.annotations.GuardedBy;
+import java.util.*;
 
 class Bad {
     private Map<String, String> map1 = new HashMap<>(); // bad, reference and map is mutable
@@ -208,7 +211,7 @@ class Bad {
 
     private Map<String, String> mapCtor1; // bad, reference and map is mutable
     private final Map<String, String> mapCtor2; // bad, constructed with known mutable type
-    private final Map<String, String> mapCtor3; // good, concurrenthashmap is thread-safe
+    private final Map<String, String> mapCtor3; // good, ConcurrentHashMap is thread-safe
     @GuardedBy("this")
     private Map<String, String> mapCtor4; // good, guarded
 

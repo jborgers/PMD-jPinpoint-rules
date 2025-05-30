@@ -23,12 +23,12 @@ public class ObjectMapperReuse {
 	}
 
 	public static ObjectMapper createMapper() {
-		return new ObjectMapper(); // violation
+		return new ObjectMapper(); // bad
 	}
 
 	public void myMethod() throws IOException, JsonMappingException {
-		final ObjectMapper mapper = new ObjectMapper(); // violation
-		String json = new ObjectMapper().writeValueAsString("authorizations"); // violation
+		final ObjectMapper mapper = new ObjectMapper(); // bad
+		String json = new ObjectMapper().writeValueAsString("authorizations"); // bad
 
 	}
 
@@ -52,8 +52,8 @@ class BankSpringRootConfig {
     </test-code>
     <test-code>
         <description>Jackson JsonMapper.builder().build() creation is expensive instances should be reused</description>
-        <expected-problems>4</expected-problems>
-        <expected-linenumbers>18,24,25,27</expected-linenumbers>
+        <expected-problems>8</expected-problems>
+        <expected-linenumbers>18,18,24,24,25,25,26,27</expected-linenumbers>
         <code><![CDATA[
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -72,16 +72,16 @@ public class JsonMapperReuse {
 	}
 
 	public static JsonMapper createMapper() {
-	        return JsonMapper.builder()
+	        return JsonMapper.builder() // bad 2x
                         .enable(JsonParser.Feature.ALLOW_SINGLE_QUOTES)
-                        .build(); // violation
+                        .build();
 	}
 
 	public void myMethod() throws IOException, JsonMappingException {
-	    final JsonMapper mapper = JsonMapper.builder().build(); // violation
-		String json = JsonMapper.builder().build().writeValueAsString("authorizations"); // violation
-		JsonMapper.Builder builder = JsonMapper.builder();
-        JsonMapper myMapper = builder.build(); // violation
+	    final JsonMapper mapper = JsonMapper.builder().build(); // bad 2x
+		String json = JsonMapper.builder().build().writeValueAsString("authorizations"); // bad 2x
+		JsonMapper.Builder builder = JsonMapper.builder(); // bad
+        JsonMapper myMapper = builder.build(); // bad
 	}
 
 	public void myMethodOk() throws IOException, JsonMappingException {

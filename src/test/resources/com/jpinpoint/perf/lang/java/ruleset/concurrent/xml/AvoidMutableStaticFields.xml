@@ -5,8 +5,8 @@
         xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
     <test-code>
         <description>Avoid mutable static fields</description>
-        <expected-problems>28</expected-problems>
-        <expected-linenumbers>17,18,19,22,23,25,29,29,30,33,34,34,46,46,56,56,65,65,66,67,67,68,84,86,88,90,97,98</expected-linenumbers>
+        <expected-problems>23</expected-problems>
+        <expected-linenumbers>14,15,16,19,20,22,26,27,30,31,43,53,61,62,63,64,80,82,84,86,93,94,99</expected-linenumbers>
         <code><![CDATA[
 import net.jcip.annotations.GuardedBy;
 import net.jcip.annotations.NotThreadSafe;
@@ -18,29 +18,26 @@ import java.util.*;
 
 import static org.springframework.context.annotation.ScopedProxyMode.INTERFACES;
 
-/**
- * Created by BorgersJM on 4-7-2017.
- */
 @NotThreadSafe
 public class AvoidMutableStaticFieldsTest {
     private static final String stringOk1 = "Ok";
-    private static String stringViolate1; // bad
+    private static String stringViolate1; // bad - line 14
     static String stringViolate2; //bad
     public static Object objViolate3; //bad
     @GuardedBy("lock")
     public static Object objGuardedOk;
-    private static final Date dateViolate4 = new Date(); // Date is known mutable type // bad
+    private static final Date dateViolate4 = new Date(); // Date is known mutable type // bad - line 19
     private static Map mapViolate5; // bad
     private static final Map mapOk = Collections.emptyMap();
     private static final Map mapViolate6 = new HashMap(); // HashMap is known mutable type // bad
     @GuardedBy("lock")
     private static final Date dateOk = new Date(); // Date is known mutable type, needs guarding
     private static final File[] NO_FILES_OK = {};
-    private static final File[] FILES_Violate7 = {new File("/tmp/a")}; // bad
+    private static final File[] FILES_Violate7 = {new File("/tmp/a")}; // bad - line 26
     private static final String[] strArrayViolate8 = new String[2]; // array is mutable, elements can be replaced // bad
     private static final Object[] objArrayOk = new Object[0]; // 0 elements to replace
     private static volatile String stringVolatileOk1; // volatile helps for the reference
-    private static volatile Map mapViolate9 = new HashMap(); // HashMap is known mutable type, volatile only helps for the reference //bad
+    private static volatile Map mapViolate9 = new HashMap(); // HashMap is known mutable type, volatile only helps for the reference // bad
     private static final String[] QUALIFIERS_Violate = {"alpha", "beta", "milestone"}; // bad
     private static final List QUALIFIERS_Ok = Collections.unmodifiableList(Arrays.asList("alpha", "beta", "milestone"));
     // In Java 9 we can do: List.of("alpha", "beta", "milestone"); // Immutable, Nice!
@@ -53,7 +50,7 @@ public class AvoidMutableStaticFieldsTest {
     @Scope(value = "request", proxyMode = INTERFACES)
             // Only request is safe
 class Component3Ok2 {
-    static private Date date0Violate = new Date(); // static is shared among all prototype instances // bad
+    static private Date date0Violate = new Date(); // static is shared among all prototype instances // bad - line 43
     private Date date1Ok = new Date(); //
     private String string1Ok = new String(); //
     private final String string3Ok = new String(); // OK!: final, immutable
@@ -63,16 +60,15 @@ class Component3Ok2 {
 @Scope(value = "prototype", proxyMode = INTERFACES)
         // prototypes are recreated every time and instance fields are therefore safe, they are not shared
 class Component5_2 {
-    static private Date date0Violate = new Date(); // static is shared among all prototype instances // bad
+    static private Date date0Violate = new Date(); // static is shared among all prototype instances // bad - line 53
     private Date date1Ok = new Date(); //
     private String string1Ok = new String(); //
     private final String string3Ok = new String(); //
 }
 
-
 class NoFilesNoArrays_2 {
     private static final File[] NO_FILES_OK = {};
-    private static final File[] FILES_Violate = {new File("/tmp/a")}; // bad
+    private static final File[] FILES_Violate = {new File("/tmp/a")}; // bad - line 61
     private static final File file_violate = new File("dummy"); // bad
     private static final String[] names_violate = {"aap", "noot", "mies"}; //bad
     private static final String[] names2_violate = new String[2]; //bad
@@ -91,9 +87,9 @@ class Formatted {
     private static final ConcurrentMap mapSafe;
 
     static {
-        names_violate = new String[]{"aap", "noot", stringViolate1}; //bad
+        names_violate = new String[]{"aap", "noot", stringViolate1}; // bad - line 80
         names_ok = new String[]{};
-        FORMATTERS = new ThreadLocal[NUMBER_OF_FORMATTERS]; //bad
+        FORMATTERS = new ThreadLocal[NUMBER_OF_FORMATTERS]; // bad
         emptyOk = new String[0];
         nonEmptyViolate = new String[5]; // bad
         mapOk = Collections.emptyMap();
@@ -103,13 +99,15 @@ class Formatted {
     }
 }
 
-class StaticLists {
-    private static final List<String> names1 = Arrays.asList("a", "b"); // bad
+class StaticListsAndMore {
+    private static final List<String> names1 = Arrays.asList("a", "b"); // bad - line 93
     private static final List<String> names2 = Arrays.asList(new String[]{"a", "b"}); // bad
 
     private static final List<String> immutableNames = Collections.unmodifiableList(Arrays.asList("a", "b"));
-}
 
+    private static final Map mapUnmodifiable = Collections.unmodifiableMap(new HashMap()); // good
+    private static final Set set = new HashSet(); // bad
+}
         ]]></code>
     </test-code>
 
@@ -139,8 +137,10 @@ import java.util.Map;
     <test-code>
         <description>Avoid mutable static EnumMap fields</description>
         <expected-problems>2</expected-problems>
-        <expected-linenumbers>6,7</expected-linenumbers>
+        <expected-linenumbers>8,9</expected-linenumbers>
         <code><![CDATA[
+import java.util.*;
+
 public final class BadWithEnum {
     private static final EnumMap<SomeType, String> map1;
     private static final Map<SomeType, String> map2;
@@ -152,4 +152,123 @@ public final class BadWithEnum {
 }
     ]]></code>
     </test-code>
+
+    <test-code>
+        <description>Avoid mutable static fields false positive #405</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import java.util.Arrays;
+import java.util.List;
+
+public class Issue405 {
+    private final List<String> keys = Arrays.asList("key1", "key2"); // <--- false positive
+}
+    ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>false positive for AvoidMutableStaticFields on wrapped Map of #560</description>
+        <expected-problems>4</expected-problems>
+        <expected-linenumbers>4,7,9,11</expected-linenumbers>
+        <code><![CDATA[
+import java.util.*;
+
+class Issue560 {
+    private static final EnumMap<AmorType, SchedType> AMOR_TYPE_MAPPING = // bad, mutable
+      new EnumMap<>(Map.of(AmorType.CUSTOM, SchedType.CUSTOM,
+                           AmorType.NONE, SchedType.NONE));
+   private static final EnumSet<AmorType> ENUM_SET_FROM_SET = // bad, mutable, missed case
+            EnumSet.copyOf(Set.of(AmorType.NONE, AmorType.CUSTOM));
+    private static final EnumSet<AmorType> ENUM_SET_FROM_LIST = // bad, mutable, missed case
+            EnumSet.copyOf(List.of(AmorType.NONE, AmorType.CUSTOM));
+    private static final EnumSet<AmorType> ENUM_SET_FROM_SET_ELEMS = // bad, mutable, missed case
+            EnumSet.of(AmorType.NONE, AmorType.CUSTOM);
+    private static final Set<AmorType> UNMOD_ENUM_SET_FROM_LIST =
+            Collections.unmodifiableSet(EnumSet.copyOf(List.of(AmorType.NONE, AmorType.CUSTOM))); // good, immutable
+    private static final Set<AmorType> UNMOD_ENUM_TYPE_SET_FROM_SET =
+            Collections.unmodifiableSet(EnumSet.of(AmorType.NONE, AmorType.CUSTOM));
+    public static void main(String[] args) {
+       ENUM_SET_FROM_SET.add(AmorType.OTHER); // valid
+        ENUM_SET_FROM_LIST.add(AmorType.OTHER); // valid
+        ENUM_SET_FROM_SET_ELEMS.add(AmorType.OTHER); // valid
+        //UNMOD_ENUM_SET_FROM_LIST.add(AmorType.OTHER); // thows UnsupportedOperationException
+        System.out.println(ENUM_SET_FROM_SET);
+    }
+}
+
+enum AmorType {
+    NONE, CUSTOM, OTHER;
+}
+enum SchedType {
+    NONE, CUSTOM;
+}
+    ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>false positive for AvoidMutableStaticFields on non-direct arrays #563</description>
+        <expected-problems>3</expected-problems>
+        <expected-linenumbers>7,9,12</expected-linenumbers>
+        <code><![CDATA[
+import java.util.Arrays;
+import java.util.List;
+
+class Issue563 {
+
+    private static final Avatar defaultAvatar = new Avatar("application/png", new byte[]{-119, 80, 78}); // <-- false positive, assume array is safely contained
+    private static final byte[] defaultAvatarBytes = new byte[]{-119, 80, 78}; // bad: direct array
+    private static final Avatar2d defaultAvatarBytes2dInObject = new Avatar2d(new byte[][]{{-119, 80, 78},{1,2,3}}); // <-- false positive
+    private static final byte[][] defaultAvatarBytes2d = new byte[][]{{-119, 80, 78},{1,2,3}}; // bad: direct array
+
+    private static final AvatarList avatarList = new AvatarList(Arrays.asList(1,2,3)); // false positive, assume List is safely contained
+    private static final List avatars = Arrays.asList(1,2,3); // bad: basically modifyable ArrayList
+
+    private static final CLOptionDescriptor D_NONGUI_OPT = new CLOptionDescriptor("a");
+    private static final CLOptionDescriptor D_REMOTE_OPT = new CLOptionDescriptor("b");
+    private static final CLOptionDescriptor D_REPORT_GENERATING_OPT = // <-- false positive
+            new CLOptionDescriptor(
+                    new CLOptionDescriptor[]{ D_NONGUI_OPT, D_REMOTE_OPT });
+
+    private static final Avatar defaultAvatar2;
+
+    static {
+        final byte[] bytes = {-119, 80, 78};
+        defaultAvatar2 = new Avatar("application/png", bytes); // no issue found here
+        bytes[2] = 0;
+    }
+
+
+    private static class Avatar {
+        private String contentType;
+        private byte[] data;
+        public Avatar(String contentType, byte[] bytes) {
+            this.contentType = contentType;
+            this.data = bytes; // should be a warning here instead to make defensive copy?
+        }
+        String getContentType() {
+            return contentType;
+        }
+        byte[] getData() {
+            return data;
+        }
+    }
+
+    private static class Avatar2d {
+        public Avatar2d(byte[][] bytes) {}
+    }
+
+    private static class AvatarList {
+        public <T> AvatarList(List<T> list) {}
+    }
+
+    private static class CLOptionDescriptor {
+
+        public CLOptionDescriptor(String a) {}
+
+        public CLOptionDescriptor(CLOptionDescriptor[] clOptionDescriptors) {}
+    }
+}
+]]></code>
+    </test-code>
+
 </test-data>

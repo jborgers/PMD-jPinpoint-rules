@@ -5,8 +5,8 @@
         xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
     <test-code>
         <description>violation: Implement equals and hashcode methods on value Objects</description>
-        <expected-problems>4</expected-problems>
-        <expected-linenumbers>44,52,66,80</expected-linenumbers>
+        <expected-problems>5</expected-problems>
+        <expected-linenumbers>44,52,66,80,94</expected-linenumbers>
         <code><![CDATA[
 import lombok.*;
 import org.slf4j.Logger;
@@ -100,6 +100,15 @@ class ViolateLoggerProducerBad { // bad 80
 
     public Properties getProperties() {return properties;}
 }
+
+class ViolateDTOBad2 { // bad line 94
+    private String someState = "some";
+
+    public String getSomeState() {
+        return someState;
+    }
+}
+
      ]]></code>
     </test-code>
     <test-code>
@@ -532,13 +541,12 @@ class AdaptedValidationErrorIgnored {
     </test-code>
 
     <test-code>
-        <description>violation: Implement equals and hashcode methods on Objects with @Getter and no @EqualsAndHashCode (or @Value or @Data)</description>
-        <expected-problems>1</expected-problems>
-        <expected-linenumbers>3</expected-linenumbers>
+        <description>no violation anymore: Implement equals and hashcode methods on Objects with @Getter and no @EqualsAndHashCode (or @Value or @Data) - Issue #432 </description>
+        <expected-problems>0</expected-problems>
         <code><![CDATA[
 import lombok.*;
 @Getter
-public class LombokGetterBad1 { // bad
+public class LombokGetterWasBad1 { // false positive
     private String someState1 = "some1";
 }
 
@@ -681,5 +689,44 @@ class ExtendedThreadPoolExecutor extends ThreadPoolExecutor {
 }
             ]]></code>
     </test-code>
+    <test-code>
+        <description>no violation: ImplementEqualsHashCodeOnValueObjects has false positives #438</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import javax.ws.rs.ext.ContextResolver;
+import javax.ws.rs.client.ClientRequestFilter;
 
+class Foo implements ContextResolver {
+
+    String field1;
+    String field2;
+    Object context;
+
+    public String getField1() {
+        return field1;
+    }
+    public String getField2() {
+        return field2;
+    }
+    public T getContext(Class<?> type) {
+        return context;
+    }
+}
+
+class Foo implements ClientRequestFilter {
+
+    String field1;
+    String field2;
+    public String getField1() {
+        return field1;
+    }
+    public String getField2() {
+        return field2;
+    }
+    public void filter(ClientRequestContext requestContext,
+            ClientResponseContext responseContext) throws IOException {
+    }
+}
+            ]]></code>
+    </test-code>
 </test-data>

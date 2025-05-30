@@ -5,13 +5,25 @@
         xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
     <test-code>
         <description>Avoid improper annotation combinations</description>
-        <expected-problems>12</expected-problems>
-        <expected-linenumbers>8, 13, 26, 33, 44, 54, 59, 64,64, 76, 81, 95</expected-linenumbers>
+        <expected-problems>11</expected-problems>
+        <expected-linenumbers>20, 25, 38, 45, 56, 66, 71, 76, 88, 93, 107</expected-linenumbers>
         <code><![CDATA[
-import lombok.*;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Value;
+import lombok.ToString;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.stereotype.*;
+import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Controller;
+import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RestController;
+
 import javax.persistence.Entity;
+
 import org.aspectj.lang.annotation.Aspect;
 
 @Controller
@@ -103,7 +115,7 @@ public class AvoidImproperAnnotationCombinations {
 
     @RestController
     @Configuration // bad
-    class StringAnnotationsViolation2 {
+    class StringAnnotationsViolation3 {
     }
 
     class LombokAnnotationsOk2 {
@@ -112,7 +124,8 @@ public class AvoidImproperAnnotationCombinations {
         private boolean barEnabled;
     }
 
-}     ]]></code>
+}
+        ]]></code>
     </test-code>
 
     <test-code>

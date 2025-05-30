@@ -5,8 +5,8 @@
         xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
     <test-code>
         <description>violation: Avoid Constants in interface</description>
-        <expected-problems>1</expected-problems>
-        <expected-linenumbers>2</expected-linenumbers>
+        <expected-problems>2</expected-problems>
+        <expected-linenumbers>2,9</expected-linenumbers>
         <code><![CDATA[
 public interface Foo {
     static final Object CONST = new Object(); //bad
@@ -14,6 +14,16 @@ public interface Foo {
     @Data
     class SomeData
     { Data data; } // good
+}
+interface AnimalConsts {
+    public static final Dog DOG = new Dog(); //bad
+}
+class AnimalUtil {
+    private AnimalUtil() {}
+    public static final Dog DOG = new Dog(); // good
+}
+enum Animal {
+    DOG // good
 }
      ]]></code>
     </test-code>

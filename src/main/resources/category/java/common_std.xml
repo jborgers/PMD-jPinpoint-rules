@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <ruleset name="jpinpoint-common_std-rules"
          xmlns="http://pmd.sourceforge.net/ruleset/2.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -8,7 +7,7 @@
     <rule name="AvoidApacheCommonsFileItemNonStreaming"
           language="java"
           message="Avoid memory intensive FileItem.get and FileItem.getString"
-          class="net.sourceforge.pmd.lang.rule.XPathRule"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           typeResolution="true"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#isio03">
         <description>
@@ -17,29 +16,12 @@
         </description>
         <priority>2</priority>
         <properties>
-            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
+            <property name="tags" value="io,jpinpoint-rule,memory,performance,sustainability-medium" type="String" description="classification"/>
             <property name="xpath">
                 <value>
                     <![CDATA[
-//PrimaryPrefix/Name
-[ends-with(@Image, '.get') or ends-with(@Image, '.getString')]
-[
-	starts-with(@Image, concat(
-		ancestor::MethodDeclaration//FormalParameter/Type/ReferenceType/ClassOrInterfaceType[pmd-java:typeIs('org.apache.commons.fileupload.FileItem')]/../../..//VariableDeclaratorId/@Name,
-		'.')
-	) or
-	starts-with(@Image, concat(
-		ancestor::MethodDeclaration//LocalVariableDeclaration/Type/ReferenceType/ClassOrInterfaceType[pmd-java:typeIs('org.apache.commons.fileupload.FileItem')]/../../..//VariableDeclaratorId/@Name,
-		'.')
-	) or
-	starts-with(@Image, concat(
-		ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration/Type/ReferenceType/ClassOrInterfaceType[pmd-java:typeIs('org.apache.commons.fileupload.FileItem')]/../../..//VariableDeclaratorId/@Name,
-		'.')
-)
-]
-]]>
+//MethodCall[@MethodName="get" or @MethodName="getString"][VariableAccess[pmd-java:typeIs('org.apache.commons.fileupload.FileItem')]]
+    ]]>
                 </value>
             </property>
         </properties>
@@ -54,14 +36,14 @@ public class FileStuff {
         return fileItem.getInputStream();
    }
 }
-            ]]>
+                ]]>
         </example>
     </rule>
 
     <rule name="AvoidCalendarDateCreation"
           language="java"
           message="A Calendar is used to create a Date or DateTime, this is expensive."
-          class="net.sourceforge.pmd.lang.rule.XPathRule"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           typeResolution="true"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#ue01">
         <description>Problem: A Calendar is a heavyweight object and expensive to create. &#13;
@@ -69,18 +51,17 @@ public class FileStuff {
         </description>
         <priority>2</priority>
         <properties>
-            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
+            <property name="tags" value="cpu,jpinpoint-rule,memory,performance,sustainability-medium" type="String" description="classification"/>
             <property name="xpath">
-                <value><![CDATA[
-//PrimaryPrefix[Name[ends-with(@Image, 'Calendar.getInstance')]] [count(../PrimarySuffix) > 2 and ../PrimarySuffix[last()-1][@Image = 'getTime' or @Image='getTimeInMillis']]
+                <value>
+                    <![CDATA[
+//MethodCall[pmd-java:matchesSig('java.util.Calendar#getInstance()') or pmd-java:matchesSig('java.util.GregorianCalendar#getInstance()')][ancestor::MethodCall[@MethodName='getTime' or @MethodName='getTimeInMillis']]
 |
-//Block/BlockStatement//Expression/PrimaryExpression/
-PrimaryPrefix/Name[pmd-java:typeIs('java.util.Calendar') and (ends-with(@Image,'.getTime') or ends-with(@Image,'.getTimeInMillis'))]
+//MethodCall[@MethodName='getTime' or @MethodName='getTimeInMillis'][VariableAccess[pmd-java:typeIs('java.util.Calendar')]]
 |
-//ClassOrInterfaceType[pmd-java:typeIs('org.joda.time.DateTime') or pmd-java:typeIs('org.joda.time.LocalDateTime')][../Arguments/ArgumentList/Expression/PrimaryExpression/PrimaryPrefix/Name[ends-with(@Image, 'Calendar.getInstance')]]
-	         ]]></value>
+//ConstructorCall/ClassType[pmd-java:typeIs('org.joda.time.DateTime')]/../ArgumentList//MethodCall[pmd-java:matchesSig('java.util.Calendar#getInstance()') or pmd-java:matchesSig('java.util.GregorianCalendar#getInstance()')]
+                    ]]>
+                </value>
             </property>
         </properties>
         <example>
@@ -106,61 +87,10 @@ public class DateStuff {
         </example>
     </rule>
 
-
-    <rule name="AvoidConcatInAppend"
-          language="java"
-          message="Concatenation inside append. Use extra append."
-          class="net.sourceforge.pmd.lang.rule.XPathRule"
-          typeResolution="true"
-          externalInfoUrl="${doc_root}/JavaCodePerformance.md#isu04">
-        <description>Concatenation of Strings is used inside an StringBuilder.append argument. Problem: Each statement with one or more +-operators creates a hidden temporary StringBuilder, a char[] and a new String object, which all have to be garbage collected.&#13;
-            Solution: Use an extra fluent append instead of concatenation.
-            </description>
-        <priority>2</priority>
-        <properties>
-            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
-            <property name="xpath">
-                <value><![CDATA[
-//MethodDeclaration/Block/BlockStatement[
-(.//PrimaryExpression/PrimaryPrefix/Name[substring-after(@Image, '.') = 'append']
-or
-.//PrimaryExpression/PrimarySuffix/@Image = 'append')
-and
-.//PrimaryExpression/PrimarySuffix/Arguments/ArgumentList/Expression[1]/AdditiveExpression[pmd-java:typeIs('java.lang.String')
-and (count(PrimaryExpression/PrimaryPrefix/Name) > 0)
-and not(PrimaryExpression/PrimaryPrefix/Name/@Image=
-ancestor::ClassOrInterfaceBody//FieldDeclaration[@Final=true()]//VariableDeclaratorId/@Name)
-and not(PrimaryExpression/PrimaryPrefix/Name/@Image=
-ancestor::Block//LocalVariableDeclaration[@Final=true()]//VariableDeclaratorId/@Name)
-]]
-	]]></value>
-            </property>
-        </properties>
-        <example>
-            <![CDATA[
-public class StringStuff {
-   private String bad(String arg) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("arg='" + arg + "'");
-        return sb.toString();
-   }
-
-   private String good(String arg) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("arg='").append(arg).append("'");
-        return sb.toString();
-   }
-}
-            ]]>
-        </example>
-    </rule>
-
     <rule name="AvoidConcatInLoop"
           language="java"
           message="A String is concatenated in a loop. Use StringBuilder.append."
-          class="net.sourceforge.pmd.lang.rule.XPathRule"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           typeResolution="true"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#isu02">
         <description>A String is built in a loop by concatenation. Problem: Each statement with one or more +-operators creates a hidden temporary StringBuilder, a char[] and a new String object, which all have to be garbage collected. &#13;
@@ -168,20 +98,22 @@ public class StringStuff {
         </description>
         <priority>2</priority>
         <properties>
-            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
+            <property name="tags" value="cpu,jpinpoint-rule,performance,sustainability-medium" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
-(//ForStatement | //WhileStatement | //DoStatement)//AssignmentOperator[
-    (: a += ...;  -- a being a string :)
-    @Image='+=' and preceding-sibling::*[1]/PrimaryPrefix/Name[pmd-java:typeIs('java.lang.String')]
-    (: a = ... + a + ...; -- a being a string :)
-    or @Image='=' and following-sibling::*[1]/AdditiveExpression/PrimaryExpression/PrimaryPrefix/Name[
-        pmd-java:typeIs('java.lang.String')
-        and @Image = ancestor::StatementExpression/PrimaryExpression/PrimaryPrefix/Name/@Image
-    ]
-]/.. (: Go up to report on the StatementExpression :)
+(//ForStatement | //ForeachStatement | //WhileStatement | //DoStatement)//AssignmentExpression[
+    (: a += ...;  - a being a string OR a = ... + a + ...; - a being a string :)
+    @Operator = '+=' or (@Operator = '=' and ./InfixExpression[@Operator="+"])
+    (: and not a local var in shared block :)
+    and not(VariableAccess/@Name = (
+      ancestor::ForeachStatement[1] |
+      ancestor::ForStatement[1] |
+      ancestor::WhileStatement[1] |
+      ancestor::DoStatement[1]
+   )//LocalVariableDeclaration/VariableDeclarator/VariableId/@Name)
+
+]/VariableAccess[pmd-java:typeIs('java.lang.String')]
+/.. (: Go up to report on the StatementExpression :)
 	]]>
                 </value>
             </property>
@@ -211,10 +143,52 @@ public class StringStuff {
         </example>
     </rule>
 
+    <rule name="AvoidConcatInAppend"
+          language="java"
+          message="Concatenation inside append. Use extra append."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          typeResolution="true"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#isu04">
+        <description>Concatenation of Strings is used inside an StringBuilder.append argument. Problem: Each statement with one or more +-operators creates a hidden temporary StringBuilder, a char[] and a new String object, which all have to be garbage collected.&#13;
+            Solution: Use an extra fluent append instead of concatenation.
+        </description>
+        <priority>2</priority>
+        <properties>
+            <property name="tags" value="cpu,jpinpoint-rule,performance,sustainability-low" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+//(ReturnStatement|ExpressionStatement|LocalVariableDeclaration)
+[.//MethodCall[pmd-java:matchesSig('java.lang.StringBuilder#append(java.lang.String)') or pmd-java:matchesSig('java.lang.StringBuffer#append(java.lang.String)')]
+  //ArgumentList[./InfixExpression[@Operator="+"]
+     /*[pmd-java:typeIs('java.lang.String')][count(..//VariableAccess) > 0
+        and not(..//VariableAccess/@Name = ancestor::ClassBody//VariableId[@Final=true()]/@Name)]]
+]
+	]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+public class StringStuff {
+   private String bad(String arg) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("arg='" + arg + "'");
+        return sb.toString();
+   }
+
+   private String good(String arg) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("arg='").append(arg).append("'");
+        return sb.toString();
+   }
+}
+            ]]>
+        </example>
+    </rule>
+
     <rule name="LimitWildcardStaticImports"
           language="java"
           message="The number of static imports with a wildcard should be limited"
-          class="net.sourceforge.pmd.lang.rule.XPathRule"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           typeResolution="true"
           externalInfoUrl="${doc_root}/JavaCodeQuality.md#isr01">
         <description>Importing a class statically allows you to use its public static members easily: without qualifying them with the class name. Problem: if you import too many classes statically, your code can become confusing and difficult to maintain. The default maximum = 3.
@@ -222,12 +196,8 @@ public class StringStuff {
         </description>
         <priority>2</priority>
         <properties>
-            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="tag" value="pitfall" type="String" description="for-sonar"/>
-            <property name="tag" value="confusing" type="String" description="for-sonar"/>
-            <property name="tag" value="replaces-sonar-rule" type="String" description="for-sonar"/>
+            <property name="tags" value="confusing,jpinpoint-rule,pitfall,replaces-sonar-rule" type="String" description="classification"/>
             <property name="param-max" value="3" type="String" description="Maximum number of allowed static imports with wildcard"/>
-            <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
 //ImportDeclaration[@Static=true() and @ImportOnDemand=true()][position() > number($param-max)]
@@ -257,7 +227,7 @@ import static com.co.corporate.Constants.GREAT; // good
     <rule name="LetFieldsMeetSerializable"
           language="java"
           message="Fields in a Serializable class should be serializable or transient."
-          class="net.sourceforge.pmd.lang.rule.XPathRule"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           externalInfoUrl="${doc_root}/JavaCodeQuality.md#isr02">
         <description>Problem: Field in a Serializable class is not serializable nor transient. When (de)serialization happens, a RuntimeException will be thrown and (de)serialization fails.
             Solution: make the field either transient, make its class implement Serializable or interface extend Serializable.
@@ -266,26 +236,33 @@ import static com.co.corporate.Constants.GREAT; // good
         </description>
         <priority>2</priority>
         <properties>
-            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="tag" value="pitfall" type="String" description="for-sonar"/>
-            <property name="tag" value="replaces-sonar-rule" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
+            <property name="tags" value="jpinpoint-rule,pitfall,replaces-sonar-rule" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
-//ClassOrInterfaceDeclaration[ImplementsList/ClassOrInterfaceType[@Image='Serializable']
-or pmd-java:typeIs('java.io.Serializable')
-(: Throwable is the exception, except RemoteException :)
-and not(pmd-java:typeIs('java.lang.Throwable') and not(pmd-java:typeIs('java.rmi.RemoteException')))]
 (: non-transient, non-static, non-primitive fields :)
-//FieldDeclaration[@Transient=false() and @Static=false()][not(.//PrimitiveType)]
-[not(pmd-java:typeIs('java.io.Serializable'))
-(: and can be resolved :)
-and (pmd-java:typeIs('java.lang.Object'))
-(: if has type args, type args which are not serializable like List<String, Thread>):)
-and (not(exists(.//TypeArgument/ReferenceType))
-or exists(.//TypeArgument/ReferenceType[not(pmd-java:typeIs('java.io.Serializable'))
-(: and can be resolved :)
-and (pmd-java:typeIs('java.lang.Object'))]))
+//FieldDeclaration[
+     not(pmd-java:modifiers() = ('transient', 'static'))
+     and not(.//PrimitiveType)
+     and ClassType[not(pmd-java:typeIs('java.io.Serializable'))]
+     (: and can be resolved :)
+     and ClassType[pmd-java:typeIs('java.lang.Object')]
+     (: if has type args, type args which are not serializable like List<String, Thread>) :)
+     and (
+           not(exists(.//TypeArguments))
+           or exists(.//TypeArguments/ClassType[
+                                  not(pmd-java:typeIs('java.io.Serializable'))
+                                  (: and can be resolved :)
+                                  and pmd-java:typeIs('java.lang.Object')
+                              ]
+           )
+    )
+    and ancestor::ClassDeclaration[pmd-java:typeIs('java.io.Serializable')
+                       (: Throwable is the exception, except RemoteException :)
+                       and not(
+                                 pmd-java:typeIs('java.lang.Throwable')
+                                 and not(pmd-java:typeIs('java.rmi.RemoteException'))
+                           )
+                   ]
 ]
                 ]]></value>
             </property>
@@ -320,54 +297,49 @@ class Baz extends RemoteException {
     <rule name="LimitStatementsInLambdas"
           language="java"
           message="Avoid many statements in lambda expressions."
-          class="net.sourceforge.pmd.lang.rule.XPathRule"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           externalInfoUrl="${doc_root}/JavaCodeQuality.md#isr03">
         <description>Problem: lambda expressions with many statements are hard to understand and maintain.
             Solution: extract the lambda expression code block into one or more well-named separate method(s).
         </description>
         <priority>3</priority>
         <properties>
-            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="tag" value="brain-overload" type="String" description="for-sonar"/>
-            <property name="tag" value="replaces-sonar-rule" type="String" description="for-sonar"/>
+            <property name="tags" value="brain-overload,jpinpoint-rule,replaces-sonar-rule" type="String" description="classification"/>
             <property name="param-max" value="5" type="String" description="Maximum number of allowed non-setter statements"/>
-            <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
-//LambdaExpression/Block
-(: number of statements should be limited, setters are ignored. Chained methods are one statement  :)
-[(count(.//Statement) - count(.//StatementExpression/PrimaryExpression/PrimaryPrefix/Name[contains(@Image, '.set')]) > number($param-max))
-]
+(: number of statements should be limited, setters are ignored. Chained methods are one statement :)
+//LambdaExpression/Block[count(.//*[pmd-java:nodeIs('Statement')]) - count(.//EmptyStatement) - count(.//Block) - count(.//ExpressionStatement/MethodCall[starts-with(@MethodName,'set')]) > number($param-max)]
                 ]]></value>
             </property>
         </properties>
         <example>
             <![CDATA[
 class Foo {
-       void bar(List additionals) {
-            additionals.forEach(entity -> {
-                if (entity.getKNr() != null) {
-                    action.withActions(
-                            new Action().withFoId(actionFoId.incrementAndGet())
-                                    .withEntityPlanFoId(1)
-                                    .withEntity(mapLogicType(true))
-                    );
-                }
-            });
-       }
+   void bar(List additionals) {
+        additionals.forEach(entity -> {
+            if (entity.getKNr() != null) {
+                action.withActions(
+                        new Action().withFoId(actionFoId.incrementAndGet())
+                                .withEntityPlanFoId(1)
+                                .withEntity(mapLogicType(true))
+                );
+            }
+        });
+   }
 
-       void baz(List additionals) {
-            additionals.forEach(entity -> {         // bad, too many statements (5)
-                if (entity.getKNr() != null) {
-                    action.withActions(
-                            new Action().withFoId(actionFoId.incrementAndGet())
-                                    .withEntityPlanFoId(1)
-                                    .withEntity(mapLogicType(true))
-                    );
-                }
-                else { action.withActions(new Action().withFoId(0)); }
-            });
-        }
+   void baz(List additionals) {
+        additionals.forEach(entity -> {         // bad, too many statements (5)
+            if (entity.getKNr() != null) {
+                action.withActions(
+                        new Action().withFoId(actionFoId.incrementAndGet())
+                                .withEntityPlanFoId(1)
+                                .withEntity(mapLogicType(true))
+                );
+            }
+            else { action.withActions(new Action().withFoId(0)); }
+        });
+    }
 }
             ]]>
         </example>
@@ -376,7 +348,7 @@ class Foo {
     <rule name="LimitNestingInLambdas"
           language="java"
           message="Avoid deep nesting of lambdas in lambda expressions."
-          class="net.sourceforge.pmd.lang.rule.XPathRule"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           externalInfoUrl="${doc_root}/JavaCodeQuality.md#isr05">
         <description>Problem: lambda expressions with deep nesting (lambda's in lambda's) are hard to understand and maintain.
             Solution: extract the lambda expression code block(s) into one or more well-named separate method(s).
@@ -385,17 +357,14 @@ class Foo {
         </description>
         <priority>3</priority>
         <properties>
-            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="tag" value="brain-overload" type="String" description="for-sonar"/>
-            <property name="tag" value="replaces-sonar-rule" type="String" description="for-sonar"/>
+            <property name="tags" value="brain-overload,jpinpoint-rule,replaces-sonar-rule" type="String" description="classification"/>
             <property name="param-block-max" value="1" type="String" description="Maximum allowed depth of lambda-with-code-block nesting"/>
             <property name="param-single-max" value="4" type="String" description="Maximum allowed depth of lambda-single-expression nesting"/>
-            <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
 //LambdaExpression[Block][count(ancestor::LambdaExpression/Block) > number($param-block-max)]
 |
-//LambdaExpression[Expression][count(ancestor::LambdaExpression) > number($param-single-max)]
+//LambdaExpression[*[@Expression=true()]][count(ancestor::LambdaExpression) > number($param-single-max)]
                 ]]></value>
             </property>
         </properties>
@@ -427,108 +396,166 @@ class Foo {
         </example>
     </rule>
 
-    <rule name="AvoidUnusedAssignments"
-          language="java"
-          message="Avoid assignments for which the assigned value is never used."
-          class="net.sourceforge.pmd.lang.rule.XPathRule"
-          externalInfoUrl="${doc_root}/JavaCodeQuality.md#isr04">
-        <description>Problem: Assignments to variables for which the assigned value is not used because a new value is assigned before actual use, is unnecessary work and may indicate a bug.
-            Solution: remove the first assignment and make sure that is as intended.
-        </description>
-        <priority>3</priority>
-        <properties>
-            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="tag" value="unused" type="String" description="for-sonar"/>
-            <property name="tag" value="suspicious" type="String" description="for-sonar"/>
-            <property name="tag" value="replaces-sonar-rule" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
-            <property name="xpath">
-                <value><![CDATA[
-(: for each assignment node :)
-(for $node in //StatementExpression[AssignmentOperator[@Image='=']][not(ancestor::IfStatement or ancestor::TryStatement or ancestor::SwitchStatement)]/PrimaryExpression/PrimaryPrefix/Name
-(: match if for that node the next occurrence of ((assignment without use in same statement) union with (use) is an assignment to the var) :)
-return ($node[
-(: assignment without use, Name is result :)
-((ancestor::BlockStatement/following-sibling::BlockStatement//StatementExpression[AssignmentOperator[@Image='=']][not(ancestor::IfStatement or ancestor::TryStatement or ancestor::SwitchStatement)]/PrimaryExpression/PrimaryPrefix/Name[@Image=$node/@Image]
-[not(ancestor::BlockStatement//PrimaryExpression[not(../AssignmentOperator[@Image='=']) and (not(PrimarySuffix/Arguments) or PrimaryPrefix[contains(Name/@Image, '.')])]
-/PrimaryPrefix[substring-before(concat(Name/@Image, '.'), '.')=$node/@Image])]
-)[1]
-|
-(: use, PrimaryPrefix is result, so @Image is empty string :)
-(ancestor::BlockStatement/following-sibling::BlockStatement//PrimaryExpression[not(../AssignmentOperator[@Image='='] and not(PrimarySuffix/Expression)) and (not(PrimarySuffix/Arguments) or PrimaryPrefix[contains(Name/@Image, '.')])]
-/PrimaryPrefix[substring-before(concat(Name/@Image, '.'), '.')=$node/@Image])[1])
-(: first is the var name :)
-[1]/@Image = $node/@Image])
-)
-,
-(: for each local variable declaration :)
-(for $node in (//LocalVariableDeclaration/VariableDeclarator[VariableInitializer]//VariableDeclaratorId)
-(: match if for that node the next occurrence of ((assignment without use in same statement) union with (use) is an assignment to the var) :)
-return ($node[
-(: assignment without use, Name is result :)
-((ancestor::BlockStatement/following-sibling::BlockStatement//StatementExpression[AssignmentOperator[@Image='=']][not(ancestor::IfStatement or ancestor::TryStatement or ancestor::SwitchStatement)]/PrimaryExpression/PrimaryPrefix/Name[@Image=$node/@Name]
-[not(ancestor::BlockStatement//PrimaryExpression[not(../AssignmentOperator[@Image='=']) and (not(PrimarySuffix/Arguments) or PrimaryPrefix[contains(Name/@Image, '.')])]
-/PrimaryPrefix[substring-before(concat(Name/@Image, '.'), '.')=$node/@Name])]
-)[1]
-|
-(: use, PrimaryPrefix is result, so @Image is empty string :)
-(ancestor::BlockStatement/following-sibling::BlockStatement//PrimaryExpression[not(../AssignmentOperator[@Image='='] and not(PrimarySuffix/Expression)) and (not(PrimarySuffix/Arguments) or PrimaryPrefix[contains(Name/@Image, '.')])]
-/PrimaryPrefix[substring-before(concat(Name/@Image, '.'), '.')=$node/@Name])[1])
-(: first is the var name :)
-[1]/@Image = $node/@Name])
-)
-                ]]></value>
-            </property>
-        </properties>
-        <example>
-            <![CDATA[
-
-            ]]>
-        </example>
-    </rule>
-
     <rule name="AvoidForEachInStreams"
           language="java"
           message="Prefer side-effect-free functions in streams, use forEach only for logging."
-          class="net.sourceforge.pmd.lang.rule.XPathRule"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           externalInfoUrl="${doc_root}/JavaCodeQuality.md#ils01">
         <description>Problem: Streams is a paradigm based on functional programming: the result should depend only on its input and not update any state.
             Use of forEach is actually iterative code masquerading as streams code. It is typically harder to read and less maintainable than the iterative form.
-            Solution: Use the for-each (enhanced-for) loop, or the pure functional form. The forEach operation should only be used to report (i.e. log) the result of a stream computation.
+            For parallel streams, side effects are dangerous: accessing a thread-unsafe shared variable is a concurrency bug.
+            Solution: Use the for-each (enhanced-for) loop, internal iterator, or the pure functional form. The forEach operation should only be used to report (i.e. log) the result of a stream computation.
         </description>
         <priority>4</priority>
         <properties>
-            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="tag" value="bad-practice" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
+            <property name="tags" value="bad-practice,jpinpoint-rule,pitfall" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
-//StatementExpression/PrimaryExpression[(PrimaryPrefix/Name|PrimarySuffix)[ends-with(@Image, 'forEach')]]
-[not (./PrimarySuffix//MethodReference[starts-with(@Image, 'log')] or
-./PrimarySuffix//PrimaryPrefix/Name[starts-with(lower-case(@Image), 'log')] or
-./PrimarySuffix//LambdaExpression//PrimaryPrefix/Name[starts-with(@Image, 'log.')]
-)]
+(: should match java.lang.Stream#forEach(java.util.function.Consumer) but also others like java.util.stream.IntStream#forEach(java.util.function.IntConsumer) :)
+//MethodCall[pmd-java:matchesSig('java.util.stream.BaseStream#forEach(_)')]
+[ArgumentList[not(
+    .//LambdaExpression[
+        (
+            (: all expression statements in a lambda expression in a foreach should all be logging :)
+            count(.//ExpressionStatement) = count(
+                .//ExpressionStatement/MethodCall[
+                    (: supported logger libs :)
+                    VariableAccess[pmd-java:typeIs('org.slf4j.Logger')
+                    or pmd-java:typeIs('java.util.logging.Logger')
+                    or pmd-java:typeIs('org.apache.commons.logging.Log')
+                ]
+            (: Slfj4 annotation makes the log variable AmbiguousName as there is no explicit log field :)
+            or (AmbiguousName[@Name='log'] and ancestor::ClassDeclaration[pmd-java:hasAnnotation('lombok.extern.slf4j.Slf4j')])]
+            ) + count(.//ExpressionStatement/MethodCall[starts-with(@MethodName,'log')])
+        )
+        (: and not a violation when it is a method call to do logging :)
+        and not(MethodCall) or MethodCall[matches(@MethodName,'trace|debug|info|warn|error|log','i')]    ]
+    (: if a foreach has a method reference, it should be only for logging :)
+    or .//MethodReference[
+        (TypeExpression/ClassType[pmd-java:typeIs('lombok.extern.java.Log')]
+            (: supported logger libs :)
+            or VariableAccess[pmd-java:typeIs('org.slf4j.Logger')
+            or pmd-java:typeIs('java.util.logging.Logger')
+            or pmd-java:typeIs('org.apache.commons.logging.Log')]
+            (: Slfj4 annotation makes the log variable AmbiguousName as there is no explicit log field :)
+            or (AmbiguousName[@Name='log'] and ancestor::ClassDeclaration[pmd-java:hasAnnotation('lombok.extern.slf4j.Slf4j')])
+        ) or starts-with(@MethodName,'log')]
+)]]
                 ]]></value>
             </property>
         </properties>
         <example>
             <![CDATA[
-        // forEach in stream
-        map = new HashMap<>();
-        letters.forEach(l -> map.put(l, 0)); // bad, side effect, modifies map
+List<String> letters = List.of("D", "O", "G", "E");
+Map<String, String> map = new HashMap<>();
 
-        // reporting result by logging, good
-        letters.forEach(Log::info);
+// forEach in stream, bad
+letters.stream().forEach(l -> map.put(l, 0)); // bad, side effect, modifies map
 
-        // iterative form, meant for modifying state, good
-        map = new HashMap<>();
-        for (String l : letters) {
-            map.put(l, 0);
-        }
+// pure functional form, good
+map = letters.stream().collect(toMap(l -> l, v -> 0));
 
-        // pure functional form, good
-        map = letters.stream().collect(toMap(l -> l, v -> 0));
+// reporting result by logging, good
+letters.stream().forEach(Log::info);
+
+// external iterative form, meant for modifying state, good
+for (String l : letters) {
+    map.put(l, 0);
+}
+
+// internal iterator, fine for modifying state, good
+letters.forEach(l -> map.put(l, 0));
             ]]>
         </example>
     </rule>
+
+    <rule name="AvoidSideEffectsInStreams"
+          language="java"
+          message="Apply functional programming with streams, avoid side-effects."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          externalInfoUrl="${doc_root}/JavaCodeQuality.md#ils02">
+        <description>Problem: Streams is a paradigm based on functional programming: the result should depend only on its input, and the stream should not update any state: not modify any variable.
+            By the spec, everything that does not contribute to the result, may be optimized away. So, side effects are not guaranteed to be executed!
+            For parallel streams, side effects are dangerous: accessing a thread-unsafe shared variable is a concurrency bug. Accessing a (thread-safe) shared variable may cause data mix-up between the threads.
+            Solution: Use the pure functional form: return a result based just on the input; do not modify any variable.
+        </description>
+        <priority>3</priority>
+        <properties>
+            <property name="tags" value="bad-practice,data-mix-up,jpinpoint-rule,pitfall" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+(: matches java.lang.Stream and java.util.stream.IntStream like types :)
+//MethodCall[pmd-java:typeIs('java.util.stream.BaseStream')]
+(: modifying methods :)
+[ArgumentList[.//(MethodCall|MethodReference)[matches(@MethodName,"^(set|put|clear|add|remove|replace|retain)")]/VariableAccess or .//AssignmentExpression/ArrayAccess/*[1][pmd-java:nodeIs('VariableAccess')]
+]]
+                ]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+public List<String> getEndpointsInfo(String... endpoints) {
+    AtomicReference<String> currentEndpoint = new AtomicReference<>();
+    return Arrays.stream(endpoints)
+            .peek(endpoint -> currentEndpoint.set(endpoint)) // bad
+            .peek(endpoint -> log.debug(endpoint)) // peek is meant for something like this
+            .map(String::toLowerCase)
+            .map(pingInfo -> addEndpointInfo(pingInfo, currentEndpoint.get()))
+            .toList();
+}
+            ]]>
+        </example>
+    </rule>
+
+    <rule name="UnresolvedType"
+          language="java"
+          message="A type cannot be resolved. Make sure all sources are compiled and annotations processed."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          externalInfoUrl="${doc_root}/JavaCodeQuality.md#M04">
+        <description>Problem: When analyzing code, PMD could not resolve a used type (class, annotation or other type). Several rules make use of type information and assume it is available. If not, those rules typically fail to work correctly and will for instance show false positives.
+            Solution: Make sure all types can be resolved: compile all source code, process all annotations (like lombok), compile generated code, make all dependencies available on the classpath, etc. Note: this rule is still somewhat experimental and may show false positives.
+        </description>
+        <priority>5</priority>
+        <properties>
+            <property name="tags" value="confusing,jpinpoint-rule" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+(: variable access for unknown variable type :)
+(//VariableAccess
+[not(pmd-java:typeIs('java.lang.Object'))]
+[not(pmd-java:typeIs('byte'))][not(pmd-java:typeIs('short'))]
+[not(pmd-java:typeIs('int'))][not(pmd-java:typeIs('long'))]
+[not(pmd-java:typeIs('float'))][not(pmd-java:typeIs('double'))]
+[not(pmd-java:typeIs('boolean'))][not(pmd-java:typeIs('char'))]
+(: pmd seems not (always) able to resolve type of lambda params :)
+[not(@Name = ancestor::LambdaExpression//LambdaParameter/VariableId/@Name)]
+(: pmd seems not able to resolve record fields :)
+[not(@Name = ancestor::RecordDeclaration/RecordBody/FieldDeclaration/VariableDeclarator/VariableId/@Name)]
+|
+(: the unresolved/ambiguous type names, except @Slf4j which pmd cannot resolve :)
+//AmbiguousName)
+[not(@Name='log' and
+    ((ancestor::ClassDeclaration|ancestor::EnumDeclaration|ancestor::RecordDeclaration)/ModifierList/Annotation[pmd-java:typeIs('lombok.extern.slf4j.Slf4j')]))]
+
+                ]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+public class FooBad {
+    OutputStream bad(Path path) throws IOException {
+        return Files.newOutputStream(path); // bad - 'Files' and 'path' unknown types
+    }
+}
+
+import java.nio.file.*;
+public class FooGood {
+    OutputStream good(Path path) throws IOException {
+        return Files.newOutputStream(path); // good - 'Files' and 'path' types known because of import, and bytecode on classpath
+    }
+}
+            ]]>
+        </example>
+    </rule>
+
 </ruleset>

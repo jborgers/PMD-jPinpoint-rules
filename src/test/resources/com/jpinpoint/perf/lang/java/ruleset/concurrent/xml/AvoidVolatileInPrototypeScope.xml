@@ -15,19 +15,19 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Component
 public class Bad1 {
-    private volatile String id;
+    private volatile String id; // bad
 }
 
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Component
 class Bad2 {
-    private volatile String id;
+    private volatile String id; // bad
 }
 
 @Scope("prototype")
 @Component
 class Bad3 {
-    private volatile String id;
+    private volatile String id; // bad
 }
 
 @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)

@@ -1,0 +1,472 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ruleset name="jpinpoint-remoting-rules" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 https://pmd.sourceforge.io/ruleset_2_0_0.xsd" xmlns="http://pmd.sourceforge.net/ruleset/2.0.0">
+    <description>jPinpoint rule set for performance aware Kotlin coding, sponsored by Rabobank.</description>
+
+    <rule name="AvoidInMemoryStreamingDefaultConstructor"
+          since="7.0"
+          language="kotlin"
+          message="The default capacity or smaller is used for ByteArrayOutputStream or StringWriter, it usually needs expensive expansions."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          typeResolution="true"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#isio01">
+        <description>
+            The default constructor of ByteArrayOutputStream creates a 32 bytes initial capacity and for StringWriter 16 chars. Problem: Such a small buffer as capacity usually needs several expensive expansions.&#13;
+            Solution: Presize the ByteArrayOutputStream or StringWriter with an initial capacity such that an expansion is not needed in most cases, typically much larger than 32, for instance 4096.
+            (jpinpoint-rules)
+        </description>
+        <priority>2</priority>
+        <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <property name="xpath">
+                <value><![CDATA[
+//ImportHeader[.//T-Identifier[@Text='java'] and .//T-Identifier[@Text='io']][1]/ancestor::KotlinFile
+//Expression//T-Identifier[(@Text='ByteArrayOutputStream' and ../../../
+PostfixUnarySuffix//ValueArguments[not(ValueArgument) or ValueArgument//T-IntegerLiteral[number(@Text)<=32]])
+or (@Text='StringWriter' and ../../../
+PostfixUnarySuffix//ValueArguments[not(ValueArgument) or ValueArgument//T-IntegerLiteral[number(@Text)<=16]])]
+]]>
+                </value>
+            </property>
+        </properties>
+        <example><![CDATA[
+import java.io.ByteArrayOutputStream
+import java.io.StringWriter
+
+class AvoidInMemoryStreamingDefaultConstructor {
+    fun bad() {
+        var baos = ByteArrayOutputStream() //bad
+        val sw = StringWriter() //bad
+        baos = ByteArrayOutputStream(32) //bad - not larger than default
+    }
+    fun good() {
+        val baos = ByteArrayOutputStream(8192) // 8 kiB
+        val sw = StringWriter(2048)
+    }
+}
+]]>
+        </example>
+    </rule>
+
+    <rule name="AvoidStringBuffer" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          since="7.0"
+          language="kotlin"
+          message="StringBuffer is used. It introduces locking overhead, use StringBuilder."
+          typeResolution="true"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#isu01" >
+        <description>Problem: StringBuffer introduces locking overhead because it is thread safe. Its thread-safety is rarely needed.&#13;
+            Solution: Replace StringBuffer by StringBuilder.  (jpinpoint-rules)</description>
+        <priority>3</priority>
+        <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <property name="xpath">
+                <value><![CDATA[
+//VariableDeclaration/Type//T-Identifier[@Text='StringBuffer'],
+//Declaration//PrimaryExpression//T-Identifier[@Text='StringBuffer']
+]]>
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+class AvoidStringBuffer {
+    var fieldSb: StringBuffer? = null // bad
+    fun bad() {
+        val sb = StringBuffer() // bad
+    }
+    fun good() {
+        val sb = StringBuilder()
+    }
+]]>
+        </example>
+    </rule>
+    <rule name="AvoidDecimalAndChoiceFormatAsField"
+          since="7.0"
+          language="kotlin"
+          message="Avoid using NumberFormat, DecimalFormat or ChoiceFormat as field since it is thread-unsafe."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          typeResolution="true"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#isio01">
+        <description>
+            Problem: java.text.DecimalFormat and java.text.ChoiceFormat are thread-unsafe.
+            Solution: usual solution is to create a new local one when needed in a method.
+            (jpinpoint-rules)
+        </description>
+        <priority>1</priority>
+        <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <property name="xpath">
+                <value><![CDATA[
+(: check if at least one java.text imports exists as filter for same named classes in other packages :)
+//ImportHeader[.//T-Identifier[@Text='java'] and .//T-Identifier[@Text='text']][1]/ancestor::KotlinFile
+(: PrimaryExpression finds the constructors instead of type declarations :)
+(: filter matches in functions :)
+//ClassDeclaration//PrimaryExpression//SimpleIdentifier//T-Identifier[
+ (@Text="DecimalFormat" or @Text="ChoiceFormat")
+ and not(ancestor::FunctionBody)
+]
+]]>
+                </value>
+            </property>
+        </properties>
+        <example><![CDATA[
+class Foo {
+
+    companion object {
+        val NUMBER_FORMAT: DecimalFormat = DecimalFormat("###.###") // bad
+    }
+
+    private val numFormat: NumberFormat = DecimalFormat("###.###") //bad
+
+    private val limits = doubleArrayOf(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0)
+    private val dayOfWeekNames = arrayOf("Sun", "Mon", "Tue", "Wed", "Thur", "Fri", "Sat")
+    private val form = ChoiceFormat(limits, dayOfWeekNames) // bad
+
+    fun shouldNotMatchInsideMethod() {
+        val format: NumberFormat = DecimalFormat("##.##")
+        val choiceFormat = ChoiceFormat(limits, dayOfWeekNames)
+    }
+}
+]]>
+        </example>
+    </rule>
+
+    <rule name="AvoidRecompilingPatterns"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          dfa="false"
+          language="kotlin"
+          message="Pattern.compile is used in a method. Compiling a regex pattern can be expensive, make it a constant or instance field."
+          typeResolution="true"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ireu02">
+        <description>A regular expression is compiled on every invocation. Problem: this can be expensive, depending on the length of the regular expression.&#13;
+            Solution: Usually a pattern is a literal, not dynamic and can be compiled only once. Assign it to a private constant or instance field.
+            java.util.Pattern objects are thread-safe so they can be shared among threads. (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <property name="xpath">
+                <value><![CDATA[
+(: check if java.util.regex imports exists as filter for same named classes in other packages :)
+//ImportHeader[.//T-Identifier[@Text='java'] and .//T-Identifier[@Text='util'] and .//T-Identifier[@Text='regex']][1]/ancestor::KotlinFile
+
+//FunctionBody//T-Identifier[@Text='Pattern' and ../../../PostfixUnarySuffix//T-Identifier[@Text='compile']
+    (: check for variables $action or ${action} in String of compile() call (first in possible call chain): allow dynamic input :)
+    and not(((../../..//ValueArgument)[1]//PostfixUnaryExpression//T-Identifier|(../../..//ValueArgument)[1]//T-LineStrRef)[
+       @Text=ancestor::FunctionDeclaration//FunctionValueParameter/Parameter/SimpleIdentifier/T-Identifier/@Text
+       or @Text=concat('$', ancestor::FunctionDeclaration//FunctionValueParameter/Parameter/SimpleIdentifier/T-Identifier/@Text)])
+]
+]]>
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+import java.util.regex.Pattern
+
+internal object Bad {
+    const val STR_PAT1: String = "[A-Z][a-z]+"
+
+    fun bad() {
+        val p1: Pattern = Pattern.compile(STR_PAT1) // bad
+        val p2: Pattern = Pattern.compile("(?=\\p{Lu})") // bad
+        val b: Boolean = p1.matcher("Start ").matches()
+    }
+}
+
+internal object Good {
+    val PAT1: Pattern = Pattern.compile("[A-Z][a-z]+")
+    val PAT2: Pattern = Pattern.compile("(?=\\p{Lu})")
+
+    fun good() {
+        val b: Boolean = PAT1.matcher("Start ").matches()
+    }
+}
+            ]]>
+        </example>
+    </rule>
+
+    <rule name="AvoidRecompilingXPathExpression" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          language="kotlin"
+          message="XPathExpression is created and compiled every time. Beware it is thread-unsafe."
+          typeResolution="true"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ux02">
+        <description>XPathExpression is created and compiled on every method call, compiled possibly implicitly by XPath::evaluate.
+            Problem: Creation of XPath and compilation of XPathExpression takes time. It may slow down your application. &#13;
+            Solution: 1. Avoid XPath usage. 2. Compile the xpath expression as String into a XPathExpression. However, since XPath and XPathExpression classes are thread-unsafe, they are not easily cached. Caching it in a ThreadLocal may be a solution.
+            (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <property name="xpath">
+                <value><![CDATA[
+//ImportHeader[.//T-Identifier[@Text='javax'] and .//T-Identifier[@Text='xml'] and .//T-Identifier[@Text='xpath']]/ancestor::KotlinFile
+//FunctionBody//T-Identifier[@Text='newXPath']
+/ancestor::FunctionBody//T-Identifier[@Text='compile'
+or (@Text='evaluate' and ancestor::PostfixUnarySuffix/..//ValueArguments[count(./ValueArgument) = 3])]
+(: note on limitation, the 2-argument version is not found, difficult to do the typeIs checking like in Java :)
+]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+import org.w3c.dom.Document
+import org.w3c.dom.NodeList
+import javax.xml.xpath.*
+
+class AvoidRecompilingXPathExpressionKotlin {
+    fun bad1(doc: Document?): NodeList {
+        val xpath: XPath = XPathFactory.newInstance().newXPath()
+        val expr: XPathExpression = xpath.compile("//book[author='Isaac Asimov']/title/text()") // bad
+        return expr.evaluate(doc, XPathConstants.NODESET) as NodeList
+    }
+
+    @Throws(XPathExpressionException::class)
+    fun bad2(doc: Document?): NodeList {
+        val xpath: XPath = XPathFactory.newInstance().newXPath()
+        val xPathQuery = "//book[author='Isaac Asimov']/title/text()"
+        return xpath.evaluate(xPathQuery, doc, XPathConstants.NODESET) as NodeList // bad
+    }
+}
+
+object GoodAvoidRecompilingXPathExpressionKt {
+    private val tlFac = ThreadLocal.withInitial { XPathFactory.newInstance() }
+    private val tlExpr: ThreadLocal<XPathExpression>
+
+    init {
+        val xpath = tlFac.get().newXPath()
+        val expr: XPathExpression = try {
+            xpath.compile("//book[author='Isaac Asimov']/title/text()")
+        } catch (e: XPathExpressionException) {
+            throw RuntimeException(e)
+        }
+        tlExpr = ThreadLocal.withInitial { expr } // good
+    }
+
+    @Throws(XPathExpressionException::class)
+    fun good(doc: Document?): NodeList {
+        return tlExpr!!.get().evaluate(doc, XPathConstants.NODESET) as NodeList // good
+    }
+}
+            ]]>
+        </example>
+    </rule>
+
+    <rule name="AvoidSimpleDateFormat"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          dfa="false"
+          language="kotlin"
+          message="SimpleDateFormat is used. Since it is thread-unsafe, it needs expensive recreation."
+          typeResolution="true"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#idtf01">
+        <description>Problem: java.util.SimpleDateFormat is thread-unsafe. The usual solution is to create a new one when needed in a method. Creating SimpleDateFormat is relatively expensive. &#13;
+            Solution: Use java.time.DateTimeFormatter. These classes are immutable, thus thread-safe and can be made static.
+            (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <property name="xpath">
+                <value><![CDATA[
+(: check if java.text imports exists as filter for same named classes in other packages :)
+//ImportHeader[.//T-Identifier[@Text='java'] and .//T-Identifier[@Text='text']][1]/../..
+
+(: if used in setDateFormat function, allow if jackson ObjectMapper or XmlMapper is used :)
+//ClassMemberDeclaration//SimpleIdentifier//T-Identifier[(@Text="SimpleDateFormat")
+  and not (ancestor::ClassMemberDeclaration//T-Identifier[@Text="setDateFormat"]
+              and //ImportHeader[.//T-Identifier[@Text='fasterxml'] and .//T-Identifier[@Text='jackson']]
+          )
+]
+                ]]></value>
+            </property>
+        </properties>
+        <example><![CDATA[
+import java.text.SimpleDateFormat
+import java.util.*
+
+class Foo {
+    private fun toKey(calcDate: Date): String {
+        val formatter = SimpleDateFormat("yyyy-MM-dd") //bad
+        return formatter.format(calcDate)
+    }
+}
+]]>
+        </example>
+    </rule>
+
+    <rule name="AvoidMultipleConcatStatements" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="kotlin" message="Multiple statements concatenate to the same String. Use StringBuilder append." typeResolution="true"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#isu02">
+        <description>Multiple statements concatenate to the same String. Problem: Each statement with one or more +-operators creates a hidden temporary StringBuilder, a char[] and a new String object, which all have to be garbage collected.&#13;
+            Solution: Use StringBuilder.append.
+            (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <property name="xpath">
+                <value><![CDATA[
+//FunctionBody[count(.//Assignment[.//(AssignmentAndOperator/T-ADD_ASSIGNMENT|AdditiveOperator/T-ADD)]/(AssignableExpression|DirectlyAssignableExpression)//T-Identifier[@Text=
+(: property a string literal :)
+ancestor::FunctionBody//PropertyDeclaration[(
+    Expression[not(.//Expression)]//StringLiteral or
+    (: or explicit type String:)
+    VariableDeclaration/Type//T-Identifier[@Text='String'] or
+    (: or assigned parameter of type String :)
+    Expression[.//T-Identifier[@Text = ancestor::FunctionDeclaration/FunctionValueParameters/FunctionValueParameter[Parameter/Type//T-Identifier[@Text='String']]//T-Identifier/@Text]] or
+    (: or assigned non-nested function of explicit type String :) (: known issue: ignores parameters, may give false positives with overloaded methods :)
+    Expression[.//T-Identifier[not(ancestor::CallSuffix)][@Text = ancestor::ClassMemberDeclarations//FunctionDeclaration[Type//T-Identifier[@Text='String']]//T-Identifier/@Text]]
+)]
+/VariableDeclaration//T-Identifier/@Text]) > 1]
+//Statement[Assignment//(T-ADD_ASSIGNMENT|T-ADD)][position()=last()]
+
+	]]></value>
+            </property>
+        </properties>
+        <example>
+
+        </example>
+    </rule>
+
+    <rule name="AvoidWideScopeXPathExpression"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          dfa="false"
+          language="kotlin"
+          message="XPathExpression targets a wide scope, this is potentially slow."
+          typeResolution="true"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ux01">
+        <description>The XPathExpression targets a wide scope since it starts with '//'. Problem: XPath has to search in a wide scope for occurrences, this may take a while. &#13;
+            Solution: 1. Avoid XPath usage. 2. Make the scope as narrow as possible, do not start with '//'.
+            (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <property name="xpath">
+                <value><![CDATA[
+(: check if javax.xml.xpath imports exists as filter for same named classes in other packages :)
+//ImportHeader[.//T-Identifier[@Text='javax'] and .//T-Identifier[@Text='xml'] and .//T-Identifier[@Text='xpath']][1]/../..
+
+(: if 'compile' method exists with one parameter of String literal with first chars '//' :)
+//ClassMemberDeclaration//SimpleIdentifier//T-Identifier[(@Text="compile")
+  and ancestor::Expression//ValueArguments[count(./ValueArgument) = 1]/ValueArgument//PrimaryExpression/StringLiteral//T-LineStrText[starts-with(@Text, '//')]
+]
+	]]></value>
+            </property>
+        </properties>
+        <example><![CDATA[
+import org.w3c.dom.Node
+import javax.xml.xpath.XPath
+import javax.xml.xpath.XPathFactory
+
+class Foo {
+
+    var xpath: XPath = XPathFactory.newInstance().newXPath()
+
+    fun parseSomething(books: Node) {
+        val expr = xpath
+            .compile("//book[author='Isaac Asimov']/title/text()") // bad
+        val result = expr.evaluate(books)
+    }
+}
+]]>
+        </example>
+    </rule>
+    <rule name="AvoidRecreatingDateTimeFormatter"
+          message="Avoid recreating DateTimeFormatter, it is relatively expensive."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="kotlin"
+          typeResolution="true" externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#idtf02">
+        <description>
+            Problem: Recreating a DateTimeFormatter is relatively expensive.&#13;
+            Solution: org.joda.time.format.DateTimeFormatter or Java 8 java.time.DateTimeFormatter is thread-safe and can be shared among threads. Create the
+            formatter from a pattern only once, to initialize a constant or instance field.
+            (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <property name="xpath">
+                <value>
+                    <![CDATA[
+(: check if java.time.format or org.joda.time.format imports exists as filter for same named classes in other packages :)
+//ImportHeader[
+    (.//T-Identifier[@Text='org'] and .//T-Identifier[@Text='joda'] and .//T-Identifier[@Text='time'] and .//T-Identifier[@Text='format'])
+    or (.//T-Identifier[@Text='java'] and .//T-Identifier[@Text='time'] and .//T-Identifier[@Text='format'])
+  ][1]/ancestor::KotlinFile
+
+/TopLevelObject//Expression//T-Identifier[
+    (@Text='DateTimeFormatter' or @Text='DateTimeFormat' or @Text='DateTimeFormatterBuilder' or @Text='ISODateTimeFormat')
+     (: val is "final" and is allowed in CompanionObject :)
+     and (not(ancestor::PropertyDeclaration/T-VAL) or (ancestor::PropertyDeclaration/T-VAL and not(ancestor::CompanionObject)))
+     (: do not match explicit type declarations :)
+     and not(ancestor::TypeReference)
+     (: variable params are allowed, e.g. when it is an incoming function param :)
+     and not(ancestor::PrefixUnaryExpression//ValueArgument[.//T-Identifier[@Text = ancestor::FunctionDeclaration/FunctionValueParameters/FunctionValueParameter/Parameter/SimpleIdentifier/T-Identifier/@Text]])
+     (: variable class params are allowed in val fields :)
+     and (not(ancestor::PropertyDeclaration/T-VAL) or not(ancestor::PrefixUnaryExpression//ValueArgument[.//T-Identifier[@Text = ancestor::ClassDeclaration//ClassParameters/ClassParameter/SimpleIdentifier/T-Identifier/@Text]]))
+]
+|
+(: java.time.format.DateTimeFormatter variable params are allowed in field init in constructors if val :)
+//ImportHeader[
+    .//T-Identifier[@Text='java'] and .//T-Identifier[@Text='time'] and .//T-Identifier[@Text='format']
+  ][1]/ancestor::KotlinFile
+
+/TopLevelObject//Expression//T-Identifier[
+    @Text='DateTimeFormatter'
+     (: check if variable function params in init constructor with two params :)
+     and ancestor::PostfixUnaryExpression/PostfixUnarySuffix//ValueArguments[
+           count(ValueArgument) = 2
+           and count(./ValueArgument//T-Identifier[@Text = ancestor::FunctionDeclaration/FunctionValueParameters/FunctionValueParameter/Parameter/SimpleIdentifier/T-Identifier/@Text]) = 2
+           (: check if variable is a var :)
+           and ancestor::Statement/Assignment//T-Identifier[@Text = ancestor::ClassBody//VariableDeclaration//T-Identifier[ancestor::PropertyDeclaration/T-VAR]/@Text]
+     ]
+]
+]]>
+                </value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="AvoidXPathAPIUsage"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          dfa="false"
+          language="kotlin"
+          message="XPathAPI is used. XPathAPI implementation has bad performance."
+          typeResolution="true"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ux01">
+        <description>XPathAPI is used. Problem: XPathAPI implementation is slow.&#13;
+            Solution: 1. try to avoid using XPathAPI. 2. improve performance by using jvm parameters and possibly CachedXPathAPI.
+            (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <!--property name="tag" value="performance" type="String" description="for-sonar"/-->
+            <property name="xpath">
+                <value><![CDATA[
+//ImportHeader[.//T-Identifier[@Text='org'] and .//T-Identifier[@Text='apache'] and .//T-Identifier[@Text='xpath']][1]/ancestor::KotlinFile
+//ClassBody//SimpleIdentifier/T-Identifier[@Text='XPathAPI']
+	]]></value>
+            </property>
+        </properties>
+        <example><![CDATA[
+import org.w3c.dom.Node
+import org.apache.xpath.XPathAPI
+import org.apache.xpath.CachedXPathAPI
+
+class FooBad {
+    fun getAction(doc: Node?): String? {
+        return try {
+            XPathAPI.eval(doc, "/Envelope/Header/Action").toString() // bad
+        } catch (e: TransformerException) {
+            null
+        }
+    }
+}
+
+class FooGood {
+    fun getAction(doc: Node?): String? {
+        return try {
+            CachedXPathAPI.eval(doc, "/Envelope/Header/Action").toString()
+        } catch (e: TransformerException) {
+            null
+        }
+    }
+}
+]]>
+        </example>
+    </rule>
+
+</ruleset>

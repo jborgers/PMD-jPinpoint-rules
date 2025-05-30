@@ -10,14 +10,14 @@
         <code><![CDATA[
 class Bad1 { // equalsIgnoreCase
     String field1;
-    String field2; //bad
+    String field2;
 
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Bad1 that = (Bad1) o;
         if (field1 != null ? !field1.equals(that.field1) : that.field1 != null) return false;
-        return field2 != null ? field2.equalsIgnoreCase(that.field2) : that.field2 == null; // ignore case
+        return field2 != null ? field2.equalsIgnoreCase(that.field2) : that.field2 == null; // ignore case, bad
     }
     public int hashCode() {
         int result = field1 != null ? field1.hashCode() : 0;
@@ -50,14 +50,14 @@ class Good {
         <code><![CDATA[
 class Bad2 {
     String field1;
-    String field2;// bad
+    String field2;
 
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Bad2 that = (Bad2) o;
         return Objects.equals(field1, that.field1) &&
-                Objects.equals((field2.toLowerCase()), that.field2.toLowerCase()); //bad
+                Objects.equals((field2.toLowerCase()), that.field2.toLowerCase()); //bad 2x
     }
     public int hashCode() {
         return Objects.hash(field1, field2);
@@ -79,8 +79,8 @@ class Bad2 {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Bad1 that = (Bad1) o;
-        return Objects.equals(field1.toUpperCase(), that.field1.toUpperCase()) && // bad
-                Objects.equals((field2.toLowerCase()), that.field2.toLowerCase()); // bad
+        return Objects.equals(field1.toUpperCase(), that.field1.toUpperCase()) && // bad 2x
+                Objects.equals((field2.toLowerCase()), that.field2.toLowerCase()); // bad 2x
     }
     public int hashCode() {
         return Objects.hash(field1, field2);
@@ -95,7 +95,7 @@ class Bad2 {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Bad2 that = (Bad2) o;
-        return Objects.equals(field1.toUpperCase(), that.field1.toUpperCase()) && // bad
+        return Objects.equals(field1.toUpperCase(), that.field1.toUpperCase()) && // bad 2x
                 Objects.equals((field2.toLowerCase()), that.field2.toLowerCase());
     }
     public int hashCode() {

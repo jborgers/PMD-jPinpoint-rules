@@ -4,17 +4,16 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
     <test-code>
-        <description>violati
-            on: NonComparableMapKeys</description>
-        <expected-problems>5</expected-problems>
-        <expected-linenumbers>5,9,10,11,16</expected-linenumbers>
+        <description>violation: NonComparableMapKeys</description>
+        <expected-problems>6</expected-problems>
+        <expected-linenumbers>4,5,9,10,11,16</expected-linenumbers>
         <code><![CDATA[
 import java.util.*;
 
 public class NonComparableMapKeys {
-    Map<NonComparableKey, String> nckMap; // (bad), however not able to test here, not available from classpath, so typeIs does not work
+    Map<NonComparableKey, String> nckMap; // bad, with pmd7 we are able to test this, nice!
     Map<Runnable, String> rMap; // bad
-    Map<ComparableKey, String> ckMap; // good. Not available from classpath, type cannot be determined, then no violation
+    Map<ComparableKey, String> ckMap; // good.
     Map<Comparable, String> cMap; // good
     Map<String, String> sMap = new HashMap<>(); // good
     HashMap<Object, String> oMap; // bad, Object does not implement Comparable
@@ -28,10 +27,65 @@ public class NonComparableMapKeys {
     }
 }
 
-class NonComparableKey { // will not be available in classpath, unfortunately
+class NonComparableKey {
 }
 
 abstract class ComparableKey implements Comparable<ComparableKey> {
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>violation: NonComparableMapKeys Issue #421</description>
+        <expected-problems>0</expected-problems>
+
+        <code><![CDATA[
+import java.util.HashMap;
+import java.util.Map;
+
+public final class Issue421 {
+    final int key = 3;
+    void foo() {
+        Map<Integer, Integer> map = new HashMap<>();
+        map.put(1,2); // <--- false positive
+        map.put(key, 4); // <--- false positive
+    }
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>false positive: NonComparableMapKeys Issue #470</description>
+        <expected-problems>0</expected-problems>
+
+        <code><![CDATA[
+import java.util.NavigableMap;
+import java.util.TreeMap;
+
+public class Issue470 {
+    private static final NavigableMap<Class, String> MAP = new TreeMap<>(Comparator.comparing(Class::getName)); // <--- false positive
+
+    public void foo() {
+            MAP.put(String.class, "String class"); // <--- false positive
+    }
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>no violation: prevent false positives in NonComparableMapKeys and NonComparableSetElements #568</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import java.util.*;
+
+public class NonComparableMapKeys {
+    Map<NonComparableKey, String> nckMap; // <-- false positive, cannot be resolved, assume Comparable
+    Map<ComparableKey, String> ckMap; // <-- false positive, cannot be resolved, assume Comparable
+    Map oldStyleMap = new HashMap(); // cannot check here
+
+    void putInOldStyleMap() {
+        oldStyleMap.put(new SomeUnresolvedClass(), "val"); // <-- false positive, cannot be resolved, assume Comparable
+    }
 }
      ]]></code>
     </test-code>

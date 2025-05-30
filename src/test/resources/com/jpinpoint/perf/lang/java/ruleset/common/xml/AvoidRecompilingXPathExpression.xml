@@ -6,32 +6,22 @@
     <test-code>
         <description>Avoid recompilation of xpath expressions</description>
         <expected-problems>1</expected-problems>
-        <expected-linenumbers>31</expected-linenumbers>
+        <expected-linenumbers>21</expected-linenumbers>
         <code><![CDATA[
-package com.jpinpoint.perf.pinpointrules;
-
 import org.apache.xpath.XPathAPI;
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
+import org.w3c.dom.*;
 import org.xml.sax.SAXException;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.*;
 import javax.xml.transform.TransformerException;
 import javax.xml.xpath.*;
 import java.io.IOException;
-//import org.apache.commons.jxpath.*;
-
 
 public class XPathUsageTest {
 
 	public static void main(String[] args) throws ParserConfigurationException,
 			SAXException, IOException, XPathExpressionException {
 
-		DocumentBuilderFactory domFactory = DocumentBuilderFactory
-				.newInstance();
+		DocumentBuilderFactory domFactory = DocumentBuilderFactory.newInstance();
 		domFactory.setNamespaceAware(true); // never forget this!
 		DocumentBuilder builder = domFactory.newDocumentBuilder();
 		Document doc = builder.parse("books.xml");
@@ -78,12 +68,14 @@ class MyCompiler {
     </test-code>
 
     <test-code>
-        <description>no violation: Avoid recompiling xpath expression, bad and good example compile</description>
+        <description>one violation: Avoid recompiling xpath expression, bad and good example compile</description>
         <expected-problems>1</expected-problems>
-        <expected-linenumbers>6</expected-linenumbers>
+        <expected-linenumbers>8</expected-linenumbers>
         <code><![CDATA[
+import org.w3c.dom.*;
+import javax.xml.xpath.*;
+import javax.xml.namespace.QName;
     class Bad {
-
         public static NodeList bad(Document doc) {
             XPathFactory factory = XPathFactory.newInstance();
             XPath xpath = factory.newXPath();
@@ -109,11 +101,12 @@ class MyCompiler {
     <test-code>
         <description>violation: Avoid recompiling xpath expression, evaluate on XPath with implicit compile</description>
         <expected-problems>1</expected-problems>
-        <expected-linenumbers>9</expected-linenumbers>
+        <expected-linenumbers>10</expected-linenumbers>
         <code><![CDATA[
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 import javax.xml.xpath.*;
+import javax.xml.namespace.QName;
 
     class Bad2 {
         public static NodeList bad2(Document doc) throws XPathExpressionException {

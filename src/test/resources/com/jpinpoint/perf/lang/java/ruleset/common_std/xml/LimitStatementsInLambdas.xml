@@ -5,8 +5,8 @@
         xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
     <test-code>
         <description>violations in LimitStatementsInLambdas</description>
-        <expected-problems>2</expected-problems>
-        <expected-linenumbers>35, 84</expected-linenumbers>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>84</expected-linenumbers>
         <code><![CDATA[
 import java.lang.*;
 import java.util.*;
@@ -41,10 +41,10 @@ class Foo {
                 }
             });
         }
-       void bar3(List additionals, Object y) {
-            additionals.forEach(entity -> { // bad, too many statements (6)
-                if (entity.getKNr() != null) {
-                    action.withActions(
+        void bar3(List additionals, Object y) {
+            additionals.forEach(entity -> { // good, not too many statements (4)
+                if (entity.getKNr() != null) { // stmt1
+                    action.withActions( // stmt2
                             new Action()
                                     .withFoId(actionFoId.incrementAndGet())
                                     .withEntityPlanFoId(1)
@@ -53,12 +53,12 @@ class Foo {
                     );
                 }
                 else {
-                    action.withActions(
+                    action.withActions( // stmt3
                             new Action()
                                     .withFoId(0)
                     );
                 }
-                entity.doStuff();
+                entity.doStuff(); // stmt4
             });
         }
 
@@ -125,6 +125,31 @@ class Foo {
     }
 }
      ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>No violations: false positives with LimitStatementsInLambda #532
+        </description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+class Foo {
+    public Flux<Result> getBalances(final BalanceList request) throws BalanceException {
+        return Flux.deferContextual(ctx -> {
+            try { // stmt1 // <- false positive
+                return webClient.post() // stmt2
+                        .uri(ovConfigProperties.getUrl())
+                        .body(BodyInserters.fromValue(request))
+                        .headers(h -> h.addAll(ovHttpHeaders))
+                        .retrieve()
+                        .bodyToFlux(Result.class);
+            } catch(BalanceException e){
+                log.error("Exception in OV Rest call {}", e); // stmt3
+                return Flux.empty(); // stmt4
+            }
+        });
+    }
+}
+            ]]></code>
     </test-code>
 
 

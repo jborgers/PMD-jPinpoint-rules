@@ -19,7 +19,7 @@ public class RulesetMerger {
     private static final String LSEP = System.lineSeparator();
     public static final String J_PINPOINT = "jPinpoint";
 
-    public static final String JPINPOINT_RULES = "jpinpoint-rules";
+    public static final String JPINPOINT_JAVA_RULES = "jpinpoint-java-rules";
 
     public static final String JPINPOINT_KOTLIN_RULES = "jpinpoint-kotlin-rules";
 
@@ -48,7 +48,7 @@ public class RulesetMerger {
 
     static {
         Map<Language, String> map = new EnumMap<>(Language.class);
-        map.put(Language.JAVA, JPINPOINT_RULES);
+        map.put(Language.JAVA, JPINPOINT_JAVA_RULES);
         map.put(Language.KOTLIN, JPINPOINT_KOTLIN_RULES);
         RESULT_COMPANY_RULES_NAMES = Collections.unmodifiableMap(map);
         // same for now, can also be different?
@@ -56,7 +56,7 @@ public class RulesetMerger {
     }
 
     private static final String PATH_TO_CAT_RULES = "src/main/resources/category/%s/";
-    private static final String COMPANY_DOC_ROOT = "https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs";
+    private static final String COMPANY_DOC_ROOT = "https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs";
     private static final boolean IS_ADD_TAG_TO_DESCRIPTION_AND_DOC = true;
 
     // constants unlikely to have to change
@@ -69,7 +69,7 @@ public class RulesetMerger {
             "         xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" %n" +
             "         xsi:schemaLocation=\"http://pmd.sourceforge.net/ruleset/2.0.0 http://pmd.sourceforge.net/ruleset_2_0_0.xsd\"> ";
     private static final String MERGED_WITH_TEMPLATE = "merged with the %s ";
-    private static final String RESULT_DESC_LINE_TEMPLATE = "<description>%n         %s specific rules %sfor performance aware %s coding, sponsored by Rabobank.%n</description>";
+    private static final String RESULT_DESC_LINE_TEMPLATE = "<description>%n         %s rules %sfor responsible %s coding, sponsored by Rabobank. Uses PMD-7.%n</description>";
     private static final String BEGIN_INCLUDED_FILE_COMMENT_TEMPLATE = "<!-- BEGIN Included file '%s' -->";
     private static final String END_INCLUDED_FILE_COMMENT_TEMPLATE = "<!-- END Included file '%s' -->";
     private static final String DESCRIPTION_END_TAG_PATTERN = DESCRIPTION_END_TAG.replace('<','.').replace('>', '.');
@@ -84,7 +84,7 @@ public class RulesetMerger {
 
         // validity check: also another RulesetMerger code base with different constant values exists
         if (COMPANY_SPECIFIC.equals(J_PINPOINT) &&
-                (RESULT_COMPANY_RULES_NAMES.get(Language.JAVA).equals(JPINPOINT_RULES) && RESULT_ALL_RULES_NAMES.get(Language.JAVA).equals(JPINPOINT_RULES)) ||
+                (RESULT_COMPANY_RULES_NAMES.get(Language.JAVA).equals(JPINPOINT_JAVA_RULES) && RESULT_ALL_RULES_NAMES.get(Language.JAVA).equals(JPINPOINT_JAVA_RULES)) ||
                 (RESULT_COMPANY_RULES_NAMES.get(Language.KOTLIN).equals(JPINPOINT_KOTLIN_RULES) && RESULT_ALL_RULES_NAMES.get(Language.KOTLIN).equals(JPINPOINT_KOTLIN_RULES))
         ) {
             // valid, merge only in jpinpoint-rules.xml or jpinpoint-kotlin-rules.xml
@@ -176,7 +176,7 @@ public class RulesetMerger {
                 mergeFileIntoLines(new File(ourProjectRulesDir, eachFileName), mergedFileLines);
             }
             if (IS_ADD_TAG_TO_DESCRIPTION_AND_DOC) {
-                mergedFileLines = addTagToDescriptionAndDoc(mergedFileLines, String.format("(%s)%s", resultRulesName, DESCRIPTION_END_TAG));
+                mergedFileLines = addTagToDescriptionAndDoc(mergedFileLines, String.format("(%s)%s", "jpinpoint-rules", DESCRIPTION_END_TAG));
             }
             mergedFileLines.add(RESULT_END_LINE);
 
@@ -279,6 +279,7 @@ public class RulesetMerger {
     private static List<List<String>> parseSortIntoRuleLinesList(List<String> fileLines) {
         Map<String, List<String>> nameToLines = new TreeMap<>();
         boolean ruleStarted = false;
+        boolean pmd7Rule = true; // assumption until proven otherwise
         List<String> currentRuleLines = new ArrayList<>();
         String currentRuleName = "<none>";
         for(String line : fileLines) {
@@ -289,12 +290,20 @@ public class RulesetMerger {
                 ruleStarted = true;
             }
             else if (line.contains("</rule>")) {
-                currentRuleLines.add(line);
-                nameToLines.put(currentRuleName, currentRuleLines);
+                if (pmd7Rule) {
+                    currentRuleLines.add(line);
+                    nameToLines.put(currentRuleName, currentRuleLines);
+                }
+                else {
+                    pmd7Rule = true;
+                }
                 ruleStarted = false;
             }
             else if (ruleStarted) {
                 currentRuleLines.add(line);
+                if (line.contains("<property name=\"version\" value=\"2.0\"/>")) { // in pmd7 this is removed, default=3.0
+                    pmd7Rule = false;
+                }
             }
         }
         return new ArrayList<>(nameToLines.values());

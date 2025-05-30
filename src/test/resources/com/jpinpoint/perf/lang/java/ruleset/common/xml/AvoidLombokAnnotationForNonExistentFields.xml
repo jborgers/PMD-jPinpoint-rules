@@ -7,8 +7,7 @@
         <description>no violation: Lombok annotations for fields used properly</description>
         <expected-problems>0</expected-problems>
         <code><![CDATA[
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 @Getter
 @Setter
@@ -38,10 +37,9 @@ import lombok.Setter;
     <test-code>
         <description>violation: Lombok annotation for fields used while class has no fields</description>
         <expected-problems>5</expected-problems>
-        <expected-linenumbers>4,5,12,19,34</expected-linenumbers>
+        <expected-linenumbers>3,4,11,18,33</expected-linenumbers>
         <code><![CDATA[
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 @Getter // bad
 @Setter // bad

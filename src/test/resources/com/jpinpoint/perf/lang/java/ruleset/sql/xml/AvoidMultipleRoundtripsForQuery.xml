@@ -4,7 +4,7 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
     <test-code>
-        <description>violation: Avoid multiple roundtrips for Query</description>
+        <description>violation: Avoid multiple round trips for Query - javax.persistence</description>
         <expected-problems>1</expected-problems>
         <expected-linenumbers>17</expected-linenumbers>
         <code><![CDATA[
@@ -31,8 +31,9 @@ public class Foo {
 }
      ]]></code>
     </test-code>
+
     <test-code>
-        <description>no violation: Avoid multiple roundtrips for Query</description>
+        <description>no violation: Avoid multiple round trips for Query</description>
         <expected-problems>0</expected-problems>
         <code><![CDATA[
 import javax.persistence.EntityManager;
@@ -55,6 +56,35 @@ public class Foo {
         catch(NoResultException e) {
             return null;
         }
+    }
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>violation: Avoid multiple round trips for Query - jakarta.persistence</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>17</expected-linenumbers>
+        <code><![CDATA[
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.NoResultException;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.Query;
+import java.util.List;
+
+public class Foo {
+
+    @PersistenceContext(unitName = "rPersistenceUnit")
+    protected EntityManager entityManager;
+
+    public Object findInformationByCodeBad(String code) {
+        Query q = this.entityManager.createQuery("SELECT reas FROM Information reas WHERE reas.code = :code", Object.class);
+        q.setParameter("code", code);
+        List results = q.getResultList();
+        if (results != null && !results.isEmpty()) {
+            return (Object) q.getSingleResult(); // violation, 2nd query
+        }
+        return null;
     }
 }
      ]]></code>

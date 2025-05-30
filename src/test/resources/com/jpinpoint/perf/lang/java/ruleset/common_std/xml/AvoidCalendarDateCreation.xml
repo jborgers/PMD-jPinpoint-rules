@@ -11,30 +11,35 @@
 import java.util.*;
 
 public class Foo {
-	void bad() {
-		Date now = Calendar.getInstance().getTime(); // bad
-		setDate(Calendar.getInstance().getTime()); // bad
-		setDate(GregorianCalendar.getInstance().getTime()); // bad
+    void bad() {
+        Date now = Calendar.getInstance().getTime(); // bad
+        setDate(Calendar.getInstance().getTime()); // bad
+        setDate(GregorianCalendar.getInstance().getTime()); // bad
 
-		Calendar cal = Calendar.getInstance();
-		Date now2 = cal.getTime(); // bad
-	}
-	private void setDate(Date when){
-	}
+        Calendar cal = Calendar.getInstance();
+        Date now2 = cal.getTime(); // bad
+    }
+    private void setDate(Date when){
+    }
 }
      ]]></code>
     </test-code>
 
     <test-code>
         <description>violation: joda-time: new DateTime([Gregorian]Calendar.getInstance())</description>
-        <expected-problems>2</expected-problems>
-        <expected-linenumbers>3,4</expected-linenumbers>
+        <expected-problems>4</expected-problems>
+        <expected-linenumbers>6,7,8,8</expected-linenumbers>
         <code><![CDATA[
+import java.util.*;
+import org.joda.time.*;
+
 public class Foo {
-	void bad() {
-		DateTime nowDT1 = new DateTime(GregorianCalendar.getInstance()); // bad
-		DateTime nowDT2 = new DateTime(Calendar.getInstance()); // bad
-	}
+    void bad() {
+        DateTime nowDT1 = new DateTime(GregorianCalendar.getInstance()); // bad
+        DateTime nowDT2 = new DateTime(Calendar.getInstance()); // bad
+        DateTime nowDT3 = new DateTime(Calendar.getInstance().getTime()); // bad
+        DateTime nowDT4 = new DateTime(new Date().getTime()); // good
+    }
 }
      ]]></code>
     </test-code>
@@ -42,13 +47,14 @@ public class Foo {
     <test-code>
         <description>violation: Calendar.getInstance().getTimeInMillis()</description>
         <expected-problems>2</expected-problems>
-        <expected-linenumbers>3,4</expected-linenumbers>
+        <expected-linenumbers>4,5</expected-linenumbers>
         <code><![CDATA[
+import java.util.*;
 public class Foo {
-	void bad() {
-		long time = Calendar.getInstance().getTimeInMillis(); // bad
-		String timeStr = Long.toString(Calendar.getInstance().getTimeInMillis()); // bad
-	}
+    void bad() {
+        long time = Calendar.getInstance().getTimeInMillis(); // bad
+        String timeStr = Long.toString(Calendar.getInstance().getTimeInMillis()); // bad
+    }
 }
      ]]></code>
     </test-code>
@@ -61,12 +67,12 @@ public class Foo {
 import java.util.Calendar;
 
 public class Foo {
-	void bad() {
-		long time1 = 0;
-		Calendar cal = Calendar.getInstance();
-		long time2 = cal.getTimeInMillis(); // bad
-		time1 = cal.getTimeInMillis(); // bad
-	}
+    void bad() {
+        long time1 = 0;
+        Calendar cal = Calendar.getInstance();
+        long time2 = cal.getTimeInMillis(); // bad
+        time1 = cal.getTimeInMillis(); // bad
+    }
 }
      ]]></code>
     </test-code>
@@ -75,16 +81,16 @@ public class Foo {
         <description>no violation</description>
         <expected-problems>0</expected-problems>
         <code><![CDATA[
+import foo.bar.Bar;
 public class Foo {
-	void bad() {
-		int warmestMonth = Calendar.getInstance().AUGUST;
-		long time = System.currentTimeMillis();
-		Date now = new Date();
-	}
+    void good() {
+        int warmestMonth = Calendar.getInstance().AUGUST;
+        long time = System.currentTimeMillis();
+        Date now = new Date();
+        Date future = Bar.getInstance().getTime();
+    }
 }
      ]]></code>
     </test-code>
-
-
 
 </test-data>

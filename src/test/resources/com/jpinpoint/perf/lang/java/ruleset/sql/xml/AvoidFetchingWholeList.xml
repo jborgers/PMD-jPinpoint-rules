@@ -4,9 +4,9 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
     <test-code>
-        <description>violation: Avoid fetching the whole list of entities for a Query</description>
+        <description>violation: Avoid fetching the whole list of entities for a Query - javax.persistence</description>
         <expected-problems>2</expected-problems>
-        <expected-linenumbers>7, 11</expected-linenumbers>
+        <expected-linenumbers>8, 12</expected-linenumbers>
         <code><![CDATA[
 import javax.persistence.NoResultException;
 import javax.persistence.TypedQuery;
@@ -14,12 +14,12 @@ import java.util.List;
 
 public class Foo {
     public SomeEntity findByQueryBad1(TypedQuery<Object> query) {
-        final List<SomeEntity> entities = query.getResultList(); // bad
-        return !entities.isEmpty() ? entities.get(0) : null;
+        final List<SomeEntity> entities = query.getResultList();
+        return !entities.isEmpty() ? entities.get(0) : null; // bad
     }
     public SomeEntity findByQueryBad2(TypedQuery<Object> query) {
-        final List<SomeEntity> entities = query.getResultList(); // bad
-        if (entities.size() == 1) return entities.get(0);
+        final List<SomeEntity> entities = query.getResultList();
+        if (entities.size() == 1) return entities.get(0); // bad
         return null;
     }
     public SomeEntity findByQueryGood1(TypedQuery<Object> query) {
@@ -31,10 +31,69 @@ public class Foo {
         final List<SomeEntity> entities = query.getResultList();
         return (entities.size() == 1) ? entities.get(0) : entities;
     }
+
+    public Object findByQueryGood2(TypedQuery<Object> query) {
+        final List<SomeEntity> entities = query.getResultList();
+        if (entities.size() == 1) {
+            return entities.get(0);
+        }
+        else {
+            return entities;
+        }
+    }
+
     public SomeEntity findByQueryGood3(TypedQuery<Object> query) throws NoResultException {
         return query.getSingleResult();
     }
 }
+class SomeEntity {}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>violation: Avoid fetching the whole list of entities for a Query - jakarta.persistence</description>
+        <expected-problems>2</expected-problems>
+        <expected-linenumbers>8, 12</expected-linenumbers>
+        <code><![CDATA[
+import jakarta.persistence.NoResultException;
+import jakarta.persistence.TypedQuery;
+import java.util.List;
+
+public class Foo {
+    public SomeEntity findByQueryBad1(TypedQuery<Object> query) {
+        final List<SomeEntity> entities = query.getResultList();
+        return !entities.isEmpty() ? entities.get(0) : null; // bad
+    }
+    public SomeEntity findByQueryBad2(TypedQuery<Object> query) {
+        final List<SomeEntity> entities = query.getResultList();
+        if (entities.size() == 1) return entities.get(0); // bad
+        return null;
+    }
+    public SomeEntity findByQueryGood1(TypedQuery<Object> query) {
+        final List<SomeEntity> entities = query.getResultList();
+        if (entities.size >= 1) return entities.get(1);
+        return entities.get(0);
+    }
+    public Object findByQueryGood2(TypedQuery<Object> query) {
+        final List<SomeEntity> entities = query.getResultList();
+        return (entities.size() == 1) ? entities.get(0) : entities;
+    }
+
+    public Object findByQueryGood2(TypedQuery<Object> query) {
+        final List<SomeEntity> entities = query.getResultList();
+        if (entities.size() == 1) {
+            return entities.get(0);
+        }
+        else {
+            return entities;
+        }
+    }
+
+    public SomeEntity findByQueryGood3(TypedQuery<Object> query) throws NoResultException {
+        return query.getSingleResult();
+    }
+}
+class SomeEntity {}
      ]]></code>
     </test-code>
 

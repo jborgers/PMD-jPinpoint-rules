@@ -6,10 +6,11 @@
     <test-code>
         <description>Avoid Common Pool for Future Async</description>
         <expected-problems>1</expected-problems>
-        <expected-linenumbers>9</expected-linenumbers>
+        <expected-linenumbers>10</expected-linenumbers>
         <code><![CDATA[
 import java.util.*;
 import java.util.concurrent.*;
+import org.apache.commons.lang3.tuple.Pair;
 
 public class Foo {
     private final ExecutorService asyncPool = Executors.newFixedThreadPool(10);
@@ -32,8 +33,9 @@ public class Foo {
     <test-code>
         <description>Fix Request: AvoidCommonPoolForFutureAsync - supplyAsync false negative when using static import #242</description>
         <expected-problems>1</expected-problems>
-        <expected-linenumbers>6</expected-linenumbers>
+        <expected-linenumbers>7</expected-linenumbers>
         <code><![CDATA[
+import java.util.concurrent.CompletableFuture;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
 

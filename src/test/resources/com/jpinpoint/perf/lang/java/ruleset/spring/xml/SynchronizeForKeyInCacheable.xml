@@ -45,6 +45,6 @@ class Good3 {
     public String good3() {
     }
 }
-]]></code>
+         ]]></code>
     </test-code>
 </test-data>

@@ -439,7 +439,7 @@ class RetrieveCache {
 2. connectionRequestTimeout is for requesting a connection from the connection manager, which should be almost as quick, say below 250 ms.   
 
 If timeouts are long, requests will wait long for an unavailable service and cause high thread usage and possibly overload.   
-**Solution:** Set connectTimeout and connectionRequestTimeout to values based on network tests, for instance 200 ms and 250 ms. respectively.
+**Solution:** Set connectTimeout and connectionRequestTimeout to values based on network tests, for instance 200 ms and 250 ms. respectively.   
 **Rule name:** HttpClientImproperConnectionTimeouts    
 **Example:**
 ```java
@@ -550,6 +550,87 @@ class Good {
 }
 ```
 **See:** [IUOXAR09: XML related `XXXFactory.newInstance()` is called repeatedly.](JavaCodePerformance.md#IUOXAR09)   
+
+#### IBI24
+**Observation: HttpRoute is constructed without specifying the secure argument.**   
+**Problem:** For Apache HttpRoute, if you don't specify whether the route is secure, the default of non-secure is taken. This is unclear. If you use it to configure a connection manager for that route, and the actual route is secure,
+the key does not match, and the intended configuration will not be effectuated. Then, the default number of connections (2 for Http-Client version 4, and 5 for version 5) will be used which may cause requests to wait long for a connection to become available (without a proper timeout) resulting in bad responsiveness.   
+**Solution:** Always specify in the constructor whether the route is secure (true) or not (false) to make it clear.   
+**Note:** Covers Apache Http-Client 4 and 5.    
+**Rule name:** AvoidUnclearHttpRouteSecurity   
+**Example:**
+```java
+import org.apache.http.HttpHost;
+import org.apache.http.conn.routing.HttpRoute;
+import java.net.URL;
+
+public class Foo {
+  void bar() {
+    for (Route route : connectionProperties.routes()) {
+      URL url = new URL(route.host());
+      HttpHost httpHost = new HttpHost("https", url.getHost(), getPort(url));
+      HttpRoute httpRouteBad1 = new HttpRoute(httpHost); // bad
+      HttpRoute httpRouteBad2 = new HttpRoute(httpHost, null); // bad
+      final boolean secure = true;
+      HttpRoute httpRouteGood = new HttpRoute(httpHost, null, secure); // good
+      connectionManager.setMaxPerRoute(httpRouteGood, route.maxConnections());
+    }
+  }
+}
+```
+**See:** [HttpRoute v4](https://www.javadoc.io/static/org.apache.httpcomponents/httpclient/4.3.3/org/apache/http/conn/routing/HttpRoute.html) and
+[HttpRoute v5](https://hc.apache.org/httpcomponents-client-5.4.x/current/apidocs/org/apache/hc/client5/http/HttpRoute.html)
+
+#### IBI25
+**Observation: ClientHttpRequestInterceptor is not releasing the connection when it throws an Exception.**   
+**Problem:** If the interceptor throws an exception after receiving a response, resources are not released as happens with normal program flow.
+It causes the connection not to be released to the connection pool, which leads to pool exhaustion and unresponsiveness.   
+**Solution:** Release resources by closing the response via ClientHttpResponse.close() when throwing an Exception.   
+**Rule name:** HttpInterceptorNotReleasingOnException   
+**Example:**
+```java
+import org.springframework.http.HttpRequest;
+import org.springframework.http.client.*;
+
+class ValidatingClientHttpRequestInterceptorBadExample implements ClientHttpRequestInterceptor {
+    
+  public ClientHttpResponse intercept(HttpRequest request, byte[] body, ClientHttpRequestExecution execution) throws IOException {
+    final ClientHttpResponse response = execution.execute(request, body);
+    someValidation(response);
+    return response;
+  }
+  
+  public static void someValidation(ClientHttpResponse response) throws MyException {
+    if (!response.getHeaders().containsKey("X-Some-Header")) {
+      // log error
+      throw new MyException("some error"); // bad: exception thrown without response.close() call 
+    }
+  }
+}
+
+class ValidatingClientHttpRequestInterceptorGoodExample implements ClientHttpRequestInterceptor {
+
+  public ClientHttpResponse intercept(HttpRequest request, byte[] body, ClientHttpRequestExecution execution) throws IOException {
+    final ClientHttpResponse response = execution.execute(request, body);
+    try {
+      someValidation(response);
+    } catch (MyException e) {
+      // log error
+      response.close(); // good: resources released
+      throw new MyOtherException(e);
+    }
+    return response;
+  }
+
+  public static void someValidation(ClientHttpResponse response) throws MyException {
+    if (!response.getHeaders().containsKey("X-Some-Header")) {
+      throw new MyException("some error");
+    }
+  }
+}
+
+```
+**See:** [ClientHttpRequestInterceptor javadoc](https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/http/client/ClientHttpRequestInterceptor.html)  
 
 Improper asynchrony
 -------------------
@@ -1619,7 +1700,7 @@ Better is using and sharing ObjectReaders and ObjectWriters created from ObjectM
 **Helpful:** Only configure objectMappers when initializing: right after construction, in one thread.   
 **Solution:** Create configured ObjectReaders and ObjectWriters from ObjectMapper and share those as field, since they are immutable and therefore guaranteed to be thread-safe.  
 **Exceptions:** A convertValue method is not provided by Reader/Writer, therefore use of an ObjectMapper as field cannot easily be avoided in this case. The AvoidObjectMapperAsField rule is not applied.
-Also when used like jaxMsgConverter.setObjectMapper(objectMapper) it is not considered a violation.    
+Also when used like jaxMsgConverter.setObjectMapper(objectMapper) it is not considered a violation. And, when the class implements ContextResolver&lt;ObjectMapper&gt;.    
 **Rule names:** AvoidObjectMapperAsField, AvoidModifyingObjectMapper   
 **Example:**   
 ```java
@@ -2049,7 +2130,8 @@ class BufferFileStreaming {
 **Observation: No buffering is added to the use of Files.newInputStream and Files.newOutputStream.**  
 **Problem:** Files.newInputStream or Files.newOutputStream is not buffered. The stream is read/written to file byte by byte, where each operating system call has its overhead which makes it slow.   
 **Solution:** Use buffering to read/write a chunk of bytes at once with much lower overhead. Use e.g. BufferedInputStream or BufferedOutputStream which has a buffer size of 8 kB by default to write at once. 
-Make sure to close (flush) a BufferedOutputStream after the last write, otherwise the last part may not be written to file.   
+Make sure to close (flush) a BufferedOutputStream after the last write, otherwise the last part may not be written to file.
+Note that IOUtils methods take care of buffering the inputStream.   
 **Rule name:** BufferFilesNewStream.   
 **Example:**
 ```java
@@ -2374,15 +2456,25 @@ With Java 9 this can be much more compact:
 private static final List QUALIFIERS_Ok = List.of("alpha", "beta", "milestone");
 ```
 
+
 or by using Guava immutable collections like [ImmutableList](https://google.github.io/guava/releases/21.0/api/docs/com/google/common/collect/ImmutableList.html):
 
 ```java
 private static final List QUALIFIERS_Ok = ImmutableList.of("alpha", "beta", "milestone");
 ```
 
+Note that an`EnumMap`is mutable and lacks an`.of()`method, so initializing an immutable one is like:
+```java
+private static final Map<AmorType, SchedType> UNMOD_ENUM_MAP =
+    Collections.unmodifiableMap(new EnumMap<>(Map.of(AmorType.CUSTOM, SchedType.CUSTOM, AmorType.NONE, SchedType.NONE)));
+```
+An`EnumSet`is also mutable and has an`.of()`method, so initializing an immutable one is like:
+```java
+private static final Set<AmorType> UNMOD_ENUM_SET = Collections.unmodifiableSet(EnumSet.of(AmorType.NONE, AmorType.CUSTOM));
+```
 Note that for primitives Guava has: [ImmutableIntArray](http://google.github.io/guava/releases/22.0/api/docs/com/google/common/primitives/ImmutableIntArray.html), [ImmutableLongArray](http://google.github.io/guava/releases/22.0/api/docs/com/google/common/primitives/ImmutableLongArray.html) and [ImmutableDoubleArray](http://google.github.io/guava/releases/22.0/api/docs/com/google/common/primitives/ImmutableDoubleArray.html).
 
-If they really need to be mutable, make access thread-safe. Thread-safety can be achieved e.g. by proper synchronization and use the [@GuardedBy](#TUTC04) annotation or use of volatile. Consider lock contention.
+If they really need to be mutable, make access thread-safe. Thread-safety can be achieved e.g. by proper synchronization and use the [@GuardedBy](#TUTC04) annotation, use of volatile, or a suitable concurrent collection type like ConcurrentHashMap. Consider lock contention.
 
 **Rule name:** AvoidMutableStaticFields
 
@@ -2479,12 +2571,155 @@ class SingletonBMGood {
 }
 ```
 
+#### TUTC14
+**Observation: Locking and describing the locking behaviour with `@GuardedBy` is applied in a wrong way or not meeting best practices.**   
+**Problem:** Wrong use of locking and `@GuardedBy` may result in thread-unsafety and concurrency bugs. It may obstruct other GuardedBy rules which check whether the promise of guarding is actually met, it may disguise high risk violations.  
+**Solution:** Use `@GuardedBy` properly: 
+* use a private final lock object constructed with `new Object()` or `new Object[0]` 
+* a String literal of the lock object name as `@GuardedBy` argument 
+* and use that explicit or `this` lock with proper use of `synchronized`; 
+* or use `$lock` or `$LOCK` as lock name when you use Lombok `@Synchronized`.   
+
+**Notes:**  
+* Lombok has `@Synchronized` which uses generated lock objects: `$lock` for instance fields and `$LOCK` for static fields. Use those as your GuardedBy argument. See [Lombok @Synchronized](https://projectlombok.org/features/Synchronized)   
+* You can add `@Synchronized` on all your generated getters and setters with `@Getter(onMethod=@__({@Synchronized})` and `@Setter(onMethod=@__({@Synchronized})`, see [Lombok @Getter and @Setter](https://projectlombok.org/features/GetterSetter)   
+* If you need to be Serializable, use a new Object[0] as lock object. An empty array is Serializable while new Object() is not. See [Lombok Synchronized small print](https://projectlombok.org/features/Synchronized).   
+* If you share state like a cache Map as shown below in the examples, also the access of the Map and its elements needs to be thread-safe. 
+The easiest and preferred way is to initialize the Map once and make it final immutable, thereby making it inherently thread-safe hence no need for locking nor @GuardedBy. 
+If it needs to be mutable, assign a thread-safe Map like ConcurrentHashMap with immutable elements to a final field.   
+
+**Rule name:** WrongUseOfGuardedBy   
+**See:** 
+**Example:**
+```java
+class WrongUseOfGuardedBy {
+  public static final String FIELD = "field"; // bad: should be private and initialized with new Object() or new Object[0]
+
+  @GuardedBy(FIELD) // bad, not a String literal
+  private static Map<String, String> cachedData = new HashMap<>();
+
+  // no guarding: no synchronized, promise not met, reported by another rule when GuardedBy use correct
+  public static String getValue(String key) {
+    return cachedData.get(key);
+  }
+}
+
+class RightUseOfGuardedBy {
+  private static final Object LOCK = new Object(); // proper lock object, static because the guarded field is static
+
+  @GuardedBy("LOCK") // good, String literal referring to an existing, proper lock object
+  private static final Map<String, String> cachedData = new HashMap<>();
+
+  public static String getValue(String key) {
+    synchronized(LOCK) { // guarding as promised by @GuardedBy
+      return cachedData.get(key);
+    }
+  }
+}
+
+class NoThisLockUsedBad {
+  @GuardedBy("this") // bad, 'this' lock object not used
+  private Map<String, String> cachedData = new HashMap<>();
+  public Map<String, String> getData() {
+    return cachedData; // NotProperlySynchronizingOnThisWhileUsingGuardedBy
+  }
+}
+
+class ThisLockUsedGood {
+  @GuardedBy("this") // bad, 'this' lock object not used
+  private final Map<String, String> cachedData = new HashMap<>();
+  public synchronized Map<String, String> getData() {
+    return cachedData; 
+  }
+}
+@Getter
+class NoActualLockObjectBad {
+  @GuardedBy("lock") // bad, no lock object exists
+  private Map<String, String> cachedData = new HashMap<>();
+}
+
+@Getter(onMethod=@__({@Synchronized}))
+class LombokInstanceLockUsedGood {
+  @GuardedBy("$lock") // good, lombok '$lock' object used as lock
+  private Map<String, String> cachedData = new HashMap<>();
+}
+```
+
+Improper program flow
+---------------------
+
+#### IPF01
+
+**Observation: A method calls itself, also known as recursion, and it doesn't have a proper and guaranteed stop condition.**  
+**Problem:** It may become an infinite loop and result in an OutOfMemoryError or StackOverflowError, and high CPU usage.  
+**Solution:** Limit the number of recursive calls: use a counter to count up-to or down-from a maximum number of calls, for every recursive call, and stop when the maximum is reached. This maximum should not be a large number. Or better yet, rewrite into iterations for better performance and avoiding errors.      
+**Rule name:** AvoidInfiniteRecursion.   
+**Note:** This rule may result in a false positive when a method calls an overloaded method with the same number of parameters, and just different type(s) for parameter number 4 or above. 
+It is recommended to rename one of the two methods for clarity.   
+**Note:** Be careful with recursive calls in general. Java currently does *not* optimize recursion, and it is typically expensive compared to iteration, most notably for large numbers of recursive calls. And large numbers involve the risk of OutOfMemoryError or StackOverflowError, and high CPU usage.   
+**Example:**
+```java
+class InfiniteRecursionBad {
+  private void foo() {
+    boolean success = tryRemoteCall();
+      if (!success) {
+        delay(10, MILLISECONDS);
+        foo(); // bad
+    }
+  }
+}
+
+class FiniteRecursionGood {
+  private static final int MAX_ATTEMPTS = 5;
+
+  private void foo(int attemptsLeft) {
+    boolean success = tryRemoteCall();
+    if (!success && attemptsLeft > 0) {
+      delay(10, MILLISECONDS);
+      foo(--attemptsLeft);
+    }
+  }
+}
+
+// when called from multiple threads, shared as a singleton, it needs to be thread-safe
+class FiniteRecursionSingletonThreadSafeGood {
+  private static final int MAX_ATTEMPTS = 5;
+  private final AtomicInteger attemptsLeft = new AtomicInteger(MAX_ATTEMPTS); // thread safe
+
+  private void foo() {
+    boolean success = tryRemoteCall();
+    if (!success && attemptsLeft.decrementAndGet() >= 0 ) {
+      delay(10, MILLISECONDS);
+      foo();
+    }
+  }
+}
+
+class IterationsBetter {
+  private static final int MAX_ATTEMPTS = 5;
+
+  private void foo() {
+    int attempt = 0;
+    boolean success = false;
+    while (!success && attempt++ < MAX_ATTEMPTS) {
+      success = tryRemoteCall();
+      if (!success) {
+        delay(10, MILLISECONDS);
+      }
+    }
+  }
+}
+```
+**See:** [TheServerSide: Five examples of recursion](https://www.theserverside.com/blog/Coffee-Talk-Java-News-Stories-and-Opinions/examples-Java-recursion-recursive-methods), 
+[Baeldung: Java recursion](https://www.baeldung.com/java-recursion)
+
 Unnecessary execution
 ---------------------
 
 #### UE01
 **Observation: A Calendar is unnecessarily created for a Date or time**  
-**Problem:** A Calendar is a heavyweight object and expensive to create. For example, to copy a Date:
+**Problem:** A Calendar is a heavyweight object and expensive to create.   
+**Example:** to copy a Date:
 
 ```java
 Calendar dateCalendar = Calendar.getInstance();
@@ -2511,7 +2746,7 @@ long time = System.currentTimeMillis();
 ```
 
 Or better yet instead of Date, use a [java.time.LocalDateTime](https://docs.oracle.com/en%2Fjava%2Fjavase%2F11%2Fdocs%2Fapi%2F%2F/java.base/java/time/LocalDateTime.html), which also has the advantage over java.util.Date that it is immutable.  
-**Rule name**: prototype ready, hit on Calendar.getInstance().getTime() usage and on two steps in same block.
+**Rule name**: AvoidCalendarDateCreation
 
 #### UE02
 
@@ -2542,6 +2777,75 @@ categoryId of type int will be boxed to Integer for the contains() and add() and
 Note the use of explicit (Integer) cast to call the correct overloaded remove(Integer) method instead of the remove(int) method. The first will remove the Integer object, the second will remove the Object on index categoryId. Without the explicit cast the latter will be called, resulting in wrong behaviour.  
 Suggested fix: create a category id variable of type Integer before the if statement so no further implicit boxing is done.  
 **Tip:** enable the compiler check on auto boxing/unboxing in eclipse.
+
+#### UE03
+
+**Observation: Creating new `Comparator` instances repeatedly**, e.g. in methods like `compareTo()` or collection sort operations.  
+**Problem:** Repeatedly creating the same object causes a performance penalty: it increases garbage collection pressure and CPU usage, 
+especially in frequently called methods or loops.  
+**Solution:** Initialize `Comparator` instances once as `static final` fields and reuse these instances.
+
+**Examples:**  
+Example 1: Creating a new Comparator in compareTo method:
+
+```java
+public int compareTo(Person other) {
+    return Comparator.comparing(Person::getFirstName)  // Creates new Comparator and inner lambda's each time
+            .thenComparing(Person::getLastName)
+            .compare(this, other);
+}
+```
+
+The Comparator is unnecessarily created on each method invocation. Initialize it as a static final field instead.
+
+Example 2: Proper initialization as static final field:
+
+```java
+private static final Comparator<Person> PERSON_COMPARATOR = 
+    Comparator.comparing(Person::getFirstName)
+            .thenComparing(Person::getLastName);
+
+public int compareTo(Person other) {
+    return PERSON_COMPARATOR.compare(this, other);  // Reuses existing Comparator
+}
+```
+
+Example 3: Creating a new Comparator for each TreeSet:
+```java
+public class PersonRepository {
+    public Set<Person> getPersonsSortedByName() {
+        return new TreeSet<>(Comparator.comparing(Person::getName));
+    }
+    
+    public List<Person> getSortedPersons() {
+        List<Person> persons = getPersons();
+        persons.sort(Comparator.comparing(Person::getName));
+        return persons;
+    }
+}
+```
+
+Suggested improvement (has less impact than example 2 where compareTo method is called many times, this is per collection creation or sort call only):
+
+```java
+public class PersonRepository {
+    private static final Comparator<Person> PERSON_BY_NAME_COMPARATOR = 
+        Comparator.comparing(Person::getName);
+    
+    public Set<Person> getPersonsSortedByName() {
+        return new TreeSet<>(PERSON_BY_NAME_COMPARATOR);
+    }
+    
+    public List<Person> getSortedPersons() {
+        List<Person> persons = getPersons();
+        persons.sort(PERSON_BY_NAME_COMPARATOR);
+        return persons;
+    }
+}
+```
+**Note:** local one-time Comparators may be acceptable in specific cases where the comparison is used only once or the logic needs to be dynamic.
+However, for frequently used or standard comparison operations, always use static final fields to avoid unnecessary object creation.  
+**Rule name**: InitializeComparatorOnlyOnce
 
 Inefficient memory usage
 ------------------------
@@ -3056,9 +3360,22 @@ Violation of Encapsulation, DRY or SRP
 #### VOEDOS04
 
 **Observation: An interface is used to define constants.**  
-**Problem:** Constants are often implementation details. Putting constants in an interface makes them part of the public API of all implementing classes. Doing this for constants which are implementation details is bad OO practice. It is a [documented anti-pattern](http://en.wikipedia.org/wiki/Constant_interface).  
+**Problem:** Constants are often implementation details. Putting constants in an interface makes them part of the public API of all implementing classes and their sublcasses. Doing this for constants which are implementation details is bad OO practice. It is a documented anti-pattern, see [wikipedia](http://en.wikipedia.org/wiki/Constant_interface) and [baeldung](https://www.baeldung.com/java-constants-good-practices#3-the-constant-interface-anti-pattern).  
 **Solution:** Make it a Class which cannot be instantiated, or an Enum. Use static imports.  
-**Rule name:** AvoidConstantsInInterface.
+**Rule name:** AvoidConstantsInInterface.   
+**Example:**
+```java
+public interface AnimalConsts {
+    public static final Dog DOG = new Dog(); //bad
+}
+public class AnimalUtil {
+    private AnimalUtil() {}
+    public static final Dog DOG = new Dog(); // good
+}
+public enum Animal {
+    DOG // good
+}
+```
 
 #### VOEDOS05
 

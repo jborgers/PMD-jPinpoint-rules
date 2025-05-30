@@ -5,10 +5,12 @@
         xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
     <test-code>
         <description>Avoid Executor Invoke Without Timeout</description>
-        <expected-problems>1</expected-problems>
-        <expected-linenumbers>5</expected-linenumbers>
+        <expected-problems>2</expected-problems>
+        <expected-linenumbers>7,16</expected-linenumbers>
         <code><![CDATA[
+import java.util.*;
 import java.util.concurrent.*;
+import com.example.ServiceResult;
 
 class Foo {
     private List<Future<ServiceResult>> executeTasksBad(Collection<Callable<ServiceResult>> tasks, ExecutorService executor) throws Exception {
@@ -16,6 +18,26 @@ class Foo {
     }
     private List<Future<ServiceResult>> executeTasksGood(Collection<Callable<ServiceResult>> tasks, ExecutorService executor) throws Exception {
         return executor.invokeAll(tasks, OUR_TIMEOUT_IN_MILLIS, TimeUnit.MILLISECONDS); // good
+    }
+}
+
+class Issue320 {
+    private Object bad(ExecutorService forkJoinPool) {
+        Object result = forkJoinPool.invokeAll(
+                        on.stream().map(value -> apply(toDo, value)).toList() // bad, timeout missing
+                ).stream()
+                .map(ParallelizationUtils::getListItem)
+                .toList();
+        return result;
+    }
+
+    private Object good(ExecutorService forkJoinPool) {
+        Object result = forkJoinPool.invokeAll(
+                        on.stream().map(value -> apply(toDo, value)).toList(), 300000, TimeUnit.SECONDS
+                ).stream()
+                .map(ParallelizationUtils::getListItem)
+                .toList();
+        return result;
     }
 }
 ]]></code>

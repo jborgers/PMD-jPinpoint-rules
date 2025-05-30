@@ -4,7 +4,7 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
     <test-code>
-        <description>Avoid improper annotation combinations</description>
+        <description>Avoid SpEL for cache keys</description>
         <expected-problems>2</expected-problems>
         <expected-linenumbers>5, 13</expected-linenumbers>
         <code><![CDATA[
@@ -27,12 +27,11 @@ class Bad2 {
 }
 
 class Good1 {
-    @Cacheable(value = "Cache1", keyGenerator = "#key1")
+    @Cacheable(value = "Cache1", keyGenerator = "keyGen")
     public String good1(final String key1) {
         return getRemote(key1);
     }
 }
-
 ]]></code>
     </test-code>
 </test-data>

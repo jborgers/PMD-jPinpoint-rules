@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>violation: AvoidMutableCollectionInParallelStreamForEach</description>
+        <expected-problems>5</expected-problems>
+        <expected-linenumbers>12,32,39,57,62</expected-linenumbers>
+        <code><![CDATA[
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
+
+public class AvoidMutableCollectionInParallelStreamForEach_Issue408 {
+
+    private static List<String> names = List.of("Dory", "Gill", "Bruce", "Nemo", "Darla", "Marlin", "Jacques");
+    List<String> inUppercaseField = new ArrayList<>();
+
+    public static void main(String[] args) {
+        List<String> inUppercase = new ArrayList<>();
+
+        names.parallelStream().map(String::toUpperCase) // bad 1
+                .forEach(name -> inUppercase.add(name));
+
+        System.out.println(names.size()); // 7
+        System.out.println(inUppercase.size()); // sometimes 6!
+    }
+
+    public void noBug() {
+        List<String> inUppercase = Collections.synchronizedList(new ArrayList<>());
+        names.parallelStream().map(String::toUpperCase).forEach(name -> inUppercase.add(name));
+    }
+
+    public void good() {
+        // pure functional form
+        List<String> inUppercase = names.parallelStream().map(String::toUpperCase).toList(); // java 12+
+    }
+
+    public void bad2() {
+        String[] inUppercase = new String[names.size()];
+        AtomicInteger i = new AtomicInteger(0);
+        names.parallelStream().map(String::toUpperCase) // bad 2
+                .forEach(name -> inUppercase[i.incrementAndGet()] = name);
+
+    }
+    public void bad3() {
+        Map<String, String> upperToUppercase = new HashMap<>();
+
+        names.parallelStream().map(String::toUpperCase) // bad 3
+                .forEach(name -> upperToUppercase.put(name, name));
+    }
+
+    public void good2(List inUppercase) { // don't know how implemented, could be thread-safe
+
+        names.parallelStream().map(String::toUpperCase)
+            .forEach(name -> inUppercase.add(name));
+    }
+
+   public void bad4() {
+
+        names.parallelStream().map(String::toUpperCase)
+                .forEach(name -> inUppercase.add(name));
+    }
+
+   public void bad4() {
+        List<String> inUppercase = new ArrayList<>();
+        names.parallelStream().map(String::toUpperCase) // bad 4
+            .forEach(inUppercase::add);
+    }
+
+    public void bad5() {
+        names.parallelStream().map(String::toUpperCase) // bad 5
+            .forEach(inUppercaseField::add);
+    }
+}
+      ]]></code>
+    </test-code>
+
+</test-data>

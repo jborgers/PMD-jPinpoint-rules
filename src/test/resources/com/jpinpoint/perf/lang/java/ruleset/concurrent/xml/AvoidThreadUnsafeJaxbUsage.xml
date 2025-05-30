@@ -8,6 +8,7 @@
         <description>Avoid thread unsafe usage of jaxb - no violation for non-jaxb Validator - #169</description>
         <expected-problems>0</expected-problems>
         <code><![CDATA[
+    import org.springframework.validation.Validator;
     class Validation {
         Validator validator; // fine, self defined Validator from same package
     }
@@ -17,12 +18,13 @@
     <test-code>
         <description>Avoid thread unsafe usage of jaxb</description>
         <expected-problems>4</expected-problems>
-        <expected-linenumbers>13,14,15,16</expected-linenumbers>
+        <expected-linenumbers>14,15,16,17</expected-linenumbers>
         <code><![CDATA[
 import javax.validation.ConstraintViolation;
 import javax.validation.executable.ExecutableValidator;
 import javax.validation.metadata.BeanDescriptor;
-import javax.xml.bind.Marshaller;
+import javax.xml.bind.*;
+import java.io.File;
 import java.util.Set;
 
 import org.springframework.validation.Validator;
@@ -37,6 +39,7 @@ public class AvoidThreadUnsafeJaxbUsageTest {
 	private javax.xml.validation.Validator validator2; // should violate 4
 	private javax.validation.Validator validator3; // should *not* violate
 	private Validator validator4;  // should *not* violate
+	private JAXBContext jaxbContext;
 
 	// this one is OK to use
 	private EmailValidator eValidator; // OK
@@ -69,6 +72,11 @@ public class AvoidThreadUnsafeJaxbUsageTest {
             }
         };
 	}
+
+	public Thing doSomething(File xml) {
+        Unmarshaller unmarshaller = jaxbContext.createUnmarshaller(); // good, create one each time
+        return (Thing) unmarshaller.unmarshal(xml);
+    }
 
 }
      ]]></code>

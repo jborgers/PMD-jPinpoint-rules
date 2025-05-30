@@ -6,6 +6,7 @@
     <test-code>
         <description>Avoid Spring ApplicationContext recreation</description>
         <expected-problems>2</expected-problems>
+        <expected-linenumbers>21, 24</expected-linenumbers>
         <code><![CDATA[
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -15,28 +16,28 @@ public class AvoidSpringApplicationContextRecreation {
 
     private static final ApplicationContext APPLICATION_CONTEXT2;
     private static final ApplicationContext APPLICATION_CONTEXT =
-            new ClassPathXmlApplicationContext(new String[]{ "t-spring-context.xml" }); //OK
+            new ClassPathXmlApplicationContext(new String[]{ "t-spring-context.xml" }); // good
 
     static {
-        APPLICATION_CONTEXT2 = new ClassPathXmlApplicationContext(new String[]{ "t-spring-context.xml" }); // OK
+        APPLICATION_CONTEXT2 = new ClassPathXmlApplicationContext(new String[]{ "t-spring-context.xml" }); // good
     }
 
-    /** Hotspot in MB-signing, does jaxbcontext re-creation, classloading, unzipping.
-     *
+    /**
+     * Hotspot: does jaxb context re-creation, classloading, unzipping.
      * @return
      */
-    private Object getRServiceViolate() {
+    private Object getRServiceBad() {
         final ApplicationContext applicationContext =
-                new ClassPathXmlApplicationContext(new String[]{"t-spring-context.xml"}); // violation
+                new ClassPathXmlApplicationContext(new String[]{"t-spring-context.xml"}); // bad
 
         final ApplicationContext applicationContext2 =
-                new AnnotationConfigApplicationContext(new String[]{"nl.bank.perf"}); // violation
+                new AnnotationConfigApplicationContext(new String[]{"nl.pinpoint.perf"}); // bad
 
         return (Object) applicationContext.getBean("T_SERVICE");
     }
 
 
-    private Object getRServiceOk() {
+    private Object getRServiceGood() {
         return (Object) APPLICATION_CONTEXT.getBean("T_SERVICE");
     }
 }

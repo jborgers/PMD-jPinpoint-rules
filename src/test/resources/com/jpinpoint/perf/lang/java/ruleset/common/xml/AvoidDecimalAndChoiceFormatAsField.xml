@@ -5,8 +5,8 @@
         xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
     <test-code>
         <description>violation: Avoid DecimalFormat and ChoiceFormat as field</description>
-        <expected-problems>3</expected-problems>
-        <expected-linenumbers>6,8,12</expected-linenumbers>
+        <expected-problems>4</expected-problems>
+        <expected-linenumbers>6,8,10,14</expected-linenumbers>
         <code><![CDATA[
 import java.text.ChoiceFormat;
 import java.text.DecimalFormat;
@@ -17,9 +17,15 @@ public class Foo {
 
     private final NumberFormat numFormat = new DecimalFormat("###.###"); //bad
 
+    private final NumberFormat numFormatBlank; //bad
+
     private double[] limits = {1, 2, 3, 4, 5, 6, 7};
     private String[] dayOfWeekNames = {"Sun", "Mon", "Tue", "Wed", "Thur", "Fri", "Sat"};
     private ChoiceFormat form = new ChoiceFormat(limits, dayOfWeekNames); // bad
+
+    Foo() {
+        numFormatBlank = new DecimalFormat("###.###");
+    }
 
     public void shouldNotMatchInsideMethod() {
         NumberFormat format = new DecimalFormat("##.##");

@@ -5,9 +5,11 @@
         xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
     <test-code>
         <description>Violation: Avoid contact in append method invocations</description>
-        <expected-problems>3</expected-problems>
-        <expected-linenumbers>9,18,24</expected-linenumbers>
+        <expected-problems>6</expected-problems>
+        <expected-linenumbers>11,18,19,24,30,34</expected-linenumbers>
         <code><![CDATA[
+import java.util.*;
+
 public class Foo {
 
     private static final String STATIC_FINAL_F = "static_final_field";
@@ -19,9 +21,13 @@ public class Foo {
         sb.append("arg='" + arg + "'"); // bad
     }
 
-    private void concatNumericIsBad() {
+    private void concatNumericIsBad(String arg) {
         StringBuilder sb = new StringBuilder();
-        sb.append(1 + 2); // bad
+        String localBar = "localBar";
+        sb.append(1 + 2 + "foo"); // good - compile time evaluate
+        sb.append(1 + localBar); // bad - non-final local String
+        sb.append(3 + 4 + arg + 5 + 6); // bad - non-final arg String
+        sb.append(1 + 3); // good: makes 4
     }
 
     private String testStaticBad() {
@@ -33,8 +39,13 @@ public class Foo {
         String local = "local"; // non-final, jdk9+ optimized with indified Strings, assumed still worse
         return new StringBuilder().append("fld:" + local).toString(); // assumed bad
     }
+
+    private String testStaticBadStringBuffer() {
+        StringBuffer sb = new StringBuffer().append("fld:" + static_f); // bad
+        return sb.toString();
+    }
 }
-     ]]></code>
+        ]]></code>
     </test-code>
 
     <test-code>

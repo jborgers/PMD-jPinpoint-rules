@@ -6,27 +6,79 @@
     <test-code>
         <description>violation: AvoidParallelFlux</description>
         <expected-problems>1</expected-problems>
-        <expected-linenumbers>6</expected-linenumbers>
+        <expected-linenumbers>9</expected-linenumbers>
         <code><![CDATA[
-import reactor.core.publisher.*;
+import java.util.*;
+import reactor.core.publisher.Flux;
+import reactor.core.scheduler.Scheduler;
 
 class FooBad {
-    public Flux<Account> getResponseAccounts(List<AccountKey> accountKeys, List<FieldName> requestedFields) {
+    private final Scheduler scheduler;
+    private final SchedulerProperties schedulerProperties;
+    public Flux<Account> getResponseAccounts(List<AccountDetails> accountKeys, List<FieldName> requestedFields) {
         return Flux.fromIterable(accountKeys)
-                .parallel(schedulerProperties.getParallelism()) //bad
+                .parallel(schedulerProperties.getParallelism()) // bad
                 .runOn(scheduler)
                 .flatMap(accountKey -> constructAccountDetails(accountKey, requestedFields))
                 .sequential();
     }
+
+    public static AccountDetails constructAccountDetails(AccountDetails accountKey, List<FieldName> requestedFields) {
+        // do something
+        return null;
+    }
+
 }
 
 class FooGood {
-    public Flux<Account> getResponseAccounts(List<AccountKey> accountKeys, List<FieldName> requestedFields) {
+    public Flux<Account> getResponseAccounts(List<AccountDetails> accountKeys, List<FieldName> requestedFields) {
         return Flux.fromIterable(accountKeys)
                 .flatMap(accountKey -> constructAccountDetails(accountKey, requestedFields));
     }
+    public static AccountDetails constructAccountDetails(AccountDetails accountKey, List<FieldName> requestedFields) {
+        // do something
+        return null;
+    }
 }
-     ]]></code>
+
+class AccountDetails {
+}
+
+class FieldName {
+}
+
+class Account {
+}
+       ]]></code>
+    </test-code>
+
+
+    <test-code>
+        <description>Violation: Fix Request: AvoidParallelFlux missed case #516</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>9</expected-linenumbers>
+        <code><![CDATA[
+import java.util.*;
+import reactor.core.publisher.Flux;
+import reactor.core.scheduler.Scheduler;
+
+class FooBad {
+    private final Scheduler scheduler;
+    private final SchedulerProperties schedulerProperties;
+    public Flux<Account> getResponseAccounts(List<AccountDetails> accountKeys, List<FieldName> requestedFields) {
+        return Flux.fromIterable(accountKeys)
+                .parallel() // bad - default parallelism - missed case
+                .runOn(scheduler)
+                .flatMap(accountKey -> constructAccountDetails(accountKey, requestedFields))
+                .sequential();
+    }
+
+    public static AccountDetails constructAccountDetails(AccountDetails accountKey, List<FieldName> requestedFields) {
+        // do something
+        return null;
+    }
+}
+       ]]></code>
     </test-code>
 
 </test-data>

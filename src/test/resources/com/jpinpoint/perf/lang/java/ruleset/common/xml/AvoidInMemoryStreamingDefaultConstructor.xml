@@ -50,8 +50,10 @@ public class Bar {
     <test-code>
         <description>violation: Avoid XxxStream constructor with less than or equal to default capacity #95</description>
         <expected-problems>2</expected-problems>
-        <expected-linenumbers>7,13</expected-linenumbers>
+        <expected-linenumbers>9,15</expected-linenumbers>
         <code><![CDATA[
+import java.io.ByteArrayOutputStream;
+import java.io.StringWriter;
  class Foo2 {
     int SW_SIZE_1 = 16;
     int SW_SIZE_2 = 17;

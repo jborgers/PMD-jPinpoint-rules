@@ -5,10 +5,13 @@
         xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
     <test-code>
         <description>UnconditionalCreatedLogArguments - Avoid unconditional creation of log arguments</description>
-        <expected-problems>6</expected-problems>
-        <expected-linenumbers>11,28,34,40,91,105</expected-linenumbers>
+        <expected-problems>7</expected-problems>
+        <expected-linenumbers>14,31,37,43,81,94,108</expected-linenumbers>
         <code><![CDATA[
+import org.slf4j.Logger;
 class Foo {
+    private Logger log;
+
    void bar1(Object obj) {
         if (log.isDebugEnabled()) {
           String logObj1 = obj.toString();
@@ -83,14 +86,14 @@ class Foo {
       boolean b = logObj11.equals("foo");
     }
 
-    void logBar12(Object obj) {
+    private void logBar12(Object obj) {
       String logObj12 = obj.toString();
-      log.debug("object to String: {}", logObj12); // good, method starts with log assumes called conditionally
+      log.debug("object to String: {}", logObj12); // bad (method starts with log, if it were only called conditionally in a caller, it would be good)
     }
 
     void bar13(Object obj) {
       String logObj13 = obj.getId();
-      log.debug("object to String: {}", logObj13); //good, method starts with 'get' is assumed quick
+      log.debug("object to String: {}", logObj13); // good, method starts with 'get' is assumed quick
     }
 
     /** from #140 */
@@ -98,21 +101,21 @@ class Foo {
         while (headerNames.hasMoreElements()) {
             String headerName = headerNames.nextElement();
             String header = httpRequest.getHeader(headerName);
-            LOG.debug("DoFilter, headerName{}: value{}", headerName, header); // bad: simple getter but in a loop
+            log.debug("DoFilter, headerName{}: value{}", headerName, header); // bad: simple getter but in a loop
         }
     }
 
     void bar15(Object obj1) {
             String name = obj1.toString();
             byte[] bar15 = name.getBytes();
-            LOG.debug("name {}: bytes {}", name, bar15); // good: simple getter is cheap
+            log.debug("name {}: bytes {}", name, bar15); // good: simple getter is cheap
     }
 
    void bar16(Object obj1) {
         while (true) {
             String name = obj1.toString();
             byte[] bar16 = name.getBytes();
-            LOG.debug("name {}: bytes {}", name, bar16); // bad: getter but in a loop
+            log.debug("name {}: bytes {}", name, bar16); // bad: getter but in a loop
         }
     }
 }
@@ -123,8 +126,8 @@ class Foo {
         <description>Avoid unconditional creation of log arguments, issue #176</description>
         <expected-problems>0</expected-problems>
         <code><![CDATA[
-class Klass {
-
+import org.slf4j.Logger;
+class Foo {
     Logger log = new Logger("Klass");
     Map map = new HashMap();
 
@@ -146,22 +149,24 @@ class Klass {
     <test-code>
         <description>Fix Request: false positive and missed case in UnconditionalCreatedLogArguments #209</description>
         <expected-problems>2</expected-problems>
-        <expected-linenumbers>8,9</expected-linenumbers>
+        <expected-linenumbers>10,11</expected-linenumbers>
         <code><![CDATA[
+import org.slf4j.Logger;
 class Foo {
+    Logger LOGGER;
     Bar field1;
     Bar field2;
 
     void bad(Bar param) {
       String log = param.baz(field1.get());
       String logThis = param.baz(this.field1.get());
-      log.debug("field: {}", log); //bad, missed
-      log.debug("field: {}", logThis); //bad
+      LOGGER.debug("field: {}", log); // bad, missed
+      LOGGER.debug("field: {}", logThis); // bad
 
       String fieldGet = field1.getClass();
       String fieldGetThis = this.field2.getClass();
-      log.debug("field getter: {}", fieldGet); // good
-      log.debug("field this.getter: {}", fieldGetThis); // good, false positive
+      LOGGER.debug("field getter: {}", fieldGet); // good
+      LOGGER.debug("field this.getter: {}", fieldGetThis); // good, false positive
     }
 }
 ]]></code>
@@ -171,7 +176,9 @@ class Foo {
         <description>Fix Request for UnconditionalCreatedLogArgument #312</description>
         <expected-problems>0</expected-problems>
         <code><![CDATA[
+import org.slf4j.Logger;
 class Foo {
+    private Logger log;
 
     private void calcYear(Data data) {
             Long loss = this.fService.filter(data);
@@ -187,6 +194,291 @@ class Foo {
 
        this.deleteFromRepository(key);
        log.info("Deleted order intent from repository: key " + key); // false positive: Avoid unconditional creation of a log argument, it may not be needed.
+    }
+}
+]]></code>
+    </test-code>
+
+    <test-code>
+        <description>Fix Request for UnconditionalCreatedLogArgument with @Slf4j annotation #395</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>11</expected-linenumbers>
+        <code><![CDATA[
+import java.util.UUID;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+
+@Service
+@Slf4j
+public class MyProducer {
+
+    public void delete(UUID id) {
+        String idStr = id.toString();
+        log.debug("delete --> {}", idStr); // bad <-- unnoticed due to use of @Slf4j (issue #395)
+    }
+
+   void good(Object obj) {
+        if (log.isDebugEnabled()) {
+          String logObj1 = obj.toString();
+          log.debug("object to String: {}", logObj1);
+        }
+    }
+}
+]]></code>
+    </test-code>
+
+    <test-code>
+        <description>Fix Request for UnconditionalCreatedLogArgument with @Slf4j annotation #395</description>
+        <expected-problems>2</expected-problems>
+        <expected-linenumbers>21,37</expected-linenumbers>
+        <code><![CDATA[
+import java.util.UUID;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+public class Issue455_OnlyCond {
+    private void logDelete(UUID id) {
+        String idStr = id.toString();
+        log.debug("delete --> {}", idStr); // false positive, good, called only conditionally in the caller
+    }
+   void callerCond(UUID id) {
+        if (log.isDebugEnabled()) {
+            logDelete();
+        }
+    }
+}
+
+@Slf4j
+public class Issue455_AlsoUnCond {
+    private void logDelete(UUID id) {
+        String idStr = id.toString();
+        log.debug("delete --> {}", idStr); // bad, called also unconditionally in a caller
+    }
+   void callerCond(UUID id) {
+        if (log.isDebugEnabled()) {
+            logDelete();
+        }
+    }
+    void callerUnCond(UUID id) {
+        logDelete();
+    }
+}
+
+@Slf4j
+public class Issue455_PublicLog {
+    public void logDelete(UUID id) {
+        String idStr = id.toString();
+        log.debug("delete --> {}", idStr); // bad, public log method can be called from anywhere unconditionally
+    }
+   void callerCond(UUID id) {
+        if (log.isDebugEnabled()) {
+            logDelete();
+        }
+    }
+}
+]]></code>
+    </test-code>
+
+    <test-code>
+        <description>Fix Request for UnconditionalCreatedLogArgument with multiple if conditions #468</description>
+        <expected-problems>4</expected-problems>
+        <expected-linenumbers>17,43,52,67</expected-linenumbers>
+        <code><![CDATA[
+import java.util.UUID;
+import org.slf4j.*;
+
+class Issue468_Basic {
+   private Logger log;
+
+   void bar1(Object obj) {
+        if (ids.contains(id) && log.isDebugEnabled()) {
+          String logObj1 = obj.toString();
+          log.debug("object to String: {}", logObj1);
+        }
+    }
+
+   void bar2(Object obj) {
+        if (ids.contains(id) || log.isDebugEnabled()) {
+          String logObj1 = obj.toString();
+          log.debug("object to String: {}", logObj1); // bad, use of || -- 17
+        }
+    }
+}
+
+public class Issue468_RemoteCallAnd {
+
+    private static final Logger log = LoggerFactory.getLogger(Issue468_RemoteCall.class);
+
+    private void logDelete(UUID id) {
+        String idStr = id.toString();
+        log.debug("delete --> {}", idStr); // false positive, good, called only conditionally in the caller
+    }
+    void callerCond(UUID id) {
+        if (ids.contains(id) && log.isDebugEnabled()) {
+            logDelete();
+        }
+    }
+}
+
+public class Issue468_RemoteCallOr {
+
+    private static final Logger log = LoggerFactory.getLogger(Issue468_RemoteCallOr.class);
+
+    private void logDelete(UUID id) {
+        String idStr = id.toString();
+        log.debug("delete --> {}", idStr); // bad, called with || in a caller -- 43
+    }
+   void callerCondOr(UUID id) {
+        if (ids.contains(id) || log.isDebugEnabled()) {
+            logDelete();
+        }
+    }
+    private void logDeleteBitwise(UUID id) {
+        String idStr = id.toString();
+        log.debug("delete --> {}", idStr); // bad, called with | in a caller -- 52
+    }
+   void callerCondOrBitwise(UUID id) {
+        if (ids.contains(id) | log.isDebugEnabled()) {
+            logDeleteBitwise();
+        }
+    }
+}
+
+public class Issue468_PublicLog {
+
+    private static final Logger log = LoggerFactory.getLogger(Issue468_PublicLog.class);
+
+    public void logDelete(UUID id) {
+        String idStr = id.toString();
+        log.debug("delete --> {}", idStr); // bad, public log method can be called from anywhere unconditionally -- 67
+    }
+   void callerCond(UUID id) {
+        if (ids.contains(id) && log.isDebugEnabled()) {
+            logDelete();
+        }
+    }
+}
+]]></code>
+    </test-code>
+
+    <test-code>
+        <description>Fix Request: UnconditionalCreatedLogArguments should recognize record getters. #569</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>14</expected-linenumbers>
+        <code><![CDATA[
+import org.slf4j.Logger;
+class Issue569 {
+    private Logger log;
+
+    void bar1(MyRecord obj) {
+      String logObj = obj.topic();
+      log.debug("record topic: {}", logObj); // <- false positive
+    }
+
+    void bar2(WannabeRecord obj) {
+      String logObj = obj.topic();
+      log.debug("wannabe record topic: {}", logObj); // <- false positive
+      long logObj2 = obj.doStuff(5);
+      log.debug("wannabe record done stuff: {}", logObj2); // bad
+    }
+
+   void bar3() {
+      WannabeRecord obj = newWR();
+      String logObj = obj.topic();
+      log.debug("wannabe record topic: {}", logObj); // <- false positive
+    }
+}
+
+record MyRecord (
+    String topic,
+    Long documentId,
+    long offset
+) {}
+
+class WannabeRecord {
+    String topic;
+    Long documentId;
+    long offset;
+    WannabeRecord(String topic, Long documentId, long offset) {
+        this.topic = topic;
+        this.documentId = documentId;
+        this.offset = offset;
+    }
+
+    public String topic() {
+        return topic;
+    }
+    public Long documentId() {
+        return documentId;
+    }
+    public long offset() {
+        return offset;
+    }
+    public long doStuff(long index) {
+        long result; // = do the stuff
+        return result;
+    }
+}
+]]></code>
+    </test-code>
+
+    <test-code>
+        <description>Fix Request: UnconditionalCreatedLogArguments should recognize record getters. #569 - Inner class and record.</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>14</expected-linenumbers>
+        <code><![CDATA[
+import org.slf4j.Logger;
+class Issue569_Inner {
+    private Logger log;
+
+    void bar1(MyInnerRecord obj) {
+      String logObj = obj.topic();
+      log.debug("record topic: {}", logObj); // <- false positive
+    }
+
+    void bar2(InnerWannabeRecord obj) {
+      String logObj = obj.topic();
+      log.debug("wannabe record topic: {}", logObj); // <- false positive
+      long logObj2 = obj.doStuff(5);
+      log.debug("wannabe record done stuff: {}", logObj2); // bad
+    }
+
+   void bar3() {
+      InnerWannabeRecord obj = newWR();
+      String logObj = obj.topic();
+      log.debug("wannabe record topic: {}", logObj); // <- false positive
+    }
+
+
+    record MyInnerRecord (
+        String topic,
+        Long documentId,
+        long offset
+    ) {}
+
+    class InnerWannabeRecord {
+        String topic;
+        Long documentId;
+        long offset;
+        InnerWannabeRecord(String topic, Long documentId, long offset) {
+            this.topic = topic;
+            this.documentId = documentId;
+            this.offset = offset;
+        }
+
+        public String topic() {
+            return topic;
+        }
+        public Long documentId() {
+            return documentId;
+        }
+        public long offset() {
+            return offset;
+        }
+        public long doStuff(long index) {
+            long result; // = do the stuff
+            return result;
+        }
     }
 }
 ]]></code>

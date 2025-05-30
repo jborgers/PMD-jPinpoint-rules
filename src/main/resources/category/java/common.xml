@@ -5,35 +5,23 @@
     <rule name="AvoidCDIReferenceLeak"
           language="java"
           message="Explicit CDI references need to be destroyed otherwise they leak."
-          class="net.sourceforge.pmd.lang.rule.XPathRule"
-          typeResolution="true"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#pml05">
         <description>Problem: A proxy object is created by Contexts and Dependency Injection (CDI) for explicit references, they are not de-referenced implicitly and become a memory leak. &#13;
             Solution: Destroy the reference explicitly.
         </description>
         <priority>1</priority>
         <properties>
-            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
+            <property name="tags" value="jpinpoint-rule,memory,performance,sustainability-low" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
-//Expression/PrimaryExpression/PrimaryPrefix/Name[@Image='CDI.current']/../../
-PrimarySuffix[@Image = 'select'
+//MethodCall[@MethodName='select']/MethodCall[@MethodName='current']/TypeExpression/ClassType[@SimpleName='CDI'
 and not
-(ancestor::MethodDeclaration//TryStatement/FinallyStatement//PrimaryExpression[
-PrimaryPrefix/Name/@Image='CDI.current'][PrimarySuffix/@Image = 'destroy']
-[PrimarySuffix/Arguments/ArgumentList/Expression/PrimaryExpression/PrimaryPrefix/Name/@Image =
-ancestor::MethodDeclaration//Expression/PrimaryExpression/PrimaryPrefix/Name[@Image='CDI.current']/../../
-PrimarySuffix[@Image = 'select']/ancestor::StatementExpression/PrimaryExpression/PrimaryPrefix/Name/@Image
-])
-and not
-(ancestor::MethodDeclaration//TryStatement/FinallyStatement//PrimaryExpression[
-PrimaryPrefix/Name/@Image='CDI.current'][PrimarySuffix/@Image = 'destroy']
-[PrimarySuffix/Arguments/ArgumentList/Expression/PrimaryExpression/PrimaryPrefix/Name/@Image =
-ancestor::MethodDeclaration//VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/Name[@Image='CDI.current']/../../
-PrimarySuffix[@Image = 'select']/ancestor::VariableDeclarator/VariableDeclaratorId/@Name
-])]
+(ancestor::MethodDeclaration//TryStatement/FinallyClause
+    //MethodCall[@MethodName='destroy'][ArgumentList/VariableAccess[@Name=ancestor::
+        MethodDeclaration//(VariableDeclarator|AssignmentExpression)[.//MethodCall[@MethodName='current']/TypeExpression/ClassType[@SimpleName='CDI']]/(VariableId|VariableAccess)/@Name]]
+    [MethodCall[@MethodName='current']/TypeExpression/ClassType[@SimpleName='CDI']])
+]
 ]]></value>
             </property>
         </properties>
@@ -60,175 +48,168 @@ public class CDIStuff {
         </example>
     </rule>
 
-    <rule name="AvoidConstantsInInterface" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" message="Interface defines constants. It may expose implementation details." typeResolution="true"
+    <rule name="AvoidConstantsInInterface"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          language="java" message="Interface defines constants. It may expose implementation details."
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#voedos04">
         <description>Interface defines constants. Problem: Possibly exposes implementation details.  &#13;
             Solution: Make it a Class which cannot be instantiated, or an Enum. Use static imports.
             (jpinpoint-rules)</description>
         <priority>3</priority>
         <properties>
-            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="tag" value="bad-practice" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
+            <property name="tags" value="jpinpoint-rule,bad-practice" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
- //ClassOrInterfaceDeclaration[@Interface=true()]/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration
+//ClassDeclaration[@Interface=true()]/ClassBody/FieldDeclaration
 	]]></value>
             </property>
         </properties>
         <example>
             <![CDATA[
-public interface Foo {
-    static final Object CONST = new Object(); //bad
+public interface AnimalConsts {
+    public static final Dog DOG = new Dog(); //bad
+}
+public class AnimalUtil {
+    private AnimalUtil() {}
+    public static final Dog DOG = new Dog(); // good
+}
+public enum Animal {
+    DOG // good
 }
             ]]>
         </example>
     </rule>
 
-    <rule name="AvoidDecimalAndChoiceFormatAsField" class="net.sourceforge.pmd.lang.rule.XPathRule"
-          dfa="false" language="java"
+    <rule name="AvoidDecimalAndChoiceFormatAsField"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          language="java"
           message="Avoid using DecimalFormat or ChoiceFormat as field since it is thread-unsafe."
-          typeResolution="true"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#idtf01">
-        <description>Problem: java.text.DecimalFormat and java.text.ChoiceFormat are thread-unsafe.&#13;
+        <description>Problem: java.text.NumberFormat: DecimalFormat and ChoiceFormat are thread-unsafe.&#13;
             Solution: usual solution is to create a new local one when needed in a method.
             (jpinpoint-rules)
         </description>
         <priority>1</priority>
         <properties>
-            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
+            <property name="tags" value="jpinpoint-rule,multi-threading" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
-//FieldDeclaration/VariableDeclarator/VariableInitializer/Expression[pmd-java:typeIs('java.text.DecimalFormat') or pmd-java:typeIs('java.text.ChoiceFormat')]
+ //FieldDeclaration/ClassType[pmd-java:typeIs('java.text.NumberFormat')]
         ]]></value>
             </property>
         </properties>
+        <example>
+            <![CDATA[
+public class Foo {
+    public static final DecimalFormat NUMBER_FORMAT = new DecimalFormat("###.###"); // bad
+
+    public void bar() {
+        NumberFormat format = new DecimalFormat("###.###"); // good
+    }
+}
+            ]]>
+        </example>
     </rule>
 
     <rule name="AvoidDuplicateAssignmentsInCases"
           message="Avoid duplicate assignments in different switch cases"
-          class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java"
-          typeResolution="true" externalInfoUrl="${doc_root}/JavaCodeQuality.md#SSC01">
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" language="java"
+          externalInfoUrl="${doc_root}/JavaCodeQuality.md#SSC01">
         <description>
-            Problem: Potential bug: expected are different assignments in different cases.&#13;
+            Problem: Potential bug: expected to have different assignments in different cases.&#13;
             Solution: assign different values in different cases, common assignments should be taken out of the switch.
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
-            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="tag" value="suspicious" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
+            <property name="tags" value="jpinpoint-rule,suspicious" type="String" description="classification"/>
             <property name="xpath">
                 <value>
                     <![CDATA[
-//SwitchStatement/BlockStatement[
-(.//AssignmentOperator/../../..//StatementExpression[not(pmd-java:typeIs('boolean'))]/Expression/PrimaryExpression/PrimaryPrefix/Name/@Image
-=preceding-sibling::SwitchLabel/preceding-sibling::BlockStatement//AssignmentOperator/../../..//StatementExpression/Expression/PrimaryExpression/PrimaryPrefix/Name/@Image
+(:-- assigned to same var in a previous switch case --:)
+//SwitchStatement//SwitchFallthroughBranch/ExpressionStatement[AssignmentExpression[not(pmd-java:typeIs('boolean'))]/VariableAccess[1]/@Name=
+../preceding-sibling::SwitchFallthroughBranch//preceding-sibling::ExpressionStatement/AssignmentExpression/VariableAccess[1]/@Name
+and (
+(:-- assigning same var --:)
+AssignmentExpression/VariableAccess[2]/@Name=
+../preceding-sibling::SwitchFallthroughBranch//preceding-sibling::ExpressionStatement/AssignmentExpression/VariableAccess[2]/@Name
 or
-.//AssignmentOperator/../../..//StatementExpression[not(pmd-java:typeIs('boolean'))]/Expression/PrimaryExpression/PrimaryPrefix//Literal/@Image
-=preceding-sibling::SwitchLabel/preceding-sibling::BlockStatement//AssignmentOperator/../../..//StatementExpression/Expression/PrimaryExpression/PrimaryPrefix//Literal/@Image)
-and
-.//AssignmentOperator/../../..//StatementExpression[not(pmd-java:typeIs('boolean'))]/PrimaryExpression/PrimaryPrefix/Name/@Image
-=preceding-sibling::SwitchLabel/preceding-sibling::BlockStatement//AssignmentOperator/../../..//StatementExpression/PrimaryExpression/PrimaryPrefix/Name/@Image
-and
-not(.//AssignmentOperator/../../..//StatementExpression[not(pmd-java:typeIs('boolean'))]/Expression/PrimaryExpression/PrimarySuffix/Arguments/@Size > 0
-or preceding-sibling::SwitchLabel[@Default=true()])
-]
+(:-- assigning same literal --:)
+AssignmentExpression/(StringLiteral|NumericLiteral)/@Image =
+../preceding-sibling::SwitchFallthroughBranch//preceding-sibling::ExpressionStatement/AssignmentExpression/(StringLiteral|NumericLiteral)/@Image
+or
+(:-- assigning constructor with same argument--:)
+AssignmentExpression/ConstructorCall/ArgumentList[@Size=1]/StringLiteral/@ConstValue =
+../preceding-sibling::SwitchFallthroughBranch//preceding-sibling::ExpressionStatement/AssignmentExpression/ConstructorCall/ArgumentList[@Size=1]/StringLiteral/@ConstValue
+or
+(:-- assigning same argumentless method possibly on a field of a type --:)
+AssignmentExpression/MethodCall[ArgumentList[@Size=0]]/concat(@MethodName, .//FieldAccess/@Name, .//FieldAccess//ClassType/@SimpleName) =
+../preceding-sibling::SwitchFallthroughBranch//preceding-sibling::ExpressionStatement/AssignmentExpression/MethodCall[ArgumentList[@Size=0]]/concat(@MethodName, .//FieldAccess/@Name, .//FieldAccess//ClassType/@SimpleName)
+)
+(:--default case allowed to have duplicates --:)
+and not (preceding-sibling::SwitchLabel[@Default=true()])]
 ]]>
                 </value>
             </property>
         </properties>
+        <example>
+            <![CDATA[
+switch (type) {
+    case "One":
+        xmlNsExtValue = "same";
+        schemaLocation = 1;
+        startElement = N_INITN;
+        extra = new String("alsoSame");
+        extra = dummy;
+        extra = toString();
+        break;
+    case "Two":
+        xmlNsValue = LINT008; // good
+        xmlNsExtValue = "same"; // bad
+        schemaLocation = 1; // bad
+        startElement = Y_INITN; // good
+        extra = new String("alsoSame"); // bad
+        break;
+    default:
+        throw new IllegalArgumentException("Type " + type + " is not supported.");
+}
+            ]]>
+        </example>
     </rule>
 
-    <rule name="AvoidImplicitlyRecompilingRegex" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" message="String regex method, Pattern.matches or FileSystem.getPathMatcher is used.
+    <rule name="AvoidImplicitlyRecompilingRegex" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java" message="String regex method, Pattern.matches or FileSystem.getPathMatcher is used.
 	   Implicitly compiles a regex pattern, can be expensive." typeResolution="true"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#ireu01">
         <description>A regular expression is compiled implicitly on every invocation. Problem: this can be expensive, depending on the length of the regular expression.&#13;
-            Solution: Compile the regex pattern only once and assign it to a private static final Pattern field. java.util.Pattern objects are thread-safe so they can be shared among threads.
+            Solution: Compile the regex pattern only once and assign it to a private static final Pattern field. java.util.Pattern objects are thread-safe, so they can be shared among threads.
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
-            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
+            <property name="tags" value="cpu,jpinpoint-rule,performance,sustainability-medium" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
-(//MethodDeclaration//(PrimaryPrefix/Name[ends-with(@Image, '.replaceAll') or ends-with(@Image, '.replaceFirst') or @Image='Pattern.matches']
-|PrimarySuffix[@Image = 'replaceAll' or ends-with(@Image, '.replaceFirst')])
-/following::PrimarySuffix[1]/Arguments[ArgumentList/@Size=2]//Expression[1]//PrimaryPrefix[
-Literal[string-length(@Image) > 5 and
-(matches(@Image, '[\.\$\|\(\)\[\]\{\}\^\?\*\+\\]+'))] or Name
-and not(../PrimarySuffix)
-and not (
-Name/@Image=ancestor::MethodDeclaration//VariableDeclaratorId/@Name)
-and not (
-Name[@Image=ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration/VariableDeclarator[
-VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/Literal[string-length(@Image) < 6 or not
-(matches(@Image, '[\.\$\|\(\)\[\]\{\}\^\?\*\+\\]+'))]
-]/VariableDeclaratorId/@Name])
+(:- method calls for non-short regex literals and used fields defined with non-short regex literal, or not defined as field -:)
+//MethodDeclaration//MethodCall[pmd-java:matchesSig('java.lang.String#replaceAll(java.lang.String,java.lang.String)')
+    or pmd-java:matchesSig('java.lang.String#replaceFirst(java.lang.String,java.lang.String)')
+    or pmd-java:matchesSig('java.util.regex.Pattern#matches(java.lang.String,java.lang.CharSequence)')
+    or pmd-java:matchesSig('java.lang.String#split(java.lang.String)')
+    or pmd-java:matchesSig('java.lang.String#matches(java.lang.String)')
+    or pmd-java:matchesSig('java.nio.file.FileSystem#getPathMatcher(java.lang.String)')
 ]
-,
-//MethodDeclaration//PrimaryPrefix/Name[ends-with(@Image, '.split') or ends-with(@Image, 'getPathMatcher')]/../../PrimarySuffix/Arguments[ArgumentList/@Size=1]//Expression[1]//PrimaryPrefix[
-Literal[string-length(@Image) > 5 and
-matches(@Image, '[\.\$\|\(\)\[\]\{\}\^\?\*\+\\]+')] or Name
-and not(../PrimarySuffix)
-and not (
-Name/@Image=ancestor::MethodDeclaration//VariableDeclaratorId/@Name)
-and not (
-(:--- not (if foreign field (with .), or field with short String or without regex char) ---:)
-Name[contains(@Image, '.') or @Image=ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration/VariableDeclarator[
-VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/Literal[string-length(@Image) < 6 or not
-(matches(@Image, '[\.\$\|\(\)\[\]\{\}\^\?\*\+\\]+'))]
-]/VariableDeclaratorId/@Name])
-]
-,
-//MethodDeclaration//PrimarySuffix[@Image='getPathMatcher']/../PrimarySuffix/Arguments[ArgumentList/@Size=1]/ArgumentList/Expression[1]/PrimaryExpression/PrimaryPrefix[
-Literal[string-length(@Image) > 5] or Name
-and not(../PrimarySuffix)
-and not (
-Name/@Image=ancestor::MethodDeclaration//VariableDeclaratorId/@Name)
-and not (
-Name[@Image=ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration/VariableDeclarator[
-VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/Literal[string-length(@Image) < 6]]/VariableDeclaratorId/@Name])
-]
-,
-(: --- String.matches called on formalparams, locals and fields --- :)
-//MethodDeclaration//PrimaryPrefix/Name[ends-with(@Image, '.matches')]
-[
-(exists(index-of((ancestor::MethodDeclaration//FormalParameter[pmd-java:typeIs('java.lang.String')]/VariableDeclaratorId/@Name), substring-before(@Image,'.')))
+/ArgumentList/*[1][(self::StringLiteral and string-length(@Image) > 5 and
+(matches(@Image, '[\.\$\|\(\)\[\]\{\}\^\?\*\+\\]+')))
 or
-exists(index-of((ancestor::MethodDeclaration//LocalVariableDeclaration/Type[pmd-java:typeIs('java.lang.String')]/../VariableDeclarator/VariableDeclaratorId/@Name), substring-before(@Image,'.')))
-or
-exists(index-of((ancestor::ClassOrInterfaceBody//FieldDeclaration[pmd-java:typeIs('java.lang.String')]/VariableDeclarator/VariableDeclaratorId/@Name), substring-before(@Image,'.'))))
-and
-(: for matches param is >5 literal or something named :)
-../../PrimarySuffix/Arguments[ArgumentList/@Size=1]//Expression[1]//PrimaryPrefix[
-Literal[string-length(@Image) > 5] or Name
-(: exclude method calls :)
-and not(../PrimarySuffix)
-(: exclude for param is method arg or local :)
-and not (
-Name/@Image=ancestor::MethodDeclaration//VariableDeclaratorId/@Name)
-(: exclude for param is short fields :)
-and not (
-Name[@Image=ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration/VariableDeclarator[
-VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/Literal[string-length(@Image) < 6]
-]/VariableDeclaratorId/@Name])
-]])
+self::VariableAccess and @Name=ancestor::ClassBody[1]/FieldDeclaration/VariableDeclarator[StringLiteral[string-length(@Image) > 5 and
+(matches(@Image, '[\.\$\|\(\)\[\]\{\}\^\?\*\+\\]+'))] or not(StringLiteral)]/VariableId/@Name]
 ]]></value>
             </property>
         </properties>
         <example>
             <![CDATA[
-//bad
 String bad_replaceInnerLineBreakBySpace() {
     return text.replaceAll("([^\\.\\n])\\n", "$1 "); // bad
 }
 
-// good
-private static final Pattern INNER_LINE_BREAK_PATTERN = Pattern.compile("([^\\.\\n])\\n");
+private static final Pattern INNER_LINE_BREAK_PATTERN = Pattern.compile("([^\\.\\n])\\n"); // good
 
 String good_replaceInnerLineBreakBySpace() {
     return INNER_LINE_BREAK_PATTERN.matcher(text).replaceAll("$1 "); // good
@@ -237,26 +218,27 @@ String good_replaceInnerLineBreakBySpace() {
         </example>
     </rule>
 
-    <rule name="AvoidInMemoryStreamingDefaultConstructor" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java"
-          message="The default capacity or smaller is used for ByteArrayOutputStream or StringWriter, it usually needs expensive expansions." typeResolution="true"
+    <rule name="AvoidInMemoryStreamingDefaultConstructor"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          language="java"
+          message="The default capacity or smaller is used for ByteArrayOutputStream or StringWriter, it usually needs expensive expansions."
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#isio01">
         <description>Problem: The default constructor of ByteArrayOutputStream creates a 32 bytes initial capacity and for StringWriter 16 chars. Problem: Such a small buffer as capacity usually needs several expensive expansions.&#13;
-            Solution: Presize the ByteArrayOutputStream or StringWriter with an initial capacity such that an expansion is not needed in most cases, typically much larger than 32, for instance 4096.
+            Solution: Pre-size the ByteArrayOutputStream or StringWriter with an initial capacity such that an expansion is not needed in most cases, typically much larger than 32, for instance 4096.
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
-            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
+            <property name="tags" value="cpu,jpinpoint-rule,performance,sustainability-medium" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
-//PrimaryExpression/PrimaryPrefix/AllocationExpression/ClassOrInterfaceType[pmd-java:typeIs('java.io.ByteArrayOutputStream') or pmd-java:typeIs('java.io.StringWriter')]
-[not(../Arguments/ArgumentList)
+//ConstructorCall[pmd-java:matchesSig('java.io.ByteArrayOutputStream#new()') or pmd-java:matchesSig('java.io.StringWriter#new()')
 or
-(pmd-java:typeIs('java.io.ByteArrayOutputStream') and (../Arguments//Literal[number(@Image) <= 32] or ../Arguments//Name[@Image = ancestor::ClassOrInterfaceDeclaration//FieldDeclaration//VariableDeclaratorId[number(..//Literal/@Name) <= 32]/@Image]))
-or
-(pmd-java:typeIs('java.io.StringWriter') and (../Arguments//Literal[number(@Image) <= 16] or ../Arguments//Name[@Image = ancestor::ClassOrInterfaceDeclaration//FieldDeclaration//VariableDeclaratorId[number(..//Literal/@Image) <= 16]/@Name]))
-]/..
+((pmd-java:matchesSig('java.io.ByteArrayOutputStream#new(int)') and (ArgumentList/NumericLiteral/@ValueAsInt <=32
+        or ArgumentList/VariableAccess/@Name = ancestor::ClassBody[1]/FieldDeclaration/VariableDeclarator[NumericLiteral/@ValueAsInt <= 32]/VariableId/@Name))
+    or (pmd-java:matchesSig('java.io.StringWriter#new(int)') and (ArgumentList/NumericLiteral/@ValueAsInt <=16
+        or ArgumentList/VariableAccess/@Name = ancestor::ClassBody[1]/FieldDeclaration/VariableDeclarator[NumericLiteral/@ValueAsInt <= 16]/VariableId/@Name))
+)
+]
 	]]></value>
             </property>
         </properties>
@@ -277,63 +259,83 @@ class Good {
 }
             ]]>
         </example>
-
     </rule>
 
-    <rule name="AvoidMultipleConcatStatements" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" message="Multiple statements concatenate to the same String. Use StringBuilder append." typeResolution="true"
+    <rule name="AvoidMultipleConcatStatements"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          language="java"
+          message="Multiple statements concatenate to the same String. Use StringBuilder append."
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#isu02">
         <description>Multiple statements concatenate to the same String. Problem: Each statement with one or more +-operators creates a hidden temporary StringBuilder, a char[] and a new String object, which all have to be garbage collected.&#13;
             Solution: Use StringBuilder.append.
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
-            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
+            <property name="tags" value="cpu,jpinpoint-rule,performance,sustainability-low" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
-//MethodDeclaration/Block[
-count(
-./BlockStatement/Statement//StatementExpression/PrimaryExpression/PrimaryPrefix/Name
-[@Image=./../../../../../../../../../../../..//VariableDeclaratorId/@Name
-and
-./../../../../../../..//VariableDeclaratorId/../../Type/ReferenceType/ClassOrInterfaceType[pmd-java:typeIs('java.lang.String')]
+(: x += y with only one preceding x += v or x = x + w :)
+//AssignmentExpression[@Operator='+='][VariableAccess/@Name=ancestor::Block//VariableDeclarator/VariableId[pmd-java:typeIs('java.lang.String')]/@Name]
+[(VariableAccess/@Name = ../preceding-sibling::ExpressionStatement/AssignmentExpression[@Operator='+=']/VariableAccess/@Name
+or
+VariableAccess/@Name = ../preceding-sibling::ExpressionStatement//InfixExpression[@Operator='+']/VariableAccess/@Name)
+and not (
+    VariableAccess/@Name = ../preceding-sibling::ExpressionStatement[2]/AssignmentExpression[@Operator='+=']/VariableAccess/@Name
+    or
+    VariableAccess/@Name = ../preceding-sibling::ExpressionStatement[2]//InfixExpression[@Operator='+']/VariableAccess/@Name
+)
 ]
-/../../../AssignmentOperator[@Image='+=']/
-../Expression//PrimaryExpression/PrimaryPrefix/Name) > 1]/BlockStatement[position()=last()]
 |
-//MethodDeclaration/Block[
-count(
-./BlockStatement/Statement//StatementExpression[
-./PrimaryExpression/PrimaryPrefix/Name[
-@Image = ../../../Expression/AdditiveExpression/PrimaryExpression/PrimaryPrefix/Name/@Image
-and
-@Image = ./../../../../../../../..//VariableDeclaratorId/../../Type/ReferenceType/ClassOrInterfaceType[pmd-java:typeIs('java.lang.String')]/../../../VariableDeclarator/VariableDeclaratorId/@Name
-]
-]) > 1 ]//BlockStatement[position()=last()]//StatementExpression/Expression/AdditiveExpression[@Operator = '+']
+(: x = x + y with only one preceding x += v or x = x + w :)
+//InfixExpression[@Operator='+'][VariableAccess/@Name=ancestor::AssignmentExpression/VariableAccess/@Name][VariableAccess/@Name=ancestor::Block//VariableDeclarator/VariableId[pmd-java:typeIs('java.lang.String')]/@Name]
+[(VariableAccess/@Name = ancestor::ExpressionStatement/preceding-sibling::ExpressionStatement//InfixExpression[@Operator='+']/VariableAccess/@Name
+or
+VariableAccess/@Name = ancestor::ExpressionStatement/preceding-sibling::ExpressionStatement/AssignmentExpression[@Operator='+=']/VariableAccess/@Name)
+and not (
+    VariableAccess/@Name = ancestor::ExpressionStatement/preceding-sibling::ExpressionStatement[2]/AssignmentExpression[@Operator='+=']/VariableAccess/@Name
+    or
+    VariableAccess/@Name = ancestor::ExpressionStatement/preceding-sibling::ExpressionStatement[2]//InfixExpression[@Operator='+']/VariableAccess/@Name
+)
+]/..
+
 	]]></value>
             </property>
         </properties>
+        <example>
+        <![CDATA[
+class ConcatsExample {
+
+    private String[] values = {"tic", "tac"};
+
+    String bad() {
+        String logStatement = "";
+        logStatement += values[0];
+        return logStatement += values[1]; // bad
+    }
+    String good() {
+        StringBuilder logStmtBuilder = new StringBuilder();
+        return logStmtBuilder.append(values[0]).append(values[1]).toString(); // good
+    }
+}
+            ]]>
+        </example>
     </rule>
 
-    <rule name="AvoidRecompilingPatterns" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" message="Pattern.compile is used in a method. Compiling a regex pattern can be expensive, make it a static final field." typeResolution="true"
+    <rule name="AvoidRecompilingPatterns"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          language="java"
+          message="Pattern.compile is used in a method. Compiling a regex pattern can be expensive, make it a static final field."
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#ireu02">
         <description>A regular expression is compiled on every invocation. Problem: this can be expensive, depending on the length of the regular expression.&#13;
             Solution: Usually a pattern is a literal, not dynamic and can be compiled only once. Assign it to a private static field. java.util.Pattern objects are thread-safe so they can be shared among threads.
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
-            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
+            <property name="tags" value="cpu,jpinpoint-rule,performance,sustainability-medium" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
-//TypeDeclaration/ClassOrInterfaceDeclaration/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDeclaration
-//PrimaryExpression/PrimaryPrefix/Name[pmd-java:typeIs('java.util.regex.Pattern') and ends-with(@Image, '.compile') and
-count(../../PrimarySuffix[1]/Arguments/ArgumentList/Expression//PrimaryExpression) = 1
-and not (
-../../PrimarySuffix[1]/Arguments/ArgumentList/Expression/PrimaryExpression/PrimaryPrefix/Name/@Image=
-ancestor::MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter/VariableDeclaratorId/@Name)]
+//MethodDeclaration//MethodCall[pmd-java:matchesSig('java.util.regex.Pattern#compile(java.lang.String)')
+and not(.//VariableAccess[@Name = ancestor::MethodDeclaration//FormalParameter/VariableId/@Name])]
 	]]></value>
             </property>
         </properties>
@@ -358,28 +360,22 @@ class Good {
 }
             ]]>
         </example>
-
     </rule>
 
-    <rule name="AvoidRecompilingXPathExpression" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" message="XPathExpression is created and compiled every time. Beware it is thread-unsafe." typeResolution="true"
-          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ux02">
+    <rule name="AvoidRecompilingXPathExpression" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" language="java" message="XPathExpression is created and compiled every time. Beware it is thread-unsafe."
+      externalInfoUrl="${doc_root}/JavaCodePerformance.md#ux02">
         <description>XPathExpression is created and compiled on every method call, compiled possibly implicitly by XPath::evaluate.
             Problem: Creation of XPath and compilation of XPathExpression takes time. It may slow down your application. &#13;
             Solution: 1. Avoid XPath usage. 2. Compile the xpath expression as String into a XPathExpression. However, since XPath and XPathExpression classes are thread-unsafe, they are not easily cached. Caching it in a ThreadLocal may be a solution.
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
-            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
+            <property name="tags" value="cpu,jpinpoint-rule,performance,sustainability-medium" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
-//TypeDeclaration//ClassOrInterfaceBodyDeclaration/MethodDeclaration
-//PrimaryExpression/(PrimarySuffix|PrimaryPrefix/Name)[ends-with(@Image,'newXPath')]
-/ancestor::MethodDeclaration
-//PrimaryExpression/(PrimarySuffix|PrimaryPrefix/Name)[ends-with(@Image, 'compile')
-or (pmd-java:typeIs('javax.xml.xpath.XPath') and ends-with(@Image, 'evaluate'))]
-]]></value>
+//MethodDeclaration//MethodCall[pmd-java:matchesSig('javax.xml.xpath.XPath#compile(java.lang.String)') or
+    pmd-java:matchesSig('javax.xml.xpath.XPath#evaluate(java.lang.String,java.lang.Object,javax.xml.namespace.QName)')]
+             ]]></value>
             </property>
         </properties>
         <example>
@@ -412,16 +408,15 @@ class Good {
     public static NodeList good(Document doc) throws XPathExpressionException {
         return (NodeList) tlExpr.get().evaluate(doc, XPathConstants.NODESET); // good
     }
+}
             ]]>
         </example>
-
-
     </rule>
 
     <rule name="AvoidRecreatingDateTimeFormatter"
           message="Avoid recreating DateTimeFormatter, it is relatively expensive."
-          class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java"
-          typeResolution="true" externalInfoUrl="${doc_root}/JavaCodePerformance.md#idtf02">
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" language="java"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#idtf02">
         <description>
             Problem: Recreating a DateTimeFormatter is relatively expensive.&#13;
             Solution: Java 8+ java.time.DateTimeFormatter is thread-safe and can be shared among threads. Create the
@@ -429,347 +424,328 @@ class Good {
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
-            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
+            <property name="tags" value="cpu,jpinpoint-rule,performance,sustainability-medium" type="String" description="classification"/>
             <property name="xpath">
                 <value>
                     <![CDATA[
-    //FieldDeclaration[@Final=false()]//ReferenceType/ClassOrInterfaceType[pmd-java:typeIs('org.joda.time.format.DateTimeFormatter') or pmd-java:typeIs('org.threeten.bp.format.DateTimeFormatter') or pmd-java:typeIs('java.time.format.DateTimeFormatter')],
-    //FieldDeclaration[@Final=true() and @Static=false()]//ReferenceType/ClassOrInterfaceType[pmd-java:typeIs('org.joda.time.format.DateTimeFormatter') or pmd-java:typeIs('org.threeten.bp.format.DateTimeFormatter') or pmd-java:typeIs('java.time.format.DateTimeFormatter')](: has assignment, otherwise check in constructor :)[ancestor::ClassOrInterfaceBodyDeclaration//VariableInitializer],
-    //ConstructorDeclaration/BlockStatement//Expression/PrimaryExpression/PrimaryPrefix/Name[ends-with(@Image, 'DateTimeFormat.forPattern')]
-(: check if parameter is argument of constructor call :)[not(ancestor::BlockStatement//Expression/PrimaryExpression/PrimarySuffix/Arguments/ArgumentList/Expression/PrimaryExpression/PrimaryPrefix/Name/@Image=ancestor::ConstructorDeclaration//PrimarySuffix/Arguments/ArgumentList/Expression/PrimaryExpression/PrimaryPrefix/Name/@Image)],
-    //MethodDeclaration/Block/BlockStatement//Expression//AllocationExpression/ClassOrInterfaceType[pmd-java:typeIs('org.joda.time.format.DateTimeFormatter') or pmd-java:typeIs('org.threeten.bp.format.DateTimeFormatter') or pmd-java:typeIs('java.time.format.DateTimeFormatter')],
-    //MethodDeclaration/Block/BlockStatement//VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/Name[ends-with(@Image, 'DateTimeFormatter.ofPattern')]
-(: check if parameter is argument of method call :)[not(ancestor::LocalVariableDeclaration//PrimarySuffix/Arguments/ArgumentList/Expression/PrimaryExpression/PrimaryPrefix/Name/@Image=
-ancestor::MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter/VariableDeclaratorId/@Name)],
-    //MethodDeclaration/Block/BlockStatement//Expression/PrimaryExpression/PrimaryPrefix/Name[contains(@Image, 'ISODateTimeFormat.')],
-    //MethodDeclaration/Block/BlockStatement//Expression/PrimaryExpression/PrimaryPrefix/Name[contains(@Image, 'DateTimeFormat.fullDateTime')],
-    //MethodDeclaration/Block/BlockStatement//Expression/PrimaryExpression/PrimaryPrefix/Name[ends-with(@Image, 'DateTimeFormat.forPattern')]
-(: check if parameter is argument of method call :)[not(ancestor::LocalVariableDeclaration//PrimarySuffix/Arguments/ArgumentList/Expression/PrimaryExpression/PrimaryPrefix/Name/@Image=
-ancestor::MethodDeclaration/MethodDeclarator/FormalParameters/FormalParameter/VariableDeclaratorId/@Name)],
-    //MethodDeclaration/Block/BlockStatement//Expression//AllocationExpression/ClassOrInterfaceType[pmd-java:typeIs('org.joda.time.format.DateTimeFormatterBuilder')][ancestor::PrimaryExpression/PrimarySuffix[@Image="toFormatter"]]
-                   ]]>
+//FieldDeclaration
+[ClassType[pmd-java:typeIs('java.time.format.DateTimeFormatter') or pmd-java:typeIs('org.joda.time.format.DateTimeFormatter')]]
+[(not(pmd-java:modifiers() = 'static') and VariableDeclarator[@Initializer=true()]) or not(pmd-java:modifiers() = 'final')]
+|
+//MethodDeclaration//ConstructorCall[pmd-java:matchesSig('org.joda.time.format.DateTimeFormatter#new(_,_)')]
+|
+//(MethodDeclaration|ConstructorDeclaration)//MethodCall[((pmd-java:matchesSig('java.time.format.DateTimeFormatter#ofPattern(_)')
+ or pmd-java:matchesSig('org.joda.time.format.DateTimeFormat#forPattern(_)'))
+   and not(ArgumentList/VariableAccess/@Name = ancestor::Block/..//FormalParameter/VariableId/@Name))
+ or pmd-java:matchesSig('java.time.format.DateTimeFormatterBuilder#toFormatter()')
+ or pmd-java:matchesSig('java.time.format.DateTimeFormatterBuilder#toFormatter(_)')
+ or pmd-java:matchesSig('org.joda.time.format.DateTimeFormatterBuilder#toFormatter()')
+ or pmd-java:matchesSig('org.joda.time.format.ISODateTimeFormat#_()')
+ or pmd-java:matchesSig('org.joda.time.format.DateTimeFormat#fullDateTime()')
+]
+]]>
                 </value>
             </property>
         </properties>
     </rule>
 
-    <rule name="AvoidReflectionInToStringAndHashCode" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" message="Reflection is used in toString or hashCode, which is expensive." typeResolution="true"
+    <rule name="AvoidReflectionInToStringAndHashCode"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          language="java"
+          message="Reflection is used in toString or hashCode, which is expensive."
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#uuor01">
         <description>Problem: Reflection is relatively expensive. &#13;
             Solution: Avoid to use reflection. Use the non-reflective, explicit way, like generation by IDE or Lombok.
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
-            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
+            <property name="tags" value="cpu,jpinpoint-rule,performance,sustainability-high" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
-//PrimaryPrefix/AllocationExpression/ClassOrInterfaceType
-	[
-		pmd-java:typeIs('org.apache.commons.lang.builder.EqualsBuilder')
-		or pmd-java:typeIs('org.apache.commons.lang.builder.HashCodeBuilder')
-	]
-[../../../PrimarySuffix[1]
-	[
-		@Image='reflectionEquals'
-		or @Image='reflectionHashCode'
-	]
-] |
-//PrimaryPrefix/Name
-	[
-		@Image='EqualsBuilder.reflectionEquals'
-		or @Image='HashCodeBuilder.reflectionHashCode'
-	]
-	]]></value>
-            </property>
-        </properties>
-    </rule>
-
-    <rule name="AvoidSimpleDateFormat" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" message="SimpleDateFormat is used. Since it is thread-unsafe, it needs expensive recreation."  typeResolution="true"
-          externalInfoUrl="${doc_root}/JavaCodePerformance.md#idtf01">
-        <description>Problem: java.util.SimpleDateFormat is thread-unsafe. The usual solution is to create a new one when needed in a method. Creating SimpleDateFormat is relatively expensive. &#13;
-            Solution: Use java.time.DateTimeFormatter. These classes are immutable, thus thread-safe and can be made static.
-            (jpinpoint-rules)</description>
-        <priority>2</priority>
-        <properties>
-            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
-            <property name="xpath">
-                <value><![CDATA[
-//AllocationExpression/ClassOrInterfaceType[
-    pmd-java:typeIs('java.text.SimpleDateFormat')
-    and not (ancestor::ClassOrInterfaceBodyDeclaration//PrimaryPrefix/Name[
-       ends-with(@Image, 'setDateFormat')
-       and (   pmd-java:typeIs('com.fasterxml.jackson.databind.ObjectMapper')
-            or pmd-java:typeIs('com.fasterxml.jackson.dataformat.xml.XmlMapper'))
-    ])
-]
-                ]]></value>
-            </property>
-        </properties>
-    </rule>
-
-    <rule name="AvoidStringBuffer" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" message="StringBuffer is used. It introduces locking overhead, use StringBuilder." typeResolution="true"
-          externalInfoUrl="${doc_root}/JavaCodePerformance.md#isu01" >
-        <description>Problem: StringBuffer introduces locking overhead because it is thread safe. Its thread-safety is rarely needed.&#13;
-            Solution: Replace StringBuffer by StringBuilder.  (jpinpoint-rules)</description>
-        <priority>3</priority>
-        <properties>
-            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
-            <property name="xpath">
-                <value><![CDATA[
-                    //VariableDeclarator[../Type/ReferenceType/ClassOrInterfaceType[pmd-java:typeIs('java.lang.StringBuffer')]]
-                    ]]></value>
-            </property>
-        </properties>
-    </rule>
-
-    <rule name="AvoidUnconditionalBuiltLogStrings" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" message="Log String is built irrespective of log level." typeResolution="true"
-          externalInfoUrl="${doc_root}/JavaCodePerformance.md#il02">
-        <description>A String to be logged is built unconditionally. Problem: String building, concatenation and/or other operations happen before the debug, trace or info method executes, so independent of the need to actually log. Concatenation is relatively expensive. &#13;
-            Solution: Build the String conditionally on the log level, within an if statement.
-            (jpinpoint-rules)</description>
-        <priority>2</priority>
-        <properties>
-            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
-            <property name="xpath">
-                <value><![CDATA[
-//MethodDeclaration/Block/BlockStatement/Statement//StatementExpression/PrimaryExpression/PrimaryPrefix/Name[
-(substring-before(@Image, '.') =
-ancestor::MethodDeclaration//BlockStatement/Statement/StatementExpression/PrimaryExpression/PrimaryPrefix/Name[ends-with
-(@Image, '.debug') or ends-with(@Image, '.trace') or ends-with(@Image, '.info')]
-/../../PrimarySuffix/Arguments/ArgumentList/Expression/PrimaryExpression/PrimaryPrefix/Name/attribute::Image
-and
-substring-after(@Image, '.') = 'append')
-and count(ancestor::IfStatement) = 0
-and
-count(ancestor::MethodDeclaration/Block/BlockStatement/Statement//PrimaryExpression/PrimaryPrefix/Name[
-(substring-before(@Image, '.') =
-ancestor::MethodDeclaration//BlockStatement/Statement//PrimaryExpression/PrimaryPrefix/Name[ends-with
-(@Image, '.debug') or ends-with(@Image, '.trace') or ends-with(@Image, '.info')]
-/../../PrimarySuffix/Arguments/ArgumentList//PrimaryExpression/PrimaryPrefix/Name/attribute::Image
-and
-substring-after(@Image, '.') != 'append')]) = 0
-]
-	]]></value>
-            </property>
-        </properties>
-    </rule>
-
-    <rule name="AvoidWideScopeXPathExpression" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" message="XPathExpression targets a wide scope, this is potentially slow." typeResolution="true"
-          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ux01">
-        <description>The XPathExpression targets a wide scope since it starts with '//'. Problem: XPath has to search in a wide scope for occurrences, this may take a while. &#13;
-            Solution: 1. Avoid XPath usage. 2. Make the scope as narrow as possible, do not start with '//'.
-            (jpinpoint-rules)</description>
-        <priority>2</priority>
-        <properties>
-            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
-            <property name="xpath">
-                <value><![CDATA[
-//TypeDeclaration/ClassOrInterfaceDeclaration/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDeclaration
-//PrimaryExpression/PrimarySuffix[
-Arguments/ArgumentList/Expression/PrimaryExpression/PrimaryPrefix/
-Literal[starts-with(@Image, '"//')]
-and
-../PrimaryPrefix/Name[ends-with(@Image, '.compile')]
-]
-	]]></value>
-            </property>
-        </properties>
-    </rule>
-
-    <rule name="AvoidXPathAPIUsage" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" message="XPathAPI is used. XPathAPI implementation has bad performance." typeResolution="true"
-          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ux03">
-        <description>XPathAPI is used. Problem: XPathAPI implementation is slow.&#13;
-            Solution: 1. try to avoid using XPathAPI. 2. improve performance by using jvm parameters and possibly CachedXPathAPI.
-            (jpinpoint-rules)</description>
-        <priority>3</priority>
-        <properties>
-            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
-            <property name="xpath">
-                <value><![CDATA[
-//TypeDeclaration/ClassOrInterfaceDeclaration/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration
-//PrimaryExpression/PrimaryPrefix/Name[starts-with(@Image, 'XPathAPI.')]
-	]]></value>
-            </property>
-        </properties>
-    </rule>
-
-    <rule name="AvoidXPathUsage" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" message="XPath is used. XPath implementation has bad performance." typeResolution="true"
-          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ux03">
-        <description>XPath is used. Problem: XPath implementation is slow.&#13;
-            Solution: 1. avoid using XPath. 2. improve performance by using jvm parameters and possibly Cached XPath API.
-            (jpinpoint-rules)</description>
-        <priority>3</priority>
-        <properties>
-            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
-            <property name="xpath">
-                <value><![CDATA[
-//TypeDeclaration/ClassOrInterfaceDeclaration/ClassOrInterfaceBody/
-ClassOrInterfaceBodyDeclaration
-//PrimaryExpression/PrimaryPrefix/Name[@Image='XPathFactory.newInstance']
-[not (ancestor::FieldDeclaration//ClassOrInterfaceType/@Image = 'ThreadLocal')]
-	]]></value>
-            </property>
-        </properties>
-    </rule>
-
-    <rule name="ImplementEqualsHashCodeOnValueObjects"
-          message="Equals and/or hashCode is missing for a value object."
-          class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java"
-          typeResolution="true" externalInfoUrl="${doc_root}/JavaCodeQuality.md#incorrect-equals-and-hashcode">
-        <description>
-            Problem: If equals and hashCode are not defined, they don't meet the programmer's expectations and the requirements for use with the collections API. It may result in unexpected, undesired behavior.&#13;
-            Solution: Add proper equals and hashCode methods that meet the equals-hashCode contract to all objects which might anyhow be put in a Map, Set or other collection. Or use Lombok @EqualsAndHashCode, @Value or @Data. Also holds for inner classes.
-            If the object should never be checked for equality or used in a collection, also add those methods and let them throw UnsupportedOperationException to fail fast. @Xml... , @Entity, Throwable and Executor objects are ignored because they are assumed to be not used as value objects.
-            (jpinpoint-rules)</description>
-        <priority>3</priority>
-        <properties>
-            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="tag" value="unpredictable" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
-            <property name="xpath">
-                <value>
-                    <![CDATA[
-(:-- top level class - not annotated that would make it a non-value object --:)
-//TypeDeclaration[not(./Annotation//Name[@Image='Data' or @Image='Value' or @Image='EqualsAndHashCode'
-or @Image='Singleton' or @Image='Component' or @Image='Service' or @Image='Repository' or @Image='Configuration' or @Image='Endpoint' or @Image='RestController' or @Image='ControllerAdvice'
-or starts-with(@Image, 'Xml') or @Image='Entity' or @Image='Embeddable' or @Image='MappedSuperclass'])]
-/ClassOrInterfaceDeclaration[@Interface=false() and @Abstract=false() and not(pmd-java:typeIs('java.util.concurrent.Executor') or pmd-java:typeIs('java.lang.Throwable'))]
-/ClassOrInterfaceBody[ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Static=false()]
-[
-(not (../Annotation//Name[@Image = 'XmlElement']))
-and
-(:-- a getter with result type of a field --:)
-(
-ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDeclaration
-[@Public=true() and @Static=false() and starts-with(@Name, 'get') and string-length(@Name) > 3 or starts-with(@Name, 'is') and string-length(@Name) > 2]
-[ResultType/Type/ReferenceType/ClassOrInterfaceType/@Image =
-ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Static=false()]/Type/ReferenceType/ClassOrInterfaceType/@Image]
-or
-ancestor::TypeDeclaration/Annotation//Name[@Image='Getter']
-)
-(:-- and class has no equals or hashCode method --:)
-and (not (ancestor::ClassOrInterfaceBody//MethodDeclaration[@Public=true() and @Static=false() and @Name='equals' or @Name='hashCode']))
-(:-- and class has a toString and #fields <= 1+#getters --:)
-and
-((ancestor::ClassOrInterfaceBody//MethodDeclaration[@Public=true() and @Static=false() and @Name='toString']
-and
-count(ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Static=false()]) <=
-(1 + count(ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDeclaration
-[@Public=true() and @Static=false() and starts-with(@Name, 'get') and string-length(@Name) > 3 or starts-with(@Name, 'is') and string-length(@Name) > 2]))
-)
-or
-ancestor::ClassOrInterfaceDeclaration[ends-with(@SimpleName, 'Dto')]
-or
-(:-- #fields == #getters --:)
-count(ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Static=false()]) =
-count(ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDeclaration
-[@Public=true() and @Static=false() and starts-with(@Name, 'get') and string-length(@Name) > 3 or starts-with(@Name, 'is') and string-length(@Name) > 2])
-or
-ancestor::TypeDeclaration/Annotation//Name[@Image='Getter']
-)]
-]/.. (:--up to class --:)
-
-(:-- inner classes --:)
-,
-//ClassOrInterfaceBodyDeclaration[not(./Annotation//Name[@Image='Data' or @Image='Value' or @Image='EqualsAndHashCode'])]
-/ClassOrInterfaceDeclaration[@Interface=false() and @Abstract=false() and not(pmd-java:typeIs('java.util.concurrent.Executor') or pmd-java:typeIs('java.lang.Throwable'))]
-/ClassOrInterfaceBody[ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Static=false()]
-[(
-ancestor::ClassOrInterfaceBody[1]/ClassOrInterfaceBodyDeclaration/MethodDeclaration
-[@Static=false() and starts-with(@Name, 'get') and string-length(@Name) > 3 or starts-with(@Name, 'is') and string-length(@Name) > 2]
-[ResultType/Type/ReferenceType/ClassOrInterfaceType/@Image =
-ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Static=false()]/Type/ReferenceType/ClassOrInterfaceType/@Image]
-)
-and
-(not (
-ancestor::ClassOrInterfaceBody[1]//MethodDeclaration[@Static=false() and @Name='equals'])
-)
-and
-((ancestor::ClassOrInterfaceBody[1]//MethodDeclaration[@Static=false() and @Name='toString']
-and
-count(ancestor::ClassOrInterfaceBody[1]/ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Static=false()]) <=
-(1 + count(ancestor::ClassOrInterfaceBody[1]/ClassOrInterfaceBodyDeclaration/MethodDeclaration
-[@Static=false() and starts-with(@Name, 'get') and string-length(@Name) > 3 or starts-with(@Name, 'is') and string-length(@Name) > 2]))
-)
-or
-ancestor::ClassOrInterfaceDeclaration[1][ends-with(@SimpleName, 'Dto')]
-or
-count(ancestor::ClassOrInterfaceBody[1]/ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Static=false()]) =
-count(ancestor::ClassOrInterfaceBody[1]/ClassOrInterfaceBodyDeclaration/MethodDeclaration
-[@Static=false() and starts-with(@Name, 'get') and string-length(@Name) > 3 or starts-with(@Name, 'is') and string-length(@Name) > 2])
-)]
-or
-ancestor::ClassOrInterfaceBodyDeclaration[1]/Annotation//Name[@Image='Getter']
-]/.. (:--up to class --:)
+//MethodCall[starts-with(@MethodName, 'reflection')][(TypeExpression|ConstructorCall)
+    [pmd-java:typeIs('org.apache.commons.lang3.builder.EqualsBuilder') or pmd-java:typeIs('org.apache.commons.lang3.builder.HashCodeBuilder')]]
 ]]>
                 </value>
             </property>
         </properties>
         <example>
             <![CDATA[
-class Getters { // bad
-    private String someState1 = "some1";
-    private String someState2 = "some2";
+class Bad {
+    private int state;
 
-    public String getSomeState1() {
-        return someState1;
-    }
-    public String getSomeState2() {
-        return someState2;
+    public boolean equals(Object o) {
+        return EqualsBuilder.reflectionEquals(o, this); // bad
     }
 }
 
-@Getter
-class LombokGetterBad { // bad
-    private String someState1 = "some1";
-    private String someState2 = "some2";
-}
+class Good {
+    private int state;
 
-@Getter
-@EqualsAndHashCode
-class LombokGetterGood {
-    private String someState1 = "some1";
-    private String someState2 = "some2";
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Good)) return false;
+        return new EqualsBuilder().append(((Good)o).state, state).isEquals();
+    }
 }
             ]]>
         </example>
     </rule>
 
-    <rule name="MDCPutWithoutRemove" message="MDC put is used without finally remove." class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" typeResolution="true" externalInfoUrl="${doc_root}/JavaCodePerformance.md#IL04">
+    <rule name="AvoidSimpleDateFormat"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          language="java"
+          message="SimpleDateFormat is used. Since it is thread-unsafe, it needs expensive recreation."
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#idtf01">
+        <description>Problem: java.util.SimpleDateFormat is thread-unsafe. The usual solution is to create a new one when needed in a method. Creating SimpleDateFormat is relatively expensive. &#13;
+            Solution: Use java.time.DateTimeFormatter. These classes are immutable, thus thread-safe and can be made static.
+            (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="tags" value="cpu,jpinpoint-rule,performance,sustainability-medium" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+//ConstructorCall/ClassType[pmd-java:typeIs('java.text.SimpleDateFormat')
+  and not ((ancestor::LocalVariableDeclaration/following-sibling::ExpressionStatement/MethodCall|ancestor::MethodCall)
+    [@MethodName='setDateFormat']/VariableAccess[pmd-java:typeIs('com.fasterxml.jackson.databind.ObjectMapper')
+      or pmd-java:typeIs('com.fasterxml.jackson.dataformat.xml.XmlMapper')])
+]
+                ]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+public class Foo {
+    private String toKeyBad(final Date date) {
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd"); //bad
+        return formatter.format(date);
+    }
+    private String toKeyGood(final LocalDate localDate) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd"); //good
+        return formatter.format(localDate);
+    }
+}
+            ]]>
+        </example>
+    </rule>
+
+    <rule name="AvoidStringBuffer"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          language="java"
+          message="StringBuffer is used. It introduces locking overhead, use StringBuilder."
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#isu01" >
+        <description>Problem: StringBuffer introduces locking overhead because it is thread safe. Its thread-safety is rarely needed.&#13;
+            Solution: Replace StringBuffer by StringBuilder.  (jpinpoint-rules)</description>
+        <priority>3</priority>
+        <properties>
+            <property name="tags" value="cpu,jpinpoint-rule,performance,sustainability-low" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+//ConstructorCall/ClassType[pmd-java:typeIs('java.lang.StringBuffer')]
+]]>
+                </value>
+            </property>
+        </properties>
+        <example>
+class Foo {
+    public void bad() {
+        var sb = new StringBuffer(); // bad
+    }
+    public void good() {
+        var sb = new StringBuilder(); // good
+    }
+}
+        </example>
+    </rule>
+
+    <rule name="AvoidUnconditionalBuiltLogStrings"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          language="java"
+          message="Log String is built irrespective of log level."
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#il02">
+        <description>A String to be logged is built unconditionally. Problem: String building, concatenation and/or other operations happen before the debug, trace or info method executes, so independent of the need to actually log. Concatenation is relatively expensive. &#13;
+            Solution: Build the String conditionally on the log level, within an if statement.
+            (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="tags" value="cpu,jpinpoint-rule,performance,sustainability-low" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+//MethodCall
+[pmd-java:matchesSig('java.lang.StringBuilder#append(java.lang.String)')]
+(: variable in append following used in logging :)
+[VariableAccess/@Name=(ancestor::ExpressionStatement|ancestor::ForeachStatement|ancestor::DoStatement|ancestor::WhileStatement)
+  /(following-sibling::TryStatement|following-sibling::ExpressionStatement)//MethodCall
+  [@MethodName=('trace', 'debug', 'info')]
+    [
+    (: supported logger libs :)
+    (VariableAccess[
+        pmd-java:typeIs('org.slf4j.Logger')
+        or pmd-java:typeIs('java.util.logging.Logger')
+        or pmd-java:typeIs('org.apache.commons.logging.Log')
+     ])
+   or
+     (: Slfj4 annotation makes the log variable AmbiguousName as there is no explicit log field :)
+     (AmbiguousName[ancestor::ClassDeclaration[pmd-java:hasAnnotation('lombok.extern.slf4j.Slf4j')]])
+  ]
+    //VariableAccess/@Name
+]
+(: variable in append following, not used in anything other than logging :)
+[not(
+VariableAccess/@Name=(ancestor::ExpressionStatement|ancestor::ForeachStatement|ancestor::DoStatement|ancestor::WhileStatement)
+  /(following-sibling::TryStatement|following-sibling::ExpressionStatement|following-sibling::ReturnStatement)//MethodCall
+  [not(@MethodName=('trace', 'debug', 'info'))
+  or VariableAccess[not(pmd-java:typeIs('org.slf4j.Logger')) and not(pmd-java:typeIs('java.util.logging.Logger')) and not(pmd-java:typeIs('org.apache.commons.logging.Log'))]]
+    //VariableAccess/@Name
+)]
+(: only if unconditional, and not || before the log check in the if statement :)
+[not(ancestor::IfStatement//MethodCall[
+     @MethodName = ('isTraceEnabled', 'isDebugEnabled','isInfoEnabled', 'isLoggable')
+     and count(../../InfixExpression[@Operator='||' or @Operator='|' or @Operator='^']) = 0 ])
+]
+(: except if method name starts with 'log', and it is non-public, .. :)
+[not(ancestor::MethodDeclaration
+[starts-with(@Name, 'log') and @Visibility = 'private']
+(: and the method is called only conditionally: it is called inside an if :)
+[@Name=ancestor::ClassBody//MethodCall[ancestor::IfStatement/MethodCall[@MethodName = ('isTraceEnabled', 'isDebugEnabled','isInfoEnabled', 'isLoggable')]]/@MethodName]
+(: and it is not called not inside an if :)
+[not(@Name=ancestor::ClassBody//MethodCall[not(ancestor::IfStatement/MethodCall[@MethodName = ('isTraceEnabled', 'isDebugEnabled','isInfoEnabled', 'isLoggable')])]/@MethodName)]
+)]
+	]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+class Foo {
+   public void bad(List values) {
+        var logLine = new StringBuilder();
+        for (String val : values) {
+            logLine.append(val + ", "); // bad
+        }
+        LOG.debug("log: {}.", logLine);
+    }
+    public void good(List values) {
+        if (LOG.isDebugEnabled()) {
+            var logLine = new StringBuilder();
+            for (String val : values) {
+                logLine.append(val + ", ");
+            }
+            LOG.debug("log: {}.", logLine);
+        }
+    }
+}
+            ]]>
+        </example>
+    </rule>
+
+    <rule name="AvoidWideScopeXPathExpression"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          language="java"
+          message="XPathExpression targets a wide scope, this is potentially slow."
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ux01">
+        <description>The XPathExpression targets a wide scope since it starts with '//'. Problem: XPath has to search in a wide scope for occurrences, this may take a while. &#13;
+            Solution: 1. Avoid XPath usage. 2. Make the scope as narrow as possible, do not start with '//'.
+            (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="tags" value="cpu,jpinpoint-rule,performance,sustainability-medium" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+//MethodCall[pmd-java:matchesSig('javax.xml.xpath.XPath#compile(java.lang.String)')]/ArgumentList/StringLiteral[starts-with(@Image, '"//')]
+	]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+public class Foo {
+    public bad() throws XPathExpressionException {
+        XPath xpath = XPathFactory.newInstance().newXPath();
+        XPathExpression expr = xpath.compile("//book[author='Isaac Asimov']/title/text()"); // bad
+    }
+    public good() throws XPathExpressionException {
+        XPath xpath = XPathFactory.newInstance().newXPath();
+        XPathExpression expr = xpath.compile("/public/library/books/book[author='Isaac Asimov']/title/text()");
+    }
+}
+            ]]>
+        </example>
+    </rule>
+
+    <rule name="AvoidXPathAPIUsage"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          language="java"
+          message="XPathAPI is used. XPathAPI implementation has bad performance."
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ux03">
+        <description>XPathAPI is used. Problem: XPathAPI implementation is slow.&#13;
+            Solution: 1. try to avoid using XPathAPI. 2. improve performance by using jvm parameters and possibly CachedXPathAPI.
+            (jpinpoint-rules)</description>
+        <priority>3</priority>
+        <properties>
+            <property name="tags" value="cpu,jpinpoint-rule,performance,sustainability-medium" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+//MethodCall/TypeExpression/ClassType[pmd-java:typeIs('org.apache.xpath.XPathAPI')]
+	]]></value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="AvoidXPathUsage"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          language="java"
+          message="XPath is used. XPath implementation has bad performance."
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ux03">
+        <description>XPath is used. Problem: XPath implementation is slow.&#13;
+            Solution: 1. avoid using XPath. 2. improve performance by using jvm parameters and possibly Cached XPath API.
+            (jpinpoint-rules)</description>
+        <priority>3</priority>
+        <properties>
+            <property name="tags" value="cpu,jpinpoint-rule,performance,sustainability-medium" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+//MethodCall[pmd-java:matchesSig('javax.xml.xpath.XPathFactory#newInstance()')]
+[not (ancestor::FieldDeclaration/ClassType[pmd-java:typeIs('java.lang.ThreadLocal')])]
+	]]></value>
+            </property>
+        </properties>
+    </rule>
+
+
+    <rule name="MDCPutWithoutRemove"
+          message="MDC put is used without finally remove."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          language="java" externalInfoUrl="${doc_root}/JavaCodePerformance.md#IL04">
         <description>
             MDC values are added for logging, but not removed. Problem: MDC values can leak to other user transactions (requests) and log incorrect information. Solution: remove the MDC value in a finally clause.
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
-            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="tag" value="correctness" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
+            <property name="tags" value="correctness,jpinpoint-rule,performance" type="String" description="classification"/>
             <property name="xpath">
                 <value>
                     <![CDATA[
-//MethodDeclaration//PrimaryExpression/PrimaryPrefix/Name[@Image='MDC.put']
-/../../PrimarySuffix/Arguments/ArgumentList/Expression[1]/PrimaryExpression/PrimaryPrefix/(Name|Literal)[not(@Image=
-(ancestor::MethodDeclaration//TryStatement/FinallyStatement//StatementExpression|ancestor::ClassOrInterfaceBody//MethodDeclaration[@Name='afterCompletion' or @Name='postHandle']/Block)//Name[@Image='MDC.remove']
-/../../PrimarySuffix/Arguments/ArgumentList/Expression[1]/PrimaryExpression/PrimaryPrefix/(Name|Literal)/@Image)
-and not((ancestor::MethodDeclaration//TryStatement/FinallyStatement//StatementExpression|ancestor::ClassOrInterfaceBody//MethodDeclaration[@Name='afterCompletion' or @Name='postHandle']/Block)//Name[@Image='MDC.clear'])
-]
+//MethodCall[pmd-java:matchesSig('org.slf4j.MDC#put(java.lang.String,java.lang.String)')]/ArgumentList/*[1][self::StringLiteral or self::VariableAccess]
+[not(@Image=ancestor::MethodDeclaration//TryStatement//FinallyClause//MethodCall[pmd-java:matchesSig('org.slf4j.MDC#remove(java.lang.String)')]/ArgumentList/*[1]/@Image
+or ancestor::MethodDeclaration//TryStatement//FinallyClause//MethodCall[pmd-java:matchesSig('org.slf4j.MDC#clear()')]
+or @Image=ancestor::ClassBody//MethodDeclaration[@Name='afterCompletion' or @Name='postHandle']//MethodCall[pmd-java:matchesSig('org.slf4j.MDC#remove(java.lang.String)')]/ArgumentList/*[1]/@Image
+or ancestor::ClassBody//MethodDeclaration[@Name='afterCompletion' or @Name='postHandle']//MethodCall[pmd-java:matchesSig('org.slf4j.MDC#clear()')]
+(: Issue 326, doFinally, not sure to accept :)
+(:or @Image=ancestor::MethodDeclaration//MethodCall[@MethodName='doFinally']//MethodCall[pmd-java:matchesSig('org.slf4j.MDC#remove(java.lang.String)')]/ArgumentList/*[1]/@Image
+or ancestor::MethodDeclaration//MethodCall[@MethodName='doFinally']//MethodCall[pmd-java:matchesSig('org.slf4j.MDC#clear()')]:)
+(: Issue 473, a put in a method only called from a try block with a remove of that key, or a clear :)
+(: a put of a key not in a try statement nor with a doFinally :)
+or not(ancestor::TryStatement) and not(.//MethodCall[@MethodName='doFinally'])
+    (: if method is non-private -> violation :)
+    and not ((ancestor::MethodDeclaration/@Visibility!='private'
+        (: or in a method called from a non-try scope -> violation:)
+        or ancestor::MethodDeclaration/@Name = ancestor::ClassBody//MethodDeclaration[not(.//TryStatement)]//MethodCall/@MethodName)
+        (: or in a method not called from a try statement with a finally -> violation :)
+        or not(ancestor::MethodDeclaration/@Name=ancestor::ClassBody//TryStatement[.//FinallyClause]/Block//MethodCall/@MethodName)
+        (: or in a method called from a try statement and the key not removed / cleared in finally :)
+        or (ancestor::MethodDeclaration/@Name=ancestor::ClassBody//TryStatement[.//FinallyClause]/Block//MethodCall/@MethodName and
+        not(@Image = ancestor::ClassBody//TryStatement/FinallyClause//MethodCall[pmd-java:matchesSig('org.slf4j.MDC#remove(java.lang.String)')]/ArgumentList/*[1]/@Image
+        or ancestor::ClassBody//TryStatement//FinallyClause//MethodCall[pmd-java:matchesSig('org.slf4j.MDC#clear()')]
+    )))
+)]
 ]]>
                 </value>
             </property>
@@ -801,231 +777,316 @@ class Good {
         </example>
     </rule>
 
-    <rule name="MinimizeAttributesInSession" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" message="Attribute is set in the session, yet not removed. This may bloat the session." typeResolution="true"
-          externalInfoUrl="${doc_root}/JavaCodePerformance.md#tmsu01">
-        <description>An attribute is set in the session and not removed. Problem: This may be a large object and data in the sessions takes heap space and stay in the session until time-out. This may take substantial heap space.&#13;
-            Solution: remove the attribute if not really needed in the session, remove it from the session as soon as possible. Alternatively, use render parameters.
-            (jpinpoint-rules)</description>
-        <priority>2</priority>
-        <properties>
-            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
-            <property name="xpath">
-                <value><![CDATA[
-//ClassOrInterfaceBodyDeclaration/MethodDeclaration[../..//(VariableDeclaratorId |ReturnStatement/Expression)[pmd-java:typeIs('javax.portlet.PortletSession') or pmd-java:typeIs('javax.servlet.http.HttpSession')]]
-/Block/BlockStatement/Statement[
-./StatementExpression/PrimaryExpression/(PrimaryPrefix/Name|PrimarySuffix)[ends-with(@Image, 'setAttribute')]
-/ancestor::ClassOrInterfaceBody[not(
-ClassOrInterfaceBodyDeclaration//MethodDeclaration/Block//PrimaryExpression/(PrimaryPrefix/Name|PrimarySuffix)[ends-with(@Image, 'removeAttribute')]
-)]]
-,
-//ClassOrInterfaceBodyDeclaration/MethodDeclaration/Block/BlockStatement/Statement[
-.//StatementExpression/PrimaryExpression/PrimaryPrefix/Name[@Image = 'PortletUtils.setSessionAttribute']
-/ancestor::ClassOrInterfaceBody[not(
-ClassOrInterfaceBodyDeclaration//MethodDeclaration/Block//PrimaryExpression/PrimaryPrefix/Name[@Image = 'PortletUtils.setSessionAttribute']
-/../../PrimarySuffix/Arguments/ArgumentList/Expression/PrimaryExpression/PrimaryPrefix/Literal/NullLiteral
-)]]
-]]></value>
-            </property>
-        </properties>
-        <example>
-            <![CDATA[
-class Bad {
-    PortletSession session; // same for HttpSession
-    public void setAttribute(String name, Object obj) {
-	    session.setAttribute(name, obj);                 // bad
-	}
-	public Object getAttribute(String name) {
-		return session.getAttribute(name);
-	}
-}
-
-class Good {
-    PortletSession session; // same for HttpSession
-	public void setAttribute(String name, final Object obj) {
-		session.setAttribute(name, obj);
-	}
-	public Object getAttribute(String name) {
-		return session.getAttribute(name);
-	}
-	public void removeAttribute(String name) {
-		session.removeAttribute(name);
-	}
-}
-            ]]>
-        </example>
-    </rule>
-
-    <rule name="UnconditionalConcatInLogArgument" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" message="String concatenation (+) is executed regardless of log level and can be expensive" typeResolution="true"
+    <rule name="UnconditionalConcatInLogArgument"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          language="java"
+          message="String concatenation (+) is executed regardless of log level and can be expensive"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#il01">
         <description>Problem: String concatenation (+) is executed regardless of log level and can be expensive. &#13;
             Solution: Use SLF4J formatting with {}-placeholders or log and format conditionally.  (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
-            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
+            <property name="tags" value="cpu,jpinpoint-rule,performance,sustainability-low" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
-//PrimaryPrefix/Name[ends-with(@Image,'.trace') or ends-with(@Image,'.debug') or
-    ends-with(@Image,'.info')]/../../PrimarySuffix/Arguments/ArgumentList/Expression/AdditiveExpression[pmd-java:typeIs('java.lang.String')]
-    [PrimaryExpression/PrimaryPrefix/Name]
-    [not(ancestor::IfStatement/Expression/PrimaryExpression/PrimaryPrefix/Name[
-        ends-with(@Image,'.isTraceEnabled')
-        or ends-with(@Image,'.isDebugEnabled')
-        or ends-with(@Image,'.isInfoEnabled')
-        or ends-with(@Image,'.isLoggable')
-    ])]
+//MethodCall
+  [@MethodName=('trace','debug','info')]
+  [
+    (: supported logger libs :)
+    (VariableAccess[
+        pmd-java:typeIs('org.slf4j.Logger')
+        or pmd-java:typeIs('java.util.logging.Logger')
+        or pmd-java:typeIs('org.apache.commons.logging.Log')
+     ])
+   or
+     (: Slfj4 annotation makes the log variable AmbiguousName as there is no explicit log field :)
+     (AmbiguousName[ancestor::ClassDeclaration[pmd-java:hasAnnotation('lombok.extern.slf4j.Slf4j')]])
+  ]
+  /ArgumentList[.//InfixExpression[@Operator='+'][(VariableAccess|MethodCall)[pmd-java:typeIs('java.lang.String')] or (StringLiteral and (VariableAccess or MethodCall))]]
+    [not(ancestor::IfStatement//MethodCall[
+         @MethodName = ('isTraceEnabled', 'isDebugEnabled','isInfoEnabled', 'isLoggable')
+         and count(../../InfixExpression[@Operator='||' or @Operator='|' or @Operator='^']) = 0 ])
+    ]
 ]]></value>
             </property>
         </properties>
         <example>
-        <![CDATA[
+            <![CDATA[
 @slf4j
 class Foo {
     void bad(String a, String b) {
         log.debug("message: {}", a + b); // bad
     }
     void good(String a, String b) {
-        log.debug("message: {}{}", a, b); // good
+        log.debug("message: {}-{}", a, b); // good
     }
 }
             ]]>
-    </example>
+        </example>
     </rule>
 
-    <rule name="UnconditionalOperationOnLogArgument" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" message="Operation is executed regardless of log level and can be expensive" typeResolution="true"
+    <rule name="UnconditionalOperationOnLogArgument"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          language="java"
+          message="Operation is executed regardless of log level and can be expensive"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#il03">
         <description>Problem: An operation is executed regardless of log level. This could be much processing while the result is typically not used. Detected are obj.toString() and operations with one or more arguments except usually cheap obj.getXXX(arg).&#13;
             Solution: Execute the operation only conditionally and utilize SLF4J formatting with {}-placeholders.  (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
-            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
+            <property name="tags" value="cpu,jpinpoint-rule,performance,sustainability-low" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
-          //PrimaryPrefix/Name
-            (: log levels typically/often not enabled :)
-            [
-            	ends-with(@Image,'.trace')
-            	or ends-with(@Image,'.debug')
-            	or ends-with(@Image,'.info')
-            ]
-            (: no violation if conditionally: only executed if level enabled is okay :)
-            [not(ancestor::IfStatement//Name
-            	[
-					ends-with(@Image,'.isTraceEnabled')
-					or ends-with(@Image,'.isDebugEnabled')
-					or ends-with(@Image,'.isInfoEnabled')
-					or ends-with(@Image,'.isLoggable')
-		        ])
-	        ]
-            (: no violation if return conditionally before :)
-            [not(ancestor::BlockStatement/preceding-sibling::BlockStatement//IfStatement//ReturnStatement/ancestor::IfStatement//Name
-                [
-					ends-with(@Image,'.isTraceEnabled')
-					or ends-with(@Image,'.isDebugEnabled')
-					or ends-with(@Image,'.isInfoEnabled')
-					or ends-with(@Image,'.isLoggable')
-		        ])
-            ]
-	        (: in the log method :)
-            /../../PrimarySuffix/Arguments/ArgumentList/Expression//PrimaryExpression
-            [
-                (: toString on argument :)
-                PrimaryPrefix/Name[ends-with(@Image,'.toString')]
-                or
-                (: a method call with an argument list :)
-                (PrimarySuffix/Arguments/ArgumentList)
-                (: exclude a simple getXXX(i), like list.get(0) or env.getProperty(key), assumed to be fast :)
-                and not (PrimaryPrefix/Name[contains(@Image,'.get')])
-            ]
+//MethodCall
+(: log levels often not enabled in prod :)
+  [@MethodName=('trace','debug','info')]
+  [
+    (: supported logger libs :)
+    (VariableAccess[
+        pmd-java:typeIs('org.slf4j.Logger')
+        or pmd-java:typeIs('java.util.logging.Logger')
+        or pmd-java:typeIs('org.apache.commons.logging.Log')
+     ])
+   or
+     (: Slfj4 annotation makes the log variable AmbiguousName as there is no explicit log field :)
+     (AmbiguousName[ancestor::ClassDeclaration[pmd-java:hasAnnotation('lombok.extern.slf4j.Slf4j')]])
+  ]
+(: only if unconditional, and not || before the log check in the if statement :)
+  [not(ancestor::IfStatement//MethodCall[
+                        @MethodName = ('isTraceEnabled', 'isDebugEnabled','isInfoEnabled', 'isLoggable')
+                        and count(../../InfixExpression[@Operator='||' or @Operator='|' or @Operator='^']) = 0 ])
+                      ]
+(: and not returned conditionally before :)
+  [not(ancestor::ExpressionStatement/preceding-sibling::IfStatement[.//ReturnStatement and .//MethodCall[@MethodName = ('isTraceEnabled', 'isDebugEnabled','isInfoEnabled', 'isLoggable')]])]
+(: for operations in log with >0 arguments or toString(); except getters which are assumed as fast :)
+  /ArgumentList//MethodCall[
+    (ArgumentList[@Size>0] or @MethodName='toString') and not(starts-with(@MethodName, 'get'))
+    (: if methods are chained, only report 1 in the chain :)
+    and not(ancestor::MethodCall[ArgumentList[@Size>0]]/MethodCall)
+  ]
+  (: except if method name contains log, trace, debug or info (case insensitive), and it is non-public :)
+  [not(ancestor::MethodDeclaration
+    [matches(@Name, 'trace|debug|info|log','i') and @Visibility = 'private']
+    (: and the method is called only conditionally: it is called inside an if and not prefixed with || :)
+    [@Name=ancestor::ClassBody//MethodCall[ancestor::IfStatement//MethodCall[
+           @MethodName = ('isTraceEnabled', 'isDebugEnabled','isInfoEnabled', 'isLoggable')
+           and count(../../InfixExpression[@Operator='||' or @Operator='|' or @Operator='^']) = 0
+       ]]/@MethodName]
+    (: and it is not called not inside an if :)
+    [not(@Name=ancestor::ClassBody//MethodCall[
+           not(
+             ancestor::IfStatement//MethodCall[
+                   @MethodName = ('isTraceEnabled', 'isDebugEnabled','isInfoEnabled', 'isLoggable')
+                   and count(../../InfixExpression[@Operator='||' or @Operator='|' or @Operator='^']) = 0
+             ]
+           )
+        ]/@MethodName)
+      ]
+   )]
+]]>
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+LOG.debug("customer = {}", customer.toString()); // bad
+LOG.debug("Complete Soap response: {}", getSoapMsgAsString(context.getMessage())); // bad
+
+LOG.debug("customer = {}", customer); // good
+if (LOG.isDebugEnabled()) { // good
+    LOG.debug("Complete Soap response: {}", getSoapMsgAsString(context.getMessage()));
+}
+            ]]>
+        </example>
+    </rule>
+    <rule name="UsingSuppressWarningsHighRisk"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          language="java"
+          message="Using SuppressWarnings for a rule that is meant to prevent high risk problems."
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodeQuality.md#M03">
+        <description>Problem: The suppressed rule detects high risk problems, suppressing the detected violations without full knowledge can lead to incidents like customer data mix-up, corrupt data, server crashes or very bad performance. &#13;
+            Solution: Only suppress violations (warnings) when you have complete understanding of the rule, and you are sure it does not apply.
+            When suppressing warnings, document your reasoning and report false positives to the rule maintainers to help improve rule accuracy.
+            Note: This rule is to track use of SuppressWarnings for high risk rule violations, to be able to double-check if suppression is correct. It doesn't necessarily need a fix.
+            (jpinpoint-rules)</description>
+        <priority>4</priority>
+        <properties>
+            <property name="tags" value="data-mix-up,jpinpoint-rule,suspicious" type="String" description="classification"/>
+            <property name="ruleIdMatches" type="String" value="AvoidUserDataInSharedObjects|AvoidUnguardedMutableFieldsInSharedObjects|AvoidUnguardedAssignmentToNonFinalFieldsInSharedObjects|AvoidMutableStaticFields|[^\w]ALL[^\w]|[^\w]all[^\w]|PMD[^\.]|pmd[^:]"
+                      description="Regex for inclusion of high risk rules"/>
+            <property name="ruleIdNotMatches" type="String" value="^$"
+                      description="Regex for exclusion of high risk rules"/>
+            <property name="xpath">
+                <value><![CDATA[
+//Annotation[@SimpleName=("SuppressWarnings","SuppressFBWarnings")]//StringLiteral[(matches(@Image, $ruleIdMatches)) and not (matches(@Image, $ruleIdNotMatches))]
 			]]>
                 </value>
             </property>
         </properties>
         <example>
             <![CDATA[
-            LOG.debug("customer = {}", customer.toString()); // bad
-            LOG.debug("Complete Soap response: {}", getSoapMsgAsString(context.getMessage())); // bad
-
-            LOG.debug("customer = {}", customer); // good
-            if (LOG.isDebugEnabled()) { // good
-                LOG.debug("Complete Soap response: {}", getSoapMsgAsString(context.getMessage()));
-            }
-            ]]>
+@SuppressWarnings({"PMD.AvoidUnguardedMutableFieldsInSharedObjects", "PMD.AvoidUserDataInSharedObjects"}) // suspicious, probably bad to suppress
+@Component @Data
+class VMRData {
+    private List<OrderDetails> customerOrderList; // a bad idea to have in a singleton, should be solved instead of suppressed
+    //..
+}
+             ]]>
         </example>
     </rule>
-
-    <rule name="UsingSuppressWarningsHighRisk" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" message="Using SuppressWarnings for a rule that is meant to prevent high risk problems." typeResolution="true"
-          externalInfoUrl="${doc_root}/JavaCodePerformance.md">
-        <description>(Informative - are you sure?) Problem: This rule detects high risk problems, suppressing them without full knowledge can lead to incidents like customer data mix-up, corrupt data, server crashes or very bad performance. &#13;
-            Solution: Suppress warnings judiciously based on full knowledge and report reasons to suppress (false positives) to the rule maintainers so the rule can be fixed. (jpinpoint-rules)</description>
-        <priority>4</priority>
-        <properties>
-            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="tag" value="suspicious" type="String" description="for-sonar"/>
-            <property name="tag" value="data-mix-up" type="String" description="for-sonar"/>
-            <property name="ruleIdMatches" type="String" value="AvoidUnguardedMutableFieldsInSharedObjects|AvoidUnguardedAssignmentToNonFinalFieldsInSharedObjects|AvoidMutableStaticFields|[^\w]ALL[^\w]|[^\w]all[^\w]|PMD[^\.]|pmd[^:]"
-                      description="Regex for inclusion of high risk rules"/>
-            <property name="ruleIdNotMatches" type="String" value="^$"
-                      description="Regex for exclusion of high risk rules"/>
-            <property name="version" value="2.0"/>
-            <property name="xpath">
-                <value><![CDATA[
-//Annotation//Name[@Image="SuppressWarnings" or @Image="SuppressFBWarnings"]/..//Literal[(matches(@Image, $ruleIdMatches)) and not (matches(@Image, $ruleIdNotMatches))]
-			]]>
-                </value>
-            </property>
-        </properties>
-    </rule>
-
-    <rule name="UsingSuppressWarnings" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" message="Using SuppressWarnings." typeResolution="true"
-          externalInfoUrl="${doc_root}/JavaCodePerformance.md">
-        <description>(Informative - be aware) Problem: This rule detects problems, suppressing them without full knowledge can lead to the problems this rule is trying to prevent. &#13;
-            Solution: Suppress warnings judiciously based on full knowledge and report reasons to suppress (false positives) to the rule maintainers so the rule can be fixed. (jpinpoint-rules)</description>
+    <rule name="UsingSuppressWarnings"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          language="java"
+          message="Using SuppressWarnings."
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodeQuality.md#M02">
+        <description>Problem: The suppressed rule detects problems, suppressing the detected violations without full knowledge can lead to the problems the rule is trying to prevent. &#13;
+            Solution: Only suppress violations (warnings) when you have complete understanding of the rule, and you are sure it does not apply.
+            When suppressing warnings, document your reasoning and report false positives to the rule maintainers to help improve rule accuracy.
+            Note: This rule is just informational to track use of SuppressWarnings, to be able to double-check if suppression is correct. It often doesn't need a fix. (jpinpoint-rules)</description>
         <priority>5</priority>
         <properties>
-            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="tag" value="suspicious" type="String" description="for-sonar"/>
+            <property name="tags" value="jpinpoint-rule,suspicious" type="String" description="classification"/>
             <property name="ruleIdMatches" type="String" value=".*"
                       description="Regex for inclusion of rules"/>
             <property name="ruleIdNotMatches" type="String" value="^$"
                       description="Regex for exclusion of rules"/>
-            <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
-//Annotation//Name[@Image="SuppressWarnings" or @Image="SuppressFBWarnings"]/..//Literal[(matches(@Image, $ruleIdMatches)) and not (matches(@Image, $ruleIdNotMatches))]
+//Annotation[@SimpleName=("SuppressWarnings","SuppressFBWarnings")]//StringLiteral[(matches(@Image, $ruleIdMatches)) and not (matches(@Image, $ruleIdNotMatches))]
 			]]>
                 </value>
             </property>
         </properties>
+        <example>
+            <![CDATA[
+@SuppressWarnings("PMD.UnconditionalCreatedLogArguments") // Reason for suppression: the rule doesn't recognize record getters (yet), and those are not expensive
+public void process(ConsumerRecord consRecord) {
+    ConsumerEvent event = consRecord.event(); // record getter
+    log.info("Received event '{}'", event); // PMD.UnconditionalCreatedLogArguments suppressed
+}
+             ]]>
+        </example>
+    </rule>
+    <rule name="UnconditionalCreatedLogArguments"
+          language="java"
+          message="Avoid unconditional creation of a log argument, it may not be needed."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#il06">
+        <description>Problem: Creation of a log argument with a toString or other operation(s) may be expensive, while depending on the log level, the result may not be used.&#13;
+            Solution: Create the log argument conditionally on the log level, within an if statement. For just 'obj.toString()', just pass 'obj' to the log method and leave it to SLF4J to call toString() only if needed.
+        </description>
+        <priority>2</priority>
+        <properties>
+            <property name="tags" value="cpu,jpinpoint-rule,performance,sustainability-medium" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+//MethodCall
+  (: log levels typically/often not enabled :)
+  [@MethodName=('trace','debug','info')]
+  [
+    (: supported logger libs :)
+    (VariableAccess[
+        pmd-java:typeIs('org.slf4j.Logger')
+        or pmd-java:typeIs('java.util.logging.Logger')
+        or pmd-java:typeIs('org.apache.commons.logging.Log')
+     ])
+   or
+     (: Slfj4 annotation makes the log variable AmbiguousName as there is no explicit log field :)
+     (AmbiguousName[ancestor::ClassDeclaration[pmd-java:hasAnnotation('lombok.extern.slf4j.Slf4j')]])
+  ]
+  (: no violation if conditionally: only executed if level enabled is okay :)
+  [not(ancestor::IfStatement//MethodCall[
+       @MethodName = ('isTraceEnabled', 'isDebugEnabled','isInfoEnabled', 'isLoggable')
+       and count(../../InfixExpression[@Operator='||' or @Operator='|' or @Operator='^']) = 0
+     ])
+  ]
+  (: no violation if return conditionally before :)
+  [not(ancestor::ExpressionStatement/preceding-sibling::IfStatement[.//ReturnStatement and .//MethodCall[@MethodName = ('isTraceEnabled', 'isDebugEnabled','isInfoEnabled', 'isLoggable')]])]
+  (: equals a declared var, with initializer not like obj.getXxx(), we assume a simple getter is quick; except when in a loop :)
+  /ArgumentList//VariableAccess
+     [@Name = ancestor::MethodDeclaration//VariableDeclarator[
+        (: a getter should have no arguments and start with 'get' :)
+        not((MethodCall[ArgumentList/@Size=0
+            and (starts-with(@MethodName, 'get')
+                (: or a non-arg method from a record :)
+                or VariableAccess[
+                    pmd-java:typeIs('java.lang.Record')
+                    (: or from a class with name ending with Record, a wanna-be record :)
+                    or @Name=ancestor::MethodDeclaration//(FormalParameter/VariableId|LocalVariableDeclaration/VariableDeclarator[VariableId])[../ClassType[ends-with(@SimpleName, 'Record')]]/@Name
+                ]
+            )
+        ])
+        and not(ancestor::WhileStatement or ancestor::ForStatement or ancestor::DoStatement))]/VariableId/@Name]
+     (: and it is not used in a return :)
+     [not (@Name = ancestor::MethodDeclaration//VariableAccess[not(ancestor::MethodCall[@MethodName=('trace','debug','info')])]/@Name)]
+     (: except if method name starts with 'log', and it is non-public, .. :)
+     [not(ancestor::MethodDeclaration
+        [starts-with(@Name, 'log') and @Visibility = 'private']
+        (: and the method is called only conditionally: it is called inside an if :)
+        [@Name=ancestor::ClassBody//MethodCall[ancestor::IfStatement//MethodCall[
+               @MethodName = ('isTraceEnabled', 'isDebugEnabled','isInfoEnabled', 'isLoggable')
+               and count(../../InfixExpression[@Operator='||' or @Operator='|' or @Operator='^']) = 0
+            ]]/@MethodName]
+        (: and it is not called not inside an if :)
+        [not(@Name=ancestor::ClassBody//MethodCall[not(ancestor::IfStatement//MethodCall[@MethodName = ('isTraceEnabled', 'isDebugEnabled','isInfoEnabled', 'isLoggable')])]/@MethodName)]
+     )]
+                ]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+class Foo {
+    void bad(Object obj) {
+      String logObj = obj.toString();
+      log.debug("object to String: {}", logObj); //bad
+    }
+
+    void good(Object obj) {
+      log.debug("object to String: {}", obj); //good
+    }
+}
+            ]]>
+        </example>
     </rule>
 
-    <rule name="AvoidTimeUnitConfusion" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" message="A primitive variable identifier or @Value member ends with time, timeout, duration or similar: time unit is missing." typeResolution="true"
-          externalInfoUrl="${doc_root}/JavaCodePerformance.md#IBI19">
+    <rule name="AvoidTimeUnitConfusion"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          language="java"
+          message="A primitive variable identifier or @Value member ends with time, timeout, duration or similar: time unit is missing."
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi19">
         <description>Problem: Time unit like hours, seconds, milliseconds is not specified and may be assumed differently by readers.
             Different assumptions will lead to errors or hidden problems like ineffective caches.&#13;
             Solution: Specify the time unit in the identifier, like connectTimeoutMillis. (jpinpoint-rules)</description>
         <priority>3</priority>
         <properties>
-            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="tag" value="confusing" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
+            <property name="tags" value="confusing,jpinpoint-rule" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
 (: for fields, formal parameters and local variables :)
-//Type/PrimitiveType/../..//VariableDeclaratorId[ends-with(lower-case(@Name), 'timetolive') or ends-with(lower-case(@Name), 'time_to_live') or
-ends-with(lower-case(@Name), 'time')
-or ends-with(lower-case(@Name), 'timeout') or ends-with(lower-case(@Name), 'time_out')
-or ends-with(lower-case(@Name), 'duration') or ends-with(lower-case(@Name), 'durationout') or ends-with(lower-case(@Name), 'duration_out')
-or ends-with(lower-case(@Name), 'ttl') or ends-with(lower-case(@Name), 'timestamp')]
+//(VariableDeclarator[../PrimitiveType]|FormalParameter[PrimitiveType])/VariableId[
+ends-with(lower-case(@Name), 'timetolive')
+or ends-with(lower-case(@Name), 'time_to_live')
+or ends-with(lower-case(@Name), 'time')
+or ends-with(lower-case(@Name), 'timeout')
+or ends-with(lower-case(@Name), 'time_out')
+or ends-with(lower-case(@Name), 'duration')
+or ends-with(lower-case(@Name), 'durationout')
+or ends-with(lower-case(@Name), 'duration_out')
+or ends-with(lower-case(@Name), 'ttl')
+or ends-with(lower-case(@Name), 'timestamp')]
 ,
 (: @Value :)
-//SingleMemberAnnotation/Name[@Image='Value']/..//Literal[ends-with(lower-case(@Image), 'timetolive') or ends-with(lower-case(@Image), 'expirytime}"')
-or ends-with(lower-case(@Image), 'timeout}"') or ends-with(lower-case(@Image), 'ttl}"') or ends-with(lower-case(@Image), 'timestamp}"')]
+//Annotation[@SimpleName='Value' and .//MemberValuePair[@Image='value']/StringLiteral[
+ends-with(lower-case(@Image), 'timetolive')
+or ends-with(lower-case(@Image), 'time_to_live}"')
+or ends-with(lower-case(@Image), 'time}"')
+or ends-with(lower-case(@Image), 'timeout}"')
+or ends-with(lower-case(@Image), 'time_out}"')
+or ends-with(lower-case(@Image), 'duration}"')
+or ends-with(lower-case(@Image), 'durationout}"')
+or ends-with(lower-case(@Image), 'duration_out}"')
+or ends-with(lower-case(@Image), 'ttl}"')
+or ends-with(lower-case(@Image), 'timestamp}"')]]
 			]]>
                 </value>
             </property>
@@ -1042,127 +1103,141 @@ public RetrieveCache(final @Value("${cache.expiryTimeMillis}") long timeToLiveMi
         </example>
     </rule>
 
-    <rule name="AvoidTimeUnitConfusionPMD7" since="7.0" class="net.sourceforge.pmd.lang.rule.XPathRule" language="java" message="A primitive variable identifier or @Value member ends with time, timeout, duration or similar: time unit is missing." typeResolution="true"
-          externalInfoUrl="${doc_root}/JavaCodePerformance.md#IBI19">
-        <description>Problem: Time unit like hours, seconds, milliseconds is not specified and may be assumed differently by readers.
-            Different assumptions will lead to errors or hidden problems like ineffective caches.&#13;
-            Solution: Specify the time unit in the identifier, like connectTimeoutMillis. (jpinpoint-rules)</description>
+    <rule name="ImplementEqualsHashCodeOnValueObjects"
+          message="Equals and/or hashCode is missing for a value object."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          language="java"
+          externalInfoUrl="${doc_root}/JavaCodeQuality.md#incorrect-equals-and-hashcode">
+        <description>
+            Problem: If equals and hashCode are not defined, they don't meet the programmer's expectations and the requirements for use with the collections API. It may result in unexpected, undesired behavior.&#13;
+            Solution: Add proper equals and hashCode methods that meet the equals-hashCode contract to all objects which might anyhow be put in a Map, Set or other collection. Or use Lombok @EqualsAndHashCode, @Value or @Data. Also holds for inner classes.
+            If the object should never be checked for equality or used in a collection, also add those methods and let them throw UnsupportedOperationException to fail fast.
+            @Xml... , @Entity, Throwable and Executor and some other objects are ignored because they are assumed to be not used as value objects.
+            (jpinpoint-rules)</description>
         <priority>3</priority>
         <properties>
-            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="tag" value="confusing" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
+            <property name="tags" value="jpinpoint-rule,unpredictable" type="String" description="classification"/>
             <property name="xpath">
-                <value><![CDATA[
-(: for fields, formal parameters and local variables :)
-//VariableDeclaratorId[preceding-sibling::PrimitiveType|../../PrimitiveType][ends-with(lower-case(@Name), 'timetolive') or ends-with(lower-case(@Name), 'time_to_live') or
-ends-with(lower-case(@Name), 'time')
-or ends-with(lower-case(@Name), 'timeout') or ends-with(lower-case(@Name), 'time_out')
-or ends-with(lower-case(@Name), 'duration') or ends-with(lower-case(@Name), 'durationout') or ends-with(lower-case(@Name), 'duration_out')
-or ends-with(lower-case(@Name), 'ttl')]
-,
-(: @Value :)
-//Annotation[@SimpleName='Value']//StringLiteral[ends-with(lower-case(@Image), 'timetolive') or ends-with(lower-case(@Image), 'expirytime}"')
-or ends-with(lower-case(@Image), 'timeout}"') or ends-with(lower-case(@Image), 'ttl}"')]
-			]]>
+                <value>
+                    <![CDATA[
+(:- top level class :)
+//ClassDeclaration
+(: exclusions, the following annotations do implement equals and hashCode -:)
+[not(pmd-java:hasAnnotation('lombok.Data') or pmd-java:hasAnnotation('lombok.Value')or pmd-java:hasAnnotation('lombok.EqualsAndHashCode')
+(: exclusions, the following annotations assume a non-value object -:)
+    or pmd-java:hasAnnotation('javax.ejb.Singleton') or pmd-java:hasAnnotation('jakarta.ejb.Singleton')
+    or pmd-java:hasAnnotation('org.springframework.stereotype.Component') or pmd-java:hasAnnotation('org.springframework.stereotype.Controller')
+    or pmd-java:hasAnnotation('org.springframework.stereotype.Service') or pmd-java:hasAnnotation('org.springframework.stereotype.Repository')
+    or pmd-java:hasAnnotation('org.springframework.context.annotation.Configuration')
+    or pmd-java:hasAnnotation('org.springframework.web.bind.annotation.RestController') or pmd-java:hasAnnotation('org.springframework.web.bind.annotation.ControllerAdvice')
+    or pmd-java:hasAnnotation('org.springframework.ws.server.endpoint.annotation.Endpoint')
+    or pmd-java:hasAnnotation('javax.persistence.Entity') or pmd-java:hasAnnotation('jakarta.persistence.Entity')
+    or pmd-java:hasAnnotation('javax.persistence.Embeddable') or pmd-java:hasAnnotation('jakarta.persistence.Embeddable')
+    or pmd-java:hasAnnotation('javax.persistence.MappedSuperclass') or pmd-java:hasAnnotation('jakarta.persistence.MappedSuperclass')
+    (: JAXB annotations: @XmlType, @XmlRootElement, @XmlAccessorType, @XmlAccessorOrder :)
+    or ModifierList/Annotation[starts-with(@SimpleName, 'Xml')]
+)]
+[@Interface=false() and @Abstract=false() and not(
+    (: excluded types, assumed non-value objects :)
+    pmd-java:typeIs('java.util.concurrent.Executor')
+    or pmd-java:typeIs('java.lang.Throwable')
+    or pmd-java:typeIs('javax.ws.rs.ext.ContextResolver')
+    or pmd-java:typeIs('javax.ws.rs.client.ClientRequestFilter')
+)]
+/ClassBody[FieldDeclaration[@Static=false() and (not (pmd-java:hasAnnotation('javax.xml.bind.annotation.XmlElement')))
+    and
+    (: a getter with result type of a field :)
+    (ancestor::ClassBody[1]/MethodDeclaration
+       [(@Visibility='public' or ../../@Nested=true()) and @Static=false() and (starts-with(@Name, 'get') and string-length(@Name) > 3 or starts-with(@Name, 'is') and string-length(@Name) > 2)]
+       [ClassType/@SimpleName=ancestor::ClassBody[1]/FieldDeclaration[@Static=false()]/ClassType/@SimpleName]
+    )
+    (: and class has no equals nor hashCode method :)
+    and (not (ancestor::ClassBody[1]/MethodDeclaration[(@Visibility='public' or ../../@Nested=true()) and @Static=false() and (@Name='equals' and .//FormalParameters[@Size=1]) or (@Name='hashCode' and .//FormalParameters[@Size=0])]))
+    (: and class has a toString and #fields <= 1+#getters :)
+    and ((ancestor::ClassBody[1]//MethodDeclaration[(@Visibility='public' or ../../@Nested=true()) and @Static=false() and @Name='toString']
+            and count(ancestor::ClassBody[1]/FieldDeclaration[@Static=false()]) <=
+                (1 + count(ancestor::ClassBody[1]/MethodDeclaration[(@Visibility='public' or ../../@Nested=true()) and @Static=false() and (starts-with(@Name, 'get') and string-length(@Name) > 3 or starts-with(@Name, 'is') and string-length(@Name) > 2)]))
+            or ancestor::ClassDeclaration[1][ends-with(upper-case(@SimpleName), 'DTO')])
+        (: or #fields == #getters :)
+        or count(ancestor::ClassBody[1]/FieldDeclaration[@Static=false()]) = count(ancestor::ClassBody[1]/MethodDeclaration[(@Visibility='public' or ../../@Nested=true()) and @Static=false() and (starts-with(@Name, 'get') and string-length(@Name) > 3 or starts-with(@Name, 'is') and string-length(@Name) > 2)])
+        )
+] (:-up to class -:)
+]/..
+]]>
                 </value>
             </property>
         </properties>
         <example>
             <![CDATA[
-@Autowired
-public RetrieveCache(final @Value("${cache.expiryTime}") long timeToLive) { // 2x bad
+class Getters { // bad
+    private String someState1 = "some1";
+    private String someState2 = "some2";
+
+    public String getSomeState1() {
+        return someState1;
+    }
+    public String getSomeState2() {
+        return someState2;
+    }
 }
-@Autowired
-public RetrieveCache(final @Value("${cache.expiryTimeMillis}") long timeToLiveMillis) { // 2x good
+class Good {
+    private String someState1 = "some1";
+    private String someState2 = "some2";
+
+    public String getSomeState1() {
+        return someState1;
+    }
+    public String getSomeState2() {
+        return someState2;
+    }
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Good good = (Good) o;
+        return Objects.equals(someState1, good.someState1) && Objects.equals(someState2, good.someState2);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(someState1, someState2);
+    }
 }
             ]]>
         </example>
     </rule>
 
-    <rule name="FieldOfHashCodeMissingInEquals" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" message="Equals does not use all fields used by hashCode." typeResolution="true"
+    <rule name="EqualsOperationInconsistentWithHashCode"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          language="java"
+          message="Equals uses a conversion inconsistent with hashCode."
           externalInfoUrl="${doc_root}/JavaCodeQuality.md#ieah03">
-        <description>Problem: Equal objects may have different hashCodes and end-up in different buckets of a Map/Set. Strange things can happen like adding an object to a Set and not being able to find it back.&#13;
-            Solution: When objects are equal, hashCode needs to be equal, too. Use the same fields in equals and hashCode. (jpinpoint-rules)</description>
+        <description>Problem: Equal objects may have different hashCodes and end-up in different buckets of a Map/Set. Strange things can happen like adding an object to a Set and not being able to find it back.
+            Solution: When objects are equal, hashCode needs to be equal, too. Use the same fields in equals and hashCode and use identical conversions like toUpperCase() in both when needed. Don't use equalsIgnoreCase. (jpinpoint-rules)
+        </description>
         <priority>1</priority>
         <properties>
-            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="tag" value="correctness" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
+            <property name="tags" value="correctness,jpinpoint-rule" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
-//FieldDeclaration//VariableDeclaratorId[
-(@Name = ancestor::ClassOrInterfaceBody[1]//MethodDeclaration[@Name='equals' and (MethodDeclarator//FormalParameters/@Size = 1)]/Block//(Name|PrimarySuffix)/@Image or
-concat(@Name, '.equals') = ancestor::ClassOrInterfaceBody//MethodDeclaration[@Name='equals' and (MethodDeclarator//FormalParameters/@Size = 1)]/Block//(Name|PrimarySuffix)/@Image) <
-(@Name = ancestor::ClassOrInterfaceBody[1]//MethodDeclaration[@Name='hashCode' and (MethodDeclarator//FormalParameters/@Size = 0)]/Block//(PrimarySuffix|Name)/@Image or
-concat(@Name, '.hashCode') = ancestor::ClassOrInterfaceBody[1]//MethodDeclaration[@Name='hashCode' and (MethodDeclarator//FormalParameters/@Size = 0)]/Block//PrimaryPrefix/Name/@Image)
+(: the number of toLowerCase on a field used in equals should not be larger than that of hashCode :)
+//FieldDeclaration//VariableId[
+(@Name = ancestor::ClassBody[1]//MethodDeclaration[@Name='equals' and (FormalParameters/@Size = 1)]/Block//MethodCall[pmd-java:matchesSig('java.lang.String#toLowerCase()')]//VariableAccess/@Name) >
+(@Name = ancestor::ClassBody[1]//MethodDeclaration[@Name='hashCode' and (FormalParameters/@Size = 0)]/Block//MethodCall[pmd-java:matchesSig('java.lang.String#toLowerCase()')]//VariableAccess/@Name)
 ]
+(: go to violating toLowerCase in equals :)
+/ancestor::ClassBody[1]//MethodDeclaration[@Name='equals']/Block//MethodCall[pmd-java:matchesSig('java.lang.String#toLowerCase()')]
+,
+(: the number of toUpperCase on a field used in equals should not be larger than that of hashCode :)
+//FieldDeclaration//VariableId[
+(@Name = ancestor::ClassBody[1]//MethodDeclaration[@Name='equals' and (FormalParameters/@Size = 1)]/Block//MethodCall[pmd-java:matchesSig('java.lang.String#toUpperCase()')]//VariableAccess/@Name) >
+(@Name = ancestor::ClassBody[1]//MethodDeclaration[@Name='hashCode' and (FormalParameters/@Size = 0)]/Block//MethodCall[pmd-java:matchesSig('java.lang.String#toUpperCase()')]//VariableAccess/@Name)
+]
+(: go to violating toUpperCase in equals :)
+/ancestor::ClassBody[1]//MethodDeclaration[@Name='equals']/Block//MethodCall[pmd-java:matchesSig('java.lang.String#toUpperCase()')]
+,
+(: equalsIgnoreCase on field, in equals, not allowed :)
+//MethodDeclaration[@Name='equals' and (FormalParameters/@Size = 1)]/Block//MethodCall[pmd-java:matchesSig('java.lang.String#equalsIgnoreCase(java.lang.String)')]
 			]]>
-                </value>
-            </property>
-        </properties>
-        <example>
-            <![CDATA[
-class Good1 {
-    String field1, field2;
-
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Good1 that = (Good1) o;
-        return Objects.equals(field1, that.field1) &&
-                Objects.equals(field2, that.field2);
-    }
-    public int hashCode() {
-        return Objects.hash(field1, field2);
-    }
-}
-
-class Bad {
-    String field1;
-    String field2; //bad
-
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Bad that = (Bad) o;
-        return Objects.equals(field1, that.field1); // field2 missing
-    }
-    public int hashCode() {
-        return Objects.hash(field1, field2);
-    }
-}
-
-            ]]>
-        </example>
-    </rule>
-
-    <rule name="EqualsOperationInconsistentWithHashCode" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" message="Equals uses a conversion inconsistent with hashCode." typeResolution="true"
-          externalInfoUrl="${doc_root}/JavaCodeQuality.md#ieah03">
-        <description>Problem: Equal objects may have different hashCodes and end-up in different buckets of a Map/Set. Strange things can happen like adding an object to a Set and not being able to find it back.&#13;
-            Solution: When objects are equal, hashCode needs to be equal, too. Use the same fields in equals and hashCode and use identical conversions like toUpperCase() in both when needed. Don't use equalsIgnoreCase. (jpinpoint-rules)</description>
-        <priority>1</priority>
-        <properties>
-            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="tag" value="correctness" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
-            <property name="xpath">
-                <value><![CDATA[
-//FieldDeclaration//VariableDeclaratorId[
-(concat(@Name, '.toLowerCase') = ancestor::ClassOrInterfaceBody[1]//MethodDeclaration[@Name='equals' and (MethodDeclarator//FormalParameters/@Size = 1)]/Block//(Name|PrimarySuffix)/@Image ) >
-(concat(@Name, '.toLowerCase') = ancestor::ClassOrInterfaceBody[1]//MethodDeclaration[@Name='hashCode' and (MethodDeclarator//FormalParameters/@Size = 0)]/Block//(PrimarySuffix|Name)/@Image)
-]
-/ancestor::ClassOrInterfaceBody[1]//MethodDeclaration[@Name='equals']/Block//(Name|PrimarySuffix)[ends-with(@Image,'.toLowerCase')]
-,
-//FieldDeclaration//VariableDeclaratorId[
-(concat(@Name, '.toUpperCase') = ancestor::ClassOrInterfaceBody[1]//MethodDeclaration[@Name='equals' and (MethodDeclarator//FormalParameters/@Size = 1)]/Block//(Name|PrimarySuffix)/@Image ) >
-(concat(@Name, '.toUpperCase') = ancestor::ClassOrInterfaceBody[1]//MethodDeclaration[@Name='hashCode'and (MethodDeclarator//FormalParameters/@Size = 0)]/Block//(PrimarySuffix|Name)/@Image)
-]
-/ancestor::ClassOrInterfaceBody[1]//MethodDeclaration[@Name='equals']/Block//(Name|PrimarySuffix)[ends-with(@Image,'.toUpperCase')]
-,
-//MethodDeclaration[@Name='equals' and (MethodDeclarator//FormalParameters/@Size = 1)]/Block//Name[ends-with(@Image, 'equalsIgnoreCase')]
-
-                ]]>
                 </value>
             </property>
         </properties>
@@ -1170,14 +1245,14 @@ class Bad {
             <![CDATA[
 class Bad1 {
     String field1;
-    String field2; //bad
+    String field2;
 
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Bad1 that = (Bad1) o;
         if (field1 != null ? !field1.equals(that.field1) : that.field1 != null) return false;
-        return field2 != null ? field2.equalsIgnoreCase(that.field2) : that.field2 == null; // ignore case
+        return field2 != null ? field2.equalsIgnoreCase(that.field2) : that.field2 == null; // ignore case, bad
     }
     public int hashCode() {
         return Objects.hash(field1, field2);
@@ -1224,44 +1299,108 @@ class Good {
         if (o == null || getClass() != o.getClass()) return false;
         Good that = (Good) o;
         return Objects.equals(field1, that.field1) &&
-                Objects.equals(field2.toUpperCase(), that.field2.toUpperCase()); // ignore case
+                Objects.equals(field2.toUpperCase(), that.field2.toUpperCase()); // ignore case same way
     }
     public int hashCode() {
-        return Objects.hash(field1, field2.toUpperCase()); // ignore case
+        return Objects.hash(field1, field2.toUpperCase()); // ignore case same way
     }
 }
             ]]>
         </example>
     </rule>
 
-    <rule name="MissingFieldInEquals" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" message="Field simply assigned to is missing in equals method." typeResolution="true"
+    <rule name="FieldOfHashCodeMissingInEquals"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          language="java"
+          message="Equals does not use all fields used by hashCode."
+          externalInfoUrl="${doc_root}/JavaCodeQuality.md#ieah03">
+        <description>Problem: Equal objects may have different hashCodes and end-up in different buckets of a Map/Set. Strange things can happen like adding an object to a Set and not being able to find it back.&#13;
+            Solution: When objects are equal, hashCode needs to be equal, too. Use the same fields in equals and hashCode. (jpinpoint-rules)</description>
+        <priority>1</priority>
+        <properties>
+            <property name="tags" value="correctness,jpinpoint-rule" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+//FieldDeclaration/VariableDeclarator[
+((@Name = ancestor::ClassBody[1]//MethodDeclaration[@Name='equals' and FormalParameters/@Size = 1]/Block//(FieldAccess|VariableAccess)/@Name) <
+(@Name = ancestor::ClassBody[1]//MethodDeclaration[@Name='hashCode' and FormalParameters/@Size = 0]/Block//(FieldAccess|VariableAccess)/@Name)
+(: and the field is not used to assign a value to in the hashCode(), typically a hash variable to cache the calculated hashcode :)
+and not(@Name = ancestor::ClassBody[1]//MethodDeclaration[@Name='hashCode' and FormalParameters/@Size = 0]/Block//AssignmentExpression[@Operator='=']/(FieldAccess|VariableAccess)/@Name))
+]
+|
+//FieldDeclaration/VariableDeclarator[
+(@Name = ancestor::ClassBody[1]//MethodDeclaration[@Name='equals' and FormalParameters/@Size = 1]/Block//MethodCall[@MethodName='toLowerCase']/(FieldAccess|VariableAccess)/@Name) >
+(@Name = ancestor::ClassBody[1]//MethodDeclaration[@Name='hashCode' and FormalParameters/@Size = 0]/Block//MethodCall[@MethodName='toLowerCase']/(FieldAccess|VariableAccess)/@Name)
+]
+|
+//FieldDeclaration/VariableDeclarator[
+(@Name = ancestor::ClassBody[1]//MethodDeclaration[@Name='equals' and FormalParameters/@Size = 1]/Block//MethodCall[@MethodName='toUpperCase']/(FieldAccess|VariableAccess)/@Name) >
+(@Name = ancestor::ClassBody[1]//MethodDeclaration[@Name='hashCode' and FormalParameters/@Size = 0]/Block//MethodCall[@MethodName='toUpperCase']/(FieldAccess|VariableAccess)/@Name)
+]
+			]]>
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+class Good1 {
+    String field1, field2;
+
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Good1 that = (Good1) o;
+        return Objects.equals(field1, that.field1) &&
+                Objects.equals(field2, that.field2);
+    }
+    public int hashCode() {
+        return Objects.hash(field1, field2);
+    }
+}
+
+class Bad {
+    String field1;
+    String field2; //bad
+
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Bad that = (Bad) o;
+        return Objects.equals(field1, that.field1); // field2 missing
+    }
+    public int hashCode() {
+        return Objects.hash(field1, field2);
+    }
+}
+
+            ]]>
+        </example>
+    </rule>
+
+    <rule name="MissingFieldInEquals"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          language="java"
+          message="Field simply assigned to is missing in equals method."
           externalInfoUrl="${doc_root}/JavaCodeQuality.md#ieah04">
         <description>Problem: If a field which can be assigned separately (independent of other fields) is missing in the equals method, then changing the field in one object has no effect on the equality with another object.
             However, if a field of one of two equal objects is changed, the expectation is that they are no longer equal.&#13;
             Solution: include the missing field in the equals and hashCode method. (jpinpoint-rules)</description>
         <priority>3</priority>
         <properties>
-            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="tag" value="suspicious" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
+            <property name="tags" value="jpinpoint-rule,suspicious" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
-    //ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration[@Static=false()]//VariableDeclaratorId[
-    (: names used as left hand side in simple assignments in methods or constructor matching fields:)
-     (@Name = ancestor::ClassOrInterfaceBody[1]/ClassOrInterfaceBodyDeclaration/(MethodDeclaration|ConstructorDeclaration)
-    /..//BlockStatement//StatementExpression
-    (: simple assignment :)
-    [exists(AssignmentOperator) and not(exists(Expression/PrimaryExpression/PrimarySuffix))
-    and exists(Expression/PrimaryExpression/PrimaryPrefix/Name) and not(contains(Expression/PrimaryExpression/PrimaryPrefix/Name/@Image,".")) ]
-    /PrimaryExpression/(PrimaryPrefix/Name|PrimarySuffix)/@Image)
-     and (
+ //FieldDeclaration[@Static=false()]//VariableId[
+    (: names used as left hand side in simple assignments in methods or constructor matching fields :)
+    (@Name = ancestor::ClassBody[1]/(MethodDeclaration|ConstructorDeclaration)/Block//AssignmentExpression[not(InfixExpression or ConstructorCall or MethodCall or FieldAccess/TypeExpression)]
+        /(VariableAccess|FieldAccess)[1]/@Name)
+     and
     (: with an equals method defined at that level with 1 argument and not having a throw statement :)
-    ancestor::ClassOrInterfaceBody[1]/ClassOrInterfaceBodyDeclaration/MethodDeclaration[@Name='equals' and MethodDeclarator/FormalParameters/@Size=1 and not (Block/BlockStatement/Statement/ThrowStatement)]
+     ancestor::ClassBody[1]/MethodDeclaration[@Name='equals' and FormalParameters/@Size=1 and not (Block/ThrowStatement)]
     (: where names used in equals method matching fields are non-equal to :)
-    and not(@Name = ancestor::ClassOrInterfaceBody[1]/ClassOrInterfaceBodyDeclaration/MethodDeclaration
-    [@Name='equals' and MethodDeclarator/FormalParameters/@Size=1]/Block//
-    (: name or this.name and name before dot if present :)
-    (Name|PrimarySuffix)/(substring-before(concat(@Image, '.'), '.'))) )]
+    and not(@Name = ancestor::ClassBody[1]/MethodDeclaration
+    [@Name='equals' and FormalParameters/@Size=1]/Block//(VariableAccess|FieldAccess)/@Name)
+]
 			]]>
                 </value>
             </property>
@@ -1292,23 +1431,22 @@ class Bad1 {
         </example>
     </rule>
 
-    <rule name="MissingFieldInHashCode" class="net.sourceforge.pmd.lang.rule.XPathRule" dfa="false" language="java" message="Equals uses a field which is missing in hashCode." typeResolution="true"
+    <rule name="MissingFieldInHashCode"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          language="java"
+          message="Equals uses a field which is missing in hashCode."
           externalInfoUrl="${doc_root}/JavaCodeQuality.md#ieah03">
         <description>Problem: Two unequal objects can have the same hashCode and end up in the same bucket of a Map. This may result in bad performance, O(n) lookup instead of O(1).&#13;
             Solution: Use the same fields in hashCode as are used in equals. (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
-            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
+            <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
-//FieldDeclaration//VariableDeclaratorId[
-(@Name = ancestor::ClassOrInterfaceBody[1]//MethodDeclaration[@Name='equals' and (MethodDeclarator//FormalParameters/@Size = 1)]/Block//(Name|PrimarySuffix)/@Image or
-concat(@Name, '.equals') = ancestor::ClassOrInterfaceBody[1]//MethodDeclaration[@Name='equals' and (MethodDeclarator//FormalParameters/@Size = 1)]/Block//(Name|PrimarySuffix)/@Image) >
-(@Name = ancestor::ClassOrInterfaceBody[1]//MethodDeclaration[@Name='hashCode' and (MethodDeclarator//FormalParameters/@Size = 0)]/Block//(PrimarySuffix|Name)/@Image or
-concat(@Name, '.hashCode') = ancestor::ClassOrInterfaceBody[1]//MethodDeclaration[@Name='hashCode' and (MethodDeclarator//FormalParameters/@Size = 0)]/Block//PrimaryPrefix/Name/@Image)
-]
+//FieldDeclaration/VariableDeclarator[
+(@Name = ancestor::ClassBody[1]//MethodDeclaration[@Name='equals' and FormalParameters/@Size = 1]/Block//(FieldAccess|VariableAccess)/@Name) >
+(@Name = ancestor::ClassBody[1]//MethodDeclaration[@Name='hashCode' and FormalParameters/@Size = 0]/Block//(FieldAccess|VariableAccess)/@Name)
+]/VariableId
 			]]>
                 </value>
             </property>
@@ -1353,24 +1491,19 @@ class Bad {
     <rule name="AvoidCalendar"
           language="java"
           message="A Calendar is inefficient in memory usage."
-          class="net.sourceforge.pmd.lang.rule.XPathRule"
-          typeResolution="true"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#imu01">
         <description>Problem: A Calendar is a heavyweight object and expensive to create. &#13;
             Solution: Use Date, Java 8+ java.time.[Local/Zoned]DateTime.
         </description>
         <priority>3</priority>
         <properties>
-            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
             <property name="xpath">
                 <value><![CDATA[
-//(Type)[pmd-java:typeIs('java.util.Calendar')]
-,
-//Name[starts-with(@Image, 'Calendar.')]
+//ClassType[pmd-java:typeIs('java.util.Calendar')]
 	         ]]></value>
             </property>
+            <property name="tags" value="jpinpoint-rule,memory,performance,sustainability-medium" type="String" description="classification"/>
         </properties>
         <example>
             <![CDATA[
@@ -1394,49 +1527,44 @@ public class CalendarStuff {
     <rule name="AvoidMutableLists"
           language="java"
           message="List is not modified after object construction, make it immutable or unmodifiable"
-          class="net.sourceforge.pmd.lang.rule.XPathRule"
-          typeResolution="true"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#pml01">
         <description>Problem: A list which is unnecessarily mutable may accidentally be added to and cause a memory leak. &#13;
-            Solution: Make it impossible to modify the list after object construction/initialization: use Java 9 List.of, Java 11 List.copyOf, Collections.unmodifiableList or Guava ImmutableList.
+            Solution: For the list which is not actually modified, make it impossible to modify after object construction/initialization: use Java 9 List.of, Java 11 List.copyOf, Collections.unmodifiableList or Guava ImmutableList.
         </description>
         <priority>3</priority>
         <properties>
-            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="tag" value="pitfall" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
+            <property name="tags" value="jpinpoint-rule,pitfall" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
-    (: a field of type List :)
-    //FieldDeclaration[pmd-java:typeIs('java.util.List')]
-    (: exclude ConfigurationProperties classes :)
-    [count(ancestor::TypeDeclaration/Annotation//Name[@Image='ConfigurationProperties']) = 0]
-    (: exclude when JPA annotated :)
-    [count(../Annotation//Name[@Image='OneToMany' or @Image='ManyToMany']) = 0]
-    //VariableDeclaratorId[
-    (: with a method defined at that level that does not use the field with a modify operation (case field.modOp) :)
-    not(@Name = ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDeclaration//PrimaryExpression/PrimaryPrefix/Name[
-    starts-with(substring-after(@Image, '.'), 'add') or
-    starts-with(substring-after(@Image, '.'), 'remove') or
-    substring-after(@Image, '.') = 'set' or
-    substring-after(@Image, '.') = 'clear' or
-    substring-after(@Image, '.') = 'replaceAll' or
-    substring-after(@Image, '.') = 'retainAll'
-    ]/(substring-before(concat(@Image, '.'), '.')))]
-    [ (: and case this.field.modOp() :)
-not(@Name = ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/MethodDeclaration//PrimaryExpression
-/PrimarySuffix[starts-with(@Image, 'add') or starts-with(@Image, 'remove') or @Image = 'set' or @Image = 'clear' or @Image = 'replaceAll' or @Image = 'retainAll']
-/preceding-sibling::PrimarySuffix/@Image)
-    ]     (: and :)
-    [( (: field is initialized with List allocation :)
-    ../VariableInitializer/Expression//AllocationExpression[pmd-java:typeIs('java.util.List')]
+//ClassDeclaration[not(ModifierList/Annotation
+    [pmd-java:typeIs('lombok.Getter') or pmd-java:typeIs('lombok.Setter') or pmd-java:typeIs('lombok.Value') or
+     pmd-java:typeIs('lombok.Data')])]
+(: a field of type List :)
+//FieldDeclaration[//VariableId[pmd-java:typeIs('java.util.List')]]
+(: not for field with @Getter and @Setter, it is accessed outside of the class :)
+[not(ModifierList/Annotation[pmd-java:typeIs('lombok.Getter') or pmd-java:typeIs('lombok.Setter')])]
+(: exclude ConfigurationProperties classes :)
+[count(ancestor::ClassDeclaration/ModifierList/Annotation[@SimpleName='ConfigurationProperties']) = 0]
+(: exclude when JPA annotated :)
+[count(ModifierList/Annotation[@SimpleName=('OneToMany', 'ManyToMany')]) = 0]
+//VariableId[
+    (: with no method defined at that level that uses the field with a modify operation (case field.modOp) :)
+    not(@Name = ancestor::ClassBody/MethodDeclaration/Block//MethodCall[
+        starts-with(@MethodName, 'add') or starts-with(@MethodName, 'remove') or
+        @MethodName = ('set', 'clear', 'replaceAll', 'retainAll')
+    ]/(VariableAccess|FieldAccess)/@Name)
+]
+[   (: field is initialized with List constructor :)
+    ../ConstructorCall[pmd-java:typeIs('java.util.List')]
     or
     (: or static block / constructor has field initialized with List allocation :)
-    ancestor::ClassOrInterfaceBody//(Initializer|ConstructorDeclaration)//AssignmentOperator[exists(../Expression/PrimaryExpression/PrimaryPrefix/AllocationExpression[pmd-java:typeIs('java.util.List')])]/..//Name/@Image = @Name
+    ancestor::ClassBody/(Initializer|ConstructorDeclaration)//AssignmentExpression[ConstructorCall[pmd-java:typeIs('java.util.List')]]/(VariableAccess|FieldAccess)[1]/@Name = @Name
     or
-    (: or constructor has a simple assignment to the field, param of literal: no arguments :)
-    ancestor::ClassOrInterfaceBody//ConstructorDeclaration//AssignmentOperator[exists(../Expression[pmd-java:typeIs('java.util.List')]) and not(exists(../Expression/PrimaryExpression/PrimarySuffix))]/..//Name/@Image = @Name
-    )]
+    (: or constructor has a simple assignment to the field, param or literal: no arguments :)
+    ancestor::ClassBody/ConstructorDeclaration/Block//AssignmentExpression[(VariableAccess|FieldAccess)[2][pmd-java:typeIs('java.util.List')]]/(VariableAccess|FieldAccess)[1]/@Name = @Name
+]
 ]]></value>
             </property>
         </properties>
@@ -1466,8 +1594,8 @@ public class Good {
     <rule name="AvoidUnnecessaryStringBuilderCreation"
           language="java"
           message="Use concatenation (+) instead of new StringBuilder if only one statement."
-          class="net.sourceforge.pmd.lang.rule.XPathRule"
-          typeResolution="true"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#isu05">
         <description>Problem: Creating a StringBuilder and using append is more verbose, less readable and less maintainable than simply using String concatenation (+).
             For one statement resulting in a String, creating a StringBuilder and using append is not faster than simply using concatenation.&#13;
@@ -1475,32 +1603,36 @@ public class Good {
         </description>
         <priority>3</priority>
         <properties>
-            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="tag" value="bad-practice" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
+            <property name="tags" value="bad-practice,jpinpoint-rule" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
-(: append used in one chained statement on allocated StringBuilder and with chained toString :)
-//MethodDeclaration//Block//AllocationExpression/ClassOrInterfaceType[@Image="StringBuilder" or @Image = "StringBuffer"]
-/../../../PrimarySuffix[@Image = "toString"]/../PrimarySuffix[@Image = "append"][1] (: only report first append in chain :)
+(: append used in one chained statement on constructor of StringBuilder and with chained toString :)
+//MethodDeclaration//Block//MethodCall[@MethodName = "toString"]/MethodCall[@MethodName='append']
+[.//ConstructorCall[pmd-java:typeIs('java.lang.AbstractStringBuilder')]]
 |
-(: or :)
-(: append on builder var, where var is allocated as StringBuilder :)
-//MethodDeclaration//Block//PrimaryPrefix/Name[ends-with(@Image, '.append') and starts-with(@Image,
-ancestor::Block//AllocationExpression/ClassOrInterfaceType[@Image="StringBuilder" or @Image = "StringBuffer"]
-/ancestor::VariableDeclarator/VariableDeclaratorId/@Name[0])
-and
-(
-(: and either 1. toString is called in a chain after append :)
-../../PrimarySuffix[@Image = 'toString'] or
-(: or 2. toString is called on the var in same block :)
-concat(substring-before(@Image, '.'), '.toString') = ancestor::Block//PrimaryPrefix/Name[ends-with(@Image, '.toString')]/@Image)
-(: and not append on var used in inner block like a ForStatement :)
-and not(ancestor::Block//Block//PrimaryPrefix/Name[ends-with(@Image, '.append')])
-(: and not append in lambda expression, issue 195 :)
-and not(ancestor::LambdaExpression)
-(: and var not passed as argument to method :)
-and not(substring-before(@Image, '.') = ancestor::Block//Statement//PrimarySuffix/Arguments//Name/@Image)
+(: or local declared builder var with an append :)
+//MethodDeclaration//Block/LocalVariableDeclaration[
+    VariableDeclarator[
+        VariableId/@Name=ancestor::Block[1]//MethodCall[@MethodName='append']/VariableAccess/@Name
+    ]
+    /ConstructorCall/ClassType[pmd-java:typeIs('java.lang.AbstractStringBuilder')]
+]
+[
+    (: and toString is called (possibly chained) on the var in same block, with no other operations than append :)
+    ..//MethodCall[@MethodName='append']/VariableAccess/@Name=..//(ReturnStatement|ExpressionStatement|LocalVariableDeclaration)//MethodCall[@MethodName='toString']
+        [not(..//MethodCall[@MethodName!=('append') and @MethodName!=('toString')])]//VariableAccess/@Name
+]
+[
+    not(
+        ..//MethodCall[@MethodName='append']/VariableAccess[
+            (: and not append on var used in inner block like a ForStatement or IfStatement :)
+            @Name = ancestor::Block//Block//MethodCall[@MethodName='append']/VariableAccess/@Name
+            (: and not append in lambda expression, issue 195 :)
+            or ancestor::LambdaExpression
+            (: and var not passed as argument to method :)
+            or (@Name = ancestor::MethodDeclaration//MethodCall/ArgumentList/VariableAccess/@Name)
+        ]
+    )
 ]
 	         ]]></value>
             </property>
@@ -1529,62 +1661,44 @@ class Foo {
 
     <rule name="OptimizeMapOrSetForEnum"
           language="java"
-          message="Map has enum keys or Set has enum elemens, use EnumMap or EnumSet for more efficiency."
-          class="net.sourceforge.pmd.lang.rule.XPathRule"
-          typeResolution="true"
+          message="Map has enum keys or Set has enum elements, use EnumMap or EnumSet for more efficiency."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#iuoc03">
         <description>Problem: A HashMap and HashSet are rather greedy in memory usage.&#13;
             Solution: Use an EnumMap or EnumSet. It is represented internally with arrays which is extremely compact and efficient.
         </description>
         <priority>3</priority>
         <properties>
-            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
+            <property name="tags" value="cpu,jpinpoint-rule,memory,performance,sustainability-medium" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
-//FieldDeclaration[Type/ReferenceType/ClassOrInterfaceType
-[(pmd-java:typeIs('java.util.Map') and not (pmd-java:typeIs('java.util.EnumMap'))) or (pmd-java:typeIs('java.util.Set') and not(pmd-java:typeIs('java.util.EnumSet')))]
-/TypeArguments/TypeArgument[1]/ReferenceType[pmd-java:typeIs('java.lang.Enum') or ClassOrInterfaceType/@Image = //EnumDeclaration/@SimpleName] and
-VariableDeclarator/VariableInitializer/Expression
-[not ((pmd-java:typeIs('java.util.EnumSet') or pmd-java:typeIs('java.util.EnumMap')
-(: Set.of() with 1 or 2 elems doesn't have the HashSet overhead :)
- or (PrimaryExpression[PrimaryPrefix/Name/@Image = 'Set.of' and PrimarySuffix/Arguments/@Size <= 2])
- (: it is exactly a Map or Set, cannot determine implementation #194 :)
- or ((pmd-java:typeIsExactly('java.util.Set') and not(PrimaryExpression[PrimaryPrefix/Name/@Image = 'Set.of']))
- or (pmd-java:typeIsExactly('java.util.Map') and not(PrimaryExpression[PrimaryPrefix/Name/@Image = 'Map.of'])))
- (: cannot determine type, indirect #194 :) (: cannot determine type, indirect #194 :)
- or (not(pmd-java:typeIs('java.util.Set') or pmd-java:typeIs('java.util.Map')))
-))]]
-,
-//LocalVariableDeclaration[Type/ReferenceType/ClassOrInterfaceType
-[(pmd-java:typeIs('java.util.Map') and not (pmd-java:typeIs('java.util.EnumMap'))) or (pmd-java:typeIs('java.util.Set') and not(pmd-java:typeIs('java.util.EnumSet')))]
-/TypeArguments/TypeArgument[1]/ReferenceType[pmd-java:typeIs('java.lang.Enum') or ClassOrInterfaceType/@Image = //EnumDeclaration/@SimpleName] and
-VariableDeclarator/VariableInitializer/Expression
-[not ((pmd-java:typeIs('java.util.EnumSet') or pmd-java:typeIs('java.util.EnumMap')
-(: Set.of() with 1 or 2 elems doesn't have the HashSet overhead :)
- or (PrimaryExpression[PrimaryPrefix/Name/@Image = 'Set.of' and PrimarySuffix/Arguments/@Size <= 2])
- (: it is exactly a Map or Set, cannot determine implementation #194 :)
- or ((pmd-java:typeIsExactly('java.util.Set') and not(PrimaryExpression[PrimaryPrefix/Name/@Image = 'Set.of']))
- or (pmd-java:typeIsExactly('java.util.Map') and not(PrimaryExpression[PrimaryPrefix/Name/@Image = 'Map.of'])))
- (: cannot determine type, indirect #194 :)
- or (not(pmd-java:typeIs('java.util.Set') or pmd-java:typeIs('java.util.Map')))
-))]]
-,
-//Initializer//StatementExpression[Expression
-[not ((pmd-java:typeIs('java.util.EnumSet') or pmd-java:typeIs('java.util.EnumMap')
-(: Set.of() with 1 or 2 elems doesn't have the HashSet overhead :)
- or (PrimaryExpression[PrimaryPrefix/Name/@Image = 'Set.of' and PrimarySuffix/Arguments/@Size <= 2])
- (: it is exactly a Map or Set, cannot determine implementation #194 :)
- or ((pmd-java:typeIsExactly('java.util.Set') and not(PrimaryExpression[PrimaryPrefix/Name/@Image = 'Set.of']))
- or (pmd-java:typeIsExactly('java.util.Map') and not(PrimaryExpression[PrimaryPrefix/Name/@Image = 'Map.of'])))
- (: cannot determine type, indirect #194 :)
- or (not(pmd-java:typeIs('java.util.Set') or pmd-java:typeIs('java.util.Map')))
-))]]
-[PrimaryExpression//Name/@Image =
-//FieldDeclaration[Type/ReferenceType/ClassOrInterfaceType
-[(pmd-java:typeIs('java.util.Map') and not (pmd-java:typeIs('java.util.EnumMap'))) or (pmd-java:typeIs('java.util.Set') and not(pmd-java:typeIs('java.util.EnumSet')))]
-/TypeArguments/TypeArgument[1]/ReferenceType[pmd-java:typeIs('java.lang.Enum') or ClassOrInterfaceType/@Image = //EnumDeclaration/@SimpleName]]/VariableDeclarator/VariableDeclaratorId/@Name]
+//(FieldDeclaration|LocalVariableDeclaration)[
+    ClassType[(pmd-java:typeIs('java.util.Map') and not (pmd-java:typeIs('java.util.EnumMap'))) or (pmd-java:typeIs('java.util.Set') and not(pmd-java:typeIs('java.util.EnumSet')))]
+        /TypeArguments/ClassType[1][pmd-java:typeIs('java.lang.Enum') or @SimpleName = //EnumDeclaration/@SimpleName]
+    and
+    VariableDeclarator/(MethodCall|ConstructorCall)
+        [not ((pmd-java:typeIs('java.util.EnumSet') or pmd-java:typeIs('java.util.EnumMap')) or
+        (: Set.of() with 1 or 2 elems and Map.of() with 1 key+value don't have the HashSet/Map overhead :)
+        (@MethodName='of' and ((pmd-java:typeIsExactly('java.util.Set') and ArgumentList/@Size <= 2) or (pmd-java:typeIsExactly('java.util.Map') and ArgumentList/@Size <= 2))) or
+        (: it is exactly a Map or Set, cannot determine implementation #194 :)
+        ((@MethodName!='of' and (pmd-java:typeIsExactly('java.util.Set') or pmd-java:typeIsExactly('java.util.Map'))))
+        (: cannot determine type, indirect #194 :)
+        or (not(pmd-java:typeIs('java.util.Set') or pmd-java:typeIs('java.util.Map')))
+     )]
+]
+|
+//Initializer//AssignmentExpression[(pmd-java:typeIs('java.util.Map') and not (pmd-java:typeIs('java.util.EnumMap'))) or (pmd-java:typeIs('java.util.Set') and not(pmd-java:typeIs('java.util.EnumSet')))]
+    [VariableAccess/@Name = ancestor::ClassBody[1]/FieldDeclaration[ClassType/TypeArguments/ClassType[1][pmd-java:typeIs('java.lang.Enum') or @SimpleName = //EnumDeclaration/@SimpleName]]/VariableDeclarator/@Name]
+    /(MethodCall|ConstructorCall)
+        [not ((pmd-java:typeIs('java.util.EnumSet') or pmd-java:typeIs('java.util.EnumMap')) or
+        (: Set.of() with 1 or 2 elems and Map.of() with 1 key+value don't have the HashSet/Map overhead :)
+        (@MethodName='of' and ((pmd-java:typeIsExactly('java.util.Set') and ArgumentList/@Size <= 2) or (pmd-java:typeIsExactly('java.util.Map') and ArgumentList/@Size <= 2))) or
+        (: it is exactly a Map or Set, cannot determine implementation #194 :)
+        ((@MethodName!='of' and (pmd-java:typeIsExactly('java.util.Set') or pmd-java:typeIsExactly('java.util.Map'))))
+        (: cannot determine type, indirect #194 :)
+        or (not(pmd-java:typeIs('java.util.Set') or pmd-java:typeIs('java.util.Map')))
+     )
+]
 ]]></value>
             </property>
         </properties>
@@ -1599,23 +1713,20 @@ Set<YourEnumType> set = EnumSet.allOf(YourEnumType.class);
     <rule name="AvoidLombokAnnotationForNonExistentFields"
           language="java"
           message="Avoid Lombok annotations for fields of a class while the class has no fields."
-          class="net.sourceforge.pmd.lang.rule.XPathRule"
-          typeResolution="true"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           externalInfoUrl="">
         <description>Problem: Lombok annotations for fields [@Getter, @Setter, @EqualsAndHashCode, @Value, @Data] are of no use and confusing in case the class has no fields.&#13;
             Solution: Remove the Lombok annotation.
         </description>
         <priority>4</priority>
         <properties>
-            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="tag" value="unused" type="String" description="for-sonar"/>
-            <property name="tag" value="confusing" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
+            <property name="tags" value="jpinpoint-rule,confusing" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
-//(TypeDeclaration|ClassOrInterfaceBodyDeclaration/ClassOrInterfaceDeclaration/..)/Annotation
-    [MarkerAnnotation/Name[@Image='Getter' or @Image='Setter' or @Image='Value' or @Image='Data' or @Image='EqualsAndHashCode']]
-    [count(..//FieldDeclaration) = 0]
+//ClassDeclaration/ModifierList/Annotation
+    [pmd-java:typeIs('lombok.Getter') or pmd-java:typeIs('lombok.Setter') or pmd-java:typeIs('lombok.Value') or
+     pmd-java:typeIs('lombok.Data') or pmd-java:typeIs('lombok.EqualsAndHashCode')]
+    [ancestor::ClassDeclaration/ClassBody[count(FieldDeclaration) = 0]]
                 ]]></value>
             </property>
         </properties>
@@ -1629,135 +1740,27 @@ Set<YourEnumType> set = EnumSet.allOf(YourEnumType.class);
         </example>
     </rule>
 
-    <rule name="UnconditionalCreatedLogArguments"
-          language="java"
-          message="Avoid unconditional creation of a log argument, it may not be needed."
-          class="net.sourceforge.pmd.lang.rule.XPathRule"
-          typeResolution="true"
-          externalInfoUrl="${doc_root}/JavaCodePerformance.md#il06">
-        <description>Problem: Creation of a log argument with a toString or other operation(s) may be expensive, while depending on the log level, the result may not be used.&#13;
-            Solution: Create the log argument conditionally on the log level, within an if statement. For just 'obj.toString()', just pass 'obj' to the log method and leave it to SLF4J to call toString() only if needed.
-        </description>
-        <priority>2</priority>
-        <properties>
-            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
-            <property name="xpath">
-                <value><![CDATA[
-//PrimaryPrefix/Name
-    (: log levels typically/often not enabled :)
-    [ends-with(@Image,'.trace') or ends-with(@Image,'.debug') or ends-with(@Image,'.info')]
-    (: no violation if conditionally: only executed if level enabled is okay :)
-    [not(ancestor::IfStatement//Name
-    [ends-with(@Image,'.isTraceEnabled') or ends-with(@Image,'.isDebugEnabled') or ends-with(@Image,'.isInfoEnabled') or ends-with(@Image,'.isLoggable')])
-    ]
-    (: no violation if return conditionally before :)
-    [not(ancestor::BlockStatement/preceding-sibling::BlockStatement//IfStatement//ReturnStatement/ancestor::IfStatement//Name
-    [ends-with(@Image,'.isTraceEnabled') or ends-with(@Image,'.isDebugEnabled') or ends-with(@Image,'.isInfoEnabled') or ends-with(@Image,'.isLoggable')])
-    ]
-    (: an argument in the log method :)
-    /../../PrimarySuffix/Arguments/ArgumentList/Expression//PrimaryExpression
-    [
-    (: equals a declared var :)
-    (PrimaryPrefix/Name[@Image = ancestor::MethodDeclaration//VariableDeclarator
-        (: with initializer not like obj.get[Xxx], we assume a simple getter is quick, unless this is in a loop :)
-        [not(contains(string-join(./VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/Name/@Image, '-'), '.get')
-             (: this.field.get[Xxx] case #209 :)
-             or ./VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix[@Image = '']/../PrimarySuffix[starts-with(@Image, 'get')])
-         or ancestor::WhileStatement or ancestor::ForStatement or ancestor::DoStatement]/VariableDeclaratorId/@Name
-    (: and it is not used in a return :)
-    and (not(@Image = ancestor::Block//ReturnStatement//Name/@Image))
-    (: and it is not used in a constructor of a local var :)
-    and (not(@Image = ancestor::Block//AllocationExpression//Name/@Image))
-    (: and it is not used as an argument in another method call than log :)
-    and (not(contains(concat(string-join(ancestor::Block//PrimaryExpression[(PrimaryPrefix/Name|PrimarySuffix)
-        [@Image > '' and not(ends-with(@Image, 'trace') or ends-with(@Image, 'debug') or ends-with(@Image, 'info'))]]/PrimarySuffix/Arguments//Name/@Image, '.'), '.'), concat(@Image,'.'))))
-    (: and it is not used in the method in a blockstatement before a '.', like logObj.toString() other than method call argument.
-       It is a contains, so a violation is missed when the log arg/declared var e.g. is 'log' and a 'obj.log()' is used :)
-    and (not(contains(string-join(ancestor::MethodDeclaration//Name[ancestor::BlockStatement/(Statement|LocalVariableDeclaration)[count(./StatementExpression//PrimarySuffix//ArgumentList//Name/@Image) = 0]]/@Image, '.'), concat(@Image, '.')) ))
-    (: method name starts with log, we assume it is called conditionally :)
-    and (not(ancestor::MethodDeclaration[starts-with(@Name, 'log')]))
-    ])
-]
-                ]]></value>
-            </property>
-        </properties>
-        <example>
-            <![CDATA[
-class Foo {
-    void bad(Object obj) {
-      String logObj = obj.toString();
-      log.debug("object to String: {}", logObj); //bad
-    }
-
-    void good(Object obj) {
-      log.debug("object to String: {}", obj); //good
-    }
-}
-            ]]>
-        </example>
-    </rule>
-
-    <rule name="ImproperVariableName"
-          language="java"
-          message="Give variables and fields a meaningful name."
-          class="net.sourceforge.pmd.lang.rule.XPathRule"
-          typeResolution="true"
-          externalInfoUrl="${doc_root}/JavaCodeQuality.md#m01">
-        <description>Problem: Variables like 'var3' and fields like 'FOUR = 4', do not express what they are used for. This is bad for maintainability.&#13;
-            Solution: Let variable names express what they are used for, like 'key' and 'MAX_KEYS = 4'
-        </description>
-        <priority>3</priority>
-        <properties>
-            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="tag" value="bad-practice" type="String" description="for-sonar"/>
-            <property name="tag" value="confusing" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
-            <property name="xpath">
-                <value><![CDATA[
-//VariableDeclaratorId[matches(@Name, 'ZERO|ONE|TWO|THREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|TEN', 'i')
-and replace(@Name, 'ZERO|ONE|TWO|THREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|TEN|_', '', 'i') = ''
-or starts-with(@Name, 'var') and number(substring-after(@Name, 'var'))]
-                ]]></value>
-            </property>
-        </properties>
-        <example>
-            <![CDATA[
-class Foo {
-    private static final int FOUR_ZERO_NINE_SIX = 4096; // bad
-    private static int six = 6; // bad
-    private int five = 6; // really bad
-    private static final int SIXTIES_START = 1960; // good
-
-    void bar() {
-        String var1 = "baz"; // bad
-    }
-}
-            ]]>
-        </example>
-    </rule>
-
     <rule name="AvoidExposingMutableRecordState"
           language="java"
-          message="Avoid exposing mutable state of the record. Use copyOf in the compact constructor."
-          class="net.sourceforge.pmd.lang.rule.XPathRule"
-          typeResolution="true"
+          message="Avoid exposing mutable state of the record. Use copyOf in the (compact) constructor."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#voedos06">
-        <description>Problem: Internal state can be modified from outside of the record, through the implicit accessor method or by the caller of the constructor. Risk of thread-unsafety.
-            Solution: Use the record compact constructor to defensively copy the (possibly) mutable object such as a List, Set or Map, e.g. with List.copyOf().
+        <description>Problem: Internal state can be modified from outside the record, through the implicit accessor method or by the caller of the constructor. Risk of thread-unsafety.
+            Solution: Use the record compact constructor to defensively copy the (possibly) mutable object such as a List, Set or Map, e.g. with List.copyOf(). Make sure
+            to avoid NullPointerExceptions for null values in List.copyOf() methods. Beware that contained objects in collections can itself be mutable.
         </description>
         <priority>3</priority>
         <properties>
-            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="tag" value="multi-threading" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
+            <property name="tags" value="jpinpoint-rule,multi-threading" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
-//RecordDeclaration//RecordComponent/Type[(pmd-java:typeIs('java.util.Collection') or pmd-java:typeIs('java.util.Map'))
-and
-not(../VariableDeclaratorId/@Name = ancestor::RecordDeclaration/RecordBody/CompactConstructorDeclaration//StatementExpression
-[Expression//PrimaryExpression/PrimaryPrefix/Name[ends-with(@Image, 'copyOf')]]/PrimaryExpression/PrimaryPrefix/Name/@Image)]                ]]></value>
+//RecordDeclaration//RecordComponent/ClassType[(pmd-java:typeIs('java.util.Collection') or pmd-java:typeIs('java.util.Map'))
+    and not(../VariableId/@Name = ancestor::RecordDeclaration/RecordBody/(CompactConstructorDeclaration|ConstructorDeclaration)
+        //AssignmentExpression[(VariableAccess|FieldAccess)/@Name = .//MethodCall[contains(lower-case(@MethodName), 'copyof')]
+            /ArgumentList//(VariableAccess|FieldAccess)/@Name]/(VariableAccess|FieldAccess)/@Name)
+]/..
+]]></value>
             </property>
         </properties>
         <example>
@@ -1767,18 +1770,57 @@ record BadRecord(String name, List<String> list) {
 
 record GoodRecord(String name, List<String> list) {
     public GoodRecord {
-        list = List.copyOf(list);
+        list = list != null ? List.copyOf(list) : List.of();
     }
 }
             ]]>
         </example>
     </rule>
 
+    <rule name="ImproperVariableName"
+          language="java"
+          message="Give variables and fields a meaningful name."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+
+          externalInfoUrl="${doc_root}/JavaCodeQuality.md#m01">
+        <description>Problem: Variables like 'var3' and fields like 'FOUR = 4', do not express what they are used for. This is bad for maintainability.&#13;
+            Solution: Let variable names express what they are used for, like 'key' and 'MAX_KEYS = 4'
+        </description>
+        <priority>3</priority>
+        <properties>
+            <property name="tags" value="bad-practice,confusing,jpinpoint-rule" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+//VariableId[matches(@Name, 'VALUE|VAL|INTEGER|INT|LONG|NUMBER|NUM|[0-9]+|ZERO|ONE|TWO|THREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|TEN|TWENTY', 'i')
+(: not allowed only as uppercase :)
+and (replace(@Name, 'VALUE|VAL|NUMBER|NUM|[0-9]+|ZERO|ONE|TWO|THREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|TEN|TWENTY|_', '') = ''
+   (: not allowed as lower and uppercase :)
+   or replace(@Name, 'INTEGER|INT|LONG|[0-9]+|ZERO|ONE|TWO|THREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|TEN|TWENTY|_', '', 'i') = '')
+or starts-with(@Name, 'var') and number(substring-after(@Name, 'var'))]
+                ]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+class Foo {
+    private static final int FOUR_ZERO_NINE_SIX = 4096; // bad
+    private static final int VALUE_42 = 42; // bad
+    private static int six = 6; // bad
+    private int five = 7; // what? bad
+    private static final int SIXTIES_START = 1960; // good
+
+    void bar() {
+        String var1 = "baz"; // bad
+    }
+}
+            ]]>
+        </example>
+    </rule>
     <rule name="AvoidReStreamingEnumValues"
           language="java"
           message="Avoid re-streaming enum values to find a value by a field."
-          class="net.sourceforge.pmd.lang.rule.XPathRule"
-          typeResolution="true"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#iuoc07">
         <description>Problem: the time to find element is O(n); n = the number of enum values. This identical processing is executed for every call. Considered problematic when n > 3.
             Solution: use a static field-to-enum-value Map. Access time is O(1), provided the hashCode is well-defined.
@@ -1786,15 +1828,13 @@ record GoodRecord(String name, List<String> list) {
         </description>
         <priority>3</priority>
         <properties>
-            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
+            <property name="tags" value="cpu,jpinpoint-rule,performance,sustainability-medium" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
-    //EnumDeclaration/EnumBody[count(EnumConstant) > 3]//MethodDeclaration/Block//PrimaryExpression
-    [PrimaryPrefix/Name[@Image='Arrays.stream' or @Image='Stream.of']]
-    [//PrimaryExpression/PrimaryPrefix/Name[@Image = 'values' or @Image = concat(ancestor::EnumDeclaration/@SimpleName, '.values')]]
-    [PrimarySuffix[starts-with(@Image, 'find')]]
+//EnumDeclaration/EnumBody[count(EnumConstant) > 3]//MethodDeclaration/Block
+    //MethodCall[pmd-java:matchesSig('java.util.stream.Stream#findFirst()') or pmd-java:matchesSig('java.util.stream.Stream#findAny()')]
+    [//MethodCall[pmd-java:matchesSig('java.util.stream.Stream#of(_)') or pmd-java:matchesSig('java.util.Arrays#stream(_)')]
+    [ArgumentList/MethodCall[pmd-java:matchesSig('_#values()')]]]
                 ]]></value>
             </property>
         </properties>
@@ -1834,16 +1874,15 @@ public enum Fruit {
     public static Optional<Fruit> fromString(String name) {
         return Optional.ofNullable(nameToValue.get(name)); // good, get from Map, O(1) access time
     }
-}
-            ]]>
+}            ]]>
         </example>
     </rule>
 
     <rule name="NonComparableMapKeys"
           language="java"
           message="Map keys should implement Comparable in order to make access fast."
-          class="net.sourceforge.pmd.lang.rule.XPathRule"
-          typeResolution="true"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#iuoc08">
         <description>Problem: If multiple entries end up in the same HashMap bucket, they are stored as LinkedList, and with more than 7 as a red black tree.
             The list access time is O(n) and tree access time is only O(log n) which is much faster for large n. This tree implementation utilizes the compareTo from the Comparable interface.
@@ -1853,28 +1892,32 @@ public enum Fruit {
         </description>
         <priority>3</priority>
         <properties>
-            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
+            <property name="tags" value="cpu,jpinpoint-rule,performance,sustainability-low" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
-(: check key/elem type in declaration :)
-//Type/ReferenceType/ClassOrInterfaceType[pmd-java:typeIs('java.util.Map')]
+(: check key type in declaration :)
+//VariableDeclarator/../ClassType[pmd-java:typeIs('java.util.Map') and not(..//ConstructorCall[pmd-java:matchesSig('java.util.TreeMap#new(java.util.Comparator)')])]
 (: first type argument does not implement Comparable :)
-[TypeArguments/TypeArgument[1]/ReferenceType[not(pmd-java:typeIs('java.lang.Comparable'))
-(: and can be resolved :)
-and (pmd-java:typeIs('java.lang.Object'))
-]]
+/TypeArguments/ClassType[1][not(pmd-java:typeIs('java.lang.Comparable'))
+    (: and can be resolved :)
+    and pmd-java:typeIs('java.lang.Object')]
 ,
-(: for when key/elem type ise missing in declaration, check Map.put and Set.add :)
-//PrimaryExpression[PrimaryPrefix/Name[ends-with(@Image, '.put') and pmd-java:typeIs('java.util.Map')]]
-/PrimarySuffix/Arguments/ArgumentList/Expression[1]
+(: for when key type is missing in declaration (old style), check Map.put :)
+//MethodCall[pmd-java:matchesSig('java.util.Map#put(_,_)') and not(
+                (: if Map is TreeMap constructed with a Comparator, it is also fine :)
+                ./VariableAccess/@Name = ancestor::ClassBody[1]/FieldDeclaration[
+                    .//ConstructorCall[pmd-java:matchesSig('java.util.TreeMap#new(java.util.Comparator)')]
+                ]/VariableDeclarator/VariableId/@Name)
+             ]
 (: first arg does not implement Comparable :)
-[not(pmd-java:typeIs('java.lang.Comparable'))
-(: and can be resolved :)
-and (pmd-java:typeIs('java.lang.Object'))
-]
-               ]]></value>
+/ArgumentList/*[1][not(pmd-java:typeIs('java.lang.Comparable'))
+    (: and can be resolved :)
+    and pmd-java:typeIs('java.lang.Object')]
+[not(pmd-java:typeIs('byte'))][not(pmd-java:typeIs('short'))]
+[not(pmd-java:typeIs('int'))][not(pmd-java:typeIs('long'))]
+[not(pmd-java:typeIs('float'))][not(pmd-java:typeIs('double'))]
+[not(pmd-java:typeIs('boolean'))][not(pmd-java:typeIs('char'))]
+                ]]></value>
             </property>
         </properties>
         <example>
@@ -1895,7 +1938,6 @@ and (pmd-java:typeIs('java.lang.Object'))
         oldStyleMap.put("key", "value");
     }
 }
-
             ]]>
         </example>
     </rule>
@@ -1903,8 +1945,8 @@ and (pmd-java:typeIs('java.lang.Object'))
     <rule name="NonComparableSetElements"
           language="java"
           message="Set elements should implement Comparable in order to make access by element fast."
-          class="net.sourceforge.pmd.lang.rule.XPathRule"
-          typeResolution="true"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#iuoc09">
         <description>Problem: A Set is implemented with a Map. If multiple entries end up in the same HashMap bucket, they are stored as LinkedList, and with more than 7 as a red-black tree.
             The list access time is O(n) and tree access time is only O(log n) which is much faster for large n. This tree implementation utilizes the compareTo from the Comparable interface.
@@ -1915,29 +1957,20 @@ and (pmd-java:typeIs('java.lang.Object'))
         </description>
         <priority>3</priority>
         <properties>
-            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
+            <property name="tags" value="cpu,jpinpoint-rule,performance,sustainability-low" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
-//FieldDeclaration/Type[pmd-java:typeIs('java.util.Set') and ReferenceType//TypeArgument[1][not(pmd-java:typeIs('java.lang.Comparable'))
-(: and can be resolved :)
-and pmd-java:typeIs('java.lang.Object')]]/..//VariableDeclaratorId[
-ancestor::ClassOrInterfaceBody//PrimaryExpression/PrimaryPrefix/Name/@Image = concat(@Name, '.contains')
-or ancestor::ClassOrInterfaceBody//PrimaryExpression/PrimaryPrefix/Name/@Image = concat(@Name, '.containsAll')
-or ancestor::ClassOrInterfaceBody//PrimaryExpression/PrimaryPrefix/Name/@Image = concat(@Name, '.remove')
-or ancestor::ClassOrInterfaceBody//PrimaryExpression/PrimaryPrefix/Name/@Image = concat(@Name, '.removeAll')
-or ancestor::ClassOrInterfaceBody//PrimaryExpression/PrimaryPrefix/Name/@Image = concat(@Name, '.retainAll')
-]/../..
-,
-//(FormalParameter|LocalVariableDeclaration)/Type[pmd-java:typeIs('java.util.Set') and ReferenceType//TypeArgument[1][not(pmd-java:typeIs('java.lang.Comparable'))
-(: and can be resolved :)
-and pmd-java:typeIs('java.lang.Object')]]/..//VariableDeclaratorId[
-ancestor::MethodDeclaration//PrimaryExpression/PrimaryPrefix/Name/@Image = concat(@Name, '.contains')
-or ancestor::MethodDeclaration//PrimaryExpression/PrimaryPrefix/Name/@Image = concat(@Name, '.containsAll')
-or ancestor::MethodDeclaration//PrimaryExpression/PrimaryPrefix/Name/@Image = concat(@Name, '.remove')
-or ancestor::MethodDeclaration//PrimaryExpression/PrimaryPrefix/Name/@Image = concat(@Name, '.removeAll')
-or ancestor::MethodDeclaration//PrimaryExpression/PrimaryPrefix/Name/@Image = concat(@Name, '.retainAll')
+(: declared variable used in Set by-element access :)
+//VariableId[@Name = ancestor::ClassBody//MethodCall[@MethodName = ('contains','containsAll','remove','removeAll','retainAll')]/VariableAccess/@Name]
+    (: for 3 ways defined as a Set :)
+    [(ancestor::FieldDeclaration|ancestor::LocalVariableDeclaration|ancestor::FormalParameter)/ClassType[pmd-java:typeIs('java.util.Set')
+                                                                                                         (: not when Set constructed with Comparator :)
+                                                                                                          and not(..//ConstructorCall[pmd-java:matchesSig('java.util.TreeSet#new(java.util.Comparator)')])
+                                                                                                         ]
+    (: element type does not implement Comparable :)
+     /TypeArguments/ClassType[not(pmd-java:typeIs('java.lang.Comparable'))
+    (: and can be resolved :)
+    and pmd-java:typeIs('java.lang.Object')]
 ]/../..
                ]]></value>
             </property>
@@ -1976,8 +2009,8 @@ class Foo {
     <rule name="BufferFileStreaming"
           language="java"
           message="FileInputStream and FileOutputStream are not buffered, add buffering."
-          class="net.sourceforge.pmd.lang.rule.XPathRule"
-          typeResolution="true"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#isio05">
         <description>Problem: With FileInputStream and FileOutputStream, file access is not buffered.
             The stream is read-from/written-to file byte by byte, where each operating system call has its overhead, which makes it slow.
@@ -1986,14 +2019,11 @@ class Foo {
         </description>
         <priority>3</priority>
         <properties>
-            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
+            <property name="tags" value="cpu,io,jpinpoint-rule,performance,sustainability-high" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
-//Resource//AllocationExpression/ClassOrInterfaceType[pmd-java:typeIs('java.io.FileInputStream') or pmd-java:typeIs('java.io.FileOutputStream')]
-[not (ancestor::AllocationExpression/ClassOrInterfaceType[pmd-java:typeIs('java.io.BufferedInputStream') or pmd-java:typeIs('BufferedOutputStream')])]
-[not (ancestor::TryStatement//AllocationExpression/ClassOrInterfaceType[pmd-java:typeIs('java.io.BufferedInputStream') or pmd-java:typeIs('BufferedOutputStream')])]
+//Resource//ConstructorCall[pmd-java:typeIs('java.io.FileInputStream') or pmd-java:typeIs('java.io.FileOutputStream')]
+[not (ancestor::TryStatement//ConstructorCall[pmd-java:typeIs('java.io.BufferedInputStream') or pmd-java:typeIs('java.io.BufferedOutputStream')])]
 ]]></value>
             </property>
         </properties>
@@ -2020,28 +2050,32 @@ class BufferFileStreaming {
     <rule name="BufferFilesNewStream"
           language="java"
           message="Files.newInputStream or Files.newOutputStream is not buffered, add buffering."
-          class="net.sourceforge.pmd.lang.rule.XPathRule"
-          typeResolution="true"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#isio06">
         <description>Problem: Files.newInputStream or Files.newOutputStream is not buffered.
             The stream is read from/written to file byte by byte, where each operating system call has its overhead which makes it slow.
             Solution: Use buffering to read/write a chunk of bytes at once with much lower overhead.
             Use e.g. BufferedInputStream or BufferedOutputStream which has a buffer size of 8 kB to read/write at once. Make sure to close it after use.
+            Note that IOUtils methods take care of buffering the inputStream.
         </description>
         <priority>3</priority>
         <properties>
-            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
+            <property name="tags" value="cpu,io,jpinpoint-rule,performance,sustainability-high" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
-//PrimaryExpression/PrimaryPrefix/Name[pmd-java:typeIs('java.nio.file.Files') and ends-with(@Image,'.newOutputStream')]
-[ancestor::MethodDeclaration[count(.//AllocationExpression[pmd-java:typeIs('java.io.BufferedOutputStream')]) = 0]]
-,
-//PrimaryExpression/PrimaryPrefix/Name[pmd-java:typeIs('java.nio.file.Files') and ends-with(@Image,'.newInputStream')]
-[ancestor::MethodDeclaration[count(.//AllocationExpression[pmd-java:typeIs('java.io.BufferedInputStream')]) = 0
-and (not(.//PrimaryPrefix/Name[pmd-java:typeIs('org.apache.commons.io.IOUtils') and starts-with(@Image, 'IOUtils.read')]))
-]]
+//MethodCall[TypeExpression[pmd-java:typeIs('java.nio.file.Files')]]
+(: the following methods use a buffer with File[Input/Output]Stream read/write method implementation of [Input/Output]Stream :)
+[not(ancestor::MethodDeclaration//MethodCall[pmd-java:matchesSig('java.io.InputStream#transferTo(java.io.OutputStream)')
+    or pmd-java:matchesSig('java.io.InputStream#readAllBytes()')
+    or pmd-java:matchesSig('java.io.InputStream#readNBytes(int)')
+    or pmd-java:matchesSig('java.io.InputStream#read(byte[])')
+    or pmd-java:matchesSig('java.io.InputStream#read(byte[],int,int)')
+    or pmd-java:matchesSig('java.nio.file.Files#copy(_*)')
+    or pmd-java:matchesSig('org.apache.commons.io.IOUtils#copy(_*)')])]
+[(@MethodName='newInputStream' and (not(ancestor::MethodDeclaration//ConstructorCall[pmd-java:typeIs('java.io.BufferedInputStream') or pmd-java:typeIs('java.io.BufferedReader')]))
+      and not(ancestor::MethodDeclaration//MethodCall[starts-with(@MethodName, 'read') and TypeExpression[pmd-java:typeIs('org.apache.commons.io.IOUtils')]])
+  or (@MethodName='newOutputStream' and not(ancestor::MethodDeclaration//ConstructorCall[pmd-java:typeIs('java.io.BufferedOutputStream') or pmd-java:typeIs('java.io.BufferedWriter')])
+))]
                 ]]></value>
             </property>
         </properties>
@@ -2062,8 +2096,8 @@ class Foo {
     <rule name="AvoidLoadingAllFromFile"
           language="java"
           message="Files.readAll methods load all bytes from a file into memory: a risk of memory problems."
-          class="net.sourceforge.pmd.lang.rule.XPathRule"
-          typeResolution="true"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#isio03">
         <description>Problem: Files.readAllBytes and Files.readAllLines load all bytes from a file into the heap memory.
             This may result in an OutOfMemoryError crash, or long gc pauses and slow responses.
@@ -2073,12 +2107,13 @@ class Foo {
         </description>
         <priority>2</priority>
         <properties>
-            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
+            <property name="tags" value="jpinpoint-rule,memory,performance,sustainability-medium" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
-//MethodDeclaration//PrimaryPrefix/Name[@Image='Files.readAllBytes' or @Image='Files.readAllLines']
+//MethodDeclaration//MethodCall[pmd-java:matchesSig('java.nio.file.Files#readAllBytes(java.nio.file.Path)')
+    or pmd-java:matchesSig('java.nio.file.Files#readAllLines(java.nio.file.Path)')
+    or pmd-java:matchesSig('java.nio.file.Files#readAllLines(java.nio.file.Path,_)')
+]
                 ]]></value>
             </property>
         </properties>
@@ -2107,8 +2142,8 @@ class Good {
     <rule name="HashCodeOnlyCallsSuper"
           language="java"
           message="hashCode only calls super."
-          class="net.sourceforge.pmd.lang.rule.XPathRule"
-          typeResolution="true"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#isio03">
         <description>Problem: when equals is implemented, hashCode needs to be implemented, too; and if objects are equal, hashCode needs to be equal, too. If hashCode only calls super.hashCode, it is effectively not implemented.
             Strange things can happen, for instance, if super.hashCode calls Object.hashCode, it is unique for each object and when used in Set or as key in Map, equal objects can duplicate in Set, and keys not found in Map.
@@ -2116,14 +2151,13 @@ class Good {
         </description>
         <priority>1</priority>
         <properties>
-            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="tag" value="correctness" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
+            <property name="tags" value="correctness,jpinpoint-rule" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
-//MethodDeclaration[@Name='equals' and MethodDeclarator/FormalParameters/@Size=1 and @Public=true() and @Static=false()]
-/ancestor::ClassOrInterfaceBody[1]//MethodDeclaration[@Name='hashCode' and MethodDeclarator/FormalParameters/@Size=0 and @Public=true() and @Static=false()]
-/Block[count(./BlockStatement/Statement) = 1][count(.//ArgumentList) = 0]//PrimaryExpression[PrimaryPrefix[@SuperModifier=true()]]/PrimarySuffix[@Image='hashCode']
+//MethodDeclaration[@Name='equals' and FormalParameters/@Size=1 and @Static=false() and ModifierList/@ExplicitModifiers='public']
+/Block[not(not(.//FieldAccess) and count(descendant::MethodCall)=1 and .//MethodCall[pmd-java:matchesSig('java.lang.Object#equals(_)')]/SuperExpression)]
+/ancestor::ClassBody[1]//MethodDeclaration[@Name='hashCode' and FormalParameters/@Size=0 and @Static=false() and ModifierList/@ExplicitModifiers='public']
+/Block[count(descendant::MethodCall)=1][.//MethodCall[pmd-java:matchesSig('java.lang.Object#hashCode()')]/SuperExpression]
                 ]]></value>
             </property>
         </properties>
@@ -2163,23 +2197,23 @@ class Good {
     <rule name="AvoidRecreatingSecurityProviders"
           language="java"
           message="Avoid re-creating security providers, this is expensive."
-          class="net.sourceforge.pmd.lang.rule.XPathRule"
-          typeResolution="true"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#iuosf01">
         <description>Problem: Creating a security provider is expensive because of loading of algorithms and other classes. Additionally, it uses synchronized which leads to lock contention when used with multiple threads.
             Solution: This only needs to happen once in the JVM lifetime, because once loaded, the provider is typically available from the Security class. Create the security provider only once: only in case it is nog available from the Security class, yet.
         </description>
         <priority>2</priority>
         <properties>
-            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="tag" value="performance" type="String" description="for-sonar"/>
-            <property name="version" value="2.0"/>
+            <property name="tags" value="cpu,io,jpinpoint-rule,performance,sustainability-high" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
-//MethodDeclaration[not((@Name='main' and @Static=true())or ../Annotation//Name/@Image='PostConstruct'
-or .//IfStatement//EqualityExpression[@Operator='=='][
-.//PrimaryExpression[pmd-java:typeIs('java.security.Provider')] and .//NullLiteral])]
-//AllocationExpression[pmd-java:typeIs('java.security.Provider')]
+//MethodDeclaration
+   [not((@Name='main' and @Static=true())or ModifierList/Annotation/@SimpleName='PostConstruct'
+      or .//IfStatement//InfixExpression
+         [@Operator='=='][VariableAccess[pmd-java:typeIs('java.security.Provider')] and NullLiteral]
+   )]
+//ConstructorCall[pmd-java:typeIs('java.security.Provider') or pmd-java:typeIs('org.bouncycastle.jce.provider.BouncyCastleProvider')]
                 ]]></value>
             </property>
         </properties>
@@ -2208,4 +2242,256 @@ class Foo {
         </example>
     </rule>
 
+    <rule name="MissingEqualsAndHashCodeWithGetterSetter"
+          language="java"
+          message="Equals and/or hashCode is missing in a class with lombok @Getter or @Setter."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          externalInfoUrl="${doc_root}/JavaCodeQuality.md#ieah01">
+        <description>Problem: If only the @Setter and/or @Getter annotation is used, and equals and hashcode are not defined, this is probably a mistake. The object has fields and if used in a collection or with equality, it will not behave as expected.
+            Solution: include equals and hashCode e.g. by @EqualsAndHashCode or usually better @Data instead of @Setter/@Getter, however, are setters really needed? Prefer immutability, so @Value, combined with @Builder, with @Singular for collection fields.
+        </description>
+        <priority>3</priority>
+        <properties>
+            <property name="xpath">
+                <value><![CDATA[
+//ClassDeclaration[
+    (pmd-java:hasAnnotation('lombok.Getter') or pmd-java:hasAnnotation('lombok.Setter'))
+    and not(
+        pmd-java:hasAnnotation('lombok.EqualsAndHashCode')
+        or pmd-java:hasAnnotation('org.springframework.context.annotation.Configuration')
+        or pmd-java:hasAnnotation('org.springframework.boot.context.properties.ConfigurationProperties')
+        or pmd-java:hasAnnotation('jakarta.persistence.Entity')
+        or pmd-java:hasAnnotation('javax.persistence.Entity')
+        or pmd-java:typeIs('java.lang.Throwable')
+        or (
+            ./ClassBody/MethodDeclaration[@Name='equals' and @Arity=1 and ./PrimitiveType[@Kind='boolean']]
+            and ./ClassBody/MethodDeclaration[@Name='hashCode' and @Arity=0 and ./PrimitiveType[@Kind='int']]
+        )
+    )
+]/ModifierList/Annotation[1]
+                ]]></value>
+            </property>
+            <property name="tags" value="jpinpoint-rule,correctness" type="String" description="classification"/>
+        </properties>
+        <example>
+            <![CDATA[
+import lombok.*;
+
+@Getter @Setter
+// no equals/hashcode annotation
+class MissingEqualsHashCodeWithGetterSetterBad { // bad
+    String field1;
+    String field2;
+    // no equals, no hashCode
+}
+
+@Getter @Setter @EqualsAndHashCode
+class EqualsHashCodeWithGetterSetterOkay {
+    String field1;
+    String field2;
+}
+
+@Builder @Value
+class ValueGood {
+    String field1;
+    String field2;
+}
+            ]]>
+        </example>
+    </rule>
+
+    <rule name="AvoidInfiniteRecursion"
+          language="java"
+          message="Avoid recursive calls without a proper stop condition."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ipf01">
+        <description>Problem: If a method calls itself (recursion), and it doesn't have a proper and guaranteed stop condition, it may become an infinite loop and result in an OutOfMemoryError or StackOverflowError, and high CPU usage.
+            Solution: Limit the number of recursive calls: use a counter to count up-to or down-from a maximum number of calls, for every recursive call, and stop when the maximum is reached. This maximum should not be a large number.
+            Or better yet, rewrite into iterations for better performance and avoiding errors.
+        </description>
+        <priority>1</priority>
+        <properties>
+            <property name="xpath">
+                <value><![CDATA[
+//MethodDeclaration[not(.//IfStatement[
+    ((.//UnaryExpression[@Operator=('++', '--')]|.//InfixExpression[@Operator=('+', '-')]/NumericLiteral[@ValueAsInt=1]|.//AssignmentExpression[@Operator=('+=', '-=')]/NumericLiteral[@ValueAsInt=1])
+    or .//MethodCall[contains(@MethodName,'crement')]/VariableAccess[pmd-java:typeIs('java.lang.Number')])
+    and .//InfixExpression[@Operator=('>', '>=','<', '<=')]
+(: same method name :)
+])]//MethodCall[@MethodName = ancestor::MethodDeclaration/@Name]
+(: only called on implicit or explicit this :)
+[(ArgumentList and count(*) = 1) or (ArgumentList and ThisExpression and count(*) = 2)]
+(: only if the number of parameters match: not an overloaded method with difference in numbers :)
+[ArgumentList/@Size = ancestor::MethodDeclaration/FormalParameters/@Size]
+(: not if any parameter is used in the call in another position :)
+[not((ArgumentList/*[self::VariableAccess and ((position() != index-of(ancestor::MethodDeclaration/FormalParameters/FormalParameter/VariableId/@Name, concat('', @Name))))]))]
+(: we check the first 3 arguments on type, which is complicated :)
+(: if the 1st parameter (if it exists) :)
+(: its name equals the name of the 1st argument of the called method :)
+[concat(ArgumentList/*[1]/@Name, '') = ancestor::MethodDeclaration/FormalParameters/FormalParameter[1]/VariableId/@Name
+    or ArgumentList/MethodCall/TypeExpression/ClassType/@SimpleName = ancestor::MethodDeclaration/FormalParameters/FormalParameter[1]/ClassType/@SimpleName
+    or ancestor::MethodDeclaration/FormalParameters[@Size = 0 or FormalParameter[1][(
+    (: or its classType is equal to the local var classtype :)
+    (ClassType/@SimpleName|PrimitiveType/@Kind) = ancestor::MethodDeclaration//LocalVariableDeclaration[
+        (: which name equals to the name of the 1st argument of the method call :)
+        .//VariableId/@Name = ancestor::MethodDeclaration//MethodCall[@MethodName = ancestor::MethodDeclaration/@Name]/ArgumentList/VariableAccess[1]/@Name
+    ][
+        (: and which classType is equal to the classtype of the first parameter :)
+        ((ClassType/@SimpleName|PrimitiveType/@Kind) = ancestor::MethodDeclaration/FormalParameters/FormalParameter[1]/(ClassType/@SimpleName|PrimitiveType/@Kind))
+    ]/(ClassType/@SimpleName|PrimitiveType/@Kind)
+    or
+    (: or its classType is equal to the field classtype :)
+    (ClassType/@SimpleName|PrimitiveType/@Kind) = ancestor::ClassBody[1]/FieldDeclaration[
+        (: which name equals to the name of the 1st argument of the method call :)
+        .//VariableId/@Name = ..//MethodDeclaration//MethodCall[@MethodName = ancestor::MethodDeclaration/@Name]/ArgumentList/VariableAccess[1]/@Name
+    ][
+        (: and which classType is equal to the classtype of the first parameter :)
+        ((ClassType/@SimpleName|PrimitiveType/@Kind) = ..//MethodDeclaration/FormalParameters/FormalParameter[1]/(ClassType/@SimpleName|PrimitiveType/@Kind))
+    ]/(ClassType/@SimpleName|PrimitiveType/@Kind))
+]]]
+(: if the 2nd parameter (if it exists) :)
+[concat(ArgumentList/*[2]/@Name, '') = ancestor::MethodDeclaration/FormalParameters/FormalParameter[2]/VariableId/@Name
+    or ancestor::MethodDeclaration/FormalParameters[@Size <= 1 or FormalParameter[2][(
+    (: or its classType is equal to the local var classtype :)
+    (ClassType/@SimpleName|PrimitiveType/@Kind) = (ancestor::MethodDeclaration//LocalVariableDeclaration|ancestor::ClassBody[1]/FieldDeclaration)[
+    (: which name equals to the name of the 2nd argument of the method call :)
+    .//VariableId/@Name = ancestor::MethodDeclaration//MethodCall[@MethodName = ancestor::MethodDeclaration/@Name]/ArgumentList/VariableAccess[2]/@Name][
+        (: and which classType is equal to the classtype of the 2nd parameter :)
+        ((ClassType/@SimpleName|PrimitiveType/@Kind) = ancestor::MethodDeclaration/FormalParameters/FormalParameter[2]/(ClassType/@SimpleName|PrimitiveType/@Kind))
+    ]/(ClassType/@SimpleName|PrimitiveType/@Kind)
+    or
+    (: or its classType is equal to the field classtype :)
+    (ClassType/@SimpleName|PrimitiveType/@Kind) = ancestor::ClassBody[1]/FieldDeclaration[
+        (: which name equals to the name of the 2nd argument of the method call :)
+        .//VariableId/@Name = ..//MethodDeclaration//MethodCall[@MethodName = ancestor::MethodDeclaration/@Name]/ArgumentList/VariableAccess[2]/@Name
+    ][
+        (: and which classType is equal to the classtype of the 2nd parameter :)
+        ((ClassType/@SimpleName|PrimitiveType/@Kind) = ..//MethodDeclaration/FormalParameters/FormalParameter[2]/(ClassType/@SimpleName|PrimitiveType/@Kind))
+    ]/(ClassType/@SimpleName|PrimitiveType/@Kind))
+]]]
+(: if the 3rd parameter (if it exists) :)
+[concat(ArgumentList/*[3]/@Name, '') = ancestor::MethodDeclaration/FormalParameters/FormalParameter[3]/VariableId/@Name
+    or ancestor::MethodDeclaration/FormalParameters[@Size <= 2 or FormalParameter[3][(
+    (: or its classType is equal to the local var classtype :)
+    (ClassType/@SimpleName|PrimitiveType/@Kind) = (ancestor::MethodDeclaration//LocalVariableDeclaration|ancestor::ClassBody[1]/FieldDeclaration)[
+    (: which name equals to the name of the 3rd argument of the method call :)
+    .//VariableId/@Name = ancestor::MethodDeclaration//MethodCall[@MethodName = ancestor::MethodDeclaration/@Name]/ArgumentList/VariableAccess[3]/@Name][
+        (: and which classType is equal to the classtype of the 3rd parameter :)
+        ((ClassType/@SimpleName|PrimitiveType/@Kind) = ancestor::MethodDeclaration/FormalParameters/FormalParameter[3]/(ClassType/@SimpleName|PrimitiveType/@Kind))
+    ]/(ClassType/@SimpleName|PrimitiveType/@Kind)
+    or
+    (: or its classType is equal to the field classtype :)
+    (ClassType/@SimpleName|PrimitiveType/@Kind) = ancestor::ClassBody[1]/FieldDeclaration[
+        (: which name equals to the name of the 3rd argument of the method call :)
+        .//VariableId/@Name = ..//MethodDeclaration//MethodCall[@MethodName = ancestor::MethodDeclaration/@Name]/ArgumentList/VariableAccess[3]/@Name
+    ][
+        (: and which classType is equal to the classtype of the 3rd parameter :)
+        ((ClassType/@SimpleName|PrimitiveType/@Kind) = ..//MethodDeclaration/FormalParameters/FormalParameter[3]/(ClassType/@SimpleName|PrimitiveType/@Kind))
+    ]/(ClassType/@SimpleName|PrimitiveType/@Kind))
+]]]
+                ]]></value>
+            </property>
+            <property name="tags" value="cpu,jpinpoint-rule,memory,performance,pitfall,sustainability-medium" type="String" description="classification"/>
+        </properties>
+        <example>
+            <![CDATA[
+class InfiniteRecursionBad {
+    private void foo() {
+        boolean success = tryRemoteCall();
+        if (!success) {
+            delay(10, MILLISECONDS);
+            foo(); // bad
+        }
+    }
+}
+
+class FiniteRecursionGood {
+    private static final int MAX_ATTEMPTS = 5;
+
+    private void foo(int attemptsLeft) {
+        boolean success = tryRemoteCall();
+        if (!success && attemptsLeft > 0 ) {
+            delay(10, MILLISECONDS);
+            foo(--attemptsLeft);
+        }
+    }
+}
+
+class IterationsBetter {
+    private static final int MAX_ATTEMPTS = 5;
+
+    private void foo() {
+        int attempt = 0;
+        boolean success = false;
+        while (!success && attempt++ < MAX_ATTEMPTS) {
+            success = tryRemoteCall();
+            if (!success) {
+                delay(10, MILLISECONDS);
+            }
+        }
+    }
+}
+            ]]>
+        </example>
+    </rule>
+    <rule name="InitializeComparatorOnlyOnce"
+          language="java"
+          message="Avoid creating Comparator instances repeatedly. Initialize them as static final fields instead."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#UE03">
+        <description>Problem: Creating Comparator instances repeatedly in methods like compareTo or sort calls is inefficient.&#13;
+            Solution: Initialize the Comparator once as a static final field and reuse.
+        </description>
+        <priority>2</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,sustainability-medium,cpu" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+//MethodCall[
+    (pmd-java:matchesSig('java.util.Comparator#comparing(_*)')
+      or pmd-java:matchesSig('java.util.Comparator#comparingInt(_)')
+      or pmd-java:matchesSig('java.util.Comparator#comparingDouble(_)')
+      or pmd-java:matchesSig('java.util.Comparator#comparingLong(_)')
+      or pmd-java:matchesSig('java.util.Comparator#nullsFirst(_)')
+      or pmd-java:matchesSig('java.util.Comparator#nullsLast(_)')
+      or pmd-java:matchesSig('java.util.Comparator#reversed()')
+    )
+    (: not chained: AST is backwards with first call last element :)
+    and not(MethodCall[pmd-java:typeIs('java.util.Comparator')])
+    (: not used as argument to another Comparator method :)
+    and not(parent::ArgumentList/parent::MethodCall[
+        pmd-java:typeIs('java.util.Comparator')
+    ])
+    (: used in non-static-final way :)
+    and not(ancestor::FieldDeclaration[pmd-java:modifiers() = ('final') and pmd-java:modifiers() = ('static')])
+]
+]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+public class BadPerson implements Comparable<Person> {
+    @Override
+    public int compareTo(@NotNull Person o) {
+        return Comparator.comparing(Person::getFirstName)  // Bad: Creates new Comparator instance on each invocation
+                .thenComparing(Person::getLastName)
+                .thenComparingInt(Person::getAge)
+                .compare(this, o);
+    }
+}
+
+public class GoodPerson implements Comparable<Person> {
+    private static final Comparator<Person> COMPARE_AGE_LAST_FIRST =
+        Comparator.comparing(Person::getFirstName)
+            .thenComparing(Person::getLastName)
+            .thenComparingInt(Person::getAge);
+
+    @Override
+    public int compareTo(@NotNull Person o) {
+        return COMPARE_AGE_LAST_FIRST.compare(this, o);     // Good: Comparator initialized once as static final field
+    }
+}
+        ]]>
+        </example>
+    </rule>
 </ruleset>

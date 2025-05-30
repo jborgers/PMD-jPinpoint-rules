@@ -193,8 +193,9 @@ class EqTryoutBad2 {
     <test-code>
         <description>violation: field0 missing in equals</description>
         <expected-problems>1</expected-problems>
-        <expected-linenumbers>2</expected-linenumbers>
+        <expected-linenumbers>3</expected-linenumbers>
         <code><![CDATA[
+import some.OtherClass;
 class EqHashTryoutBad3 {
     String field0;// bad, missing in equals
     String field1;

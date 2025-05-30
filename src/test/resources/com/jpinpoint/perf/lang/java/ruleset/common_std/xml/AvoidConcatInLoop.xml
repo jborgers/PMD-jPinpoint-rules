@@ -254,4 +254,85 @@ public class ConcatInLoop {
      ]]></code>
     </test-code>
 
+    <test-code>
+        <description>violation: false positive and missed case #383</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>14</expected-linenumbers>
+        <code><![CDATA[
+public class Issue383 {
+
+    public void goodX() {
+        String logStatement = "ticAtacBtoe";
+        List<String> values = Arrays.asList("tic", "tac", "toe");
+        for (String val : values) {
+            logStatement = logStatement.replace(val, "-"); // <-----false positive
+        }
+    }
+
+    public void badX() {
+       String logStatement = "";
+        for (int i = 0; i < 3; i++) {
+            logStatement += i + ", "; // bad
+        }
+    }
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>violation: false positive in loop and switch issue #564</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>22</expected-linenumbers>
+        <code><![CDATA[
+import java.util.List;
+
+class Issue564 {
+
+    private static final String PACKAGE_PREFIX = "PREFIX";
+
+    public void doSomethingSimple(String name, List<String> options) {
+        for (String option : options) {
+            String loggerName;
+            if (option.startsWith("j")) {
+                loggerName = PACKAGE_PREFIX + name; // <-- false positive
+            }
+            setLevels(loggerName);
+        }
+    }
+
+    public void doSomethingSimpleTwoLoops(String name, List<String> options) {
+        for (String option1 : options) {
+            String loggerName = option1;
+            for (String option : options) {
+                if (option.startsWith("j")) {
+                    loggerName = PACKAGE_PREFIX + name; // <-- bad, loggerName is outside inner loop
+                }
+                setLevels(loggerName);
+            }
+        }
+    }
+
+    public void doSomethingSwitch(String name, List<String> options) {
+        for (String option : options) {
+            switch(option) {
+                case "j":
+                    String loggerName = name;
+                    if (option.startsWith("j")) {
+                        loggerName = PACKAGE_PREFIX + name; // <-- false positive
+                    }
+                    setLevels(loggerName);
+                    break;
+                default:
+                    setLevels(name);
+            }
+        }
+    }
+
+    private void setLevels(String loggerName) {
+        // do something
+    }
+}
+     ]]></code>
+    </test-code>
+
 </test-data>
