@@ -1458,6 +1458,9 @@ Note that for StringBuilder.substring this is not needed, since it does make a c
 
 #### TMSU11
 
+**Warning:** this is portlet specific, support has been dropped in Spring framework 5 and later. Alternative portlet support
+can be found here: [PortletMVC4Spring](https://github.com/liferay/portletmvc4spring)
+
 **Observation: ModelMaps are implicitly added to the session.** Spring BindingAwareModelMaps are implicitly and automagically added to the portlet session by Spring MVC under certain conditions. A Controller with the following code is problematic:
 
 ```java
@@ -1478,6 +1481,9 @@ Spring will inject the proper data types. The problem is that with portlets, a b
 Render parameters might be an option, see [TMSU01](#TMSU01).
 
 #### TMSU12
+
+**Warning:** this is portlet specific, support has been dropped in Spring framework 5 and later. Alternative portlet support
+can be found here: [PortletMVC4Spring](https://github.com/liferay/portletmvc4spring)
 
 **Observation: Form validation in an action request with ModelMaps or ModelAttributes is convenient, but they stay in the session after validation.**  
 **Problem:** ModelMaps are rather large objects and still take heap space while they are not needed anymore.  
