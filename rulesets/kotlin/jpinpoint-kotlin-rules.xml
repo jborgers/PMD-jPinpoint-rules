@@ -12,7 +12,6 @@
 
 <!-- BEGIN Included file 'common.xml' -->
     <rule name="AvoidDecimalAndChoiceFormatAsField"
-          since="7.0"
           language="kotlin"
           message="Avoid using NumberFormat, DecimalFormat or ChoiceFormat as field since it is thread-unsafe."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
@@ -62,8 +61,95 @@ class Foo {
         </example>
     </rule>
 
+    <rule name="AvoidImplicitlyRecompilingRegex"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          dfa="false"
+          language="kotlin"
+          message="String regex method, Pattern.matches or FileSystem.getPathMatcher is used. Implicitly compiles a regex pattern, can be expensive."
+          typeResolution="true"
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#ireu01">
+        <description>A regular expression is compiled implicitly on every invocation. Problem: this can be expensive, depending on the length of the regular expression.&#13;
+            Solution: Compile the regex pattern only once and assign it to a private static final Pattern field. java.util.Pattern objects are thread-safe so they can be shared among threads.
+            (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <property name="xpath">
+                <value><![CDATA[
+//FunctionDeclaration//PostfixUnaryExpression/PostfixUnarySuffix/NavigationSuffix/SimpleIdentifier/T-Identifier[
+    @Text='toRegex'
+    (: not called on function parameter :)
+    and not(../../../../PrimaryExpression//T-Identifier[
+        @Text = ancestor::FunctionDeclaration//FunctionValueParameter//Parameter/SimpleIdentifier/T-Identifier/@Text])
+    (: not called on 'dynamic' function call :)
+    and not(../../../../../PostfixUnaryExpression/PostfixUnarySuffix[1]/CallSuffix)
+    (: not if based on local variable initialized by parameter :)
+    and not(../../../../../PostfixUnaryExpression/PrimaryExpression/SimpleIdentifier/T-Identifier[
+        @Text = ancestor::FunctionBody//PropertyDeclaration/VariableDeclaration/SimpleIdentifier/T-Identifier/@Text])
+]
+
+|
+
+(: check if java.util.regex.Pattern import exists as filter for same named classes in other packages :)
+//ImportHeader[
+    (.//T-Identifier[@Text='java'] and .//T-Identifier[@Text='util'] and .//T-Identifier[@Text='regex'] and .//T-Identifier[@Text='Pattern'] or .//T-MULT)
+  ][1]/ancestor::KotlinFile
+//SimpleIdentifier/T-Identifier[@Text='Pattern'
+    and ../../../PostfixUnarySuffix//T-Identifier[@Text='matches']
+    (: not if first param is function parameter :)
+    and not(../../../PostfixUnarySuffix/CallSuffix/ValueArguments/ValueArgument[1]//SimpleIdentifier/T-Identifier[
+        @Text = ancestor::FunctionDeclaration//Parameter/SimpleIdentifier/T-Identifier/@Text])
+]
+
+|
+
+(: check if java.nio.file.FileSystems or java.nio.file.Path imports exists as filter for same named classes in other packages :)
+(: TODO is this a bug: having to use T-FILE for 'file' :)
+//ImportHeader[
+    (.//T-Identifier[@Text='java']
+        and .//T-Identifier[@Text='nio'] and .//T-FILE[@Text='file'] and .//T-Identifier[@Text='FileSystems' or @Text='Path'] or .//T-MULT)
+  ][1]/ancestor::KotlinFile
+(: added [ancestor::NavigationSuffix] to avoid PAT_STRING param from being selected too :)
+//FunctionDeclaration//PostfixUnarySuffix//T-Identifier[ancestor::NavigationSuffix][@Text='getPathMatcher'
+    and (ancestor::PostfixUnaryExpression/PrimaryExpression//T-Identifier[@Text=
+              ancestor::Statement/preceding-sibling::Statement//VariableDeclaration[../Expression//T-Identifier[@Text='FileSystems']]//T-Identifier/@Text]
+         or ancestor::PostfixUnaryExpression/PrimaryExpression/SimpleIdentifier/T-Identifier[@Text='FileSystems']
+
+    )
+    (: not if first param is function parameter :)
+    and not(ancestor::PrefixUnaryExpression//CallSuffix/ValueArguments/ValueArgument//SimpleIdentifier/T-Identifier[
+       @Text = ancestor::FunctionDeclaration//Parameter/SimpleIdentifier/T-Identifier/@Text])
+    (: not param in String template in function param :)
+    and not(ancestor::PrefixUnaryExpression//CallSuffix/ValueArguments/ValueArgument//LineStringContent/T-LineStrRef[
+       @Text = ancestor::FunctionDeclaration//Parameter/SimpleIdentifier/T-Identifier/concat('$', @Text)])
+]
+                ]]></value>
+            </property>
+        </properties>
+        <example>
+class Foo {
+
+    companion object {
+        val INNER_LINE_BREAK_REGEX = """([^.\n])\n""".toRegex()
+        val INNER_LINE_BREAK_PATTERN = """([^.\n])\n""".toPattern()
+    }
+
+    fun bad_replaceInnerLineBreakBySpace(text: String): String {
+        return text.replace("""([^.\n])\n""".toRegex(), "$1 ") // bad
+    }
+
+    fun good_replaceInnerLineBreakBySpace1(text: String): String {
+        return text.replace(INNER_LINE_BREAK_REGEX, "$1 ") // good
+    }
+
+    fun good_replaceInnerLineBreakBySpace2(text: String): String {
+        return INNER_LINE_BREAK_PATTERN.matcher(text).replaceAll("$1 ") // good
+    }
+}
+        </example>
+    </rule>
+
     <rule name="AvoidInMemoryStreamingDefaultConstructor"
-          since="7.0"
           language="kotlin"
           message="The default capacity or smaller is used for ByteArrayOutputStream or StringWriter, it usually needs expensive expansions."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
@@ -373,7 +459,6 @@ class Foo {
     </rule>
 
     <rule name="AvoidStringBuffer" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-          since="7.0"
           language="kotlin"
           message="StringBuffer is used. It introduces locking overhead, use StringBuilder."
           typeResolution="true"
@@ -501,7 +586,6 @@ class FooGood {
 <!-- END Included file 'common.xml' -->
 <!-- BEGIN Included file 'remoting.xml' -->
     <rule name="AvoidDeprecatedHystrix"
-          since="7.0"
           language="kotlin"
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           message="Netflix Hystrix is deprecated. Use an alternative like resilience4j"
@@ -525,7 +609,6 @@ class FooGood {
     </rule>
 
     <rule name="HttpClientBuilderWithoutDisableConnectionState"
-          since="7.0"
           language="kotlin"
           message="A HttpClient builder is used and disableConnectionState is not called. HTTP client tracks connection state while using TLS."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"

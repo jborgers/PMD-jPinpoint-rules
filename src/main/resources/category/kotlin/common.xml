@@ -498,8 +498,8 @@ class FooGood {
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="xpath">
-                <value>
-                    //FunctionDeclaration//PostfixUnaryExpression/PostfixUnarySuffix/NavigationSuffix/SimpleIdentifier/T-Identifier[
+                <value><![CDATA[
+//FunctionDeclaration//PostfixUnaryExpression/PostfixUnarySuffix/NavigationSuffix/SimpleIdentifier/T-Identifier[
     @Text='toRegex'
     (: not called on function parameter :)
     and not(../../../../PrimaryExpression//T-Identifier[
@@ -532,8 +532,13 @@ class FooGood {
     (.//T-Identifier[@Text='java']
         and .//T-Identifier[@Text='nio'] and .//T-FILE[@Text='file'] and .//T-Identifier[@Text='FileSystems' or @Text='Path'] or .//T-MULT)
   ][1]/ancestor::KotlinFile
-//FunctionDeclaration//PostfixUnarySuffix//T-Identifier[(@Text='getPathMatcher' or @Text='matches')
-    and (ancestor::PostfixUnaryExpression/PrimaryExpression/SimpleIdentifier/T-Identifier[@Text='FileSystems'])
+(: added [ancestor::NavigationSuffix] to avoid PAT_STRING param from being selected too :)
+//FunctionDeclaration//PostfixUnarySuffix//T-Identifier[ancestor::NavigationSuffix][@Text='getPathMatcher'
+    and (ancestor::PostfixUnaryExpression/PrimaryExpression//T-Identifier[@Text=
+              ancestor::Statement/preceding-sibling::Statement//VariableDeclaration[../Expression//T-Identifier[@Text='FileSystems']]//T-Identifier/@Text]
+         or ancestor::PostfixUnaryExpression/PrimaryExpression/SimpleIdentifier/T-Identifier[@Text='FileSystems']
+
+    )
     (: not if first param is function parameter :)
     and not(ancestor::PrefixUnaryExpression//CallSuffix/ValueArguments/ValueArgument//SimpleIdentifier/T-Identifier[
        @Text = ancestor::FunctionDeclaration//Parameter/SimpleIdentifier/T-Identifier/@Text])
@@ -541,8 +546,7 @@ class FooGood {
     and not(ancestor::PrefixUnaryExpression//CallSuffix/ValueArguments/ValueArgument//LineStringContent/T-LineStrRef[
        @Text = ancestor::FunctionDeclaration//Parameter/SimpleIdentifier/T-Identifier/concat('$', @Text)])
 ]
-
-                </value>
+                ]]></value>
             </property>
         </properties>
         <example>

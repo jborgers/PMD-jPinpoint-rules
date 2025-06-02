@@ -5,78 +5,99 @@
         xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
     <test-code>
         <description>violation: Avoid implicit recompiling of regular expressions</description>
-        <expected-problems>21</expected-problems>
-        <expected-linenumbers>16,17,18, 23,24,25,26, 31,32,33, 40,41,42,44,46,47, 53, 61,62,63,65</expected-linenumbers>
+        <expected-problems>29</expected-problems>
+        <expected-linenumbers>14,15,16, 20,21,22,23, 29,32,33, 40,41,42,44,46,47, 54,55,56, 62,63,64,67, 73, 82,83,84,86, 108</expected-linenumbers>
         <code><![CDATA[
+import java.io.File
+import java.nio.file.FileSystems
+import java.nio.file.Path
+import java.util.regex.Pattern
+
 class Foo {
+    private var action: String = "this.is.an.action"
+    private val dynPatString: String = "this.can.change" // field should be transformed to Regex or PathMatcher
+    private var context1: String = "this.is.a.context1"
+    private val context2: String = "this.is.a.context2"
 
-    companion object {
-        private const val PAT_STRING = "(?=\\p{Lu})"
-        private const val PAT_STRING_SHORT = "/$1"
-    }
-
-    private lateinit var action: Any
-    private lateinit var arg: String
-    private val dynPatString: String = "test" // field should be transformed to Pattern
-    private val context1: String? = null
-    private val context2: String? = null
-
-    // line 14
+    // line 12
     fun violatingSplit3x(action: String) {
-        val splitString = action.split("(?=\\p{Lu})".toRegex()) // bad: should precompile and use separate Regex
-        val splitString2 = action.split(PAT_STRING.toRegex()) // bad: should precompile and use separate Regex
-        val splitStringDynamic = action.split(dynPatString.toRegex()) // bad: violation, field should be transformed to Regex
+        val splitString: Array<String?> = action.split("(?=\\p{Lu})".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray() // bad: should precompile and use separate pattern, for str len > 1
+        val splitString2: Array<String?> = action.split(PAT_STRING.toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray() // bad: should precompile and use separate pattern
+        val splitStringDynamic: Array<String?> = action.split(dynPatString.toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray() // bad: violation, field should be transformed to Pattern
     }
-
-    //line 21
+    // line 18
     fun violatingReplaceAll3x(action: String) {
-        action.replace("(?=\\p{Lu})".toRegex(), "-") // bad: should precompile and use Regex
-        action.replace(PAT_STRING.toRegex(), "-") // bad: should precompile and Regex
-        action.replace(PAT_STRING_SHORT.toRegex(), "-") // bad: should be Regex
+        action.replace("(?=\\p{Lu})".toRegex(), "-") // bad: should precompile and use separate pattern, for str len > 1
+        action.replace(PAT_STRING.toRegex(), "-") // bad: should precompile and use separate pattern
+        action.replace(PAT_STRING_SHORT.toRegex(), "-") // bad: regex short, but can also be precompiled in Kotlin with Regex field
         action.replace(dynPatString.toRegex(), ";") // bad: field should be Regex
     }
 
     // line 29
     fun violatingReplaceFirst3x(action: String) {
-        action.replaceFirst("(?=\\p{Lu})".toRegex(), "-") // bad: should precompile and use separate Regex
-        action.replaceFirst(PAT_STRING.toRegex(), "-") // bad: should precompile and use separate Regex
-        action.replaceFirst(dynPatString!!.toRegex(), ";") // bad: field should be Regex
+        action.replaceFirst(
+            "(?=\\p{Lu})".toRegex(),
+            "-"
+        ) // bad: should precompile and use separate pattern, for str len > 1
+        action.replaceFirst(PAT_STRING.toRegex(), "-") // bad: should precompile and use separate pattern
+        action.replaceFirst(dynPatString.toRegex(), ";") // bad: field should be Pattern
     }
 
     // .matches on a String
     // line 37
     fun violatingMatchesParamAndLocal5x(param1: String, param2: String) {
-        val b =
+        val b: Boolean =
             param1.matches("(?=\\p{Lu})".toRegex()) // bad: should precompile and use separate Regex
-        val c = param2.matches(PAT_STRING.toRegex()) // bad: should precompile and use separate Regex
-        val d = param1.matches(dynPatString!!.toRegex()) // bad: field should be Regex
+        val c: Boolean = param2.matches(PAT_STRING.toRegex()) // bad: should precompile and use separate Regex
+        val d: Boolean = param1.matches(dynPatString.toRegex()) // bad: field should be Regex
         val local1 = param1
-        val e = local1.matches(PAT_STRING.toRegex()) // bad: should precompile and use separate Regex
+        val e: Boolean = local1.matches(PAT_STRING.toRegex()) // bad: should precompile and use separate Regex
         val local2 = param1
-        val f = local2.matches(PAT_STRING.toRegex()) // bad: should precompile and use separate Regex
-        val g = local2.matches(PAT_STRING_SHORT.toRegex()) // bad: should precompile and use separate Regex
+        val f: Boolean = local2.matches(PAT_STRING.toRegex()) // bad: should precompile and use separate Regex
+        val g: Boolean = local2.matches(PAT_STRING_SHORT.toRegex()) // bad: regex short, but can also be precompiled in Kotlin with Regex field
+    }
+
+    // Pattern.matches
+    // line 50
+    fun violatingPatternMatches3x(action: String?) {
+        val b =
+            Pattern.matches("(?=\\p{Lu})", action) // bad: should precompile and use separate pattern, for str len > 1
+        val c = Pattern.matches(PAT_STRING, action) // bad: should precompile and use separate pattern
+        val d = Pattern.matches(context1, action) // todo: flagged but is really ok?
+    }
+
+    // line 57
+    fun violatingPathMatcher4x(action: String?) {
+        var p = FileSystems.getDefault()
+            .getPathMatcher("(?=\\p{Lu})") // bad: violation, should not be inside method, make static final
+        FileSystems.getDefault().getPathMatcher(PAT_STRING) // bad: violation
+        FileSystems.getDefault().getPathMatcher(dynPatString).matches(path) // bad:  field should be PathMatcher
+
+        val fs = FileSystems.getDefault()
+        p = fs.getPathMatcher(PAT_STRING) // bad: violation
     }
 
     // .matches on a String field
-    // line 51
+    // line 74
     fun violatingMatchesOnFieldInIf(): String {
-        if (action == null || !context1!!.matches(PAT_STRING.toRegex())) { // bad
+        if (action == "my.action" || !context1.matches(PAT_STRING.toRegex())) { // bad
             return "no match"
-        } else { return "match" }
+        }
+        return "match"
     }
 
-    // line 58
+    // line 80
     fun violatingMatchesOnField3x(arg: String) {
-        val b =
-            context1!!.matches("(?=\\p{Lu})".toRegex()) // bad: should precompile and use separate pattern, for str len > 1
-        val c = context2!!.matches(PAT_STRING.toRegex()) // bad: should precompile and use separate pattern
-        val d = context2.matches(dynPatString!!.toRegex()) // bad: field should be Pattern
-        val e = context1.matches(arg.toRegex()) // good, dynamic
-        val f = context1.matches("\\w".toRegex()) // bad, no matter it is short
+        val b: Boolean =
+            context1.matches("(?=\\p{Lu})".toRegex()) // bad: should precompile and use separate pattern, for str len > 1
+        val c: Boolean = context2.matches(PAT_STRING.toRegex()) // bad: should precompile and use separate pattern
+        val d: Boolean = context2.matches(dynPatString.toRegex()) // bad: field should be Pattern
+        val e: Boolean = context1.matches(arg.toRegex()) // good, dynamic
+        val f: Boolean = context1.matches("\\w".toRegex()) // bad, als use Regex for short one
         val local = arg
-        val g = context1.matches(method(arg).toRegex()) // good, dynamic
-        val h = context1.matches(method2().toRegex()) // good, dynamic
-        val i = context1.matches(local.toRegex()) // good, dynamic
+        val g: Boolean = context1.matches(method(arg).toRegex()) // good, dynamic
+        val h: Boolean = context1.matches(method2().toRegex()) // good, dynamic
+        val i: Boolean = context1.matches(local.toRegex()) // good, dynamic
     }
 
     fun method(arg: String): String {
@@ -84,16 +105,26 @@ class Foo {
     }
 
     fun method2(): String {
-        return arg
+        return "this.is.a.method2"
+    }
+
+    companion object {
+        private const val PAT_STRING = "(?=\\p{Lu})"
+        private const val PAT_STRING_SHORT = "/$1"
+        private val path: Path = File("fileName").toPath()
+        private const val FREE_TEXT_PATTERN = "[A-Z\\s]+"
+
+        fun isValidViolate1x(text: String): Boolean {
+            return text.isNotEmpty() && !Pattern.matches(FREE_TEXT_PATTERN, text.trim { it <= ' ' }) // bad line 70
+        }
     }
 }
-     ]]></code>
+]]></code>
     </test-code>
     <test-code>
         <description>violation: Avoid implicit recompiling of regular expressions - non toRegex</description>
         <expected-problems>8</expected-problems>
-        <expected-linenumbers>16,24,25,26,32,33,34,34</expected-linenumbers>
-        <!-- TODO: missing is ,37 -->
+        <expected-linenumbers>16,24,25,26,32,33,34,37</expected-linenumbers>
         <!--
            (: also accept var based on FileSystems.getDefault(), now a match on 'simple' identifier (e.g. var) is accepted :)
                or (ancestor::PostfixUnaryExpression/PrimaryExpression/SimpleIdentifier/T-Identifier[
@@ -106,7 +137,7 @@ import java.nio.file.FileSystems
 import java.nio.file.Path
 import java.util.regex.Pattern
 
-class Foo {
+class Foo(var dynPatString: String) { // field should be transformed to Pattern
 
     companion object {
         private const val PAT_STRING = "(?=\\p{Lu})"
@@ -134,7 +165,7 @@ class Foo {
         var p = FileSystems.getDefault()
             .getPathMatcher("(?=\\p{Lu})") // bad: violation, should not be inside method, make static final
         FileSystems.getDefault().getPathMatcher(PAT_STRING) // bad: violation
-        FileSystems.getDefault().getPathMatcher(dynPatString).matches(path) // bad (2x):  field should be PathMatcher
+        FileSystems.getDefault().getPathMatcher(dynPatString).matches(path) // bad:  field should be PathMatcher
 
         val fs = FileSystems.getDefault()
         p = fs.getPathMatcher(PAT_STRING) // bad: violation
