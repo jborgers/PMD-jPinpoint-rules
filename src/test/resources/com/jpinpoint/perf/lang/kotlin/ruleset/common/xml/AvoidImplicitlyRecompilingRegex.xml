@@ -389,4 +389,116 @@ internal object Foo {
 }
             ]]></code>
     </test-code>
+    <test-code>
+        <description>violation: Avoid recompiling of Kotlin Regex</description>
+        <expected-problems>22</expected-problems>
+        <expected-linenumbers>13,14,15, 25,27,30,33, 39,42,43, 54,55,56,58,60,62, 69,78,79, 80,81,84</expected-linenumbers>
+        <code><![CDATA[
+class Foo(private val dynPatStringInit: String, private var dynRegexInitVar: Regex) {
+    private var action: String = "this.is.an.action"
+    private val dynPatString: String = "this.cannot.change" // should be transformed into Regex
+    private var context1: String = "this.is.a.context1"
+    private val context2: String = "this.is.a.context2"
+
+    private val regex1 = Regex("(?=\\p{Lu})")
+    private val regex2 = Regex(PAT_STRING)
+    private val regex3 = Regex(dynPatString)
+
+    // line 11
+    fun violatingSplit3x(action: String) {
+        val splitString: Array<String?> = action.split(Regex("(?=\\p{Lu})")).dropLastWhile { it.isEmpty() }.toTypedArray() // bad: should reuse Regex
+        val splitString2: Array<String?> = action.split(Regex(PAT_STRING)).dropLastWhile { it.isEmpty() }.toTypedArray() // bad: should reuse Regex
+        val splitStringDynamic: Array<String?> = action.split(Regex(dynPatString)).dropLastWhile { it.isEmpty() }.toTypedArray() // bad:  should reuse Regex
+    }
+    // line 17
+    fun nonViolatingSplit3x(action: String) {
+        val splitString: Array<String?> = action.split(regex1).dropLastWhile { it.isEmpty() }.toTypedArray() // good
+        val splitString2: Array<String?> = action.split(regex2).dropLastWhile { it.isEmpty() }.toTypedArray() // good
+        val splitStringDynamic: Array<String?> = action.split(regex3).dropLastWhile { it.isEmpty() }.toTypedArray() // good
+    }
+    // line 23
+    fun violatingReplaceAll3x(action: String) {
+        val localRegex1 = Regex("(?=\\p{Lu})") // bad: should precompile and use separate Regex
+        action.replace(localRegex1, "-")
+        val localRegex2 = Regex(PAT_STRING) // bad: should precompile and use separate Regex
+        action.replace(localRegex2, "-")
+        action.replace(
+            Regex(PAT_STRING_SHORT),
+            "-"
+        ) // bad: regex short, but can also be precompiled in Kotlin with Regex field
+        action.replace(Regex(dynPatString), ";") // bad: field should be Regex
+    }
+
+    // line 36
+    fun violatingReplaceFirst3x(action: String) {
+        action.replaceFirst(
+            Regex("(?=\\p{Lu})"),
+            "-"
+        ) // bad: should precompile and use separate pattern, for str len > 1
+        action.replaceFirst(Regex(PAT_STRING), "-") // bad: should precompile and use separate Regex
+        action.replaceFirst(Regex(dynPatString), ";") // bad: field should be Regex
+    }
+
+    // .matches on a String
+    // line 47
+    fun violatingMatchesParamAndLocal5x(param1: String, param2: String) {
+        val z: Boolean = param1.matches(Regex("//$context1")) // good: has variable from var
+        val z1: Boolean = param1.matches(Regex("//" + context1)) // good: has variable from var
+        val a: Boolean = param1.matches(Regex("//$param1")) // good: has variable from param
+        val a1: Boolean = param1.matches(Regex("//" + param1)) // good: has variable from param
+        val b: Boolean =
+            param1.matches(Regex("(?=\\p{Lu})")) // bad: should precompile and use separate Regex
+        val c: Boolean = param2.matches(Regex(PAT_STRING)) // bad: should precompile and use separate Regex
+        val d: Boolean = param1.matches(Regex(dynPatString)) // bad: field should be Regex
+        val local1 = param1
+        val e: Boolean = local1.matches(Regex(PAT_STRING)) // bad: should precompile and use separate Regex
+        val local2 = param1
+        val f: Boolean = local2.matches(Regex(PAT_STRING)) // bad: should precompile and use separate Regex
+        val g: Boolean =
+            local2.matches(Regex(PAT_STRING_SHORT)) // bad: regex short, but can also be precompiled in Kotlin with Regex field
+    }
+
+
+    // .matches on a String field
+    // line 67
+    fun violatingMatchesOnFieldInIf(): String {
+        if (action == "my.action" || !context1.matches(Regex(PAT_STRING))) { // bad
+            return "no match"
+        }
+        return "match"
+    }
+
+    // line 75
+    fun violatingMatchesOnField3x(arg: String) {
+        val b: Boolean =
+            context1.matches(Regex("(?=\\p{Lu})")) // bad: should precompile and use separate Regex
+        val c: Boolean = context2.matches(Regex(PAT_STRING)) // bad: should precompile and use separate Regex
+        val d: Boolean = context2.matches(Regex(dynPatString)) // bad: field should be Regex
+        val d1: Boolean = context2.matches(Regex(dynPatStringInit)) // bad: field should be Regex
+        val d2: Boolean = context2.matches(dynRegexInitVar) // good: field is Regex
+        val e: Boolean = context1.matches(Regex(arg)) // good, dynamic
+        val f: Boolean = context1.matches(Regex("\\w")) // bad, als use Regex for short one
+        val local = arg
+        val g: Boolean = context1.matches(Regex(method(arg))) // good, dynamic
+        val h: Boolean = context1.matches(Regex(method2())) // good, dynamic
+        val i: Boolean = context1.matches(Regex(local)) // good, dynamic
+        val j: Boolean = context1.matches(Regex(context1)) // good, dynamic
+        val k: Boolean = context1.matches(Regex("//" + context1)) // good, dynamic
+    }
+
+    fun method(arg: String): String {
+        return arg
+    }
+
+    fun method2(): String {
+        return "this.is.a.method2"
+    }
+
+    companion object {
+        private const val PAT_STRING = "(?=\\p{Lu})"
+        private const val PAT_STRING_SHORT = "/$1"
+    }
+}
+]]></code>
+    </test-code>
 </test-data>

@@ -76,14 +76,37 @@ class Foo {
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="xpath">
                 <value><![CDATA[
+//FunctionDeclaration//PostfixUnaryExpression//SimpleIdentifier/T-Identifier[
+    @Text='Regex'
+    (: not called on fun parameter :)
+    and not(ancestor::CallSuffix//PrimaryExpression//T-Identifier[
+        @Text = ancestor::FunctionDeclaration//FunctionValueParameter//Parameter/SimpleIdentifier/T-Identifier/@Text])
+    (: not called on 'dynamic' function call :)
+    and not(ancestor::PostfixUnaryExpression/PostfixUnarySuffix/CallSuffix//CallSuffix//CallSuffix)
+    (: not if based on local variable initialized by fun parameter :)
+    and not(ancestor::CallSuffix//PostfixUnaryExpression/PrimaryExpression/SimpleIdentifier/T-Identifier[
+        @Text = ancestor::FunctionBody//PropertyDeclaration/VariableDeclaration/SimpleIdentifier/T-Identifier/@Text])
+    (: not param in String template in fun parameter :)
+    and not(../../../../PostfixUnaryExpression//CallSuffix/ValueArguments/ValueArgument//LineStringContent/T-LineStrRef[
+       @Text = ancestor::FunctionDeclaration//Parameter/SimpleIdentifier/T-Identifier/concat('$', @Text)])
+    (: not param in String template of class var field :)
+    and not(../../../../PostfixUnaryExpression//CallSuffix/ValueArguments/ValueArgument//LineStringContent/T-LineStrRef[
+       @Text = ancestor::ClassDeclaration//PropertyDeclaration[T-VAR]//SimpleIdentifier/T-Identifier/concat('$', @Text)])
+    (: not param in String concatenation of class var field :)
+    and not(../../../../PostfixUnaryExpression//CallSuffix/ValueArguments/ValueArgument[//LineStringLiteral]//AdditiveExpression/MultiplicativeExpression//SimpleIdentifier/T-Identifier[
+       @Text = ancestor::ClassDeclaration//PropertyDeclaration[T-VAR]//SimpleIdentifier/T-Identifier/@Text])
+]
+
+|
+
 //FunctionDeclaration//PostfixUnaryExpression/PostfixUnarySuffix/NavigationSuffix/SimpleIdentifier/T-Identifier[
     @Text='toRegex'
     (: not called on function parameter :)
     and not(../../../../PrimaryExpression//T-Identifier[
         @Text = ancestor::FunctionDeclaration//FunctionValueParameter//Parameter/SimpleIdentifier/T-Identifier/@Text])
     (: not called on 'dynamic' function call :)
-    and not(../../../../../PostfixUnaryExpression/PostfixUnarySuffix[1]/CallSuffix)
-    (: not if based on local variable initialized by parameter :)
+    and not(ancestor::PostfixUnaryExpression/PostfixUnarySuffix[1]/CallSuffix)
+    (: not if based on local variable initialized by fun parameter :)
     and not(../../../../../PostfixUnaryExpression/PrimaryExpression/SimpleIdentifier/T-Identifier[
         @Text = ancestor::FunctionBody//PropertyDeclaration/VariableDeclaration/SimpleIdentifier/T-Identifier/@Text])
 ]
@@ -96,7 +119,7 @@ class Foo {
   ][1]/ancestor::KotlinFile
 //SimpleIdentifier/T-Identifier[@Text='Pattern'
     and ../../../PostfixUnarySuffix//T-Identifier[@Text='matches']
-    (: not if first param is function parameter :)
+    (: not if first param is fun parameter :)
     and not(../../../PostfixUnarySuffix/CallSuffix/ValueArguments/ValueArgument[1]//SimpleIdentifier/T-Identifier[
         @Text = ancestor::FunctionDeclaration//Parameter/SimpleIdentifier/T-Identifier/@Text])
 ]
@@ -116,10 +139,10 @@ class Foo {
          or ancestor::PostfixUnaryExpression/PrimaryExpression/SimpleIdentifier/T-Identifier[@Text='FileSystems']
 
     )
-    (: not if first param is function parameter :)
+    (: not if first param is fun parameter :)
     and not(ancestor::PrefixUnaryExpression//CallSuffix/ValueArguments/ValueArgument//SimpleIdentifier/T-Identifier[
        @Text = ancestor::FunctionDeclaration//Parameter/SimpleIdentifier/T-Identifier/@Text])
-    (: not param in String template in function param :)
+    (: not param in String template in fun parameter :)
     and not(ancestor::PrefixUnaryExpression//CallSuffix/ValueArguments/ValueArgument//LineStringContent/T-LineStrRef[
        @Text = ancestor::FunctionDeclaration//Parameter/SimpleIdentifier/T-Identifier/concat('$', @Text)])
 ]
