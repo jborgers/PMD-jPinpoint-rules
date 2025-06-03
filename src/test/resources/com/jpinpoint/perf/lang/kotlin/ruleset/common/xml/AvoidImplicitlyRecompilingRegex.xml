@@ -175,20 +175,19 @@ class Foo(var dynPatString: String) { // field should be transformed to Pattern
     </test-code>
     <test-code>
         <description>mostly no violation: Avoid implicit recompiling of regular expressions</description>
-        <expected-problems>13</expected-problems>
-        <expected-linenumbers>14,22,27,28,29,39,40,46,55,92,116,118,126</expected-linenumbers>
-        <code><![CDATA[
-import java.io.File
+        <expected-problems>16</expected-problems>
+        <expected-linenumbers>14,22,27,28,29,39,40,46,55,92,116,118,126,132,133,134</expected-linenumbers>
+        <code><![CDATA[import java.io.File
 import java.nio.file.FileSystems
 import java.nio.file.Path
 import java.nio.file.PathMatcher
 import java.util.regex.Matcher
 import java.util.regex.Pattern
+import kotlin.text.RegexOption
 
 class Bar {
     private val dynPatString: String? = null // field should be transformed to Pattern
     private val context: String? = null
-
     // line 12
     fun correctSplit(action: String, dyn: String) {
         val splitStringShort = action.split(",".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray() // nok, use String
@@ -305,6 +304,14 @@ class Bar {
         val payloadData = StringBuilder("some payload")
         result = result.replace(PAYLOADDATA.toRegex(), payloadData.toString()) // nok: use precompiled Regex
         return result
+    }
+
+    fun regexWithOptions(action: String, dyn: String) {
+        // examples of regex options
+        action.replace(",".toRegex(RegexOption.IGNORE_CASE), ";")
+        action.replace(",".toRegex(setOf(RegexOption.IGNORE_CASE, RegexOption.MULTILINE)), ";")
+        action.replace("/.*".toRegex(RegexOption.LITERAL), ";")
+        action.replace(dyn.toRegex(RegexOption.LITERAL), ";") // ok, dynamic, cannot precompile
     }
 
     companion object {
