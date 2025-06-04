@@ -7,8 +7,7 @@
           language="kotlin"
           message="A HttpClient builder is used and disableConnectionState is not called. HTTP client tracks connection state while using TLS."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-          typeResolution="true"
-          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi07">
+           externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi07">
         <description>
             Problem: NTLM authenticated connections and SSL/TLS connections with client certificate authentication are stateful: they have a specific user identity/security context per session. If HttpClients have enabled connection state tracking which is the default, established TLS connections will not be reused because it is assumed that the user identity or security context may differ.
             Then performance will suffer due to a full TLS handshake for each request.&#13;
@@ -51,8 +50,7 @@
           language="kotlin"
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           message="Netflix Hystrix is deprecated. Use an alternative like resilience4j"
-          typeResolution="true"
-          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi11">
+           externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi11">
         <description>Problem: Hystrix is not actively maintained anymore.&#13;
             Solution: Netflix recommends to use open source alternatives like resilience4j. (jpinpoint-rules)</description>
         <priority>3</priority>

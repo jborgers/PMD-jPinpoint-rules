@@ -15,7 +15,6 @@
           language="kotlin"
           message="Avoid using NumberFormat, DecimalFormat or ChoiceFormat as field since it is thread-unsafe."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-          typeResolution="true"
           externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#isio01">
         <description>
             Problem: java.text.DecimalFormat and java.text.ChoiceFormat are thread-unsafe.
@@ -63,10 +62,8 @@ class Foo {
 
     <rule name="AvoidImplicitlyRecompilingRegex"
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-          dfa="false"
           language="kotlin"
           message="String regex method, Pattern.matches or FileSystem.getPathMatcher is used. Implicitly compiles a regex pattern, can be expensive."
-          typeResolution="true"
           externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#ireu01">
         <description>A regular expression is compiled implicitly on every invocation. Problem: this can be expensive, depending on the length of the regular expression.&#13;
             Solution: Compile the regex pattern only once and assign it to a private static final Pattern field. java.util.Pattern objects are thread-safe so they can be shared among threads.
@@ -176,8 +173,7 @@ class Foo {
           language="kotlin"
           message="The default capacity or smaller is used for ByteArrayOutputStream or StringWriter, it usually needs expensive expansions."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-          typeResolution="true"
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#isio01">
+externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#isio01">
         <description>
             The default constructor of ByteArrayOutputStream creates a 32 bytes initial capacity and for StringWriter 16 chars. Problem: Such a small buffer as capacity usually needs several expensive expansions.&#13;
             Solution: Presize the ByteArrayOutputStream or StringWriter with an initial capacity such that an expansion is not needed in most cases, typically much larger than 32, for instance 4096.
@@ -216,8 +212,7 @@ class AvoidInMemoryStreamingDefaultConstructor {
         </example>
     </rule>
 
-    <rule name="AvoidMultipleConcatStatements" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="kotlin" message="Multiple statements concatenate to the same String. Use StringBuilder append." typeResolution="true"
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#isu02">
+    <rule name="AvoidMultipleConcatStatements" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" language="kotlin" message="Multiple statements concatenate to the same String. Use StringBuilder append." externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#isu02">
         <description>Multiple statements concatenate to the same String. Problem: Each statement with one or more +-operators creates a hidden temporary StringBuilder, a char[] and a new String object, which all have to be garbage collected.&#13;
             Solution: Use StringBuilder.append.
             (jpinpoint-rules)</description>
@@ -250,10 +245,8 @@ ancestor::FunctionBody//PropertyDeclaration[(
 
     <rule name="AvoidRecompilingPatterns"
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-          dfa="false"
           language="kotlin"
           message="Pattern.compile is used in a method. Compiling a regex pattern can be expensive, make it a constant or instance field."
-          typeResolution="true"
           externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#ireu02">
         <description>A regular expression is compiled on every invocation. Problem: this can be expensive, depending on the length of the regular expression.&#13;
             Solution: Usually a pattern is a literal, not dynamic and can be compiled only once. Assign it to a private constant or instance field.
@@ -305,7 +298,6 @@ internal object Good {
     <rule name="AvoidRecompilingXPathExpression" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           language="kotlin"
           message="XPathExpression is created and compiled every time. Beware it is thread-unsafe."
-          typeResolution="true"
           externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#ux02">
         <description>XPathExpression is created and compiled on every method call, compiled possibly implicitly by XPath::evaluate.
             Problem: Creation of XPath and compilation of XPathExpression takes time. It may slow down your application. &#13;
@@ -370,8 +362,8 @@ object GoodAvoidRecompilingXPathExpressionKt {
 
     <rule name="AvoidRecreatingDateTimeFormatter"
           message="Avoid recreating DateTimeFormatter, it is relatively expensive."
-          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="kotlin"
-          typeResolution="true" externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#idtf02">
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" language="kotlin"
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/master/docs/JavaCodePerformance.md#idtf02">
         <description>
             Problem: Recreating a DateTimeFormatter is relatively expensive.&#13;
             Solution: org.joda.time.format.DateTimeFormatter or Java 8 java.time.DateTimeFormatter is thread-safe and can be shared among threads. Create the
@@ -442,10 +434,8 @@ class Good {
 
     <rule name="AvoidSimpleDateFormat"
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-          dfa="false"
           language="kotlin"
           message="SimpleDateFormat is used. Since it is thread-unsafe, it needs expensive recreation."
-          typeResolution="true"
           externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#idtf01">
         <description>Problem: java.util.SimpleDateFormat is thread-unsafe. The usual solution is to create a new one when needed in a method. Creating SimpleDateFormat is relatively expensive. &#13;
             Solution: Use java.time.DateTimeFormatter. These classes are immutable, thus thread-safe and can be made static.
@@ -484,7 +474,6 @@ class Foo {
     <rule name="AvoidStringBuffer" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           language="kotlin"
           message="StringBuffer is used. It introduces locking overhead, use StringBuilder."
-          typeResolution="true"
           externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#isu01" >
         <description>Problem: StringBuffer introduces locking overhead because it is thread safe. Its thread-safety is rarely needed.&#13;
             Solution: Replace StringBuffer by StringBuilder.  (jpinpoint-rules)</description>
@@ -515,10 +504,8 @@ class AvoidStringBuffer {
 
     <rule name="AvoidWideScopeXPathExpression"
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-          dfa="false"
           language="kotlin"
           message="XPathExpression targets a wide scope, this is potentially slow."
-          typeResolution="true"
           externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#ux01">
         <description>The XPathExpression targets a wide scope since it starts with '//'. Problem: XPath has to search in a wide scope for occurrences, this may take a while. &#13;
             Solution: 1. Avoid XPath usage. 2. Make the scope as narrow as possible, do not start with '//'.
@@ -559,10 +546,8 @@ class Foo {
 
     <rule name="AvoidXPathAPIUsage"
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-          dfa="false"
           language="kotlin"
           message="XPathAPI is used. XPathAPI implementation has bad performance."
-          typeResolution="true"
           externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#ux01">
         <description>XPathAPI is used. Problem: XPathAPI implementation is slow.&#13;
             Solution: 1. try to avoid using XPathAPI. 2. improve performance by using jvm parameters and possibly CachedXPathAPI.
@@ -612,7 +597,6 @@ class FooGood {
           language="kotlin"
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           message="Netflix Hystrix is deprecated. Use an alternative like resilience4j"
-          typeResolution="true"
           externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#ibi11">
         <description>Problem: Hystrix is not actively maintained anymore.&#13;
             Solution: Netflix recommends to use open source alternatives like resilience4j. (jpinpoint-rules)</description>
@@ -635,7 +619,6 @@ class FooGood {
           language="kotlin"
           message="A HttpClient builder is used and disableConnectionState is not called. HTTP client tracks connection state while using TLS."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-          typeResolution="true"
           externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#ibi07">
         <description>
             Problem: NTLM authenticated connections and SSL/TLS connections with client certificate authentication are stateful: they have a specific user identity/security context per session. If HttpClients have enabled connection state tracking which is the default, established TLS connections will not be reused because it is assumed that the user identity or security context may differ.

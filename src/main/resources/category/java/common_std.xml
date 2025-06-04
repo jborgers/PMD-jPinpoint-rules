@@ -8,7 +8,6 @@
           language="java"
           message="Avoid memory intensive FileItem.get and FileItem.getString"
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-          typeResolution="true"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#isio03">
         <description>
             Problem: Use of FileItem.get and FileItem.getString could exhaust memory since they load the entire file into memory&#13;
@@ -44,7 +43,6 @@ public class FileStuff {
           language="java"
           message="A Calendar is used to create a Date or DateTime, this is expensive."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-          typeResolution="true"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#ue01">
         <description>Problem: A Calendar is a heavyweight object and expensive to create. &#13;
             Solution: Use 'new Date()', Java 8+ java.time.[Local/Zoned]DateTime.now().
@@ -91,7 +89,6 @@ public class DateStuff {
           language="java"
           message="A String is concatenated in a loop. Use StringBuilder.append."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-          typeResolution="true"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#isu02">
         <description>A String is built in a loop by concatenation. Problem: Each statement with one or more +-operators creates a hidden temporary StringBuilder, a char[] and a new String object, which all have to be garbage collected. &#13;
             Solution: Use the StringBuilder append method.
@@ -147,7 +144,6 @@ public class StringStuff {
           language="java"
           message="Concatenation inside append. Use extra append."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-          typeResolution="true"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#isu04">
         <description>Concatenation of Strings is used inside an StringBuilder.append argument. Problem: Each statement with one or more +-operators creates a hidden temporary StringBuilder, a char[] and a new String object, which all have to be garbage collected.&#13;
             Solution: Use an extra fluent append instead of concatenation.
@@ -189,7 +185,6 @@ public class StringStuff {
           language="java"
           message="The number of static imports with a wildcard should be limited"
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-          typeResolution="true"
           externalInfoUrl="${doc_root}/JavaCodeQuality.md#isr01">
         <description>Importing a class statically allows you to use its public static members easily: without qualifying them with the class name. Problem: if you import too many classes statically, your code can become confusing and difficult to maintain. The default maximum = 3.
             Solution: Import class members individually.
