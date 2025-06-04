@@ -176,8 +176,8 @@ switch (type) {
         </example>
     </rule>
 
-    <rule name="AvoidImplicitlyRecompilingRegex" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java" message="String regex method, Pattern.matches or FileSystem.getPathMatcher is used.
-	   Implicitly compiles a regex pattern, can be expensive." typeResolution="true"
+    <rule name="AvoidImplicitlyRecompilingRegex" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" language="java" message="String regex method, Pattern.matches or FileSystem.getPathMatcher is used.
+	   Implicitly compiles a regex pattern, can be expensive."
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#ireu01">
         <description>A regular expression is compiled implicitly on every invocation. Problem: this can be expensive, depending on the length of the regular expression.&#13;
             Solution: Compile the regex pattern only once and assign it to a private static final Pattern field. java.util.Pattern objects are thread-safe, so they can be shared among threads.

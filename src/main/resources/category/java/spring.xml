@@ -87,9 +87,8 @@ class Good {
     </rule>
 
     <rule name="AvoidModelMapAsRenderParameter"
-          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" language="java"
           message="A ModelMap or @ModelAttribute is used as parameter of a portlet render method and implicitly put in the session."
-          typeResolution="true"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#tmsu11">
         <description>Problem: ModelMaps are rather large objects containing explicitly added data and administrative data from Spring.
             They are added to the Portlet session implicitly.
@@ -145,8 +144,8 @@ public ModelAndView initialOverviewRender(RenderRequest request, String viewName
 
     <rule name="AvoidSpringApplicationContextRecreation"
           message="Avoid re-creation of Spring application context"
-          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
-          typeResolution="true" externalInfoUrl="${doc_root}/JavaCodePerformance.md#euocs01">
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" language="java"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#euocs01">
         <description>
             Problem: When a XXXApplicationContext is created, all Spring beans are initialized, wired and component scanning may take place.
             Component scanning involves extensive class path scanning which is expensive.&#13;
@@ -185,8 +184,8 @@ public class AvoidSpringApplicationContextRecreation {
         ]]></example>
     </rule>
 
-    <rule name="AvoidSpringMVCMemoryLeaks" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
-          message="Spring Controller returns an additive expression or a ModelAndView object which may cause a MemoryLeak" typeResolution="true"
+    <rule name="AvoidSpringMVCMemoryLeaks" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" language="java"
+          message="Spring Controller returns an additive expression or a ModelAndView object which may cause a MemoryLeak"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md">
         <description>Avoid to return an additive expression for a Spring Controller because it may cause a MemoryLeak.
             Each new value returned will create a new entry in the View Cache.
@@ -251,8 +250,8 @@ public ModelAndView getSomeRequestGood(@RequestParam int someValue) {
 
     <rule name="MakeAutoWiredConstructedFieldFinal"
           message="Make autowired, constructed field final in objects shared among threads."
-          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
-          typeResolution="true" externalInfoUrl="${doc_root}/JavaCodePerformance.md#tutc07">
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" language="java"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#tutc07">
         <description>
             Problem: Multiple threads typically access fields of a singleton or may access fields in session scoped objects. If a field or its reference is mutable, non-autowired access is thread-unsafe and may cause corruption or visibility problems. To make this thread-safe, that is, guard the field e.g. with synchronized methods, may cause contention. &#13;
             Solution: Make the fields final and unmodifiable to defend against mutation. If they really need to be mutable (which is strange for autowired fields), make access thread-safe. Thread-safety can be achieved e.g. by proper synchronization and use the @GuardedBy annotation or use of volatile.&#13;
@@ -321,8 +320,8 @@ public class DoodleController {
         ]]></example>
     </rule>
 
-    <rule name="MinimizeActionModelMapInSession" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
-          message="ModelMap in action method is not cleared. This may bloat the session." typeResolution="true"
+    <rule name="MinimizeActionModelMapInSession" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" language="java"
+          message="ModelMap in action method is not cleared. This may bloat the session."
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#tmsu12">
         <description>A ModelMap is used in an action method typically for form validation and not cleared.
             Problem: the ModelMap is put in the session by Spring. This is typically a large object which may bloat the session.&#13;
@@ -357,7 +356,7 @@ public void validateDetails(ActionRequest request, ModelMap modelMap) {
         ]]></example>
     </rule>
 
-    <rule name="AvoidExpressionsInCacheable" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java" message="Avoid SpEL-expression for computing Cacheable key" typeResolution="true"
+    <rule name="AvoidExpressionsInCacheable" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" language="java" message="Avoid SpEL-expression for computing Cacheable key"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#improper-caching">
         <description>Spring Expression Language (SpEL) expression is used for computing the key dynamically. Problem: evaluating the expression language is expensive, on every call.&#13;
             Solution: use a custom KeyGenerator: keyGenerator=... instead of key=...
@@ -389,7 +388,7 @@ class Good {
         </example>
     </rule>
 
-    <rule name="SynchronizeForKeyInCacheable" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java" message="Synchronize access for each key in @Cacheable" typeResolution="true"
+    <rule name="SynchronizeForKeyInCacheable" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" language="java" message="Synchronize access for each key in @Cacheable"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#improper-caching">
         <description>The cache by default allows multiple threads accessing by the same key.
             Problem: if the value of the key is not available from the cache, it will be fetched/computed by multiple threads while only one time is needed.&#13;
@@ -426,7 +425,7 @@ class Good {
         </example>
     </rule>
 
-    <rule name="AvoidSimpleCaches" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java" message="Avoid simple caching in production" typeResolution="true"
+    <rule name="AvoidSimpleCaches" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" language="java" message="Avoid simple caching in production"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#ic08">
         <description>Simple caches are used. Problem: Simple caching is meant for testing and prototyping plus it lacks manageability and monitorability.&#13;
             Solution: Use a proper cache implementation like ehcache or a cloud cache.
@@ -464,8 +463,8 @@ class Good {
         </example>
     </rule>
 
-    <rule name="AvoidIdentityCacheKeys" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
-          message="Avoid identity cache keys by casting the generate method parameters" typeResolution="true"
+    <rule name="AvoidIdentityCacheKeys" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" language="java"
+          message="Avoid identity cache keys by casting the generate method parameters"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#ic13">
         <description>A non-overridden Object.toString may be called on a spring KeyGenerator.generate method parameter.
             Problem: The non-overridden Object.toString returns a String representing the identity of the object.
@@ -535,8 +534,8 @@ public class Good implements KeyGenerator {
         </example>
     </rule>
 
-    <rule name="UseExplicitKeyGeneratorForCacheable" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
-          message="Use a KeyGenerator to generate a correct and unique key per cached value, do not rely on the implicit default key generation." typeResolution="true"
+    <rule name="UseExplicitKeyGeneratorForCacheable" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" language="java"
+          message="Use a KeyGenerator to generate a correct and unique key per cached value, do not rely on the implicit default key generation."
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#ic14">
         <description>
             Problem: With default key generation, an object of Spring's SimpleKey class is used and its value is composed of just the method parameter(s).
@@ -574,8 +573,8 @@ class Foo {
         </example>
     </rule>
 
-    <rule name="AvoidSimpleKeyCollisions" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
-          message="Generate a unique SimpleKey by using both method and parameters as composites." typeResolution="true"
+    <rule name="AvoidSimpleKeyCollisions" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" language="java"
+          message="Generate a unique SimpleKey by using both method and parameters as composites."
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#ic15">
         <description>
             Problem: Spring's SimpleKey creation lacks either the method or the method parameters, which may cause cache data mix-up.&#13;
@@ -626,8 +625,8 @@ class GoodCacheKeyGenerator implements KeyGenerator {
         </example>
     </rule>
 
-    <rule name="EnsureProperCacheableParams" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
-          message="Info: Make sure that the parameters that make up the cache key implement the required methods properly." typeResolution="true"
+    <rule name="EnsureProperCacheableParams" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" language="java"
+          message="Info: Make sure that the parameters that make up the cache key implement the required methods properly."
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#ic16">
         <description>
             Problem: When (1) concatenating or joining parameters in a KeyGenerator: they need to properly implement toString().
@@ -676,8 +675,8 @@ class MyObject {
         </example>
     </rule>
 
-    <rule name="UseClearKeyGeneratorName" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" dfa="false" language="java"
-          message="Use a specific name for this KeyGenerator class which makes clear where to use it." typeResolution="true"
+    <rule name="UseClearKeyGeneratorName" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" language="java"
+          message="Use a specific name for this KeyGenerator class which makes clear where to use it."
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#ic17">
         <description>This class implementing Spring's KeyGenerator uses a generic name, CacheKeyGenerator or CacheKeyGeneration.
             Problem: It is unclear where this KeyGenerator should be used, for which cache and/or for which methods.

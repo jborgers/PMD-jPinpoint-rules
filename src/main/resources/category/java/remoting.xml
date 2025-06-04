@@ -4,8 +4,8 @@
 
     <rule name="AvoidDeprecatedHttpConnectors" 
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" 
-          language="java" 
-          message="Avoid the use of deprecated/thread-unsafe HTTP connectors" 
+          language="java"
+          message="Avoid the use of deprecated/thread-unsafe HTTP connectors"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi06">
     <description>Problem: Several HTTP client connection managers are thread-unsafe which may cause session data mix-up or have other issues for which they were made deprecated.&#13;
         Solutions: Upgrade to httpclient-4.5+ and use org.apache.http.impl.conn.PoolingHttpClientConnectionManager and e.g. org.apache.http.impl.client.HttpClientBuilder. (jpinpoint-rules)</description>
@@ -1139,7 +1139,6 @@ class GoodStyle {
     <rule name="AxualProducerCreatedForEachMethodCall"
           message="An Axual (Kafka) producer is created for each method call, which is expensive and takes resources."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-          dfa="false"
           language="java"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#ia10">
         <description>Problem: each Producer takes threads and memory. If you create it in each method call, and call
@@ -1188,7 +1187,6 @@ public class AxualProducerBad {
     <rule name="AvoidLeakingRetryEventConsumers"
           message="Avoid leaking of retry event consumers."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-          dfa="false"
           language="java"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#pml06">
         <description>Problem: A resilience4j retry event consumer is added to a retry event publisher for every method
@@ -1243,7 +1241,6 @@ public class Foo {
     <rule name="AvoidHardcodedConnectionConfig"
           message="Avoid hardcoded connection configuration."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-          dfa="false"
           language="java"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi22">
         <description>Problem: configuring connection settings like timeouts and pool sizes in code (int values) makes it
@@ -1298,7 +1295,6 @@ class AvoidHardcodedConnectionConfig {
     <rule name="AvoidExcessiveClassloadingWithSaajSoap"
           message="Avoid excessive class loading with SAAJ SOAP messaging, use alternative Axiom, or system properties."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-          dfa="false"
           language="java"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi23">
         <description>Problem: SAAJ uses DOM to load the XML document in memory which uses a TransformerFactory. The
