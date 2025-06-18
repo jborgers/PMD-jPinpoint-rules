@@ -94,7 +94,7 @@ class AvoidStringBuffer {
 //ImportHeader[.//T-Identifier[@Text='java'] and .//T-Identifier[@Text='text']][1]/ancestor::KotlinFile
 (: PrimaryExpression finds the constructors instead of type declarations :)
 (: filter matches in functions :)
-//ClassDeclaration//PrimaryExpression//SimpleIdentifier//T-Identifier[
+//TopLevelObject//PrimaryExpression//SimpleIdentifier//T-Identifier[
  (@Text="DecimalFormat" or @Text="ChoiceFormat")
  and not(ancestor::FunctionBody)
 ]
