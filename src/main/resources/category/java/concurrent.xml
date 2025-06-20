@@ -531,12 +531,12 @@ class BadMutableTypes {
         <description>
             Problem: Multiple threads typically access fields of a singleton or may access fields in session scoped objects. If a (inherited) field or its reference is mutable, access is thread-unsafe and may cause corruption or visibility problems. It may also unintentionally mix-up session data. &#13;
             Solution: Make the fields final and unmodifiable. If they really need to be mutable, make access thread-safe: use synchronized and jcip @GuardedBy or use volatile.&#13;
-            Notes&#13;
+            Notes:
             1. Instances of Date, StringBuilder, URL and File are examples of mutable objects and should be avoided (or else guarded) as fields of shared objects. In case mutable fields are final and not modified after initialization (read-only) they are thread safe, however any modification to it is thread-unsafe. Since field modification is easily coded, avoid this situation.
-            &#13;2. Instances of classes like ArrayList, HashMap and HashSet are also mutable and should be properly wrapped with e.g. Collections.unmodifiableList after initialization (see TUTC03), or accessed thread-safely with e.g. Collections.synchronizedList or thread-safe implementations like ConcurrentHashMap.
-            &#13;3. For autowiring/injection, the assignment of the reference is thread safe, so final is not required. The unmodifiable/thread-safe requirement for that field still holds. Also make sure no other thread-unsafe assignment is made to that field.
-            &#13;4. In case you are sure the Component is used in single threaded context only (e.g. a Tasklet), annotate the class with @NotThreadSafe to make this explicit.
-            &#13;5. Use package private and @VisibleForTesting for methods used for JUnit only.
+            2. Instances of classes like ArrayList, HashMap and HashSet are also mutable and should be properly wrapped with e.g. Collections.unmodifiableList after initialization (see TUTC03), or accessed thread-safely with e.g. Collections.synchronizedList or thread-safe implementations like ConcurrentHashMap.
+            3. For autowiring/injection, the assignment of the reference is thread safe, so final is not required. The unmodifiable/thread-safe requirement for that field still holds. Also make sure no other thread-unsafe assignment is made to that field.
+            4. In case you are sure the Component is used in single threaded context only (e.g. a Tasklet), annotate the class with @NotThreadSafe to make this explicit.
+            5. Use package private and @VisibleForTesting for methods used for JUnit only.
             (jpinpoint-rules)</description>
         <priority>1</priority>
         <properties>
@@ -650,8 +650,8 @@ public class MutateInheritedFieldTryout extends SynchronizedTryout {
             <description>
                 Problem: Multiple threads typically access fields of an object using synchronized. Unguarded assignment to a non-final field is thread-unsafe and may cause corruption or visibility problems. To make this thread-safe, that is, guard the field e.g. with synchronized methods, may cause contention. &#13;
                 Solution: Make the fields final and unmodifiable.  If they really need to be mutable, make access thread-safe: use synchronized and jcip @GuardedBy or use volatile.&#13;
-                Notes&#13;
-                1. In case you are sure the class is used in single threaded context only, remove current use of synchronized and annotate the class with @NotThreadSafe to make this explicit. &#13;
+                Notes:
+                1. In case you are sure the class is used in a single threaded context only, remove the current use of synchronized and annotate the class with @NotThreadSafe to make this explicit.
                 2. Use package-private and @VisibleForTesting for methods (e.g. setters) used for JUnit only.
                 (jpinpoint-rules)</description>
             <priority>1</priority>
@@ -747,12 +747,12 @@ public class Good {
             <description>
                 Problem: Multiple threads typically access fields of an object using synchronized. If a field or its reference is mutable, access is thread-unsafe and may cause corruption or visibility problems. To make this thread-safe, that is, guard the field e.g. with synchronized methods, may cause contention.&#13;
                 Solution: Make the fields final and unmodifiable. If they really need to be mutable, make access thread-safe: use synchronized and jcip @GuardedBy or use volatile.&#13;
-                Notes&#13;
+                Notes:
                 1. Instances of Date, StringBuilder, URL and File are examples of mutable objects and should be avoided (or else guarded) as fields of shared objects. In case mutable fields are final and not modified after initialization (read-only) they are thread safe, however any modification to it is thread-unsafe. Since field modification is easily coded, avoid this situation.
-                &#13;2. Instances of classes like ArrayList, HashMap and HashSet are also mutable and should be properly wrapped with e.g. Collections.unmodifiableList after initialization (see TUTC03), or accessed thread-safely with e.g. Collections.synchronizedList or thread-safe implementations like ConcurrentHashMap.
-                &#13;3. For autowiring/injection, the assignment of the reference is thread safe, so final is not required. The unmodifiable/thread-safe requirement for that field still holds. Also make sure no other thread-unsafe assignment is made to that field.
-                &#13;4. In case you are sure the class is used in single threaded context only, annotate the class with @NotThreadSafe to make this explicit.
-                &#13;5. Use package private and @VisibleForTesting for methods used for JUnit only.
+                2. Instances of classes like ArrayList, HashMap and HashSet are also mutable and should be properly wrapped with e.g. Collections.unmodifiableList after initialization (see TUTC03), or accessed thread-safely with e.g. Collections.synchronizedList or thread-safe implementations like ConcurrentHashMap.
+                3. For autowiring/injection, the assignment of the reference is thread safe, so final is not required. The unmodifiable/thread-safe requirement for that field still holds. Also make sure no other thread-unsafe assignment is made to that field.
+                4. In case you are sure the class is used in single threaded context only, annotate the class with @NotThreadSafe to make this explicit.
+                5. Use package private and @VisibleForTesting for methods used for JUnit only.
                 (jpinpoint-rules)</description>
             <priority>3</priority>
             <properties>
@@ -881,8 +881,8 @@ public class Good {
               class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" language="java"
               externalInfoUrl="https://jcip.net/annotations/doc/index.html">
             <description>
-                Problem: The field to which this annotation is applied should only be accessed when holding the built-in 'this' lock by using synchronized.&#13;
-                Solution: Make access thread-safe: synchronize access by method modifier or a synchronized(this) block.&#13;
+                Problem: The field to which this annotation is applied should only be accessed when holding the built-in 'this' lock by using synchronized.
+                Solution: Make access thread-safe: synchronize access by method modifier or a synchronized(this) block.
                 Note that methods with annotations @Autowired, @PostConstruct, @BeforeStep, @Value and @Inject are ignored.
                 (jpinpoint-rules)</description>
             <priority>2</priority>
@@ -939,8 +939,8 @@ public class Good {
               class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" language="java"
               externalInfoUrl="https://jcip.net/annotations/doc/index.html">
             <description>
-                Problem: The field to which the GuardedBy annotation is applied is not accessed thread-safely as described by GuardedBy.&#13;
-                Solution: Make access thread-safe: synchronize access by a synchronized(LOCK) block with LOCK being a final field.&#13;
+                Problem: The field to which the GuardedBy annotation is applied is not accessed thread-safely as described by GuardedBy.
+                Solution: Make access thread-safe: synchronize access by a synchronized(LOCK) block with LOCK being a final field.
                 Note that methods with annotations @Autowired, @PostConstruct, @BeforeStep, @Value and @Inject are ignored.
                 (jpinpoint-rules)</description>
             <priority>2</priority>
@@ -1019,7 +1019,7 @@ class Good1 {
         </rule>
 
         <rule name="AvoidStaticXmlFactories" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" language="java" message="Avoid static XML Factories"               externalInfoUrl="${doc_root}/JavaCodePerformance.md#IUOXAR09">
-            <description>An XML Factory like DocumentBuilderFactory, TransformerFactory, MessageFactory is used as static field. Problem: These factory objects are typically not thread-safe and rather expensive to create because of class loading. &#13;
+            <description>An XML Factory like DocumentBuilderFactory, TransformerFactory, MessageFactory is used as static field. Problem: These factory objects are typically not thread-safe and rather expensive to create because of class loading.
                 Solution: Create the Factories as local variables and use command line arguments to specify the implementation class. (jpinpoint-rules)</description>
             <priority>1</priority>
             <properties>
@@ -1060,7 +1060,7 @@ class Good1 {
         </rule>
 
         <rule name="AvoidIncrementOrDecrementForVolatileField" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" language="java" message="Avoid ++, - -, +=, -= for volatile fields"               externalInfoUrl="${doc_root}/JavaCodePerformance.md#tutc09">
-            <description>A compound statement like i++, i- -, i += 1 or i -= 1 may seem one statement and thread-safe for a volatile field. Problem: The operation is actually two separate statements executed non-atomically and therefore not thread-safe. &#13;
+            <description>A compound statement like i++, i- -, i += 1 or i -= 1 may seem one statement and thread-safe for a volatile field. Problem: The operation is actually two separate statements executed non-atomically and therefore not thread-safe.
                 Solution: Guard the field properly with synchronized or use atomics like AtomicInteger. (jpinpoint-rules)</description>
             <priority>1</priority>
             <properties>
@@ -1101,7 +1101,7 @@ class Good1 {
         </rule>
 
         <rule name="AvoidVolatileInPrototypeScope" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" language="java" message="No need for volatile in prototype scope"               externalInfoUrl="${doc_root}/JavaCodePerformance.md#tutc10">
-            <description>A field is defined as volatile while the class has prototype scope. Problem: volatile has some overhead, especially for writes. When getting the bean from the Spring applicationContext, prototype scope means that each invocation creates a new object so the field is not shared. &#13;
+            <description>A field is defined as volatile while the class has prototype scope. Problem: volatile has some overhead, especially for writes. When getting the bean from the Spring applicationContext, prototype scope means that each invocation creates a new object so the field is not shared.
                 Solution: Since only one thread can access the field, there is no need for volatile and it can be removed. (jpinpoint-rules)</description>
             <priority>2</priority>
             <properties>
@@ -1138,7 +1138,7 @@ class Good {
         </rule>
 
         <rule name="SynchronizingForLocalVars" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" language="java" message="Local variables don't need synchronization"               externalInfoUrl="${doc_root}/JavaCodePerformance.md#tutc12">
-            <description>In the synchronized block, only local variables seem to be accessed. Problem: synchronization has overhead and may introduce lock contention. &#13;
+            <description>In the synchronized block, only local variables seem to be accessed. Problem: synchronization has overhead and may introduce lock contention.
                 Solution: Remove synchronized because local variables are only accessible by the owning thread and are not shared. (jpinpoint-rules)</description>
             <priority>3</priority>
             <properties>
@@ -1188,7 +1188,7 @@ public class Foo {
               class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" language="java"
               externalInfoUrl="${doc_root}/JavaCodePerformance.md#ia07">
             <description>
-                Problem: Stalls indefinitely in case of hanging thread(s) and consumes a thread.&#13;
+                Problem: Stalls indefinitely in case of hanging thread(s) and consumes a thread.
                 Solution: Provide a timeout before the join and handle the timeout. For example a future.get(timeout, unit), a orTimeout() or a completeOnTimeout(). You may want to use CompletableFuture.allOf() too.
                 (jpinpoint-rules)</description>
             <priority>1</priority>
@@ -1248,7 +1248,7 @@ private List<Order> getOrdersGood(List<CompletableFuture<Order>> getOrdersFuture
                 Problem: Future.supplyAsync is typically used for remote calls. By default, it uses the common pool.
                 The number of threads in the common pool is equal to the number of CPU's, which is suitable for in-memory processing.
                 For I/O, however, this number is typically not suitable because most time is spent waiting for the response and not in CPU.
-                The common pool must not be used for blocking calls. &#13;
+                The common pool must not be used for blocking calls.
                 Solution: A separate, properly sized, pool of threads (an Executor) should be used for the async calls.
                 (jpinpoint-rules)</description>
             <priority>1</priority>
@@ -1285,7 +1285,7 @@ public class Foo {
               message="Avoid the ForkJoinPool::commonPool used in parallelStream for blocking calls."
               externalInfoUrl="${doc_root}/JavaCodePerformance.md#ia09">
             <description>Problem: Blocking calls, for instance remote calls, may exhaust the common pool for some time thereby blocking all other use of the common pool.
-                In addition, nested use of the common pool can lead to deadlock. Do not use the common pool for blocking calls. The parallelStream() call uses the common pool.&#13;
+                In addition, nested use of the common pool can lead to deadlock. Do not use the common pool for blocking calls. The parallelStream() call uses the common pool.
                 Solution: Use a dedicated thread pool with enough threads to get proper parallelism. The number of threads in the common pool is equal to the number of CPUs - 1 and meant to utilize all of them.
                 It assumes CPU intensive non-blocking processing of in-memory data. (jpinpoint-rules)</description>
             <priority>1</priority>
@@ -1343,7 +1343,7 @@ public class Foo {
         <rule name="AvoidUserDataInSharedObjects" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" language="java"
               message="Do *not* use user data in shared objects, it causes user data mix-up."
               externalInfoUrl="${doc_root}/JavaCodeQuality.md#ssc03">
-            <description>The name of the field indicates user data. Problem: the field will be shared among users. If it is different data for each user, it can mix-up: a user may access data of another user, this is really bad.&#13;
+            <description>The name of the field indicates user data. Problem: the field will be shared among users. If it is different data for each user, it can mix-up: a user may access data of another user, this is really bad.
                 Solution: Do *not* put the user related data in a shared object e.g. by Spring @Component annotation. Use a POJO. Or, if it is not user data, rename the field. (jpinpoint-rules)</description>
             <priority>1</priority>
             <properties>
@@ -1431,7 +1431,7 @@ public class VMRData {
               message="Beware: parallelStream with the common pool is rarely a good choice."
               externalInfoUrl="${doc_root}/JavaCodePerformance.md#ia11">
             <description>Problem: Collection.parallelStream uses the common pool, with #threads = #CPUs - 1. It is designed to distribute much CPU work over the cores. It is not designed for remote calls or other blocking calls.
-                In addition, parallelizing has CPU overhead and concurrency risks. It should only be used for much pure CPU processing, e.g. on collections with > 10.000 elements.&#13;
+                In addition, parallelizing has CPU overhead and concurrency risks. It should only be used for much pure CPU processing, e.g. on collections with > 10.000 elements.
                 Solution: For remote/blocking calls: Use a dedicated thread pool with enough threads to get proper parallelism independent of the number of cores.
                 For pure CPU processing: use ordinary sequential streaming unless the work takes more than about 0,1 ms in sequential form and proves to be faster with parallelization by measuring.
                 So only for large collections and much processing without having to wait.   (jpinpoint-rules)</description>
@@ -1506,7 +1506,7 @@ public class Foo {
               externalInfoUrl="${doc_root}/JavaCodePerformance.md#ia12">
             <description>Problem: With Reactor Flux.parallel.runOn, the data is divided on a number of 'rails' matching the number of CPU cores.
                 This is only useful in case much CPU processing is performed: if the sequential form takes more than 0,1 ms of CPU time.
-                With remote calls this is usually not the case. In addition, it introduces more complexity with risk of failures.&#13;
+                With remote calls this is usually not the case. In addition, it introduces more complexity with risk of failures.
                 Solution: Remove parallel().runOn. Unless the CPU work takes more than 0,1 ms in sequential form and proves to be faster with parallelization.
                 So only for large collections and much CPU processing.
                 (jpinpoint-rules)</description>
@@ -1548,7 +1548,7 @@ class FooGood {
               externalInfoUrl="${doc_root}/JavaCodePerformance.md#ia13">
             <description>Problem: Mapped Diagnostic Context (MDC) of logging frameworks uses ThreadLocals to store things like traceIds from headers, userId, correlationId.
                 Reactive programming uses multiple threads to handle a request, and one thread can deal with asynchronous steps of many requests.
-                Therefore, MDC is tricky to use in reactive context and may take much processing time to propagate, likely so for much data in the MDC.&#13;
+                Therefore, MDC is tricky to use in reactive context and may take much processing time to propagate, likely so for much data in the MDC.
                 Solution: Propagate by use of deferContextual and use directly from the Context only when and where needed. Avoid MDC propagation mechanisms.
                 (jpinpoint-rules)</description>
             <priority>2</priority>
@@ -1609,7 +1609,7 @@ class FooGood {
               class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
               language="java"
               externalInfoUrl="${doc_root}/JavaCodePerformance.md#ia14">
-            <description>Problem: Using Reactor Hooks.onEachOperator means executing the code on every operator in the Reactor flow, for every element. This typically means much processing time.&#13;
+            <description>Problem: Using Reactor Hooks.onEachOperator means executing the code on every operator in the Reactor flow, for every element. This typically means much processing time.
                 Solution: Just do processing when and where actually needed. (jpinpoint-rules)</description>
             <priority>2</priority>
             <properties>
@@ -1643,7 +1643,7 @@ public class FooBad {
               class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
               language="java"
               externalInfoUrl="${doc_root}/JavaCodePerformance.md#ia15">
-            <description>Problem: Stalls indefinitely in case of stalled Callable(s) and consumes threads.&#13;
+            <description>Problem: Stalls indefinitely in case of stalled Callable(s) and consumes threads.
                 Solution: Provide a timeout to the invokeAll/invokeAny method and handle the timeout. (jpinpoint-rules)</description>
             <priority>2</priority>
             <properties>
@@ -1674,7 +1674,7 @@ class Foo {
           language="java"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#ia15">
         <description>Problem: If a thread-unsafe collection is mutated in a parallelStream, this means that multiple threads access an unguarded shared variable which can cause data corruption and
-            visibility problems: a concurrency bug.&#13;
+            visibility problems: a concurrency bug.
             Solution: Using a thread-safe collection would fix the bug, however, the proper solution is to only use forEach for reporting/logging and let streams not have side effects.
             Moreover, parallelization is only faster in the exceptional case with large collections and much CPU work per element. Always measure if really faster.(jpinpoint-rules)</description>
         <priority>1</priority>

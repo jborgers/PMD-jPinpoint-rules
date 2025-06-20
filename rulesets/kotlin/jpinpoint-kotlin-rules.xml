@@ -30,7 +30,7 @@
 //ImportHeader[.//T-Identifier[@Text='java'] and .//T-Identifier[@Text='text']][1]/ancestor::KotlinFile
 (: PrimaryExpression finds the constructors instead of type declarations :)
 (: filter matches in functions :)
-//ClassDeclaration//PrimaryExpression//SimpleIdentifier//T-Identifier[
+//TopLevelObject//PrimaryExpression//SimpleIdentifier//T-Identifier[
  (@Text="DecimalFormat" or @Text="ChoiceFormat")
  and not(ancestor::FunctionBody)
 ]
@@ -301,7 +301,9 @@ internal object Good {
           externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#ux02">
         <description>XPathExpression is created and compiled on every method call, compiled possibly implicitly by XPath::evaluate.
             Problem: Creation of XPath and compilation of XPathExpression takes time. It may slow down your application. &#13;
-            Solution: 1. Avoid XPath usage. 2. Compile the xpath expression as String into a XPathExpression. However, since XPath and XPathExpression classes are thread-unsafe, they are not easily cached. Caching it in a ThreadLocal may be a solution.
+            Solution:
+            1. Avoid XPath usage.
+            2. Compile the xpath expression as String into a XPathExpression. However, since XPath and XPathExpression classes are thread-unsafe, they are not easily cached. Caching it in a ThreadLocal may be a solution.
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
@@ -507,8 +509,10 @@ class AvoidStringBuffer {
           language="kotlin"
           message="XPathExpression targets a wide scope, this is potentially slow."
           externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#ux01">
-        <description>The XPathExpression targets a wide scope since it starts with '//'. Problem: XPath has to search in a wide scope for occurrences, this may take a while. &#13;
-            Solution: 1. Avoid XPath usage. 2. Make the scope as narrow as possible, do not start with '//'.
+        <description>The XPathExpression targets a wide scope since it starts with `//`. Problem: XPath has to search in a wide scope for occurrences, this may take a while. &#13;
+            Solution:
+            1. Avoid XPath usage.
+            2. Make the scope as narrow as possible, do not start with `//`.
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
@@ -550,7 +554,9 @@ class Foo {
           message="XPathAPI is used. XPathAPI implementation has bad performance."
           externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#ux01">
         <description>XPathAPI is used. Problem: XPathAPI implementation is slow.&#13;
-            Solution: 1. try to avoid using XPathAPI. 2. improve performance by using jvm parameters and possibly CachedXPathAPI.
+            Solution:
+            1. try to avoid using XPathAPI.
+            2. improve performance by using jvm parameters and possibly CachedXPathAPI.
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
