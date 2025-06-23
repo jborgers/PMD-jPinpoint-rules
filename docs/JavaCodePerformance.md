@@ -522,7 +522,8 @@ class AvoidHardcodedConnectionConfig {
 2. If you want or have to use SAAJ, set the proper JVM parameter/system property for TransformerFactory and MessageFactory (see IUOXAR09 link below) to prevent the excessive class loading.    
 **Note:** When you have solved this isssue with JVM params or like the example, yet, in another file then where the violation occurs, just suppress the rule with the reason explained, how it is solved.    
 
-**Note:** Unfortunately, [AxiomSoapMessageFactory has been removed from spring-ws with Spring Boot 3.0](https://spring.io/blog/2022/12/02/spring-ws-samples-upgraded-for-spring-boot-3-0). In that case, only solution 2 seems feasible.   
+**Note 1:** Unfortunately, [AxiomSoapMessageFactory has been removed from spring-ws with Spring Boot 3.0](https://spring.io/blog/2022/12/02/spring-ws-samples-upgraded-for-spring-boot-3-0). In that case, only solution 2 seems feasible.   
+**Note 2:** Fortunately, [It has been re-introduced in spring-ws with Spring Boot 4.1](https://github.com/spring-projects/spring-ws/issues/1454)!    
 **Rule name:** AvoidExcessiveClassloadingWithSaajSoap   
 **Example:**
 ```java
@@ -584,7 +585,7 @@ public class Foo {
 #### IBI25
 **Observation: ClientHttpRequestInterceptor is not releasing the connection when it throws an Exception.**   
 **Problem:** If the interceptor throws an exception after receiving a response, resources are not released as happens with normal program flow.
-It causes the connection not to be released to the connection pool, which leads to pool exhaustion and unresponsiveness.   
+For instance, it may cause the connection not to be released to the connection pool, which leads to pool exhaustion and unresponsiveness.   
 **Solution:** Release resources by closing the response via ClientHttpResponse.close() when throwing an Exception.   
 **Rule name:** HttpInterceptorNotReleasingOnException   
 **Example:**
