@@ -392,8 +392,12 @@ class MyClientHttpRequestFactorySupplier implements Supplier<ClientHttpRequestFa
 
 #### IBI18
 **Observation: Spring BufferingClientHttpRequestFactory is used.**   
-**Problem:** org.springframework.http.client.BufferingClientHttpRequestFactory buffers all incoming and outgoing streams fully in memory which may result in high memory usage.   
-**Solution:** Avoid multiple reads of the response body so it is not needed.   
+**Problem:** org.springframework.http.client.BufferingClientHttpRequestFactory buffers all incoming and outgoing streams fully in memory, which may result in unnecessary high memory usage.   
+**Solution:** Avoid when possible; avoid multiple reads of the response body so buffering is not needed. You may however still need it for Content-Length, see below.   
+**Note:** Since Spring 6.1 web applications: 
+>To reduce memory usage in RestClient and RestTemplate, most ClientHttpRequestFactory implementations no longer buffer request bodies before sending them to the server. As a result, for certain content types such as JSON, the contents size is no longer known, and a Content-Length header is no longer set. If you would like to buffer request bodies like before, simply wrap the ClientHttpRequestFactory you are using in a BufferingClientHttpRequestFactory.
+
+**See:** [Spring-6.1 release notes: web-applications](https://github.com/spring-projects/spring-framework/wiki/Spring-Framework-6.1-Release-Notes#web-applications)   
 **Rule name:** BufferingClientHttpRequestFactoryIsMemoryGreedy    
 **Example:**
 ```java
