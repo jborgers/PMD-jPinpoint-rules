@@ -1301,11 +1301,12 @@ class AvoidHardcodedConnectionConfig {
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           language="java"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi23">
-        <description>Problem: SAAJ uses DOM to load the XML document in memory which uses a TransformerFactory. The
-            implementation class of it is loaded on every call which causes lock contention under load. This means long
+        <description>Problem: SAAJ uses DOM to load the XML document in memory, which uses a TransformerFactory. The
+            implementation class of it is loaded on every call that causes lock contention under load. This means long
             response times.&#13;
             Solution: If possible, use Axiom SOAP messaging which uses the faster StAX. If you have/want to stick to
             SAAJ, set the proper system properties to prevent the excessive class loading.
+            Note: Axiom (2.0) is available again in Spring web services, since version 4.1.
             (jpinpoint-rules)
         </description>
         <priority>2</priority>
@@ -1390,7 +1391,7 @@ public class Foo {
           language="java"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi25">
         <description>Problem: If the interceptor throws an exception after receiving a response, resources are not released as happens with normal program flow.
-            It causes the connection not to be released to the connection pool, which leads to pool exhaustion and unresponsiveness.
+            For instance, it may cause the connection not to be released to the connection pool, which leads to pool exhaustion and unresponsiveness.
             Solution: Release resources by closing the response via ClientHttpResponse.close() when throwing an Exception.
             (jpinpoint-rules)
         </description>
