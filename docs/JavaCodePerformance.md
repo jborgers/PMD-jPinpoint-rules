@@ -398,6 +398,8 @@ class MyClientHttpRequestFactorySupplier implements Supplier<ClientHttpRequestFa
 >To reduce memory usage in RestClient and RestTemplate, most ClientHttpRequestFactory implementations no longer buffer request bodies before sending them to the server. As a result, for certain content types such as JSON, the contents size is no longer known, and a Content-Length header is no longer set. If you would like to buffer request bodies like before, simply wrap the ClientHttpRequestFactory you are using in a BufferingClientHttpRequestFactory.
 
 **See:** [Spring-6.1 release notes: web-applications](https://github.com/spring-projects/spring-framework/wiki/Spring-Framework-6.1-Release-Notes#web-applications)   
+**Note:** The Content-Length header determines the byte length of the request/response body. If you neglect to specify the Content-Length header, HTTP servers will implicitly add a Transfer-Encoding: chunked header.   
+**See:** [Transfer-Encoding: chunked vs Content-Length](https://seacode.uk/tools/transfer-encoding-chunked-vs-content-length) and [Stack overflow: Content-Length header versus chunked encoding](https://stackoverflow.com/questions/2419281/content-length-header-versus-chunked-encoding)   
 **Rule name:** BufferingClientHttpRequestFactoryIsMemoryGreedy    
 **Example:**
 ```java
