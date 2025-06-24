@@ -251,8 +251,9 @@ class Good {
             made, a third thread requesting a connection must wait for a free connection.&#13;
             Solution: HttpClients should explicitly define the number of connections per route. If only one route is
             used, make the max number of connections equal to conn per route.
-            Either use 1. setConnectionManager and call setMaxTotal and setDefaultMaxPerRoute on that connection
-            manager, or 2. no ConnectionManager: call setMaxConnTotal and setMaxConnPerRoute on the client directly.
+            Solution:
+            1. use setConnectionManager and call setMaxTotal and setDefaultMaxPerRoute on that connection manager, or
+            2. use no ConnectionManager, call setMaxConnTotal and setMaxConnPerRoute on the client directly.
             (jpinpoint-rules)
         </description>
         <priority>2</priority>
@@ -313,8 +314,8 @@ return HttpClientBuilder.create() // good, setConnectionManager called, pool con
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi09">
         <description>Problem: If you use setConnectionManager, the connection pool must be configured on that Connection
             Manager. Pool settings on the client are ignored and lost. &#13;
-            Solution: HttpClients should either 1. use setConnectionManager and *only* call setMaxTotal and
-            setDefaultMaxPerRoute on that ConnectionManager or
+            Solution:
+            1. HttpClients should either use setConnectionManager and *only* call setMaxTotal and setDefaultMaxPerRoute on that ConnectionManager or
             2. not use a ConnectionManager and call setMaxConnTotal and setMaxConnPerRoute on the client directly
             (jpinpoint-rules)
         </description>
@@ -824,10 +825,13 @@ class Good {
             made.
             When this HttpHost is then used for a route and stored socketConfig for, port 80 is added for the host and
             the socketConfig is stored with the wrong key and will not be used.
-            It is typically difficult to find out if the config is actually used. Note that
-            1. https://github.com/jborgers/http-client-monitor or 2. micrometer and apache http client 4 and 5 metrics with spring boot actuator, help here.&#13;
+            It is typically difficult to find out if the config is actually used.
             Solution: Use the HttpHost constructor with 2 (including port) or preferably 3 arguments (including port and
-            protocol). (jpinpoint-rules)
+            protocol).
+            Notes:
+            1. https://github.com/jborgers/http-client-monitor or
+            2. micrometer and apache http client 4 and 5 metrics with spring boot actuator, help here.&#13;
+            (jpinpoint-rules)
         </description>
         <priority>2</priority>
         <properties>
