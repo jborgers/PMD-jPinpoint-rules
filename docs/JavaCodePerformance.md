@@ -392,8 +392,14 @@ class MyClientHttpRequestFactorySupplier implements Supplier<ClientHttpRequestFa
 
 #### IBI18
 **Observation: Spring BufferingClientHttpRequestFactory is used.**   
-**Problem:** org.springframework.http.client.BufferingClientHttpRequestFactory buffers all incoming and outgoing streams fully in memory which may result in high memory usage.   
-**Solution:** Avoid multiple reads of the response body so it is not needed.   
+**Problem:** org.springframework.http.client.BufferingClientHttpRequestFactory buffers all incoming and outgoing streams fully in memory, which may result in unnecessary high memory usage.   
+**Solution:** Avoid when possible; avoid multiple reads of the response body so buffering is not needed. You may however still need it for Content-Length, see below.   
+**Note:** Since Spring 6.1 web applications: 
+>To reduce memory usage in RestClient and RestTemplate, most ClientHttpRequestFactory implementations no longer buffer request bodies before sending them to the server. As a result, for certain content types such as JSON, the contents size is no longer known, and a Content-Length header is no longer set. If you would like to buffer request bodies like before, simply wrap the ClientHttpRequestFactory you are using in a BufferingClientHttpRequestFactory.
+
+**See:** [Spring-6.1 release notes: web-applications](https://github.com/spring-projects/spring-framework/wiki/Spring-Framework-6.1-Release-Notes#web-applications)   
+**Note:** The Content-Length header determines the byte length of the request/response body. If you neglect to specify the Content-Length header, HTTP servers will implicitly add a Transfer-Encoding: chunked header.   
+**See:** [Transfer-Encoding: chunked vs Content-Length](https://seacode.uk/tools/transfer-encoding-chunked-vs-content-length) and [Stack overflow: Content-Length header versus chunked encoding](https://stackoverflow.com/questions/2419281/content-length-header-versus-chunked-encoding)   
 **Rule name:** BufferingClientHttpRequestFactoryIsMemoryGreedy    
 **Example:**
 ```java
@@ -522,7 +528,8 @@ class AvoidHardcodedConnectionConfig {
 2. If you want or have to use SAAJ, set the proper JVM parameter/system property for TransformerFactory and MessageFactory (see IUOXAR09 link below) to prevent the excessive class loading.    
 **Note:** When you have solved this isssue with JVM params or like the example, yet, in another file then where the violation occurs, just suppress the rule with the reason explained, how it is solved.    
 
-**Note:** Unfortunately, [AxiomSoapMessageFactory has been removed from spring-ws with Spring Boot 3.0](https://spring.io/blog/2022/12/02/spring-ws-samples-upgraded-for-spring-boot-3-0). In that case, only solution 2 seems feasible.   
+**Note 1:** Unfortunately, [AxiomSoapMessageFactory has been removed from spring-ws with Spring Boot 3.0](https://spring.io/blog/2022/12/02/spring-ws-samples-upgraded-for-spring-boot-3-0). In that case, only solution 2 seems feasible.   
+**Note 2:** Fortunately, [It has been re-introduced in spring-ws with Spring Boot 4.1](https://github.com/spring-projects/spring-ws/issues/1454)!    
 **Rule name:** AvoidExcessiveClassloadingWithSaajSoap   
 **Example:**
 ```java
@@ -584,7 +591,7 @@ public class Foo {
 #### IBI25
 **Observation: ClientHttpRequestInterceptor is not releasing the connection when it throws an Exception.**   
 **Problem:** If the interceptor throws an exception after receiving a response, resources are not released as happens with normal program flow.
-It causes the connection not to be released to the connection pool, which leads to pool exhaustion and unresponsiveness.   
+For instance, it may cause the connection not to be released to the connection pool, which leads to pool exhaustion and unresponsiveness.   
 **Solution:** Release resources by closing the response via ClientHttpResponse.close() when throwing an Exception.   
 **Rule name:** HttpInterceptorNotReleasingOnException   
 **Example:**

@@ -251,8 +251,9 @@ class Good {
             made, a third thread requesting a connection must wait for a free connection.&#13;
             Solution: HttpClients should explicitly define the number of connections per route. If only one route is
             used, make the max number of connections equal to conn per route.
-            Either use 1. setConnectionManager and call setMaxTotal and setDefaultMaxPerRoute on that connection
-            manager, or 2. no ConnectionManager: call setMaxConnTotal and setMaxConnPerRoute on the client directly.
+            Solution:
+            1. use setConnectionManager and call setMaxTotal and setDefaultMaxPerRoute on that connection manager, or
+            2. use no ConnectionManager, call setMaxConnTotal and setMaxConnPerRoute on the client directly.
             (jpinpoint-rules)
         </description>
         <priority>2</priority>
@@ -313,8 +314,8 @@ return HttpClientBuilder.create() // good, setConnectionManager called, pool con
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi09">
         <description>Problem: If you use setConnectionManager, the connection pool must be configured on that Connection
             Manager. Pool settings on the client are ignored and lost. &#13;
-            Solution: HttpClients should either 1. use setConnectionManager and *only* call setMaxTotal and
-            setDefaultMaxPerRoute on that ConnectionManager or
+            Solution:
+            1. HttpClients should either use setConnectionManager and *only* call setMaxTotal and setDefaultMaxPerRoute on that ConnectionManager or
             2. not use a ConnectionManager and call setMaxConnTotal and setMaxConnPerRoute on the client directly
             (jpinpoint-rules)
         </description>
@@ -824,10 +825,13 @@ class Good {
             made.
             When this HttpHost is then used for a route and stored socketConfig for, port 80 is added for the host and
             the socketConfig is stored with the wrong key and will not be used.
-            It is typically difficult to find out if the config is actually used. Note that
-            1. https://github.com/jborgers/http-client-monitor or 2. micrometer and apache http client 4 and 5 metrics with spring boot actuator, help here.&#13;
+            It is typically difficult to find out if the config is actually used.
             Solution: Use the HttpHost constructor with 2 (including port) or preferably 3 arguments (including port and
-            protocol). (jpinpoint-rules)
+            protocol).
+            Notes:
+            1. https://github.com/jborgers/http-client-monitor or
+            2. micrometer and apache http client 4 and 5 metrics with spring boot actuator, help here.&#13;
+            (jpinpoint-rules)
         </description>
         <priority>2</priority>
         <properties>
@@ -971,11 +975,11 @@ private ThreadPoolTaskExecutor good() {
       message="BufferingClientHttpRequestFactory is memory greedy. Only use when multiple reads of the response body cannot be avoided."
       externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi18">
     <description>org.springframework.http.client.BufferingClientHttpRequestFactory is used.
-        Problem: It buffers all incoming and outgoing streams fully in memory which may result in high memory usage.
+        Problem: It buffers all incoming and outgoing streams fully in memory, which may result in unnecessary high memory usage.
         &#13;
-        Solution: Avoid multiple reads of the response body, so it is not needed. (jpinpoint-rules)
+        Solution: Avoid when possible; avoid multiple reads of the response body so buffering is not needed. You may however still need it for Content-Length since Spring 6.1 (jpinpoint-rules)
     </description>
-    <priority>3</priority>
+    <priority>5</priority>
     <properties>
         <property name="tags" value="cpu,jpinpoint-rule,memory,performance,sustainability-high" type="String" description="classification"/>
         <property name="xpath">
@@ -1297,11 +1301,12 @@ class AvoidHardcodedConnectionConfig {
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           language="java"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi23">
-        <description>Problem: SAAJ uses DOM to load the XML document in memory which uses a TransformerFactory. The
-            implementation class of it is loaded on every call which causes lock contention under load. This means long
+        <description>Problem: SAAJ uses DOM to load the XML document in memory, which uses a TransformerFactory. The
+            implementation class of it is loaded on every call that causes lock contention under load. This means long
             response times.&#13;
             Solution: If possible, use Axiom SOAP messaging which uses the faster StAX. If you have/want to stick to
             SAAJ, set the proper system properties to prevent the excessive class loading.
+            Note: Axiom (2.0) is available again in Spring web services, since version 4.1.
             (jpinpoint-rules)
         </description>
         <priority>2</priority>
@@ -1386,7 +1391,7 @@ public class Foo {
           language="java"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi25">
         <description>Problem: If the interceptor throws an exception after receiving a response, resources are not released as happens with normal program flow.
-            It causes the connection not to be released to the connection pool, which leads to pool exhaustion and unresponsiveness.
+            For instance, it may cause the connection not to be released to the connection pool, which leads to pool exhaustion and unresponsiveness.
             Solution: Release resources by closing the response via ClientHttpResponse.close() when throwing an Exception.
             (jpinpoint-rules)
         </description>

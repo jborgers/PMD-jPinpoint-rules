@@ -31,4 +31,34 @@ class Foo {
 }
      ]]></code>
     </test-code>
+    <test-code>
+        <description>violation: Avoid DecimalFormat and ChoiceFormat as field in object</description>
+        <expected-problems>4</expected-problems>
+        <expected-linenumbers>6,10,17,22</expected-linenumbers>
+        <code><![CDATA[
+import java.text.ChoiceFormat
+import java.text.DecimalFormat
+import java.text.NumberFormat
+
+object Foo {
+    private val numFormat: NumberFormat = DecimalFormat("###.###") //bad
+
+    private val limits = doubleArrayOf(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0)
+    private val dayOfWeekNames = arrayOf("Sun", "Mon", "Tue", "Wed", "Thur", "Fri", "Sat")
+    private val form = ChoiceFormat(limits, dayOfWeekNames) // bad
+
+    fun shouldNotMatchInsideMethod() {
+        val format: NumberFormat = DecimalFormat("##.##")
+        val choiceFormat = ChoiceFormat(limits, dayOfWeekNames)
+    }
+    object Test {
+        val format: NumberFormat = DecimalFormat("##.##") // bad
+    }
+}
+
+object Foo2 {
+    private val numFormat: NumberFormat = DecimalFormat("###.###") //bad
+}
+     ]]></code>
+    </test-code>
 </test-data>
