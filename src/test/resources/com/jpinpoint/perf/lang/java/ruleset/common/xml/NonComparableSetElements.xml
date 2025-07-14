@@ -5,23 +5,23 @@
         xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
     <test-code>
         <description>violation: NonComparableSetElements</description>
-        <expected-problems>6</expected-problems>
-        <expected-linenumbers>6, 13, 14, 21, 24, 28</expected-linenumbers>
+        <expected-problems>4</expected-problems>
+        <expected-linenumbers>6, 14, 21, 24</expected-linenumbers>
         <code><![CDATA[
 import java.util.*;
 import org.apache.hc.client5.http.HttpRoute; // does implement equals/hashCode yet not compareTo
 // Thread does not implement equals/hashCode nor compareTo
 class Foo {
     Set<String> strSet = new HashSet<>();
-    Set<Thread> threadFieldSet = new HashSet<>(); // bad
+    Set<Thread> threadFieldSet = new HashSet<>(); // bad 6
     Thread t = new Thread();
     List<String> strList = new ArrayList<>();
     List<Thread> tList = new ArrayList<>();
     Set<HttpRoute> routeSet = new HashSet<>();
     Set tSet = new HashSet();
 
-    void byElemBad(Set<Thread> threadParamSet) { // bad 13
-        Set<Thread> localThreadFieldSet = new HashSet<>(); // bad
+    void byElemBad(Set<Thread> threadParamSet) { // probably bad, but cannot tell actual Set implementation and construction
+        Set<Thread> localThreadFieldSet = new HashSet<>(); // bad 14
 
         threadParamSet.retainAll(tList);
         localThreadFieldSet.containsAll(tList);
@@ -31,11 +31,11 @@ class Foo {
         Set<Thread> threadLocalSet = new HashSet<>(); // bad 21
         threadLocalSet.containsAll(tList);
 
-        Set<HttpRoute> routeLocalSet = new HashSet<>(); // bad
+        Set<HttpRoute> routeLocalSet = new HashSet<>(); // bad 24
         routeLocalSet.removeAll(routeSet);
     }
 
-    void otherCasesGood(Set<Thread> threadParamSet2) { // bad 28
+    void otherCasesGood(Set<Thread> threadParamSet2) { // probably bad, but cannot tell actual Set implementation and construction
         strSet.contains("bla");
         strSet.containsAll(strList);
         strSet.retainAll(strList);
@@ -54,6 +54,7 @@ class Foo {
         <expected-problems>0</expected-problems>
 
         <code><![CDATA[
+import java.util.Comparator;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -79,6 +80,32 @@ public class Issue568 {
         boolean containsAllOf(Set otherSet) {
             return someSet.containsAll(otherSet);
         }
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>false positive: NonComparableSetKeys Issue #618</description>
+        <expected-problems>0</expected-problems>
+
+        <code><![CDATA[
+import java.util.Comparator;
+import java.util.Set;
+import java.util.TreeSet;
+
+public class Foo {
+
+    public static final Comparator<Class> CLASS_NAME_COMPARATOR = Comparator.comparing(Class::getName);
+
+    public void bar() {
+        final Set<Class> types = new TreeSet<>(CLASS_NAME_COMPARATOR);
+        foo(types);
+    }
+
+    public void foo(Set<Class> types) { // <--- false positive, has constructor with comparator
+        types.contains(String.class);
+    }
+
 }
      ]]></code>
     </test-code>
