@@ -1971,10 +1971,10 @@ public enum Fruit {
 (: declared variable used in Set by-element access :)
 //VariableId[@Name = ancestor::ClassBody//MethodCall[@MethodName = ('contains','containsAll','remove','removeAll','retainAll')]/VariableAccess/@Name]
     (: for 3 ways defined as a Set :)
-    [(ancestor::FieldDeclaration|ancestor::LocalVariableDeclaration|ancestor::FormalParameter)/ClassType[pmd-java:typeIs('java.util.Set')
-                                                                                                         (: not when Set constructed with Comparator :)
-                                                                                                          and not(..//ConstructorCall[pmd-java:matchesSig('java.util.TreeSet#new(java.util.Comparator)')])
-                                                                                                         ]
+    [(ancestor::FieldDeclaration|ancestor::LocalVariableDeclaration)/ClassType[pmd-java:typeIs('java.util.Set')
+                                                                                (: not when Set constructed with Comparator :)
+                                                                                 and not(..//ConstructorCall[pmd-java:matchesSig('java.util.TreeSet#new(java.util.Comparator)')])
+                                                                              ]
     (: element type does not implement Comparable :)
      /TypeArguments/ClassType[not(pmd-java:typeIs('java.lang.Comparable'))
     (: and can be resolved :)
@@ -1985,32 +1985,39 @@ public enum Fruit {
         </properties>
         <example>
             <![CDATA[
-import java.util.*;
 import org.apache.hc.client5.http.HttpRoute; // does implement equals/hashCode yet *not* compareTo
+import java.util.*;
 
 class Foo {
-  Set<String> strSet = new HashSet<>();
-  List<String> strList = new ArrayList<>();
-  Set<HttpRoute> fieldRouteSet = new HashSet<>(); // bad
-  List<HttpRoute> routeList = new ArrayList<>();
 
-  void byElemBad(Set<HttpRoute> paramRouteSet) { // bad
-    paramRouteSet.retainAll(routeList);
+    public static final Comparator<HttpRoute> HTTP_ROUTE_COMPARATOR =
+            Comparator.comparing((HttpRoute route) -> route.getTargetHost().getHostName())
+                    .thenComparingInt(route -> route.getTargetHost().getPort());
 
-    fieldRouteSet.contains(t);
+    Set<String> strSet = new HashSet<>();
+    List<String> strList = new ArrayList<>();
+    Set<HttpRoute> fieldRouteSet = new HashSet<>(); // bad
+    Set<HttpRoute> fieldRouteSetComp = new TreeSet<>(HTTP_ROUTE_COMPARATOR); // good: with explicit comparator
+    List<HttpRoute> routeList = new ArrayList<>();
 
-    Set<HttpRoute> localRouteSet = new HashSet<>(); // bad
-    localRouteSet.removeAll(routeList);
-  }
+    void byElemBad(Set<HttpRoute> paramRouteSet) { // probably bad, but cannot tell the actual constructor of the Set
+        paramRouteSet.retainAll(routeList);
 
-  void otherCasesGood(Set<HttpRoute> paramRouteSet) {
-    strSet.contains("bla");
-    strSet.retainAll(strList);
-    strSet.remove("other");
-    paramRouteSet.iterator().next();
-  }
+        HttpRoute firstRoute = paramRouteSet.iterator().next();
+        fieldRouteSet.contains(firstRoute);
+
+        Set<HttpRoute> localRouteSet = new HashSet<>(); // bad
+        localRouteSet.removeAll(routeList);
+    }
+
+    void otherCasesGood(Set<HttpRoute> paramRouteSet) { // probably bad, but cannot tell the actual constructor of the Set
+        strSet.contains("bla");
+        strSet.retainAll(strList);
+        strSet.remove("other");
+        paramRouteSet.iterator().next();
+    }
 }
-            ]]>
+]]>
         </example>
     </rule>
 
