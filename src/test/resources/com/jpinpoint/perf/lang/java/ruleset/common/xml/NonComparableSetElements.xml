@@ -22,7 +22,7 @@ class Foo {
     Set<HttpRoute> routeSet = new HashSet<>(); // bad 12, HttpRoute not comparable
     Set tSet = new HashSet();
     Set<HttpRoute> fieldRouteSetNonComp = new TreeSet<>(); // bad 14, HttpRoute not comparable and no explicit comparator
-    Set<HttpRoute> fieldRouteSetConc = new ConcurrentSkipListSet<>(); // bad 15: HttpRoute not comparabl with explicit comparator
+    Set<HttpRoute> fieldRouteSetConc = new ConcurrentSkipListSet<>(); // bad 15: HttpRoute not comparable with explicit comparator
 
     void byElemBad(Set<Thread> threadParamSet) { // probably bad, but cannot tell actual Set implementation and construction
         Set<Thread> localThreadFieldSet = new HashSet<>(); // bad 18
