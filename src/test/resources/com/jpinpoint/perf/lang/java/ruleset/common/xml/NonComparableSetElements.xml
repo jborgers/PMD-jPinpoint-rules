@@ -5,33 +5,37 @@
         xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
     <test-code>
         <description>violation: NonComparableSetElements</description>
-        <expected-problems>4</expected-problems>
-        <expected-linenumbers>6, 14, 21, 24</expected-linenumbers>
+        <expected-problems>7</expected-problems>
+        <expected-linenumbers>8, 12, 14, 15, 18, 25, 28</expected-linenumbers>
         <code><![CDATA[
 import java.util.*;
-import org.apache.hc.client5.http.HttpRoute; // does implement equals/hashCode yet not compareTo
+import org.apache.hc.client5.http.HttpRoute;
+import java.util.concurrent.ConcurrentSkipListSet;
+
 // Thread does not implement equals/hashCode nor compareTo
 class Foo {
     Set<String> strSet = new HashSet<>();
-    Set<Thread> threadFieldSet = new HashSet<>(); // bad 6
+    Set<Thread> threadFieldSet = new HashSet<>(); // bad 8
     Thread t = new Thread();
     List<String> strList = new ArrayList<>();
     List<Thread> tList = new ArrayList<>();
-    Set<HttpRoute> routeSet = new HashSet<>();
+    Set<HttpRoute> routeSet = new HashSet<>(); // bad 12, HttpRoute not comparable
     Set tSet = new HashSet();
+    Set<HttpRoute> fieldRouteSetNonComp = new TreeSet<>(); // bad 14, HttpRoute not comparable and no explicit comparator
+    Set<HttpRoute> fieldRouteSetConc = new ConcurrentSkipListSet<>(); // bad 15: HttpRoute not comparabl with explicit comparator
 
     void byElemBad(Set<Thread> threadParamSet) { // probably bad, but cannot tell actual Set implementation and construction
-        Set<Thread> localThreadFieldSet = new HashSet<>(); // bad 14
+        Set<Thread> localThreadFieldSet = new HashSet<>(); // bad 18
 
         threadParamSet.retainAll(tList);
         localThreadFieldSet.containsAll(tList);
 
         threadFieldSet.contains(t);
 
-        Set<Thread> threadLocalSet = new HashSet<>(); // bad 21
+        Set<Thread> threadLocalSet = new HashSet<>(); // bad 25
         threadLocalSet.containsAll(tList);
 
-        Set<HttpRoute> routeLocalSet = new HashSet<>(); // bad 24
+        Set<HttpRoute> routeLocalSet = new HashSet<>(); // bad 28
         routeLocalSet.removeAll(routeSet);
     }
 
@@ -42,8 +46,11 @@ class Foo {
         strSet.removeAll(strList);
         threadParamSet2.remove(t);
         threadParamSet2.iterator().next();
-        routeSet.iterator().next();
         tSet.remove(t);
+        HttpRoute firstRoute = routeSet.iterator().next();
+        routeSet.contains(firstRoute);
+        fieldRouteSetNonComp.containsAll(routeSet);
+        fieldRouteSetConc.containsAll(routeSet);
     }
 }
      ]]></code>
@@ -92,18 +99,21 @@ public class Issue568 {
 import java.util.Comparator;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.concurrent.ConcurrentSkipListSet;
 
 public class Foo {
 
     public static final Comparator<Class> CLASS_NAME_COMPARATOR = Comparator.comparing(Class::getName);
+    private static final Set<Class> allClassesConc = new ConcurrentSkipListSet<>(CLASS_NAME_COMPARATOR); // good: with explicit comparator
 
     public void bar() {
-        final Set<Class> types = new TreeSet<>(CLASS_NAME_COMPARATOR);
+        final Set<Class> types = new TreeSet<>(CLASS_NAME_COMPARATOR); // good: with explicit comparator
         foo(types);
     }
 
     public void foo(Set<Class> types) { // <--- false positive, has constructor with comparator
         types.contains(String.class);
+        allClassesConc.contains(String.class);
     }
 
 }
