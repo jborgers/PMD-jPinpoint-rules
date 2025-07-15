@@ -2130,14 +2130,16 @@ class Bad {
           language="java"
           message="Set elements should implement Comparable in order to make access by element fast."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-
           externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#iuoc09">
-        <description>Problem: A Set is implemented with a Map. If multiple entries end up in the same HashMap bucket, they are stored as LinkedList, and with more than 7 as a red-black tree.
-            The list access time is O(n) and tree access time is only O(log n) which is much faster for large n. This tree implementation utilizes the compareTo from the Comparable interface.
+        <description>Problem: A `Set` is commonly implemented with a `Map`. If multiple entries end up in the same `HashMap` bucket, they are stored as `LinkedList`, and with more than 7 as a red-black tree.
+            The list access time is `O(n)` and tree access time is only `O(log n)` which is much faster for large `n`. This tree implementation utilizes the `compareTo` from the `Comparable` interface.
             If this is not implemented, access by element will be slow. Iterating through the elements does not suffer from this slow access because no lookup by key in the map is involved.
-            Access methods by element which are affected: contains[All], retainAll, remove[All].
-            Solution: Implement Comparable for your own Set elements. Avoid using large Sets with elements of types which don't implement Comparable, like Thread, Class and Object. At least when using access by element.
-            Note that equals and hashCode must be implemented properly for the elements, and compareTo must be compatible with equals.
+            Access methods by element which are affected: `contains[All]`, `retainAll`, `remove[All]`.
+            Solution: Implement `Comparable` for your `Set` elements to ensure optimal performance. Or use a `Set` with a `Comparator` in the constructor (for instance, `TreeSet` or `ConcurrentSkipListSet`).
+            When using Sets with non-Comparable types like `Thread`, `Class`, or `Object`, avoid large Sets especially for element access operations.
+            If you must use such types, apply `@SuppressWarnings` with a clear explanation only when the `Set` is guaranteed to stay small (under 7 elements per bucket) with minimal growth risk.
+            Remember that small Sets can grow unexpectedly over time.
+            Note: `equals` and `hashCode` must be implemented properly for the elements, and `compareTo` must be compatible with `equals`.
         (jpinpoint-rules)</description>
         <priority>3</priority>
         <properties>
@@ -2147,10 +2149,13 @@ class Bad {
 (: declared variable used in Set by-element access :)
 //VariableId[@Name = ancestor::ClassBody//MethodCall[@MethodName = ('contains','containsAll','remove','removeAll','retainAll')]/VariableAccess/@Name]
     (: for 3 ways defined as a Set :)
-    [(ancestor::FieldDeclaration|ancestor::LocalVariableDeclaration|ancestor::FormalParameter)/ClassType[pmd-java:typeIs('java.util.Set')
-                                                                                                         (: not when Set constructed with Comparator :)
-                                                                                                          and not(..//ConstructorCall[pmd-java:matchesSig('java.util.TreeSet#new(java.util.Comparator)')])
-                                                                                                         ]
+    [(ancestor::FieldDeclaration|ancestor::LocalVariableDeclaration)/ClassType[pmd-java:typeIs('java.util.Set')
+                                                                                (: not when Set constructed with Comparator :)
+                                                                                 and not(..//ConstructorCall[pmd-java:matchesSig('java.util.TreeSet#new(java.util.Comparator)')
+                                                                                                             or pmd-java:matchesSig('java.util.concurrent.ConcurrentSkipListSet#new(java.util.Comparator)')
+                                                                                                            ]
+                                                                                      )
+                                                                              ]
     (: element type does not implement Comparable :)
      /TypeArguments/ClassType[not(pmd-java:typeIs('java.lang.Comparable'))
     (: and can be resolved :)
@@ -2161,32 +2166,40 @@ class Bad {
         </properties>
         <example>
             <![CDATA[
-import java.util.*;
 import org.apache.hc.client5.http.HttpRoute; // does implement equals/hashCode yet *not* compareTo
+import java.util.*;
 
 class Foo {
-  Set<String> strSet = new HashSet<>();
-  List<String> strList = new ArrayList<>();
-  Set<HttpRoute> fieldRouteSet = new HashSet<>(); // bad
-  List<HttpRoute> routeList = new ArrayList<>();
 
-  void byElemBad(Set<HttpRoute> paramRouteSet) { // bad
-    paramRouteSet.retainAll(routeList);
+    public static final Comparator<HttpRoute> HTTP_ROUTE_COMPARATOR =
+            Comparator.comparing((HttpRoute route) -> route.getTargetHost().getHostName())
+                    .thenComparingInt(route -> route.getTargetHost().getPort());
 
-    fieldRouteSet.contains(t);
+    Set<String> strSet = new HashSet<>();
+    List<String> strList = new ArrayList<>();
+    Set<HttpRoute> fieldRouteSet = new HashSet<>(); // bad
+    Set<HttpRoute> fieldRouteSetComp = new TreeSet<>(HTTP_ROUTE_COMPARATOR); // good: with explicit comparator
+    List<HttpRoute> routeList = new ArrayList<>();
 
-    Set<HttpRoute> localRouteSet = new HashSet<>(); // bad
-    localRouteSet.removeAll(routeList);
-  }
+    void byElemBad(Set<HttpRoute> paramRouteSet) { // probably bad, but cannot tell the actual constructor of the Set
+        paramRouteSet.retainAll(routeList);
 
-  void otherCasesGood(Set<HttpRoute> paramRouteSet) {
-    strSet.contains("bla");
-    strSet.retainAll(strList);
-    strSet.remove("other");
-    paramRouteSet.iterator().next();
-  }
+        HttpRoute firstRoute = paramRouteSet.iterator().next();
+        fieldRouteSet.contains(firstRoute);
+
+        Set<HttpRoute> localRouteSet = new HashSet<>(); // bad
+        localRouteSet.removeAll(routeList);
+    }
+
+    void otherCasesGood(Set<HttpRoute> paramRouteSet) { // probably bad, but cannot tell the actual constructor of the Set
+        strSet.contains("bla");
+        strSet.retainAll(strList);
+        strSet.remove("other");
+        HttpRoute firstRoute = paramRouteSet.iterator().next();
+        fieldRouteSetComp.remove(firstRoute);
+    }
 }
-            ]]>
+]]>
         </example>
     </rule>
 
