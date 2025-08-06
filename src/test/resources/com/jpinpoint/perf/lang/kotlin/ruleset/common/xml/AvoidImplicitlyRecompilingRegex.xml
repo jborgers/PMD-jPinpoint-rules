@@ -508,4 +508,16 @@ class Foo(private val dynPatStringInit: String, private var dynRegexInitVar: Reg
 }
 ]]></code>
     </test-code>
+
+    <test-code>
+        <description>Fix Request: false positive in AvoidImplicitlyRecompilingRegex for Kotlin #615</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+class Foo() {
+    fun storeUsingRegex(regex: String) {
+        val matches = Regex(regex).findAll(source.toString()).toList()
+    }
+}
+]]></code>
+    </test-code>
 </test-data>

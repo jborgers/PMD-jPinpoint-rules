@@ -493,7 +493,7 @@ class FooGood {
 //FunctionDeclaration//PostfixUnaryExpression//SimpleIdentifier/T-Identifier[
     @Text='Regex'
     (: not called on fun parameter :)
-    and not(ancestor::CallSuffix//PrimaryExpression//T-Identifier[
+    and not(ancestor::PostfixUnaryExpression//CallSuffix//PrimaryExpression//T-Identifier[
         @Text = ancestor::FunctionDeclaration//FunctionValueParameter//Parameter/SimpleIdentifier/T-Identifier/@Text])
     (: not called on 'dynamic' function call :)
     and not(ancestor::PostfixUnaryExpression/PostfixUnarySuffix/CallSuffix//CallSuffix//CallSuffix)
@@ -581,6 +581,12 @@ class Foo {
 
     fun good_replaceInnerLineBreakBySpace2(text: String): String {
         return INNER_LINE_BREAK_PATTERN.matcher(text).replaceAll("$1 ") // good
+    }
+
+    fun storeUsingRegex(regex: String, sourceName: String, dataTable: DataTable) {
+        val dtm = dataTable.asMaps()
+        val source = testContext.parameter(sourceName)
+        val matches = Regex(regex).findAll(source.toString()).toList()
     }
 }
         </example>
