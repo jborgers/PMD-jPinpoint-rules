@@ -381,12 +381,17 @@ class Foo {
     (@Text='DateTimeFormatter' or @Text='DateTimeFormat' or @Text='DateTimeFormatterBuilder' or @Text='ISODateTimeFormat')
      (: val is "final" and is allowed in CompanionObject :)
      and (not(ancestor::PropertyDeclaration/T-VAL) or (ancestor::PropertyDeclaration/T-VAL and not(ancestor::CompanionObject)))
+     (: and 'final static' is allowed, top level, field outside of class/object :)
+     and (ancestor::ClassDeclaration or ancestor::ObjectDeclaration)
      (: do not match explicit type declarations :)
      and not(ancestor::TypeReference)
      (: variable params are allowed, e.g. when it is an incoming function param :)
      and not(ancestor::PrefixUnaryExpression//ValueArgument[.//T-Identifier[@Text = ancestor::FunctionDeclaration/FunctionValueParameters/FunctionValueParameter/Parameter/SimpleIdentifier/T-Identifier/@Text]])
      (: variable class params are allowed in val fields :)
-     and (not(ancestor::PropertyDeclaration/T-VAL) or not(ancestor::PrefixUnaryExpression//ValueArgument[.//T-Identifier[@Text = ancestor::ClassDeclaration//ClassParameters/ClassParameter/SimpleIdentifier/T-Identifier/@Text]]))
+     and (not(ancestor::PropertyDeclaration/T-VAL) or not(ancestor::PrefixUnaryExpression//ValueArgument[.//T-Identifier[@Text = ancestor::ClassDeclaration//ClassParameters/ClassParameter/SimpleIdentifier/T-Identifier/@Text]])
+     (: not when like DateTimeFormatter.ISO_DATE_TIME :)
+     and (not(ancestor::PostfixUnaryExpression[count(PostfixUnarySuffix) = 1]))
+    )
 ]
 |
 (: java.time.format.DateTimeFormatter variable params are allowed in field init in constructors if val :)

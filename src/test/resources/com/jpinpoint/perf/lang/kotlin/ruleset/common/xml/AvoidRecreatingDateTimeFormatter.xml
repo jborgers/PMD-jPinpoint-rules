@@ -198,6 +198,66 @@ object Foo {
         return formatter.format(timestamp)
     }
 }
+
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>Avoid recreation of java time DateTimeFormatter object. But allow if there is a parameter from method call involved.</description>
+        <expected-problems>2</expected-problems>
+        <expected-linenumbers>9,10</expected-linenumbers>
+        <code><![CDATA[
+import java.time.Instant
+import java.time.format.DateTimeFormatter
+import java.time.ZoneId
+
+object Foo {
+    private const val DEFAULT_DATETIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
+    fun format(timestamp: Instant, myFormat: String?, myTimeZone: ZoneId?): String {
+        val formatter1 = DateTimeFormatter.ofPattern(myFormat) // good: has variable parameter
+        val formatter2 = DateTimeFormatter.ofPattern(DEFAULT_DATETIME_FORMAT) // bad
+        val formatter4 = DateTimeFormatter.ofPattern(DEFAULT_DATETIME_FORMAT).withZone(ZoneId.of("UTC")) // bad
+        val formatter5 =
+            DateTimeFormatter.ofPattern(DEFAULT_DATETIME_FORMAT).withZone(myTimeZone) // good: has variable parameter
+        return formatter1.format(timestamp)
+    }
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>Ignore custom DateTimeFormatter</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import com.any.DateTimeFormatter
+
+object Foo {
+    private const val DEFAULT_DATETIME_FORMAT = "yyyy-MM-dd"
+    fun format(timestamp: Instant): String {
+        val formatter = DateTimeFormatter.ofPattern(DEFAULT_DATETIME_FORMAT)
+        return formatter.format(timestamp)
+    }
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>Fix Request: false positive in AvoidRecreatingDateTimeFormatter for Kotlin #617</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>6</expected-linenumbers>
+        <code><![CDATA[
+import java.time.format.DateTimeFormatter
+
+private val EXECUTION_DATE_FORMATTER = DateTimeFormatter.ofPattern(EXECUTION_DATE_FORMAT) // top level so like static in Java, outside class
+
+class Issue617 {
+    private val EXECUTION_DATE_FORMATTER_CLASS = DateTimeFormatter.ofPattern(EXECUTION_DATE_FORMAT) // bad, class level, so part of instance
+
+    fun falsepos() {
+        val date = ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.RFC_1123_DATE_TIME)
+        val date2 = ZonedDateTime.now.format(DateTimeFormatter.ISO_DATE_TIME)
+    }
+}
      ]]></code>
     </test-code>
 
