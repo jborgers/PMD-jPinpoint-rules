@@ -45,4 +45,48 @@ class AvoidInMemoryStreamingDefaultConstructor {
 }
 ]]></code>
     </test-code>
+
+    <test-code>
+        <description>Fix Request: false positive in AvoidInMemoryStreamingDefaultConstructor for Kotlin #616</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import java.io.ByteArrayOutputStream
+import java.io.StringWriter
+
+class Issue616 {
+
+    fun withPiWriter(onlyForMuzzlPMD: Int, proc: Consumer<PiWriter>): String {
+        StringWriter(onlyForMuzzlPMD).use { stringWriter ->
+            PiWriter(stringWriter).use { piWriter ->
+                proc.accept(piWriter)
+                piWriter.flush()
+                return stringWriter.toString()
+            }
+        }
+    }
+    fun toGzip(decompressed: ByteArray) =
+        runCatching {
+            ByteArrayOutputStream(decompressed.size).use { baos ->
+                GZIPOutputStream(baos).use { gzos ->
+                    gzos.write(decompressed)
+                    gzos.finish()
+                    baos.toByteArray()
+                }
+            }
+        }
+
+     fun readBodyBytes(dbf: List<DataBuffer>): ByteArray {
+        return ByteArrayOutputStream(BUFFER_SIZE_BYTES).use { boas ->
+            dbf.forEach { db ->
+                val b = db.asInputStream().readBytes()
+                boas.writeBytes(b)
+            }
+            boas.toByteArray()
+        }
+     }
+}
+
+]]></code>
+    </test-code>
+
 </test-data>

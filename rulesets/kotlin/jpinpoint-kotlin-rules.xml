@@ -181,8 +181,8 @@ class Foo {
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
 externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#isio01">
         <description>
-            The default constructor of ByteArrayOutputStream creates a 32 bytes initial capacity and for StringWriter 16 chars. Problem: Such a small buffer as capacity usually needs several expensive expansions.&#13;
-            Solution: Presize the ByteArrayOutputStream or StringWriter with an initial capacity such that an expansion is not needed in most cases, typically much larger than 32, for instance 4096.
+            The default constructor of ByteArrayOutputStream creates a 32-byte initial capacity and for StringWriter 16 chars. Problem: Such a small buffer as capacity usually needs several expensive expansions.&#13;
+            Solution: Pre-size the ByteArrayOutputStream or StringWriter with an initial capacity such that an expansion is not needed in most cases, typically much larger than 32, for instance, 4096.
             (jpinpoint-rules)
         (jpinpoint-rules)</description>
         <priority>2</priority>
@@ -192,9 +192,9 @@ externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/
                 <value><![CDATA[
 //ImportHeader[.//T-Identifier[@Text='java'] and .//T-Identifier[@Text='io']][1]/ancestor::KotlinFile
 //Expression//T-Identifier[(@Text='ByteArrayOutputStream' and ../../../
-PostfixUnarySuffix//ValueArguments[not(ValueArgument) or ValueArgument//T-IntegerLiteral[number(@Text)<=32]])
+PostfixUnarySuffix[1]//ValueArguments[not(ValueArgument) or ValueArgument//T-IntegerLiteral[number(@Text)<=32]])
 or (@Text='StringWriter' and ../../../
-PostfixUnarySuffix//ValueArguments[not(ValueArgument) or ValueArgument//T-IntegerLiteral[number(@Text)<=16]])]
+PostfixUnarySuffix[1]//ValueArguments[not(ValueArgument) or ValueArgument//T-IntegerLiteral[number(@Text)<=16]])]
 ]]>
                 </value>
             </property>
