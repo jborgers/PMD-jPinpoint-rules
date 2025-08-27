@@ -151,4 +151,32 @@ public record FooDto(
      ]]></code>
     </test-code>
 
+    <test-code>
+        <description>Fix Request: false positive in pmd:AvoidExposingMutableRecordState #628</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import java.net.URI;
+import java.util.List;
+import java.util.Set;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+
+record ApprovalNotificationProperties(
+        Email email,
+        URI linkUrl) {
+    record Email(
+            boolean enabled,
+            Set<String> specificIds
+    ) {
+        Email {
+            specificIds = Set.copyOf(specificIds.stream()
+                    .map(String::strip)
+                    .filter(Predicate.not(String::isEmpty))
+                    .collect(Collectors.toSet()));
+        }
+    }
+}
+     ]]></code>
+    </test-code>
+
 </test-data>
