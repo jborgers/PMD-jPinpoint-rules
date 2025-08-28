@@ -1058,7 +1058,7 @@ or ends-with(lower-case(@Name), 'ttl')
 or ends-with(lower-case(@Name), 'timestamp')]
 ,
 (: @Value :)
-//Annotation[@SimpleName='Value' and .//MemberValuePair[@Image='value']/StringLiteral[
+//Annotation[../../PrimitiveType and pmd-java:typeIs('org.springframework.beans.factory.annotation.Value') and .//MemberValuePair[@Image='value']/StringLiteral[
 ends-with(lower-case(@Image), 'timetolive')
 or ends-with(lower-case(@Image), 'time_to_live}"')
 or ends-with(lower-case(@Image), 'time}"')

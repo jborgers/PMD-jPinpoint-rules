@@ -21,8 +21,9 @@ public class RetrieveCache {
     <test-code>
         <description>violation: time unit missing in @Value member</description>
         <expected-problems>5</expected-problems>
-        <expected-linenumbers>2,3,6,8,10</expected-linenumbers>
+        <expected-linenumbers>3,4,7,9,11</expected-linenumbers>
         <code><![CDATA[
+import org.springframework.beans.factory.annotation.Value;
 public class RetrieveCache {
     private static final long TOKEN_TTL = 1000L * 60 * 15; // bad
     private static final long TOKEN_TIMEOUT = 1000L * 60 * 60 * 8; // bad
@@ -42,6 +43,7 @@ public class RetrieveCache {
         <description>no violation: time unit present</description>
         <expected-problems>0</expected-problems>
         <code><![CDATA[
+import org.springframework.beans.factory.annotation.Value;
 public class RetrieveCache {
     private static final long TOKEN_TTL_MS = 1000L * 60 * 15; // good
     private static final long TOKEN_TIMEOUT_MILLIS = 1000L * 60 * 60 * 8; // good
@@ -120,8 +122,9 @@ public final class TimeUtils {
     <test-code>
         <description>violation: time unit missing in long Timestamp</description>
         <expected-problems>4</expected-problems>
-        <expected-linenumbers>3,4,7,8</expected-linenumbers>
+        <expected-linenumbers>4,5,8,9</expected-linenumbers>
         <code><![CDATA[
+import org.springframework.beans.factory.annotation.Value;
 import java.time.*;
 class Foo {
     private static final long ttlTimeStamp = 1000L * 60 * 15; // bad
@@ -135,4 +138,25 @@ class Foo {
      ]]></code>
     </test-code>
 
+    <test-code>
+        <description>Fix Request: false positive in AvoidTimeUnitConfusion #630</description>
+        <expected-problems>3</expected-problems>
+        <expected-linenumbers>6, 11, 11</expected-linenumbers>
+        <code><![CDATA[
+import org.springframework.beans.factory.annotation.Value;
+import java.time.Duration;
+
+class SomeListener {
+    Duration expireDuration;
+    int expireIntDuration; // bad
+
+   public SomeListener(@Value("${expire-duration}") Duration expireDuration) { // <-- 2 false positives
+      this.expireDuration = expireDuration;
+   }
+   public SomeListener(@Value("${expire-int-duration}") int expireIntDuration) { // 2 bad
+      this.expireIntDuration = expireIntDuration;
+   }
+}
+     ]]></code>
+    </test-code>
 </test-data>
