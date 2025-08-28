@@ -795,4 +795,38 @@ public class Issue521 {
 }
                             ]]></code>
     </test-code>
+
+    <test-code>
+        <description>Fix Request: false positive in AvoidInfiniteRecursion #626</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+class Conditions {
+    class ConditionBuilder {
+        private final Collection<Condition> conditions = new ArrayList<>();
+
+        ConditionBuilder isTrue(Supplier<Boolean> isTrue, String name) {
+            conditions.add(Conditions.this.isTrue(isTrue, name));  // <-- false positive
+            return this;
+        }
+
+        Condition isTrue(Supplier<Boolean> isTrue, String name, String other) {
+            return new Condition() {
+                @Override
+                public String description() {
+                    return name + " == true";
+                }
+            };
+        }
+    }
+
+    private Condition isTrue(Supplier<Boolean> isTrue, String name) {
+        return null;
+    }
+
+    public interface Condition {
+        String description();
+    }
+}
+                            ]]></code>
+    </test-code>
 </test-data>
