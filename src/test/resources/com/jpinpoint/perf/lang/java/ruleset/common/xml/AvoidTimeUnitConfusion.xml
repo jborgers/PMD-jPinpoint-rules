@@ -31,9 +31,9 @@ public class RetrieveCache {
     @Autowired
     public RetrieveCache(final @Value("${cache.expiryTime}") long timeToLiveSeconds) { // 1x bad
     }
-    public confuse(@Value("${cache.timeOut}") int expiryTimeHours) { // 1x bad
+    public void confuse(@Value("${cache.timeOut}") int expiryTimeHours) { // 1x bad
     }
-    foo(@Value("${cache.ttl}") int expiryTTLSeconds) { // 1x bad
+    void foo(@Value("${cache.ttl}") int expiryTTLSeconds) { // 1x bad
     }
 }
      ]]></code>
@@ -53,7 +53,7 @@ public class RetrieveCache {
     }
     public void confuse(@Value("${cache.expiryTimeHours}") int expiryTimeHours) { // good
     }
-    foo(@Value("${cache.ttlSeconds}") int expiryTTLSeconds) { // good
+    void foo(@Value("${cache.ttlSeconds}") int expiryTTLSeconds) { // good
     }
 }
      ]]></code>
@@ -156,6 +156,29 @@ class SomeListener {
    public SomeListener(@Value("${expire-int-duration}") int expireIntDuration) { // 2 bad
       this.expireIntDuration = expireIntDuration;
    }
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>Fix Request: false positive in AvoidTimeUnitConfusion #630 - review comments to support Integer and Long</description>
+        <expected-problems>5</expected-problems>
+        <expected-linenumbers>5,6,9,11,13</expected-linenumbers>
+        <code><![CDATA[
+import org.springframework.beans.factory.annotation.Value;
+import java.time.Duration;
+
+@Component class RetrieveCacheWrapper {
+    private static final Long TOKEN_TTL = 1000L * 60 * 15; // bad
+    private static final Integer TOKEN_TIMEOUT = 1000 * 60 * 60 * 8; // bad
+
+    @Autowired
+    public RetrieveCacheWrapper(final @Value("${cache.expiryTime}") Long timeToLiveSeconds) { // 1x bad
+    }
+    public void confuse(@Value("${cache.timeOut}") Integer expiryTimeHours) { // 1x bad
+    }
+    void foo(@Value("${cache.ttl}") Integer expiryTTLSeconds) { // 1x bad
+    }
 }
      ]]></code>
     </test-code>

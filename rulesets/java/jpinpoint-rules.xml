@@ -1045,7 +1045,8 @@ class Foo {
             <property name="xpath">
                 <value><![CDATA[
 (: for fields, formal parameters and local variables :)
-//(VariableDeclarator[../PrimitiveType]|FormalParameter[PrimitiveType])/VariableId[
+//(VariableDeclarator[../PrimitiveType or ../ClassType[pmd-java:typeIs('java.lang.Long') or pmd-java:typeIs('java.lang.Integer')]]
+  |FormalParameter[PrimitiveType])/VariableId[
 ends-with(lower-case(@Name), 'timetolive')
 or ends-with(lower-case(@Name), 'time_to_live')
 or ends-with(lower-case(@Name), 'time')
@@ -1058,7 +1059,8 @@ or ends-with(lower-case(@Name), 'ttl')
 or ends-with(lower-case(@Name), 'timestamp')]
 ,
 (: @Value :)
-//Annotation[../../PrimitiveType and pmd-java:typeIs('org.springframework.beans.factory.annotation.Value') and .//MemberValuePair[@Image='value']/StringLiteral[
+//Annotation[(../../PrimitiveType or ../../ClassType[pmd-java:typeIs('java.lang.Long') or pmd-java:typeIs('java.lang.Integer')])
+and pmd-java:typeIs('org.springframework.beans.factory.annotation.Value') and .//MemberValuePair[@Image='value']/StringLiteral[
 ends-with(lower-case(@Image), 'timetolive')
 or ends-with(lower-case(@Image), 'time_to_live}"')
 or ends-with(lower-case(@Image), 'time}"')
