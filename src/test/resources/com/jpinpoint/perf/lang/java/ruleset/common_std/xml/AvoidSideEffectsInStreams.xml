@@ -39,4 +39,27 @@ abstract class AvoidSideEffectsInStreams {
         ]]></code>
     </test-code>
 
+    <test-code>
+        <description>Fix Request: false positive in AvoidSideEffectsInStreams #627</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import java.util.*;
+import java.util.stream.*;
+import java.util.concurrent.atomic.AtomicReference;
+import lombok.extern.slf4j.Slf4j;
+
+class Issue627 {
+    private void handleCompletionErrors(List<String> errors) {
+        List<ErrorDetail> errorDetails = errors.stream() // <-- false positive reported
+            .map(error -> {
+                ErrorDetail errorDetail = new ErrorDetail();
+                errorDetail.setErrorCode(error); // <-- actual false positive
+                return errorDetail;
+            })
+            .toList();
+        processItem.getErrors().addAll(errorDetails);
+    }
+}
+        ]]></code>
+    </test-code>
 </test-data>

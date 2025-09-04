@@ -2803,7 +2803,10 @@ letters.forEach(l -> map.put(l, 0));
 (: matches java.lang.Stream and java.util.stream.IntStream like types :)
 //MethodCall[pmd-java:typeIs('java.util.stream.BaseStream')]
 (: modifying methods :)
-[ArgumentList[.//(MethodCall|MethodReference)[matches(@MethodName,"^(set|put|clear|add|remove|replace|retain)")]/VariableAccess or .//AssignmentExpression/ArrayAccess/*[1][pmd-java:nodeIs('VariableAccess')]
+[ArgumentList[.//(MethodCall|MethodReference)[matches(@MethodName,"^(set|put|clear|add|remove|replace|retain)")]/VariableAccess[
+    (: not if the modifier is on a local variable :)
+    not(exists(ancestor::LambdaExpression//Block//LocalVariableDeclaration) and @Name=ancestor::LambdaExpression//Block//LocalVariableDeclaration/VariableDeclarator/VariableId/@Name)]
+    or .//AssignmentExpression/ArrayAccess/*[1][pmd-java:nodeIs('VariableAccess')]
 ]]
                 ]]></value>
             </property>
