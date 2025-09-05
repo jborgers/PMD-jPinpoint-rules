@@ -789,7 +789,7 @@ public class Foo {
 
 #### IA09
 **Observation: parallelStream which uses the ForkJoinPool::commonPool is used for blocking (I/O, remote) calls.**  
-**Problem:** The common pool is meant for processing of in-memory data. The number of threads in the common pool is equal to the number of CPU's - 1, 
+**Problem:** The common pool is meant for processing of in-memory data. The number of threads in the common pool is equal to the number of CPU's (Runtime.availableProcessors()), 
 which is suitable to keep all CPU's busy with in-memory processing.
 For I/O or other blocking calls, however, this number is typically not suitable because relatively much time is spent waiting for the response and not in CPU.
 This likely exhausts the common pool for some time thereby blocking all other use of the common pool.
@@ -859,7 +859,7 @@ class AxualProducerGood2{
 
 #### IA11
 **Observation: parallelStream which uses the ForkJoinPool::commonPool is used.**  
-**Problem:** Collection.parallelStream() and .stream().parallel() use the common pool, with #threads = #CPUs - 1. 
+**Problem:** Collection.parallelStream() and .stream().parallel() use the common pool, with #threads = #CPUs (Runtime.availableProcessors()). 
 It is designed to distribute much CPU work over the cores. 
 It is *not* meant for remote calls nor other blocking calls.
 In addition, parallelizing has overhead and risks, should only be used for much pure CPU processing.

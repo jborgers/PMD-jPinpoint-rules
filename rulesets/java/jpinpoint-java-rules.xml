@@ -3094,8 +3094,8 @@ public class FooGood {
               externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#ia09">
             <description>Problem: Blocking calls, for instance remote calls, may exhaust the common pool for some time thereby blocking all other use of the common pool.
                 In addition, nested use of the common pool can lead to deadlock. Do not use the common pool for blocking calls. The parallelStream() call uses the common pool.
-                Solution: Use a dedicated thread pool with enough threads to get proper parallelism. The number of threads in the common pool is equal to the number of CPUs - 1 and meant to utilize all of them.
-                It assumes CPU intensive non-blocking processing of in-memory data. (jpinpoint-rules)</description>
+                Solution: Use a dedicated thread pool with enough threads to get proper parallelism. The number of threads in the common pool is equal to the number of CPUs and meant to utilize all of them.
+                It assumes CPU-intensive non-blocking processing of in-memory data. (jpinpoint-rules)</description>
             <priority>1</priority>
             <properties>
                 <property name="tags" value="jpinpoint-rule,multi-threading,performance,unpredictable" type="String" description="classification"/>
@@ -3697,7 +3697,7 @@ class FooGood {
         <rule name="AvoidParallelStreamWithCommonPool" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" language="java"
               message="Beware: parallelStream with the common pool is rarely a good choice."
               externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#ia11">
-            <description>Problem: Collection.parallelStream uses the common pool, with #threads = #CPUs - 1. It is designed to distribute much CPU work over the cores. It is not designed for remote calls or other blocking calls.
+            <description>Problem: Collection.parallelStream uses the common pool, with #threads = #CPUs. It is designed to distribute much CPU work over the cores. It is not designed for remote calls or other blocking calls.
                 In addition, parallelizing has CPU overhead and concurrency risks. It should only be used for much pure CPU processing, e.g. on collections with > 10.000 elements.
                 Solution: For remote/blocking calls: Use a dedicated thread pool with enough threads to get proper parallelism independent of the number of cores.
                 For pure CPU processing: use ordinary sequential streaming unless the work takes more than about 0,1 ms in sequential form and proves to be faster with parallelization by measuring.
