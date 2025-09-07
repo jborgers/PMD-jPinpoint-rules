@@ -2469,7 +2469,7 @@ class IterationsBetter {
         </description>
         <priority>2</priority>
         <properties>
-            <property name="tags" value="jpinpoint-rule,sustainability-medium,cpu" type="String" description="classification"/>
+            <property name="tags" value="jpinpoint-rule,performance,sustainability-medium,cpu" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
 //MethodCall[
