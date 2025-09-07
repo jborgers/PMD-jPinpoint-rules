@@ -1816,14 +1816,14 @@ public class BadPerson implements Comparable<Person> {
 }
 
 public class GoodPerson implements Comparable<Person> {
-    private static final Comparator<Person> COMPARE_AGE_LAST_FIRST =
+    private static final Comparator<Person> COMPARE_FIRST_LAST_NAME_AGE =
         Comparator.comparing(Person::getFirstName)
             .thenComparing(Person::getLastName)
             .thenComparingInt(Person::getAge);
 
     @Override
     public int compareTo(@NotNull Person o) {
-        return COMPARE_AGE_LAST_FIRST.compare(this, o);     // Good: Comparator initialized once as static final field
+        return COMPARE_FIRST_LAST_NAME_AGE.compare(this, o);     // Good: Comparator initialized once as static final field
     }
 }
         ]]>

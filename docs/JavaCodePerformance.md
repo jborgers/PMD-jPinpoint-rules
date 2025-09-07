@@ -2803,7 +2803,7 @@ Example 1: Creating a new Comparator in compareTo method:
 
 ```java
 public int compareTo(Person other) {
-    return Comparator.comparing(Person::getFirstName)  // Creates new Comparator and inner lambda's each time
+    return Comparator.comparing(Person::getFirstName)  // Bad, creates a new Comparator and inner lambda's each time
             .thenComparing(Person::getLastName)
             .compare(this, other);
 }
@@ -2819,7 +2819,7 @@ private static final Comparator<Person> PERSON_COMPARATOR =
             .thenComparing(Person::getLastName);
 
 public int compareTo(Person other) {
-    return PERSON_COMPARATOR.compare(this, other);  // Reuses existing Comparator
+    return PERSON_COMPARATOR.compare(this, other);  // Good, reuses existing Comparator
 }
 ```
 
@@ -2827,12 +2827,12 @@ Example 3: Creating a new Comparator for each TreeSet:
 ```java
 public class PersonRepository {
     public Set<Person> getPersonsSortedByName() {
-        return new TreeSet<>(Comparator.comparing(Person::getName));
+        return new TreeSet<>(Comparator.comparing(Person::getName));  // Bad, creates a new Comparator and inner lambda's each time
     }
     
     public List<Person> getSortedPersons() {
         List<Person> persons = getPersons();
-        persons.sort(Comparator.comparing(Person::getName));
+        persons.sort(Comparator.comparing(Person::getName));  // Bad, creates a new Comparator and inner lambda's each time
         return persons;
     }
 }
@@ -2851,7 +2851,7 @@ public class PersonRepository {
     
     public List<Person> getSortedPersons() {
         List<Person> persons = getPersons();
-        persons.sort(PERSON_BY_NAME_COMPARATOR);
+        persons.sort(PERSON_BY_NAME_COMPARATOR);  // Good, reuses existing Comparator
         return persons;
     }
 }
