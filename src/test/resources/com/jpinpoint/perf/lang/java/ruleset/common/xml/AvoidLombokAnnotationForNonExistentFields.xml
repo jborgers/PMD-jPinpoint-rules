@@ -78,4 +78,18 @@ public class RefineTechnicalException1 extends RuntimeException {
      ]]></code>
     </test-code>
 
+    <test-code>
+        <description>Fix request: AvoidLombokAnnotationForNonExistentFields #645</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import lombok.*;
+public class Foo {
+    @Getter @Setter // <-- false positive
+    public static class Config {
+        private String marker;
+    }
+}
+     ]]></code>
+    </test-code>
+
 </test-data>
