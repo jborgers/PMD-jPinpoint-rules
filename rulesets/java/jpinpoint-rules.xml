@@ -542,7 +542,7 @@ class Good {
 //ClassDeclaration/ModifierList/Annotation
     [pmd-java:typeIs('lombok.Getter') or pmd-java:typeIs('lombok.Setter') or pmd-java:typeIs('lombok.Value') or
      pmd-java:typeIs('lombok.Data') or pmd-java:typeIs('lombok.EqualsAndHashCode')]
-    [ancestor::ClassDeclaration/ClassBody[count(FieldDeclaration) = 0]]
+    [ancestor::ClassDeclaration[1]/ClassBody[count(FieldDeclaration) = 0]]
                 ]]></value>
             </property>
         </properties>
