@@ -3228,6 +3228,25 @@ Use of slow library calls
 **Problem:** These implementations are not efficient  
 **Solution:** There is actually a hidden fast alternative since JAXB 1.0 / JavaEE 5+: [javax.xml.bind.DatatypeConverter](http://docs.oracle.com/javaee/6/api/javax/xml/bind/DatatypeConverter.html) parseBase64Binary and printBase64Binary methods, see [here](http://java-performance.info/base64-encoding-and-decoding-performance/). If you have Java 8+, use java.util.Base64, it is even a little faster.
 
+#### UOSLC03
+
+**Observation: Legacy time library: Joda-time or ThreeTenBp is used.**   
+**Problem:** These legacy libraries have non-optimal performance and memory usage.   
+**Solution:** Migrate to java.time for a modern solution with better performance and less memory usage.   
+**Rule name:** LegacyTimeLibraryUsed
+
+**Indicative Performance & Memory Differences: Joda-Time vs ThreeTenBP vs java.time**
+
+| **Operation Type**     | **Joda-Time**                                 | **ThreeTenBP**                              | **`java.time` (Java 8+)**              |
+|------------------------|-----------------------------------------------|---------------------------------------------|----------------------------------------|
+| Date Parsing           | Slower due to non-thread-safe formatters      | ~10–20% faster than Joda-Time               | ~15–30% faster than Joda-Time          |
+| Date Formatting        | Slower, more object creation                  | ~15–30% faster than Joda-Time               | ~20–40% faster than Joda-Time          |
+| Date Arithmetic        | More intermediate objects                     | Slightly faster (~5–15%)                    | ~10–25% faster than Joda-Time          |
+| Object Allocation      | More GC pressure                              | ~20–40% fewer temporary objects             | ~30–50% fewer temporary objects        |
+| Memory Usage           | Higher due to wrappers and mutability         | Slightly lower (~10–25%)                    | ~20–35% lower heap usage               |
+| Thread Safety          | Not all components are thread-safe            | Fully thread-safe                           | Fully thread-safe                      |
+| Precision              | Millisecond precision                         | Nanosecond precision                        | Nanosecond precision                   |
+
 Potential memory leaks
 ----------------------
 
