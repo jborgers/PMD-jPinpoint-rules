@@ -1836,7 +1836,7 @@ public class GoodPerson implements Comparable<Person> {
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#uoslc03">
         <description>Problem: the JodaTime and ThreeTenBp libraries have non-optimal performance and memory usage.
-            Solution: Migrate to java.time for a modern solution with better performance and less memory usage.
+            Solution: Migrate to java.time for a modern solution with better performance and less memory usage. If you are stuck on Java 6 or 7, ThreeTenBp is the best option,then suppress the violation.
         (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>

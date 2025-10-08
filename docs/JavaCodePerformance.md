@@ -3232,8 +3232,9 @@ Use of slow library calls
 
 **Observation: Legacy time library: Joda-time or ThreeTenBp is used.**   
 **Problem:** These legacy libraries have non-optimal performance and memory usage.   
-**Solution:** Migrate to java.time for a modern solution with better performance and less memory usage.   
-**Rule name:** LegacyTimeLibraryUsed
+**Solution:** Migrate to java.time for a modern solution with better performance and less memory usage. If you are stuck on Java 6 or 7, ThreeTenBp is the best option.    
+**Rule name:** LegacyTimeLibraryUsed   
+**Note:** If you use ThreeTenBp and cannot migrate because you are stuck on Java 6 or 7: suppress the violation on the import statement with //NOPMD //NOSONAR.   
 
 **Indicative Performance & Memory Differences: Joda-Time vs ThreeTenBP vs java.time**
 
@@ -3246,6 +3247,7 @@ Use of slow library calls
 | Memory Usage           | Higher due to wrappers and mutability         | Slightly lower (~10–25%)                    | ~20–35% lower heap usage               |
 | Thread Safety          | Not all components are thread-safe            | Fully thread-safe                           | Fully thread-safe                      |
 | Precision              | Millisecond precision                         | Nanosecond precision                        | Nanosecond precision                   |
+Our own benchmarks confirm the above numbers (table source: Copilot).
 
 Potential memory leaks
 ----------------------
