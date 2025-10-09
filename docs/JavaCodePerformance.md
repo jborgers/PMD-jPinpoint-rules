@@ -3238,16 +3238,15 @@ Use of slow library calls
 
 **Indicative Performance & Memory Differences: Joda-Time vs ThreeTenBP vs java.time**
 
-| **Operation Type**     | **Joda-Time**                                 | **ThreeTenBP**                              | **`java.time` (Java 8+)**              |
-|------------------------|-----------------------------------------------|---------------------------------------------|----------------------------------------|
-| Date Parsing           | Slower due to non-thread-safe formatters      | ~10–20% faster than Joda-Time               | ~15–30% faster than Joda-Time          |
-| Date Formatting        | Slower, more object creation                  | ~15–30% faster than Joda-Time               | ~20–40% faster than Joda-Time          |
-| Date Arithmetic        | More intermediate objects                     | Slightly faster (~5–15%)                    | ~10–25% faster than Joda-Time          |
-| Object Allocation      | More GC pressure                              | ~20–40% fewer temporary objects             | ~30–50% fewer temporary objects        |
-| Memory Usage           | Higher due to wrappers and mutability         | Slightly lower (~10–25%)                    | ~20–35% lower heap usage               |
-| Thread Safety          | Not all components are thread-safe            | Fully thread-safe                           | Fully thread-safe                      |
-| Precision              | Millisecond precision                         | Nanosecond precision                        | Nanosecond precision                   |
-Our own benchmarks confirm the above numbers (table source: Copilot).
+| **Operation Type**     | **ThreeTenBP**                              | **`java.time` (Java 8+)**              |
+|------------------------|---------------------------------------------|----------------------------------------|
+| Date Parsing           | ~10–20% faster than Joda-Time               | ~15–30% faster than Joda-Time          |
+| Date Formatting        | ~15–30% faster than Joda-Time               | ~20–40% faster than Joda-Time          |
+| Date Arithmetic        | Slightly faster (~5–15%)                    | ~10–25% faster than Joda-Time          |
+| Object Allocation      | ~20–40% fewer temporary objects             | ~30–50% fewer temporary objects        |
+| Memory Usage           | Slightly lower (~10–25%)                    | ~20–35% lower heap usage               |
+These numbers are just an indication and depend om the workload, machine architecture, etc. 
+Our own benchmarks do meet the above numbers (table source: Copilot).
 
 Potential memory leaks
 ----------------------
