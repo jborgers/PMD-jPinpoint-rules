@@ -3232,21 +3232,15 @@ Use of slow library calls
 
 **Observation: Legacy time library: Joda-time or ThreeTenBp is used.**   
 **Problem:** These legacy libraries have non-optimal performance and memory usage.   
-**Solution:** Migrate to java.time for a modern solution with better performance and less memory usage. If you are stuck on Java 6 or 7, ThreeTenBp is the best option.    
+**Solution:** Migrate to java.time for a modern solution with substantially better performance and less memory usage. If you are stuck on Java 6 or 7, ThreeTenBp is the best option.    
 **Rule name:** LegacyTimeLibraryUsed   
 **Note:** If you use ThreeTenBp and cannot migrate because you are stuck on Java 6 or 7: suppress the violation on the import statement with //NOPMD //NOSONAR.   
-
-**Indicative Performance & Memory Differences: Joda-Time vs ThreeTenBP vs java.time**
-
-| **Operation Type**     | **ThreeTenBP**                              | **`java.time` (Java 8+)**              |
-|------------------------|---------------------------------------------|----------------------------------------|
-| Date Parsing           | ~10–20% faster than Joda-Time               | ~15–30% faster than Joda-Time          |
-| Date Formatting        | ~15–30% faster than Joda-Time               | ~20–40% faster than Joda-Time          |
-| Date Arithmetic        | Slightly faster (~5–15%)                    | ~10–25% faster than Joda-Time          |
-| Object Allocation      | ~20–40% fewer temporary objects             | ~30–50% fewer temporary objects        |
-| Memory Usage           | Slightly lower (~10–25%)                    | ~20–35% lower heap usage               |
-These numbers are just an indication and depend om the workload, machine architecture, etc. 
-Our own benchmarks do meet the above numbers (table source: Copilot).
+**Example:**
+```java
+import org.joda.time.DateTime; // bad
+import org.threeten.bp.format.DateTimeFormatter; //bad
+import java.time.LocalDataTime; // good
+```   
 
 Potential memory leaks
 ----------------------
