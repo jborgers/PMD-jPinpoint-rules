@@ -1773,7 +1773,7 @@ class Foo {
           language="java"
           message="Avoid creating Comparator instances repeatedly. Initialize them as static final fields instead."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#UE03">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#ue03">
         <description>Problem: Creating Comparator instances repeatedly in methods like compareTo or sort calls is inefficient.&#13;
             Solution: Initialize the Comparator once as a static final field and reuse.
         (jpinpoint-rules)</description>
@@ -1826,6 +1826,34 @@ public class GoodPerson implements Comparable<Person> {
         return COMPARE_FIRST_LAST_NAME_AGE.compare(this, o);     // Good: Comparator initialized once as static final field
     }
 }
+        ]]>
+        </example>
+    </rule>
+
+    <rule name="LegacyTimeLibraryUsed"
+          language="java"
+          message="Migrate from the legacy time library to java.time for better performance."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#uoslc03">
+        <description>Problem: the JodaTime and ThreeTenBp libraries have non-optimal performance and memory usage.
+            Solution: Migrate to java.time for a modern solution with better performance and less memory usage. If you are stuck on Java 6 or 7, ThreeTenBp is the best option,then suppress the violation.
+        (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,performance,sustainability-medium,cpu,memory" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+//ImportDeclaration[starts-with(@PackageName, 'org.joda.time')][1]
+|
+//ImportDeclaration[starts-with(@PackageName, 'org.threeten.bp')][1]
+]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+import org.joda.time.DateTime; // bad
+import org.threeten.bp.format.DateTimeFormatter; //bad
+import java.time.LocalDataTime; // good
         ]]>
         </example>
     </rule>

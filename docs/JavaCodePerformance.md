@@ -3228,6 +3228,20 @@ Use of slow library calls
 **Problem:** These implementations are not efficient  
 **Solution:** There is actually a hidden fast alternative since JAXB 1.0 / JavaEE 5+: [javax.xml.bind.DatatypeConverter](http://docs.oracle.com/javaee/6/api/javax/xml/bind/DatatypeConverter.html) parseBase64Binary and printBase64Binary methods, see [here](http://java-performance.info/base64-encoding-and-decoding-performance/). If you have Java 8+, use java.util.Base64, it is even a little faster.
 
+#### UOSLC03
+
+**Observation: Legacy time library: Joda-time or ThreeTenBp is used.**   
+**Problem:** These legacy libraries have non-optimal performance and memory usage.   
+**Solution:** Migrate to java.time for a modern solution with substantially better performance and less memory usage. If you are stuck on Java 6 or 7, ThreeTenBp is the best option.    
+**Rule name:** LegacyTimeLibraryUsed   
+**Note:** If you use ThreeTenBp and cannot migrate because you are stuck on Java 6 or 7: suppress the violation on the import statement with //NOPMD //NOSONAR.   
+**Example:**
+```java
+import org.joda.time.DateTime; // bad
+import org.threeten.bp.format.DateTimeFormatter; //bad
+import java.time.LocalDataTime; // good
+```   
+
 Potential memory leaks
 ----------------------
 
