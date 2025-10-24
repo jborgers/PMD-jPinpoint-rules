@@ -748,7 +748,8 @@ or @Image = ancestor::ClassBody//MethodDeclaration[
 or ancestor::ClassBody//MethodDeclaration[
       @Name = ancestor::ClassBody//TryStatement//FinallyClause//MethodCall/@MethodName
     ]//MethodCall[@MethodName='clear' and TypeExpression/ClassType[pmd-java:typeIs('org.slf4j.MDC')]]
-(: Earlier, also consider when finally-call lookup is scoped via current method's finally: :)
+(: Note: In a previous version, we also checked if finally-clause cleanup was scoped within the current method's finally block,
+   but this was refactored to check if the method containing MDC.put is called from within a try-finally that properly removes the MDC key :)
 or @Image = ancestor::ClassBody//MethodDeclaration[
       @Name = ancestor::MethodDeclaration//TryStatement//FinallyClause//MethodCall/@MethodName
     ]//MethodCall[pmd-java:matchesSig('org.slf4j.MDC#remove(java.lang.String)')]/ArgumentList/*[1]/@Image
