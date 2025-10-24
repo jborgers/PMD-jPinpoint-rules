@@ -52,4 +52,42 @@ class FooKt3 {
 }
 ]]></code>
     </test-code>
+    
+    <test-code>
+        <description>no violation: Fix Request: MDCPutWithoutRemove false positive #653</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>23</expected-linenumbers>
+        <code><![CDATA[
+import org.slf4j.MDC
+
+class Issue653Kt {
+
+    companion object {
+        const val CODE = "code"
+    }
+
+    fun handle(detail: String, code: String): String {
+        try {
+            setMDC(code, detail)
+            return doSomething()
+        } finally {
+            clearMDC()
+        }
+    }
+
+    private fun doSomething(): String = "OK"
+
+    private fun setMDC(code: String, detail: String) {
+        MDC.put(CODE, code) // false positive
+        MDC.put("detail", detail) // false positive
+        MDC.put("forgotten", "nada") // bad, not removed
+    }
+
+    private fun clearMDC() {
+        MDC.remove(CODE)
+        MDC.remove("detail")
+    }
+}
+]]></code>
+    </test-code>
 </test-data>

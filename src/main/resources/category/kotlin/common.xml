@@ -195,12 +195,59 @@ internal object Good {
   PrimaryExpression/SimpleIdentifier/T-Identifier[@Text='MDC']
   and PostfixUnarySuffix/NavigationSuffix/SimpleIdentifier/T-Identifier[@Text='put']
 ]
-(: Report the 'put' identifier if there is no MDC.remove(..) or MDC.clear() anywhere in the same function body :)
+(: Report the 'put' identifier if there is no MDC.remove(..) or MDC.clear() in same function, nor via a method called from a finally block (Issue #653) :)
 /PostfixUnarySuffix/NavigationSuffix/SimpleIdentifier/T-Identifier[@Text='put'
-  and not(ancestor::FunctionBody//PostfixUnaryExpression[
+  and not(
+      (: same function body has direct MDC.remove/clear :)
+      ancestor::FunctionBody//PostfixUnaryExpression[
           PrimaryExpression/SimpleIdentifier/T-Identifier[@Text='MDC']
           and PostfixUnarySuffix/NavigationSuffix/SimpleIdentifier/T-Identifier[@Text=('remove','clear')]
-      ])
+      ]
+      or
+      (
+        (: put-arg text equals any remove-arg text inside a helper method that is called from a finally block in this class :)
+        ancestor::ClassDeclaration
+          //FunctionDeclaration[
+            SimpleIdentifier/T-Identifier/@Text = ancestor::ClassDeclaration//TryExpression//FinallySection//PostfixUnaryExpression[PostfixUnarySuffix/CallSuffix]//PrimaryExpression/SimpleIdentifier/T-Identifier/@Text
+          ]
+          //PostfixUnaryExpression[
+            PrimaryExpression/SimpleIdentifier/T-Identifier[@Text='MDC']
+            and PostfixUnarySuffix/NavigationSuffix/SimpleIdentifier/T-Identifier[@Text='remove']
+          ]/PostfixUnarySuffix/CallSuffix/ValueArguments/ValueArgument[1]//(SimpleIdentifier/T-Identifier|LineStringLiteral//T-LineStrText)/@Text
+        =
+        ancestor::PostfixUnaryExpression/PostfixUnarySuffix/CallSuffix/ValueArguments/ValueArgument[1]//(SimpleIdentifier/T-Identifier|LineStringLiteral//T-LineStrText)/@Text
+      )
+      or
+      (
+        (: helper method called from finally does MDC.clear() :)
+        ancestor::ClassDeclaration
+          //FunctionDeclaration[
+            SimpleIdentifier/T-Identifier/@Text = ancestor::ClassDeclaration//TryExpression//FinallySection//PostfixUnaryExpression/PostfixUnarySuffix/NavigationSuffix/SimpleIdentifier/T-Identifier/@Text
+          ]
+          //PostfixUnaryExpression[
+            PrimaryExpression/SimpleIdentifier/T-Identifier[@Text='MDC']
+            and PostfixUnarySuffix/NavigationSuffix/SimpleIdentifier/T-Identifier[@Text='clear']
+          ]
+      )
+      or
+      (
+        (: looser, anywhere in class: a remove of same key exists :)
+        ancestor::ClassDeclaration//PostfixUnaryExpression[
+           PrimaryExpression/SimpleIdentifier/T-Identifier[@Text='MDC']
+           and PostfixUnarySuffix/NavigationSuffix/SimpleIdentifier/T-Identifier[@Text='remove']
+        ]/PostfixUnarySuffix/CallSuffix/ValueArguments/ValueArgument[1]//(SimpleIdentifier/T-Identifier|LineStringLiteral//T-LineStrText)/@Text
+        =
+        ancestor::PostfixUnaryExpression/PostfixUnarySuffix/CallSuffix/ValueArguments/ValueArgument[1]//(SimpleIdentifier/T-Identifier|LineStringLiteral//T-LineStrText)/@Text
+      )
+      or
+      (
+        (: looser, anywhere in class: a clear exists :)
+        ancestor::ClassDeclaration//PostfixUnaryExpression[
+           PrimaryExpression/SimpleIdentifier/T-Identifier[@Text='MDC']
+           and PostfixUnarySuffix/NavigationSuffix/SimpleIdentifier/T-Identifier[@Text='clear']
+        ]
+      )
+  )
 ]
 ]]></value>
             </property>
