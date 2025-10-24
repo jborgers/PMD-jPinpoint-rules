@@ -734,28 +734,19 @@ public class Foo {
 //MethodCall[pmd-java:matchesSig('org.slf4j.MDC#put(java.lang.String,java.lang.String)')]/ArgumentList/*[1][self::StringLiteral or self::VariableAccess]
 [not(@Image=ancestor::MethodDeclaration//TryStatement//FinallyClause//MethodCall[pmd-java:matchesSig('org.slf4j.MDC#remove(java.lang.String)')]/ArgumentList/*[1]/@Image
 or ancestor::MethodDeclaration//TryStatement//FinallyClause//MethodCall[pmd-java:matchesSig('org.slf4j.MDC#clear()')]
-(: If finally calls a helper method that removes/clears: allow based on class-level lookup :)
+(: Helper method called from a finally block removes/clears the key — allow via class-level lookup (covers both class-level and current-method finally callers) :)
 or @Image = ancestor::ClassBody//MethodDeclaration[
-      @Name = ancestor::ClassBody//TryStatement//FinallyClause//MethodCall/@MethodName
-    ]//MethodCall[pmd-java:matchesSig('org.slf4j.MDC#remove(java.lang.String)')]/ArgumentList/*[1]/@Image
+      @Name = (ancestor::ClassBody//TryStatement//FinallyClause//MethodCall | ancestor::MethodDeclaration//TryStatement//FinallyClause//MethodCall)/@MethodName
+    ]//MethodCall[
+         pmd-java:matchesSig('org.slf4j.MDC#remove(java.lang.String)')
+         or (@MethodName='remove' and TypeExpression/ClassType[pmd-java:typeIs('org.slf4j.MDC')])
+     ]/ArgumentList/*[1]/@Image
 or ancestor::ClassBody//MethodDeclaration[
-      @Name = ancestor::ClassBody//TryStatement//FinallyClause//MethodCall/@MethodName
-    ]//MethodCall[pmd-java:matchesSig('org.slf4j.MDC#clear()')]
-(: Looser match to catch PMD resolution issues :)
-or @Image = ancestor::ClassBody//MethodDeclaration[
-      @Name = ancestor::ClassBody//TryStatement//FinallyClause//MethodCall/@MethodName
-    ]//MethodCall[@MethodName='remove' and TypeExpression/ClassType[pmd-java:typeIs('org.slf4j.MDC')]]/ArgumentList/*[1]/@Image
-or ancestor::ClassBody//MethodDeclaration[
-      @Name = ancestor::ClassBody//TryStatement//FinallyClause//MethodCall/@MethodName
-    ]//MethodCall[@MethodName='clear' and TypeExpression/ClassType[pmd-java:typeIs('org.slf4j.MDC')]]
-(: Note: In a previous version, we also checked if finally-clause cleanup was scoped within the current method's finally block,
-   but this was refactored to check if the method containing MDC.put is called from within a try-finally that properly removes the MDC key :)
-or @Image = ancestor::ClassBody//MethodDeclaration[
-      @Name = ancestor::MethodDeclaration//TryStatement//FinallyClause//MethodCall/@MethodName
-    ]//MethodCall[pmd-java:matchesSig('org.slf4j.MDC#remove(java.lang.String)')]/ArgumentList/*[1]/@Image
-or ancestor::ClassBody//MethodDeclaration[
-      @Name = ancestor::MethodDeclaration//TryStatement//FinallyClause//MethodCall/@MethodName
-    ]//MethodCall[pmd-java:matchesSig('org.slf4j.MDC#remove(java.lang.String)') or pmd-java:matchesSig('org.slf4j.MDC#clear()')]
+      @Name = (ancestor::ClassBody//TryStatement//FinallyClause//MethodCall | ancestor::MethodDeclaration//TryStatement//FinallyClause//MethodCall)/@MethodName
+    ]//MethodCall[
+         pmd-java:matchesSig('org.slf4j.MDC#clear()')
+         or (@MethodName='clear' and TypeExpression/ClassType[pmd-java:typeIs('org.slf4j.MDC')])
+     ]
 or @Image=ancestor::ClassBody//MethodDeclaration[@Name='afterCompletion' or @Name='postHandle']//MethodCall[pmd-java:matchesSig('org.slf4j.MDC#remove(java.lang.String)')]/ArgumentList/*[1]/@Image
 or ancestor::ClassBody//MethodDeclaration[@Name='afterCompletion' or @Name='postHandle']//MethodCall[pmd-java:matchesSig('org.slf4j.MDC#clear()')]
 (: Issue 326, doFinally, not sure to accept :)
