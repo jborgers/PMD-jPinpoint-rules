@@ -176,6 +176,58 @@ internal object Good {
         </example>
     </rule>
 
+    <rule name="MDCPutWithoutRemove"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          language="kotlin"
+          message="MDC put is used without remove or clear in the same function"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#IL04">
+        <description>
+            MDC values are added for logging, but no corresponding remove or clear is performed. Problem: MDC values can leak to other user transactions (requests) and log incorrect information. Solution: remove the MDC value in a finally clause or clear the MDC.
+            (jpinpoint-rules - Kotlin)
+        </description>
+        <priority>2</priority>
+        <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <property name="xpath">
+                <value><![CDATA[
+(: Select calls to MDC.put(..) :)
+//PostfixUnaryExpression[
+  PrimaryExpression/SimpleIdentifier/T-Identifier[@Text='MDC']
+  and PostfixUnarySuffix/NavigationSuffix/SimpleIdentifier/T-Identifier[@Text='put']
+]
+(: Report the 'put' identifier if there is no MDC.remove(..) or MDC.clear() anywhere in the same function body :)
+/PostfixUnarySuffix/NavigationSuffix/SimpleIdentifier/T-Identifier[@Text='put'
+  and not(ancestor::FunctionBody//PostfixUnaryExpression[
+          PrimaryExpression/SimpleIdentifier/T-Identifier[@Text='MDC']
+          and PostfixUnarySuffix/NavigationSuffix/SimpleIdentifier/T-Identifier[@Text=('remove','clear')]
+      ])
+]
+]]></value>
+            </property>
+        </properties>
+        <example><![CDATA[
+import org.slf4j.MDC
+
+class BadKotlinMdc {
+    fun bad() {
+        MDC.put("levelKey1", "levelName1") // bad, not removed or cleared
+        MDC.put("levelKey2", "levelName2") // bad, not removed or cleared
+    }
+}
+
+class GoodKotlinMdc {
+    fun good() {
+        try {
+            MDC.put("levelKey1", "levelName1")
+            MDC.put("levelKey2", "levelName2")
+        } finally {
+            MDC.clear()
+        }
+    }
+}
+        ]]></example>
+    </rule>
+
     <rule name="AvoidRecompilingXPathExpression" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           language="kotlin"
           message="XPathExpression is created and compiled every time. Beware it is thread-unsafe."

@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>violation: MDC put without remove/clear in same function</description>
+        <expected-problems>2</expected-problems>
+        <expected-linenumbers>5,6</expected-linenumbers>
+        <code><![CDATA[
+import org.slf4j.MDC
+
+class FooKt1 {
+    fun bad() {
+        MDC.put("levelKey1", "levelName1") // violation
+        MDC.put("levelKey2", "levelName2") // violation
+    }
+}
+]]></code>
+    </test-code>
+
+    <test-code>
+        <description>no violation: MDC put with clear in finally</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import org.slf4j.MDC
+
+class FooKt2 {
+    fun good() {
+        try {
+            MDC.put("levelKey1", "levelName1")
+            MDC.put("levelKey2", "levelName2")
+        } finally {
+            MDC.clear()
+        }
+    }
+}
+]]></code>
+    </test-code>
+
+    <test-code>
+        <description>no violation: MDC put with remove in same function</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import org.slf4j.MDC
+
+class FooKt3 {
+    fun good() {
+        MDC.put("levelKey1", "levelName1")
+        MDC.remove("levelKey1")
+    }
+}
+]]></code>
+    </test-code>
+</test-data>
