@@ -190,6 +190,9 @@ internal object Good {
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="xpath">
                 <value><![CDATA[
+(: Only consider files that import org.slf4j.MDC :)
+//ImportHeader[.//T-Identifier[@Text='org'] and .//T-Identifier[@Text='slf4j'] and .//T-Identifier[@Text='MDC']][1]/ancestor::KotlinFile
+
 (: Select calls to MDC.put(..) :)
 //PostfixUnaryExpression[
   PrimaryExpression/SimpleIdentifier/T-Identifier[@Text='MDC']

@@ -90,4 +90,23 @@ class Issue653Kt {
 }
 ]]></code>
     </test-code>
+    
+    <test-code>
+        <description>no violation: Should not match when org.slf4j.MDC is not imported (shadowed/local MDC)</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+// Note: no import of org.slf4j.MDC here
+
+object MDC {
+    fun put(key: String, value: String) {}
+    fun remove(key: String) {}
+}
+
+class LocalMdcShadowingTest {
+    fun badLookingButLocal() {
+        MDC.put("k1", "v1") // should not be flagged, not org.slf4j.MDC
+    }
+}
+]]></code>
+    </test-code>
 </test-data>
