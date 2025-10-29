@@ -675,12 +675,12 @@ class FooGood {
 
     <rule name="HttpClientBuilderWithoutPoolSize"
           language="kotlin"
-          message="HttpClient builder is used and the connection pool is not configured. Defaults are probably not right."
+          message="HttpClient builder v4/v5 is used and the connection pool is not configured: defaults of 2/5 per route and 20/25 max total are probably not right (for v4/v5)."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#ibi03">
         <description>
-            Problem: Apache HttpClient has low default pool sizes (v4: 2 per route, 20 total; v5: 5 per route, 25 total) which can cause contention under concurrency.
-            Solution: Explicitly configure pool sizes. Either set a connection manager and configure it with setMaxTotal and setDefaultMaxPerRoute, or call setMaxConnTotal and setMaxConnPerRoute on the client builder. (jpinpoint-rules)
+            Problem: Apache HttpClient has low default pool sizes (v4: 2 per route, 20 total; v5: 5 per route, 25 total) which can cause contention under concurrency.&#13;
+            Solution: Explicitly configure pool sizes. Either set a connection manager and configure it with setMaxTotal and setDefaultMaxPerRoute, or call setMaxConnTotal and setMaxConnPerRoute on the client builder (v4 only). (jpinpoint-rules)
         (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>

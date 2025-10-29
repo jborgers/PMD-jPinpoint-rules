@@ -5932,7 +5932,7 @@ class Good {
     <rule name="HttpClientBuilderWithoutPoolSize"
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           language="java"
-          message="HttpClient builder is used and the connection pool is not configured. HttpClient 5 defaults of 5 per route and 25 max total are probably not right (2 and 20 for HttpClient 4)."
+          message="HttpClient builder v4/v5 is used and the connection pool is not configured: defaults of 2/5 per route and 20/25 max total are probably not right (for v4/v5)."
           externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#ibi03">
         <description>Problem: in Apache HttpClient v4 by default only 2 connections are available per route (and 20 max total).
             When two external calls are being made to the same host, a third thread requesting a connection to that host must wait for a free connection.
