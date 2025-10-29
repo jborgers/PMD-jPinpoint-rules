@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>violation: returning HttpClient without pool sizes set</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>3</expected-linenumbers>
+        <code><![CDATA[
+class Bad {
+    fun bad(conMgr: Any?): HttpClient {
+        return HttpClientBuilder.create() // bad, missing setMaxConnPerRoute and setMaxConnTotal
+            .build()
+    }
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>no violation: returning HttpClient with Conn Mgr set</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+class Good {
+    fun good(conMgr: Any?): HttpClient {
+        return HttpClientBuilder.create()
+            .setConnectionManager(conMgr) // delegated to conMgr
+            .build()
+    }
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>no violation: returning HttpClient with pool sizes set</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+class Good2 {
+    fun good(conMgr: Any?): HttpClient {
+        return HttpClients.custom()
+            .setMaxConnPerRoute(MAX_CONNECTIONS_PER_ROUTE)
+            .setMaxConnTotal(MAX_CONNECTIONS_TOTAL)
+            .build()
+    }
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>violation: HttpClient local built without pool sizes set (custom)</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>3</expected-linenumbers>
+        <code><![CDATA[
+internal class Bad2 {
+    fun bad(conMgr: Any?): CloseableHttpClient {
+        val httpClientBuilder = HttpClients.custom() // bad
+            //.setConnectionManager(null)
+        return httpClientBuilder.build()
+    }
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>violation: PoolingHttpClientConnectionManager without sizes</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>2</expected-linenumbers>
+        <code><![CDATA[
+class BadMgr {
+    fun connectionManager(): PoolingHttpClientConnectionManager {
+        val cm = PoolingHttpClientConnectionManager() // bad
+        return cm
+    }
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>no violation: PoolingHttpClientConnectionManager with sizes</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+class GoodMgr {
+    fun connectionManager(): PoolingHttpClientConnectionManager {
+        val cm = PoolingHttpClientConnectionManager()
+        cm.setMaxTotal(100)
+        cm.setDefaultMaxPerRoute(50)
+        return cm
+    }
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>violation: PoolingAsyncClientConnectionManager without sizes (HttpClient5 async)</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>2</expected-linenumbers>
+        <code><![CDATA[
+class BadMgr5Async {
+    fun connectionManager(): PoolingAsyncClientConnectionManager {
+        val cm = PoolingAsyncClientConnectionManager() // bad
+        return cm
+    }
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>no violation: PoolingAsyncClientConnectionManager with sizes (HttpClient5 async)</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+class GoodMgr5Async {
+    fun connectionManager(): PoolingAsyncClientConnectionManager {
+        val cm = PoolingAsyncClientConnectionManager()
+        cm.setMaxTotal(100)
+        cm.setDefaultMaxPerRoute(50)
+        return cm
+    }
+}
+     ]]></code>
+    </test-code>
+</test-data>
