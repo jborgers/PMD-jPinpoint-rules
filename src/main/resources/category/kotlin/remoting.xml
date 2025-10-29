@@ -117,7 +117,10 @@
 ][1]/ancestor::KotlinFile
 //FunctionDeclaration//TypeReference//SimpleIdentifier/T-Identifier[@Text='PoolingHttpClientConnectionManager' or @Text='PoolingAsyncClientConnectionManager']
 [
-  ancestor::FunctionDeclaration[not(.//SimpleIdentifier/T-Identifier[@Text='setMaxTotal'] and .//SimpleIdentifier/T-Identifier[@Text='setDefaultMaxPerRoute'])]
+  ancestor::FunctionDeclaration[
+    not(.//SimpleIdentifier/T-Identifier[@Text='setMaxTotal'] and .//SimpleIdentifier/T-Identifier[@Text='setDefaultMaxPerRoute'])
+    and not(ancestor::ClassBody//FunctionDeclaration[.//SimpleIdentifier/T-Identifier[@Text='setMaxTotal'] and .//SimpleIdentifier/T-Identifier[@Text='setDefaultMaxPerRoute']])
+  ]
 ]
                 ]]></value>
             </property>
