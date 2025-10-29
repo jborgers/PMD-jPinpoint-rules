@@ -6,8 +6,11 @@
     <test-code>
         <description>violation: returning HttpClient without pool sizes set</description>
         <expected-problems>1</expected-problems>
-        <expected-linenumbers>3</expected-linenumbers>
+        <expected-linenumbers>6</expected-linenumbers>
         <code><![CDATA[
+import org.apache.http.client.HttpClient
+import org.apache.http.impl.client.HttpClientBuilder
+
 class Bad {
     fun bad(conMgr: Any?): HttpClient {
         return HttpClientBuilder.create() // bad, missing setMaxConnPerRoute and setMaxConnTotal
@@ -21,6 +24,9 @@ class Bad {
         <description>no violation: returning HttpClient with Conn Mgr set</description>
         <expected-problems>0</expected-problems>
         <code><![CDATA[
+import org.apache.http.client.HttpClient
+import org.apache.http.impl.client.HttpClientBuilder
+
 class Good {
     fun good(conMgr: Any?): HttpClient {
         return HttpClientBuilder.create()
@@ -35,6 +41,9 @@ class Good {
         <description>no violation: returning HttpClient with pool sizes set</description>
         <expected-problems>0</expected-problems>
         <code><![CDATA[
+import org.apache.http.client.HttpClient
+import org.apache.http.impl.client.HttpClients
+
 class Good2 {
     fun good(conMgr: Any?): HttpClient {
         return HttpClients.custom()
@@ -49,8 +58,11 @@ class Good2 {
     <test-code>
         <description>violation: HttpClient local built without pool sizes set (custom)</description>
         <expected-problems>1</expected-problems>
-        <expected-linenumbers>3</expected-linenumbers>
+        <expected-linenumbers>6</expected-linenumbers>
         <code><![CDATA[
+import org.apache.http.impl.client.CloseableHttpClient
+import org.apache.http.impl.client.HttpClients
+
 internal class Bad2 {
     fun bad(conMgr: Any?): CloseableHttpClient {
         val httpClientBuilder = HttpClients.custom() // bad
@@ -64,8 +76,10 @@ internal class Bad2 {
     <test-code>
         <description>violation: PoolingHttpClientConnectionManager without sizes</description>
         <expected-problems>1</expected-problems>
-        <expected-linenumbers>2</expected-linenumbers>
+        <expected-linenumbers>4</expected-linenumbers>
         <code><![CDATA[
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager
+
 class BadMgr {
     fun connectionManager(): PoolingHttpClientConnectionManager {
         val cm = PoolingHttpClientConnectionManager() // bad
@@ -93,8 +107,10 @@ class GoodMgr {
     <test-code>
         <description>violation: PoolingAsyncClientConnectionManager without sizes (HttpClient5 async)</description>
         <expected-problems>1</expected-problems>
-        <expected-linenumbers>2</expected-linenumbers>
+        <expected-linenumbers>4</expected-linenumbers>
         <code><![CDATA[
+import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManager
+
 class BadMgr5Async {
     fun connectionManager(): PoolingAsyncClientConnectionManager {
         val cm = PoolingAsyncClientConnectionManager() // bad

@@ -79,7 +79,12 @@
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="xpath">
                 <value><![CDATA[
-(: builders used without either setConnectionManager or both setMaxConnTotal and setMaxConnPerRoute :)
+(: check if Apache HttpClient v4 or v5 imports exist to avoid name clashes :)
+//ImportHeader[
+  (.//T-Identifier[@Text='org'] and .//T-Identifier[@Text='apache'] and .//T-Identifier[@Text='http'])
+  or
+  (.//T-Identifier[@Text='org'] and .//T-Identifier[@Text='apache'] and .//T-Identifier[@Text='hc'] and .//T-Identifier[@Text='client5'])
+][1]/ancestor::KotlinFile
 //PostfixUnarySuffix//SimpleIdentifier/T-Identifier[
   @Text='custom' and ancestor::PostfixUnaryExpression/PrimaryExpression/SimpleIdentifier/T-Identifier/@Text='HttpClients'
 ][
@@ -89,7 +94,12 @@
     )
   ]
 ]
-,
+|
+//ImportHeader[
+  (.//T-Identifier[@Text='org'] and .//T-Identifier[@Text='apache'] and .//T-Identifier[@Text='http'])
+  or
+  (.//T-Identifier[@Text='org'] and .//T-Identifier[@Text='apache'] and .//T-Identifier[@Text='hc'] and .//T-Identifier[@Text='client5'])
+][1]/ancestor::KotlinFile
 //PostfixUnarySuffix//SimpleIdentifier/T-Identifier[
   @Text='create' and ancestor::PostfixUnaryExpression/PrimaryExpression/SimpleIdentifier/T-Identifier[@Text='HttpClientBuilder' or @Text='HttpAsyncClientBuilder']
 ][
@@ -99,8 +109,12 @@
     )
   ]
 ]
-,
-(: Pool managers used without setMaxTotal and setDefaultMaxPerRoute :)
+|
+//ImportHeader[
+  (.//T-Identifier[@Text='org'] and .//T-Identifier[@Text='apache'] and .//T-Identifier[@Text='http'])
+  or
+  (.//T-Identifier[@Text='org'] and .//T-Identifier[@Text='apache'] and .//T-Identifier[@Text='hc'] and .//T-Identifier[@Text='client5'])
+][1]/ancestor::KotlinFile
 //FunctionDeclaration//TypeReference//SimpleIdentifier/T-Identifier[@Text='PoolingHttpClientConnectionManager' or @Text='PoolingAsyncClientConnectionManager']
 [
   ancestor::FunctionDeclaration[not(.//SimpleIdentifier/T-Identifier[@Text='setMaxTotal'] and .//SimpleIdentifier/T-Identifier[@Text='setDefaultMaxPerRoute'])]
