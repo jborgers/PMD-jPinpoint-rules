@@ -247,15 +247,15 @@ class Good {
           language="java"
           message="HttpClient builder is used and the connection pool is not configured. HttpClient 5 defaults of 5 per route and 25 max total are probably not right (2 and 20 for HttpClient 4)."
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi03">
-        <description>Problem: in Apache HttpClient 4 by default only 2 connections are available per route (and 20 max total).
+        <description>Problem: in Apache HttpClient v4 by default only 2 connections are available per route (and 20 max total).
             When two external calls are being made to the same host, a third thread requesting a connection to that host must wait for a free connection.
-            In Apache HttpClient 5 there are 5 connections per route and 25 max total, so when 5 parallel connections are in use to one remote host
+            In HttpClient v5 there are 5 connections per route and 25 max total, so when 5 parallel connections are in use to one remote host
             there is extra wait time for the next connection request.&#13;
             Solution: HttpClients should explicitly define the number of connections per route. If only one route is
             used, make the max number of connections equal to conn per route.
             Solution:
             1. use setConnectionManager and call setMaxTotal and setDefaultMaxPerRoute on that connection manager, or
-            2. use no ConnectionManager, call setMaxConnTotal and setMaxConnPerRoute on the client directly.
+            2. use no ConnectionManager, call setMaxConnTotal and setMaxConnPerRoute on the client directly (v4 only).
             (jpinpoint-rules)
         </description>
         <priority>2</priority>
