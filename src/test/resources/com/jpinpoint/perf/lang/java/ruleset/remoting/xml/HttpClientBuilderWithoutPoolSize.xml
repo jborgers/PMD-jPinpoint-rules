@@ -447,10 +447,6 @@ import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
-import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
-import org.apache.hc.client5.http.ssl.TlsSocketStrategy;
-import org.apache.hc.core5.http.HttpHeaders;
-import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.util.TimeValue;
 import org.apache.hc.core5.util.Timeout;
 import org.springframework.context.annotation.Bean;
@@ -490,6 +486,57 @@ public class AppConfig {
                 .build();
 
             return connectionManager;
+    }
+}
+       ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>no violation: set sizes called on manager builder direclty instead of on connection manager</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import lombok.extern.slf4j.Slf4j;
+
+import org.apache.hc.client5.http.config.ConnectionConfig;
+import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
+import org.apache.hc.core5.util.TimeValue;
+import org.apache.hc.core5.util.Timeout;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+import java.util.List;
+
+@Slf4j
+@Configuration
+public class AppConfig {
+    @Bean
+    public CloseableHttpClient httpClient5minimalOtherWithMethodCall() {
+
+        ConnectionConfig connectionConfig = ConnectionConfig.custom()
+                .setTimeToLive(TimeValue.ofSeconds(60)) // TTL for persistent connections
+                .setConnectTimeout(Timeout.ofMilliseconds(300))
+                .build();
+
+        // Build connection manager with TLS strategy from SSL bundle
+        PoolingHttpClientConnectionManager connectionManager = createConnectionManagerWithMtlsMinimalOther(connectionConfig);
+
+        return HttpClients.custom().setConnectionManager(connectionManager).build();
+    }
+
+    private static PoolingHttpClientConnectionManager createConnectionManagerWithMtlsMinimalOther(ConnectionConfig connectionConfig) {
+        PoolingHttpClientConnectionManager connectionManager;
+
+        connectionManager = PoolingHttpClientConnectionManagerBuilder.create()
+                .setDefaultConnectionConfig(connectionConfig)
+                .setMaxConnPerRoute(10)
+                .setMaxConnTotal(50)
+                .build();
+
+        return connectionManager;
     }
 }
        ]]></code>
