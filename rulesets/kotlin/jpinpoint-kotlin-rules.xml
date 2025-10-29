@@ -726,8 +726,22 @@ class FooGood {
 //FunctionDeclaration//TypeReference//SimpleIdentifier/T-Identifier[@Text='PoolingHttpClientConnectionManager' or @Text='PoolingAsyncClientConnectionManager']
 [
   ancestor::FunctionDeclaration[
-    not(.//SimpleIdentifier/T-Identifier[@Text='setMaxTotal'] and .//SimpleIdentifier/T-Identifier[@Text='setDefaultMaxPerRoute'])
-    and not(ancestor::ClassBody//FunctionDeclaration[.//SimpleIdentifier/T-Identifier[@Text='setMaxTotal'] and .//SimpleIdentifier/T-Identifier[@Text='setDefaultMaxPerRoute']])
+    not(
+      (.//SimpleIdentifier/T-Identifier[@Text='setMaxTotal'] and .//SimpleIdentifier/T-Identifier[@Text='setDefaultMaxPerRoute'])
+      or (
+        (.//SimpleIdentifier/T-Identifier[@Text='setMaxConnTotal'] and .//SimpleIdentifier/T-Identifier[@Text='setMaxConnPerRoute'])
+        and .//SimpleIdentifier/T-Identifier[@Text='PoolingHttpClientConnectionManagerBuilder']
+      )
+    )
+    and not(
+      ancestor::ClassBody//FunctionDeclaration[
+        (.//SimpleIdentifier/T-Identifier[@Text='setMaxTotal'] and .//SimpleIdentifier/T-Identifier[@Text='setDefaultMaxPerRoute'])
+        or (
+          (.//SimpleIdentifier/T-Identifier[@Text='setMaxConnTotal'] and .//SimpleIdentifier/T-Identifier[@Text='setMaxConnPerRoute'])
+          and .//SimpleIdentifier/T-Identifier[@Text='PoolingHttpClientConnectionManagerBuilder']
+        )
+      ]
+    )
   ]
 ]
                 ]]></value>

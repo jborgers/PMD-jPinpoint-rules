@@ -5983,8 +5983,22 @@ class Good {
     /(Block|FormalParameters)//ClassType[pmd-java:typeIs('org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager')]
 [
     ancestor::MethodDeclaration[
-        not(.//MethodCall[@MethodName='setMaxTotal'] and .//MethodCall[@MethodName='setDefaultMaxPerRoute'])
-        and not(ancestor::ClassBody//MethodDeclaration[.//MethodCall[@MethodName='setMaxTotal'] and .//MethodCall[@MethodName='setDefaultMaxPerRoute']])
+        not(
+            (.//MethodCall[@MethodName='setMaxTotal'] and .//MethodCall[@MethodName='setDefaultMaxPerRoute'])
+            or (
+                (.//MethodCall[@MethodName='setMaxConnTotal'] and .//MethodCall[@MethodName='setMaxConnPerRoute'])
+                and .//(TypeExpression|ClassType|VariableAccess)[pmd-java:typeIs('org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder')]
+            )
+        )
+        and not(
+            ancestor::ClassBody//MethodDeclaration[
+                (.//MethodCall[@MethodName='setMaxTotal'] and .//MethodCall[@MethodName='setDefaultMaxPerRoute'])
+                or (
+                    (.//MethodCall[@MethodName='setMaxConnTotal'] and .//MethodCall[@MethodName='setMaxConnPerRoute'])
+                    and .//(TypeExpression|ClassType|VariableAccess)[pmd-java:typeIs('org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder')]
+                )
+            ]
+        )
     ]
 ]
 ,
@@ -5992,8 +6006,22 @@ class Good {
     [ArgumentList//VariableAccess[pmd-java:typeIs('org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager')]]
 [
     ancestor::MethodDeclaration[
-        not(.//MethodCall[@MethodName='setDefaultMaxPerRoute'])
-        and not(ancestor::ClassBody//MethodDeclaration[.//MethodCall[@MethodName='setDefaultMaxPerRoute'] and .//MethodCall[@MethodName='setMaxTotal']])
+        not(
+            .//MethodCall[@MethodName='setDefaultMaxPerRoute']
+            or (
+                (.//MethodCall[@MethodName='setMaxConnTotal'] and .//MethodCall[@MethodName='setMaxConnPerRoute'])
+                and .//(TypeExpression|ClassType|VariableAccess)[pmd-java:typeIs('org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder')]
+            )
+        )
+        and not(
+            ancestor::ClassBody//MethodDeclaration[
+                (.//MethodCall[@MethodName='setDefaultMaxPerRoute'] and .//MethodCall[@MethodName='setMaxTotal'])
+                or (
+                    (.//MethodCall[@MethodName='setMaxConnTotal'] and .//MethodCall[@MethodName='setMaxConnPerRoute'])
+                    and .//(TypeExpression|ClassType|VariableAccess)[pmd-java:typeIs('org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder')]
+                )
+            ]
+        )
     ]
 ]
 ,
