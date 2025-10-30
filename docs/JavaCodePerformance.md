@@ -642,7 +642,7 @@ class ValidatingClientHttpRequestInterceptorGoodExample implements ClientHttpReq
 Improper asynchrony
 -------------------
 
-This categry could be seen as a subcategory of the previous category. However, above mostly deals with remote connections, asynchony mostly deals with threading and parallelism.
+This categry could be seen as a subcategory of the previous category. However, above mostly deals with remote connections, asynchrony mostly deals with threading and parallelism.
 We assume asynchronous calls are typically made to remote services. 
 
 #### IA01
