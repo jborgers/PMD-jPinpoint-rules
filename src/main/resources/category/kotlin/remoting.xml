@@ -67,12 +67,21 @@
 
     <rule name="HttpClientBuilderWithoutPoolSize"
           language="kotlin"
-          message="HttpClient builder v4/v5 is used and the connection pool is not configured: defaults of 2/5 per route and 20/25 max total are probably not right (for v4/v5)."
+          message="HttpClient builder version 4, or version 5, is used and the connection pool is not configured: defaults per route (2 and 5 respectively) and max total (20 and 25 respectively) are probably not right."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi03">
         <description>
-            Problem: Apache HttpClient has low default pool sizes (v4: 2 per route, 20 total; v5: 5 per route, 25 total) which can cause contention under concurrency.&#13;
-            Solution: Explicitly configure pool sizes. Either set a connection manager and configure it with setMaxTotal and setDefaultMaxPerRoute, or call setMaxConnTotal and setMaxConnPerRoute on the client builder (v4 only). (jpinpoint-rules)
+            Problem: in Apache HttpClient v4 by default only 2 connections are available per route (and 20 max total).
+            When two external calls are being made to the same host, a third thread requesting a connection to that host
+            must wait for a free connection.
+            In HttpClient v5 by default only 5 connections are available per route (and 25 max total).
+            When five external calls are being made to the same host, a sixth thread requesting a connection to that host
+            must wait for a free connection.&#13;
+            Solution: HttpClients should explicitly define the number of connections per route. If only one route is
+            used, make the max number of connections equal to conn per route.
+            Solution:
+            1. use setConnectionManager and call setMaxTotal and setDefaultMaxPerRoute on that connection manager, or
+            2. use no ConnectionManager, call setMaxConnTotal and setMaxConnPerRoute on the client directly (v4 only).
         </description>
         <priority>2</priority>
         <properties>
@@ -154,18 +163,6 @@ fun goodWithSizes(): HttpClient =
         .setMaxConnPerRoute(MAX_CONNECTIONS)
         .setMaxConnTotal(MAX_CONNECTIONS)
         .build()
-
-fun mgrBad(): PoolingHttpClientConnectionManager {
-    val cm = PoolingHttpClientConnectionManager() // bad, missing setMaxTotal/setDefaultMaxPerRoute
-    return cm
-}
-
-fun mgrGood(): PoolingHttpClientConnectionManager {
-    val cm = PoolingHttpClientConnectionManager()
-    cm.setMaxTotal(200)
-    cm.setDefaultMaxPerRoute(100)
-    return cm
-}
 ]]></example>
     </rule>
 
