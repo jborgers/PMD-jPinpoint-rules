@@ -293,4 +293,42 @@ public class MDCServiceCallAspect {
 }
      ]]></code>
     </test-code>
+
+    <test-code>
+        <description>no violation: Fix Request: MDCPutWithoutRemove false positive #653</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>23</expected-linenumbers>
+        <code><![CDATA[
+import org.slf4j.MDC;
+
+class Issue653 {
+
+    public final static String CODE = "code";
+
+    public String handle(String detail, String code) {
+        try {
+            setMDC(code, detail);
+            return doSomething();
+        } finally {
+            clearMDC();
+        }
+    }
+
+    private String doSomething() {
+        return "OK";
+    }
+
+    private void setMDC(String code, String detail) {
+        MDC.put(CODE, code); // false positive
+        MDC.put("detail", detail); // false positive
+        MDC.put("forgotten", "nada"); // bad, not removed
+    }
+
+    private void clearMDC() {
+        MDC.remove(CODE);
+        MDC.remove("detail");
+    }
+}
+     ]]></code>
+    </test-code>
 </test-data>
