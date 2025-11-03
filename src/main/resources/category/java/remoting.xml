@@ -362,7 +362,7 @@ return HttpClientBuilder.create() // good
     <rule name="HttpClientBuilderWithoutTimeouts"
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           language="java"
-          message="HttpClient-v4 builder is used and not all three timeouts are configured. The defaults are probably not optimal (e.g. infinite). "
+          message="HttpClient builder is used and not all three timeouts are configured. The defaults are probably not optimal (e.g. infinite). "
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#IBI10">
         <description>Problem: (Apache client version 4) For connectionRequestTimeout, connectTimeout, socketTimeout (for
             HttpComponentsClientHttpRequestFactory) or readTimeout (for RequestConfig) the default timeout settings are
@@ -395,6 +395,22 @@ return HttpClientBuilder.create() // good
 //MethodDeclaration//MethodCall/(TypeExpression|VariableAccess)[pmd-java:typeIs('org.apache.http.client.config.RequestConfig')]
     [ancestor::MethodDeclaration//MethodCall[@MethodName='custom']]
     [ancestor::MethodDeclaration[count(.//MethodCall[@MethodName=('setConnectionRequestTimeout','setConnectTimeout','setSocketTimeout')]) != 3]]
+,
+//MethodDeclaration//MethodCall[(TypeExpression|VariableAccess)[pmd-java:typeIs('org.apache.hc.client5.http.config.RequestConfig')]]
+    [@MethodName='custom']
+    [ancestor::MethodDeclaration[count(.//MethodCall[@MethodName=('setConnectionRequestTimeout','setResponseTimeout')]) != 2]]
+,
+//MethodDeclaration//MethodCall[(TypeExpression|VariableAccess)[pmd-java:typeIs('org.apache.hc.client5.http.config.ConnectionConfig')]]
+    [@MethodName='custom']
+    [ancestor::MethodDeclaration[count(.//MethodCall[@MethodName='setConnectTimeout']) = 0]]
+,
+//MethodDeclaration//MethodCall[@MethodName='create']
+    [(TypeExpression|VariableAccess)[pmd-java:typeIs('org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder')]]
+    [ancestor::MethodDeclaration[count(.//MethodCall[@MethodName='setDefaultConnectionConfig']) = 0]]
+,
+//MethodDeclaration//MethodCall[@MethodName='custom']
+    [(TypeExpression|VariableAccess)[pmd-java:typeIs('org.apache.hc.client5.http.impl.classic.HttpClients')]]
+    [ancestor::MethodDeclaration[count(.//MethodCall[@MethodName=('setDefaultRequestConfig','setConnectionManager')]) != 2]]
 ,
 (: only client v4 :)
 //ImportDeclaration[starts-with(@PackageName, 'org.apache.http.')]/..

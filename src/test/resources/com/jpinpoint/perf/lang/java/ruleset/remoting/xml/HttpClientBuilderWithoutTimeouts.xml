@@ -475,4 +475,112 @@ class Issue402 {
      ]]></code>
     </test-code>
 
+    <test-code>
+        <description>no violation: use of Apache HttpClient v5 with all timeouts set</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import org.apache.hc.client5.http.config.ConnectionConfig;
+import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
+
+class Good {
+    public CloseableHttpClient good() {
+
+        ConnectionConfig connectionConfig = ConnectionConfig.custom()
+            .setConnectTimeout(Timeout.ofMilliseconds(300)) // BAD: call missing
+            .build();
+
+        PoolingHttpClientConnectionManager connectionManager = PoolingHttpClientConnectionManagerBuilder.create()
+            .setDefaultConnectionConfig(connectionConfig)
+            .build();
+
+        RequestConfig requestConfig = RequestConfig.custom()
+                .setConnectionRequestTimeout(Timeout.ofMilliseconds(100)) // BAD: call missing
+                .setResponseTimeout(Timeout.ofMilliseconds(1200)) // BAD: call missing
+                .build();
+
+        return HttpClients.custom()
+            .setDefaultRequestConfig(requestConfig) // good, all timeouts set, if missing > default timeouts?
+            .setConnectionManager(connectionManager)
+            .build();
+    }
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>violation: use of Apache HttpClient v5 Builder, not all timeouts set</description>
+        <expected-problems>4</expected-problems>
+        <expected-linenumbers>10,14,18,23</expected-linenumbers>
+        <code><![CDATA[
+import org.apache.hc.client5.http.config.ConnectionConfig;
+import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
+
+class Bad {
+    public CloseableHttpClient bad() {
+        ConnectionConfig connectionConfig = ConnectionConfig.custom()
+            //.setConnectTimeout(Timeout.ofMilliseconds(300)) // BAD: call missing
+            .build();
+
+        PoolingHttpClientConnectionManager connectionManager = PoolingHttpClientConnectionManagerBuilder.create()
+            //.setDefaultConnectionConfig(connectionConfig) // BAD: no override connection config (for connect timeout)
+            .build();
+
+        RequestConfig requestConfig = RequestConfig.custom()
+                //.setConnectionRequestTimeout(Timeout.ofMilliseconds(100)) // BAD: call missing
+                //.setResponseTimeout(Timeout.ofMilliseconds(1200)) // BAD: call missing
+                .build();
+
+        return HttpClients.custom()
+            //.setDefaultRequestConfig(requestConfig) // BAD: no override request config (for connection request and response timeout)
+            //.setConnectionManager(connectionManager) // BAD: no override connection manager (for connect timeout)
+            .build();
+    }
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>violation: use of Apache HttpClient v5 Builder, all overrides should be called</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>23</expected-linenumbers>
+        <code><![CDATA[
+import org.apache.hc.client5.http.config.ConnectionConfig;
+import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
+
+class Bad {
+    public CloseableHttpClient bad() {
+        ConnectionConfig connectionConfig = ConnectionConfig.custom()
+            .setConnectTimeout(Timeout.ofMilliseconds(300))
+            .build();
+
+        PoolingHttpClientConnectionManager connectionManager = PoolingHttpClientConnectionManagerBuilder.create()
+            .setDefaultConnectionConfig(connectionConfig)
+            .build();
+
+        RequestConfig requestConfig = RequestConfig.custom()
+                .setConnectionRequestTimeout(Timeout.ofMilliseconds(100))
+                .setResponseTimeout(Timeout.ofMilliseconds(1200))
+                .build();
+
+        return HttpClients.custom()
+            .setDefaultRequestConfig(requestConfig)
+            //.setConnectionManager(connectionManager) // BAD: no override connection manager (for connect timeout)
+            .build();
+    }
+}
+     ]]></code>
+    </test-code>
+
 </test-data>
