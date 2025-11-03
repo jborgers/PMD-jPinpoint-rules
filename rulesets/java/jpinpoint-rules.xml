@@ -5957,8 +5957,8 @@ class Good {
           language="java"
           message="HttpClient builder connection pool is not configured."
           externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#ibi03">
-        <description>Problem: in Apache HttpClient v4 by default only 2 connections are available per route (and 20 max total).
-            When the [default max connections per route] external calls are being made to the same host,
+        <description>
+            Problem: when the [default max connections per route] external calls are being made to the same host,
             the next thread requesting a connection to that host must wait for a free connection.
             For Apache HttpClient v4, this default = 2 and for v5 this default = 5, often too low.
             Max total connections are 20 and 25 respectively.&#13;
