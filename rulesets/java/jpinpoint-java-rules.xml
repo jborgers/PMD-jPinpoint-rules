@@ -4714,8 +4714,13 @@ class Good {
               @ConstValue = ancestor::ClassBody[1]/FieldDeclaration/VariableDeclarator/VariableId/@Name]
            ]/VariableDeclarator/VariableId/@Name
     (: and *IS NOT* in a synchronized block with the GuardedBy literal:)
-    and not(ancestor::SynchronizedStatement/VariableAccess/@Name =
-       ancestor::ClassBody[1]/FieldDeclaration[ModifierList/Annotation[@SimpleName='GuardedBy']]//MemberValuePair/StringLiteral/@ConstValue)
+    (: and *IS NOT* with lock.lock() and try statement with assignment/access and lock.unlock in finally :)
+    and not(ancestor::ClassBody[1]/FieldDeclaration[ModifierList/Annotation[@SimpleName='GuardedBy']]//MemberValuePair/StringLiteral/@ConstValue =
+        (ancestor::SynchronizedStatement/VariableAccess/@Name,
+         ancestor::MethodDeclaration//Block[
+            .//TryStatement[Block//(AssignmentExpression|VariableAccess)]/FinallyClause//MethodCall[@MethodName='unlock']/VariableAccess[pmd-java:typeIs('java.util.concurrent.locks.Lock')]
+        ]
+        //MethodCall[@MethodName='lock']/VariableAccess[pmd-java:typeIs('java.util.concurrent.locks.Lock')]/@Name))
 ]
 ,
 //MethodDeclaration[

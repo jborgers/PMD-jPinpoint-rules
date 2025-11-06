@@ -246,4 +246,122 @@ class Issue442 {
         ]]></code>
     </test-code>
 
+    <test-code>
+        <description>Fix request: use of ReentrantLock in NotProperlySynchronizingOnFieldWhileUsingGuardedBy #474</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import org.springframework.stereotype.Component;
+import javax.annotation.concurrent.GuardedBy;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.regex.Pattern;
+
+@Component
+class Issue474_good1 {
+
+        private final Lock lock = new ReentrantLock();
+
+        @GuardedBy("lock")
+        private Pattern pattern;
+
+        public void doChangePattern(String text) {
+            lock.lock();
+            try {
+                pattern = Pattern.compile(text);
+            }
+            finally {
+                lock.unlock();
+            }
+        }
+}
+@Component
+class Issue474_good2 {
+        private final Lock lock = new ReentrantLock();
+
+        @GuardedBy("lock")
+        private Pattern pattern;
+
+        public void doChangePattern(String text) {
+            try {
+                lock.lock();
+                pattern = Pattern.compile(text);
+            }
+            finally {
+                lock.unlock();
+            }
+        }
+}
+        ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>Fix request: use of ReentrantLock in NotProperlySynchronizingOnFieldWhileUsingGuardedBy #474 - wrong case 1</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>11</expected-linenumbers>
+        <code><![CDATA[
+@Component
+class Issue474_bad1 {
+        private final Lock lock = new ReentrantLock();
+
+        @GuardedBy("LOCK") // bad, wrong name, should be lowercase
+        private Pattern pattern;
+
+        public void doChangePattern(String text) {
+            lock.lock();
+            try {
+                pattern = Pattern.compile(text);
+            }
+            finally {
+                lock.unlock();
+            }
+        }
+}
+        ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>Fix request: use of ReentrantLock in NotProperlySynchronizingOnFieldWhileUsingGuardedBy #474 - wrong case 2</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>10</expected-linenumbers>
+        <code><![CDATA[
+@Component
+class Issue474_bad2 {
+        private final Lock lock = new ReentrantLock();
+
+        @GuardedBy("lock")
+        private Pattern pattern;
+
+        public void doChangePattern(String text) {
+            lock.lock();
+            pattern = Pattern.compile(text); // bad, should use try/finally
+            lock.unlock();
+        }
+}
+        ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>Fix request: use of ReentrantLock in NotProperlySynchronizingOnFieldWhileUsingGuardedBy #474 - wrong case 3</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>11</expected-linenumbers>
+        <code><![CDATA[
+@Component
+class Issue474_bad3 {
+        private final Lock lock = new ReentrantLock();
+        private final Lock lock2 = new ReentrantLock();
+        @GuardedBy("lock")
+        private Pattern pattern;
+
+        public void doChangePattern(String text) {
+            lock.lock();
+            try {
+                pattern = Pattern.compile(text); // bad, unlock on wrong lock
+            }
+            finally {
+                lock2.unlock();
+            }
+        }
+}
+        ]]></code>
+    </test-code>
 </test-data>
