@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+
+    <!-- Kotlin tests based on Java HttpClientBuilderWithoutTimeouts.xml -->
+
+    <test-code>
+        <description>no violation: v4 Apache HttpClient with all timeouts set via RequestConfig</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import org.apache.http.impl.client.HttpClientBuilder
+import org.apache.http.client.config.RequestConfig
+import org.apache.http.impl.client.CloseableHttpClient
+
+class Good1 {
+    fun good(): CloseableHttpClient {
+        val requestConfig = RequestConfig.custom()
+            .setConnectionRequestTimeout(350)
+            .setConnectTimeout(250)
+            .setSocketTimeout(4000)
+            .build() // good, all timeouts set
+        return HttpClientBuilder.create()
+            .setDefaultRequestConfig(requestConfig) // good
+            .build()
+    }
+}
+        ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>violation: v4 RequestConfig missing some timeouts</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>7</expected-linenumbers>
+        <code><![CDATA[
+import org.apache.http.impl.client.HttpClientBuilder
+import org.apache.http.client.config.RequestConfig
+import org.apache.http.impl.client.CloseableHttpClient
+
+class Bad1 {
+    fun bad(): CloseableHttpClient {
+        val requestConfig = RequestConfig.custom()
+            .setSocketTimeout(4000)
+            .build() // bad, not all timeouts set
+        return HttpClientBuilder.create()
+            .setDefaultRequestConfig(requestConfig)
+            .build()
+    }
+}
+        ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>violation: v4 builder without setDefaultRequestConfig</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>8</expected-linenumbers>
+        <code><![CDATA[
+import org.apache.http.impl.client.HttpClientBuilder
+import org.apache.http.client.config.RequestConfig
+import org.apache.http.impl.client.CloseableHttpClient
+import java.util.concurrent.TimeUnit
+
+class Bad2 {
+    fun bad(): CloseableHttpClient {
+        return HttpClientBuilder.create() // bad
+            .setConnectionTimeToLive(180, TimeUnit.SECONDS)
+            .build()
+    }
+}
+        ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>no violation: v5 Apache HttpClient with all timeouts set (RequestConfig + ConnectionConfig)</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import org.apache.hc.client5.http.impl.classic.HttpClients
+import org.apache.hc.client5.http.config.RequestConfig
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient
+import org.apache.hc.client5.http.config.ConnectionConfig
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder
+import org.apache.hc.core5.util.Timeout
+
+class Good2 {
+    fun good(): CloseableHttpClient {
+        val requestConfig = RequestConfig.custom()
+            .setConnectionRequestTimeout(Timeout.ofMilliseconds(350))
+            .setResponseTimeout(Timeout.ofMilliseconds(1200))
+            .build() // good
+        val connectionConfig = ConnectionConfig.custom()
+            .setConnectTimeout(Timeout.ofMilliseconds(250))
+            .build()
+        val connectionManager = PoolingHttpClientConnectionManagerBuilder.create()
+            .setDefaultConnectionConfig(connectionConfig)
+            .build()
+        return HttpClients.custom()
+            .setConnectionManager(connectionManager)
+            .setDefaultRequestConfig(requestConfig)
+            .build()
+    }
+}
+        ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>violation: v5 RequestConfig missing a timeout</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>9</expected-linenumbers>
+        <code><![CDATA[
+import org.apache.hc.client5.http.impl.classic.HttpClients
+import org.apache.hc.client5.http.config.RequestConfig
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder
+import org.apache.hc.core5.util.Timeout
+
+class Bad3 {
+    fun bad(): CloseableHttpClient {
+        val requestConfig = RequestConfig.custom()
+            .setResponseTimeout(Timeout.ofMilliseconds(1200))
+            .build() // bad, not all timeouts set
+        val connectionManager = PoolingHttpClientConnectionManagerBuilder.create().build()
+        return HttpClients.custom()
+            .setConnectionManager(connectionManager)
+            .setDefaultRequestConfig(requestConfig)
+            .build()
+    }
+}
+        ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>no violation: Spring HttpComponentsClientHttpRequestFactory with all timeouts set</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import org.apache.http.client.HttpClient
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory
+
+class Good3 {
+    fun good(): HttpClient {
+        val factory = HttpComponentsClientHttpRequestFactory() // good
+        factory.setConnectTimeout(250)
+        factory.setConnectionRequestTimeout(350)
+        factory.setReadTimeout(4000)
+        return factory.httpClient
+    }
+}
+        ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>violation: Spring HttpComponentsClientHttpRequestFactory not all timeouts set</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>6</expected-linenumbers>
+        <code><![CDATA[
+import org.apache.http.client.HttpClient
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory
+
+class Bad4 {
+    fun bad(): HttpClient {
+        val factory = HttpComponentsClientHttpRequestFactory() // bad
+        factory.setReadTimeout(4000)
+        return factory.httpClient
+    }
+}
+        ]]></code>
+    </test-code>
+
+</test-data>
