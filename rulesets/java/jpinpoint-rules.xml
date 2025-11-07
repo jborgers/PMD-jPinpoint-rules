@@ -4688,6 +4688,7 @@ class Good {
             <description>
                 Problem: The field to which the GuardedBy annotation is applied is not accessed thread-safely as described by GuardedBy.
                 Solution: Make access thread-safe: synchronize access by a synchronized(LOCK) block with LOCK being a final field.
+                Alternatively, to avoid thread pinning with virtual threads before Java 24, use ReentrantLock with try/finally.
                 Note that methods with annotations @Autowired, @PostConstruct, @BeforeStep, @Value and @Inject are ignored.
                 (jpinpoint-rules)</description>
             <priority>2</priority>
