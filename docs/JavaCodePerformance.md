@@ -2230,7 +2230,12 @@ public boolean equals(final Object arg0) {
 Thread unsafety and lock contention
 -----------------------------------
 
-When multiple threads access the same object, access it in a thread safe way. Getting thread safety right and not hindering performance is difficult. Locking with the synchronized keyword may introduce lock contention under load, which is bad for performance. To make threading aspects easier to understand in source code, we recommend the use of [Java Concurrency In Practice annotations.](http://jcip.net.s3-website-us-east-1.amazonaws.com/annotations/doc/index.html)
+When multiple threads access the same object, access it in a thread safe way. Getting thread safety right and not hindering performance is difficult. 
+Locking with the synchronized keyword may introduce lock contention under load, which is bad for performance. To make threading aspects easier to understand in source code, we recommend the use of [Java Concurrency In Practice annotations.](https://jcip.net/annotations/doc/index.html)
+
+### Virtual threads and locking
+Virtual threads are a very efficient way to handle concurrency, especially for I/O bound tasks. Up to JDK 24, they have an issue with doing I/O within a synchronized block, called thread pinning.
+To work around this, use a Reentrant lock with try-finally. However, we consider using virtual threads before JDK 24 risky and do *not* recommend it. Therefore, we also do not promote this workaround.
 
 #### TUTC01
 

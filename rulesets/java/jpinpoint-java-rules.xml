@@ -4688,6 +4688,7 @@ class Good {
             <description>
                 Problem: The field to which the GuardedBy annotation is applied is not accessed thread-safely as described by GuardedBy.
                 Solution: Make access thread-safe: synchronize access by a synchronized(LOCK) block with LOCK being a final field.
+                Alternatively, to avoid thread pinning with virtual threads before Java 24, use ReentrantLock with try/finally.
                 Note that methods with annotations @Autowired, @PostConstruct, @BeforeStep, @Value and @Inject are ignored.
                 (jpinpoint-rules)</description>
             <priority>2</priority>
@@ -4714,8 +4715,13 @@ class Good {
               @ConstValue = ancestor::ClassBody[1]/FieldDeclaration/VariableDeclarator/VariableId/@Name]
            ]/VariableDeclarator/VariableId/@Name
     (: and *IS NOT* in a synchronized block with the GuardedBy literal:)
-    and not(ancestor::SynchronizedStatement/VariableAccess/@Name =
-       ancestor::ClassBody[1]/FieldDeclaration[ModifierList/Annotation[@SimpleName='GuardedBy']]//MemberValuePair/StringLiteral/@ConstValue)
+    (: and *IS NOT* with lock.lock() and try statement with assignment/access and lock.unlock in finally :)
+    and not(ancestor::ClassBody[1]/FieldDeclaration[ModifierList/Annotation[@SimpleName='GuardedBy']]//MemberValuePair/StringLiteral/@ConstValue =
+        (ancestor::SynchronizedStatement/VariableAccess/@Name,
+         ancestor::MethodDeclaration//Block[
+            .//TryStatement[Block//(AssignmentExpression|VariableAccess)]/FinallyClause//MethodCall[@MethodName='unlock']/VariableAccess[pmd-java:typeIs('java.util.concurrent.locks.Lock')]
+        ]
+        //MethodCall[@MethodName='lock']/VariableAccess[pmd-java:typeIs('java.util.concurrent.locks.Lock')]/@Name))
 ]
 ,
 //MethodDeclaration[
