@@ -381,6 +381,10 @@ return HttpClientBuilder.create() // good
         pmd-java:typeIs('org.apache.http.impl.client.HttpClientBuilder')
         or pmd-java:typeIs('org.apache.http.impl.client.HttpClients')
         or pmd-java:typeIs('org.apache.http.impl.nio.client.HttpAsyncClientBuilder')
+        or pmd-java:typeIs('org.apache.hc.client5.http.impl.classic.HttpClientBuilder')
+        or pmd-java:typeIs('org.apache.hc.client5.http.impl.classic.HttpClients')
+        or pmd-java:typeIs('org.apache.hc.client5.http.impl.async.HttpAsyncClientBuilder')
+
 ][
     ancestor::MethodDeclaration[
         not(
@@ -412,16 +416,14 @@ return HttpClientBuilder.create() // good
     [(TypeExpression|VariableAccess)[pmd-java:typeIs('org.apache.hc.client5.http.impl.classic.HttpClients')]]
     [ancestor::MethodDeclaration[count(.//MethodCall[@MethodName=('setDefaultRequestConfig','setConnectionManager')]) != 2]]
 ,
-(: only client v4 :)
-//ImportDeclaration[starts-with(@PackageName, 'org.apache.http.')]/..
 //MethodDeclaration//(
     ConstructorCall[not(
-        .//MethodCall[pmd-java:typeIs('org.apache.http.client.HttpClient')]
+        .//MethodCall[pmd-java:typeIs('org.apache.http.client.HttpClient') or pmd-java:typeIs('org.apache.hc.client5.http.classic.HttpClient')]
     )]
     |FormalParameter
 )[pmd-java:typeIs('org.springframework.http.client.HttpComponentsClientHttpRequestFactory')]
 [not(
-   (.//VariableAccess[pmd-java:typeIs('org.apache.http.client.HttpClient')] or ancestor::MethodDeclaration//MethodCall[@MethodName='setHttpClient'])
+   (.//VariableAccess[pmd-java:typeIs('org.apache.http.client.HttpClient') or pmd-java:typeIs('org.apache.hc.client5.http.classic.HttpClient')] or ancestor::MethodDeclaration//MethodCall[@MethodName='setHttpClient'])
    and ancestor::MethodDeclaration[
         count(.//MethodCall[@MethodName=('setConnectionRequestTimeout','setConnectTimeout','setReadTimeout')]/VariableAccess[
             pmd-java:typeIs('org.springframework.http.client.HttpComponentsClientHttpRequestFactory')
