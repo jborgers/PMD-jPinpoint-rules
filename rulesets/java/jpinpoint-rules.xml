@@ -6020,7 +6020,7 @@ return HttpClientBuilder.create() // good, setConnectionManager called, pool con
     <rule name="HttpClientBuilderWithoutTimeouts"
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           language="java"
-          message="HttpClient-v4 builder is used and not all three timeouts are configured. The defaults are probably not optimal (e.g. infinite). "
+          message="HttpClient builder is used and not all three timeouts are configured. The defaults are probably not optimal (e.g. infinite). "
           externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#IBI10">
         <description>Problem: (Apache client version 4) For connectionRequestTimeout, connectTimeout, socketTimeout (for
             HttpComponentsClientHttpRequestFactory) or readTimeout (for RequestConfig) the default timeout settings are
@@ -6039,12 +6039,24 @@ return HttpClientBuilder.create() // good, setConnectionManager called, pool con
         pmd-java:typeIs('org.apache.http.impl.client.HttpClientBuilder')
         or pmd-java:typeIs('org.apache.http.impl.client.HttpClients')
         or pmd-java:typeIs('org.apache.http.impl.nio.client.HttpAsyncClientBuilder')
+        or pmd-java:typeIs('org.apache.hc.client5.http.impl.classic.HttpClientBuilder')
+        or pmd-java:typeIs('org.apache.hc.client5.http.impl.classic.HttpClients')
+        or pmd-java:typeIs('org.apache.hc.client5.http.impl.async.HttpAsyncClientBuilder')
+
 ][
     ancestor::MethodDeclaration[
         not(
             .//MethodCall[@MethodName='setDefaultRequestConfig'] or (
                 ancestor::ClassBody//MethodCall[@MethodName='setRequestConfigCallback'] and ancestor::ClassBody/MethodDeclaration/ClassType[@SimpleName='Builder']/ClassType[@SimpleName='RequestConfig']/../..
                     [count(.//MethodCall[@MethodName=('setConnectionRequestTimeout','setConnectTimeout','setSocketTimeout')]) = 3]
+            ) or (
+                ancestor::ClassBody[
+                    count(.//MethodCall[@MethodName='setHttpClient']) > 0 and
+                    count(
+                        .//MethodCall[@MethodName=('setConnectionRequestTimeout','setConnectTimeout','setReadTimeout')]
+                        /VariableAccess[pmd-java:typeIs('org.springframework.http.client.HttpComponentsClientHttpRequestFactory')]
+                    ) = 3
+                ]
             )
         )
     ]
@@ -6054,16 +6066,49 @@ return HttpClientBuilder.create() // good, setConnectionManager called, pool con
     [ancestor::MethodDeclaration//MethodCall[@MethodName='custom']]
     [ancestor::MethodDeclaration[count(.//MethodCall[@MethodName=('setConnectionRequestTimeout','setConnectTimeout','setSocketTimeout')]) != 3]]
 ,
-(: only client v4 :)
-//ImportDeclaration[starts-with(@PackageName, 'org.apache.http.')]/..
+//MethodDeclaration//MethodCall[(TypeExpression|VariableAccess)[pmd-java:typeIs('org.apache.hc.client5.http.config.RequestConfig')]]
+    [@MethodName='custom']
+    [ancestor::MethodDeclaration[count(.//MethodCall[@MethodName=('setConnectionRequestTimeout','setResponseTimeout')]) != 2]]
+,
+//MethodDeclaration//MethodCall[(TypeExpression|VariableAccess)[pmd-java:typeIs('org.apache.hc.client5.http.config.ConnectionConfig')]]
+    [@MethodName='custom']
+    [ancestor::MethodDeclaration[count(.//MethodCall[@MethodName='setConnectTimeout']) = 0]]
+,
+//MethodDeclaration//MethodCall[@MethodName='create']
+    [(TypeExpression|VariableAccess)[pmd-java:typeIs('org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder')]]
+    [ancestor::MethodDeclaration[count(.//MethodCall[@MethodName='setDefaultConnectionConfig']) = 0]]
+,
+//MethodDeclaration//MethodCall[@MethodName='custom']
+    [(TypeExpression|VariableAccess)[pmd-java:typeIs('org.apache.hc.client5.http.impl.classic.HttpClients')]]
+    [
+        ancestor::MethodDeclaration[
+            count(.//MethodCall[@MethodName=('setDefaultRequestConfig','setConnectionManager')]) != 2
+            and not(
+                count(
+                    .//MethodCall[@MethodName=('setConnectionRequestTimeout','setConnectTimeout','setReadTimeout')]
+                    /VariableAccess[pmd-java:typeIs('org.springframework.http.client.HttpComponentsClientHttpRequestFactory')]
+                ) = 3
+            )
+            and not(
+                ancestor::ClassBody[
+                    count(.//MethodCall[@MethodName='setHttpClient']) > 0
+                    and count(
+                        .//MethodCall[@MethodName=('setConnectionRequestTimeout','setConnectTimeout','setReadTimeout')]
+                        /VariableAccess[pmd-java:typeIs('org.springframework.http.client.HttpComponentsClientHttpRequestFactory')]
+                    ) = 3
+                ]
+            )
+        ]
+    ]
+,
 //MethodDeclaration//(
     ConstructorCall[not(
-        .//MethodCall[pmd-java:typeIs('org.apache.http.client.HttpClient')]
+        .//MethodCall[pmd-java:typeIs('org.apache.http.client.HttpClient') or pmd-java:typeIs('org.apache.hc.client5.http.classic.HttpClient')]
     )]
     |FormalParameter
 )[pmd-java:typeIs('org.springframework.http.client.HttpComponentsClientHttpRequestFactory')]
 [not(
-   (.//VariableAccess[pmd-java:typeIs('org.apache.http.client.HttpClient')] or ancestor::MethodDeclaration//MethodCall[@MethodName='setHttpClient'])
+   (.//VariableAccess[pmd-java:typeIs('org.apache.http.client.HttpClient') or pmd-java:typeIs('org.apache.hc.client5.http.classic.HttpClient')] or ancestor::MethodDeclaration//MethodCall[@MethodName='setHttpClient'])
    and ancestor::MethodDeclaration[
         count(.//MethodCall[@MethodName=('setConnectionRequestTimeout','setConnectTimeout','setReadTimeout')]/VariableAccess[
             pmd-java:typeIs('org.springframework.http.client.HttpComponentsClientHttpRequestFactory')
