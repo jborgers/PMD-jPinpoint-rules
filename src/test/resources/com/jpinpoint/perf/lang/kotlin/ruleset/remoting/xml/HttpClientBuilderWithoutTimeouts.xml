@@ -166,4 +166,54 @@ class Bad4 {
         ]]></code>
     </test-code>
 
+    <test-code>
+        <description>violation: v4 HttpAsyncClientBuilder no setDefaultRequestConfig called with explicit timeouts</description>
+        <expected-problems>1</expected-problems>
+        <code><![CDATA[
+import org.apache.http.impl.nio.client.CloseableHttpAsyncClient
+import org.apache.http.impl.nio.client.HttpAsyncClientBuilder
+
+class BadAsyncV4 {
+    fun bad(): CloseableHttpAsyncClient {
+        return HttpAsyncClientBuilder.create() // bad
+            .disableAuthCaching()
+            .build()
+    }
+}
+        ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>violation: v5 HttpAsyncClientBuilder no setDefaultRequestConfig called with explicit timeouts</description>
+        <expected-problems>1</expected-problems>
+        <code><![CDATA[
+import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient
+import org.apache.hc.client5.http.impl.async.HttpAsyncClientBuilder
+
+class BadAsyncV5 {
+    fun bad(): CloseableHttpAsyncClient {
+        return HttpAsyncClientBuilder.create() // bad
+            .disableAuthCaching()
+            .build()
+    }
+}
+        ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>violation: v4 HttpClients.custom and no setDefaultRequestConfig called with explicit timeouts</description>
+        <expected-problems>1</expected-problems>
+        <code><![CDATA[
+import org.apache.http.impl.client.HttpClients
+import org.apache.http.impl.client.CloseableHttpClient
+
+class BadCustomV4 {
+    fun bad(): CloseableHttpClient {
+        return HttpClients.custom() // bad
+            .build()
+    }
+}
+        ]]></code>
+    </test-code>
+
 </test-data>

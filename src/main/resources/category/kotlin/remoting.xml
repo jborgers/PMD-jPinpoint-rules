@@ -61,6 +61,10 @@
   and ancestor::PostfixUnaryExpression/PrimaryExpression/SimpleIdentifier/T-Identifier/@Text="HttpClientBuilder"
   and not(ancestor::PostfixUnaryExpression/PostfixUnarySuffix/NavigationSuffix/SimpleIdentifier/T-Identifier/@Text="setDefaultRequestConfig")]
 ,
+//PostfixUnarySuffix//SimpleIdentifier/T-Identifier[@Text="create"
+  and ancestor::PostfixUnaryExpression/PrimaryExpression/SimpleIdentifier/T-Identifier/@Text="HttpAsyncClientBuilder"
+  and not(ancestor::PostfixUnaryExpression/PostfixUnarySuffix/NavigationSuffix/SimpleIdentifier/T-Identifier/@Text="setDefaultRequestConfig")]
+,
 //PostfixUnarySuffix//SimpleIdentifier/T-Identifier[@Text="custom"
   and ancestor::PostfixUnaryExpression/PrimaryExpression/SimpleIdentifier/T-Identifier/@Text="HttpClients"
   and not(ancestor::PostfixUnaryExpression/PostfixUnarySuffix/NavigationSuffix/SimpleIdentifier/T-Identifier/@Text="setDefaultRequestConfig")]
