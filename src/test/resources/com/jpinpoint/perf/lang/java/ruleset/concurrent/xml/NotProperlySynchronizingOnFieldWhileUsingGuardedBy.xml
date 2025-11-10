@@ -362,6 +362,25 @@ class Issue474_bad3 {
             }
         }
 }
+       ]]></code>
+    </test-code>
+
+   <test-code>
+        <description>Fix request: use of ReentrantLock in NotProperlySynchronizingOnFieldWhileUsingGuardedBy #474 - wrong case 4</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>8</expected-linenumbers>
+        <code><![CDATA[
+@Component
+class Issue474_bad4 {
+        private final Lock lock = new ReentrantLock();
+        @GuardedBy("lock")
+        private Pattern pattern;
+
+        public void doChangePattern(String text) {
+             pattern = Pattern.compile(text); // bad, ReentrantLock not used
+        }
+}
         ]]></code>
     </test-code>
+
 </test-data>
