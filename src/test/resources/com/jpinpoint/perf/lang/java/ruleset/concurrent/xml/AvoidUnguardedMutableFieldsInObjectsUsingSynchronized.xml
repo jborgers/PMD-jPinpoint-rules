@@ -21,7 +21,7 @@ import java.util.Map;
 public class Bad {
     //@GuardedBy("this")
     private static Map staticMapField = new HashMap();
-    //@GuardedBy("LOCK")
+    //@GuardedBy("lock")
     private Date date = new Date();
 
     public Date getDate() {
@@ -59,7 +59,7 @@ import java.util.Map;
 public class Bad {
     //@GuardedBy("this")
     private static Map staticMapField = new HashMap();
-    //@GuardedBy("LOCK")
+    //@GuardedBy("lock")
     private Date date = new Date();
 
     public Date getDate() {
@@ -176,7 +176,7 @@ import java.util.Map;
 public class GoodForThisRule {
     @GuardedBy("this")
     private static Map staticMapField = new HashMap();
-    @GuardedBy("LOCK")
+    @GuardedBy("lock")
     private Date date = new Date();
 
     public void setDate(Date d) {

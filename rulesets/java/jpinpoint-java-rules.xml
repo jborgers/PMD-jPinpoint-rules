@@ -4124,12 +4124,12 @@ public class Good {
 @Service
 class MyService {
 
-    private final LOCK = new Object();
+    private final lock = new Object();
 
     @Value("${batchService.http.url}")
     private String batchUrl;
 
-    @GuardedBy("LOCK")
+    @GuardedBy("lock")
     @Value("${otherService.http.url}")
     private String otherUrl;
 
@@ -4138,7 +4138,7 @@ class MyService {
     }
 
     public void setOtherUrl(final String url) {
-        synchronized(LOCK) {
+        synchronized(lock) {
             this.batchUrl = url; // good: synchronized accessor method
         }
     }
@@ -4241,8 +4241,8 @@ class MyService {
             </properties>
             <example><![CDATA[
 public class Bad {
-    private static Map staticMapField = new HashMap(); // bad, class has synchronized method
-    private Date date = new Date(); // bad, class has synchronized method
+    private static Map staticMapField = new HashMap(); // bad, unguarded and class has synchronized method
+    private Date date = new Date(); // bad, unguarded and class has synchronized method
 
     public Date getDate() {
         return date;
@@ -4256,7 +4256,7 @@ public class Bad {
         return staticMapField;
     }
 
-    public static  void setStaticMapField(Map smf) {
+    public static void setStaticMapField(Map smf) {
         staticMapField = smf;
     }
 }
@@ -4264,18 +4264,21 @@ public class Bad {
 public class Good {
     @GuardedBy("this")
     private static Map staticMapField = new HashMap(); // good, guarded
-    @GuardedBy("LOCK")
+    private final Object lock = new Object();
+    @GuardedBy("lock")
     private Date date = new Date(); // good, guarded
 
     public void setDate(Date d) {
-        date = d;
+        synchronized(lock) {
+            date = d;
+        }
     }
 
     public static synchronized Map getStaticMapField() {
         return staticMapField;
     }
 
-    public static  void setStaticMapField(Map smf) {
+    public static synchronized void setStaticMapField(Map smf) {
         staticMapField = smf;
     }
 }
@@ -4686,10 +4689,10 @@ class Good {
               class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" language="java"
               externalInfoUrl="https://jcip.net/annotations/doc/index.html">
             <description>
-                Problem: The field to which the GuardedBy annotation is applied is not accessed thread-safely as described by GuardedBy.
-                Solution: Make access thread-safe: synchronize access by a synchronized(LOCK) block with LOCK being a final field.
-                Alternatively, to avoid thread pinning with virtual threads before Java 24, use ReentrantLock with try/finally.
-                Note that methods with annotations @Autowired, @PostConstruct, @BeforeStep, @Value and @Inject are ignored.
+                Problem: The field to which the `@GuardedBy` annotation is applied is not accessed thread-safely as promised by GuardedBy.
+                Solution: Make access thread-safe: synchronize access by a `synchronized(lock)` block with `lock` being a private final field.
+                Alternatively, to avoid thread pinning with virtual threads before Java 24, use `ReentrantLock` with `try-finally`.
+                Note that methods with annotations `@Autowired`, `@PostConstruct`, `@BeforeStep`, `@Value` and `@Inject` are ignored.
                 (jpinpoint-rules)</description>
             <priority>2</priority>
             <properties>
@@ -4747,8 +4750,8 @@ class Good {
             <example>
                 <![CDATA[
 class Bad1 {
-    private final Object LOCK = new Object();
-    @GuardedBy("LOCK")
+    private final Object lock = new Object();
+    @GuardedBy("lock")
     private String txt;
 
     public String getText() { return txt; } // bad
@@ -4756,15 +4759,15 @@ class Bad1 {
 }
 
 class Good1 {
-    private final Object LOCK = new Object();
-    @GuardedBy("LOCK")
+    private final Object lock = new Object();
+    @GuardedBy("lock")
     private String txt;
 
     public String getText() {
-        synchronized(LOCK) { return txt; }
+        synchronized(lock) { return txt; }
     }
     public void setText(String t) {
-        synchronized(LOCK) { txt = t; }
+        synchronized(lock) { txt = t; }
     }
 }
                 ]]>
@@ -4880,8 +4883,8 @@ public class Foo {
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           language="java"
           externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#tutc14">
-        <description>Problem: Wrong use of locking and '@GuardedBy' may result in thread-unsafety and concurrency bugs. It may obstruct other GuardedBy rules which check whether the promise of guarding is actually met, it may disguise high risk violations.
-            Solution: Use '@GuardedBy' properly: use a private final lock object constructed with 'new Object()' or 'new Object[0]'; a String literal of the lock name as '@GuardedBy' argument; and use that explicit or 'this' lock with 'synchronized'; or '$lock' or '$LOCK' with lombok '@Synchronized'. (jpinpoint-rules)</description>
+        <description>Problem: Wrong use of locking and '@GuardedBy' may result in thread-unsafety and concurrency bugs. It may obstruct other GuardedBy rules which check whether the promise of guarding is actually met, it may disguise high-risk violations.
+            Solution: Use '@GuardedBy' properly: use a private final lock object constructed with 'new Object()' or 'new Object[0]'; a String literal of the lock name as '@GuardedBy' argument; and use that explicit or 'this' lock with 'synchronized'; or as ReentrantLock with try-finally, or '$lock' or '$LOCK' with lombok '@Synchronized'. (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
             <property name="tags" value="jpinpoint-rule,multi-threading,confusing,pitfall" type="String" description="classification"/>
@@ -4896,7 +4899,9 @@ public class Foo {
 |
 (: GuardedBy argument being non-'this' is not used in a synchronized statement, nor with @Synchronized lombok annotation on class or method level :)
 //FieldDeclaration/ModifierList/Annotation[@SimpleName='GuardedBy']//MemberValuePair/StringLiteral[not(@ConstValue = 'this')
-    and not(@ConstValue = ancestor::ClassBody[1]//SynchronizedStatement/VariableAccess/@Name) and not(ancestor::ClassDeclaration[1]//ModifierList//Annotation[@SimpleName='Synchronized'])]
+    and not(@ConstValue = ancestor::ClassBody[1]//SynchronizedStatement/VariableAccess/@Name)
+    and not(ancestor::ClassDeclaration[1]//ModifierList//Annotation[@SimpleName='Synchronized'])
+    and not(@ConstValue = ancestor::ClassBody[1]/FieldDeclaration/VariableDeclarator/VariableId[pmd-java:typeIs('java.util.concurrent.locks.Lock')]/@Name)]
 |
 (: GuardedBy argument being 'this' is not used as modifier nor as in a synchronized statement:)
 //FieldDeclaration/ModifierList/Annotation[@SimpleName='GuardedBy']//MemberValuePair/StringLiteral[@ConstValue = 'this'
@@ -4905,7 +4910,8 @@ public class Foo {
 (: a field that is not both private and final, not an allocated Object nor Object[0], and used as GuardedBy argument on another field :)
 //FieldDeclaration/VariableDeclarator/VariableId[not(pmd-java:modifiers()=('private') and pmd-java:modifiers()=('final')) or not(
     ../ConstructorCall[pmd-java:typeIsExactly('java.lang.Object')])
-    and not(../ArrayAllocation[pmd-java:typeIsExactly('java.lang.Object[]')]//ArrayDimensions[@Size=1]//NumericLiteral[@ValueAsInt=0]
+    and not(../ArrayAllocation[pmd-java:typeIsExactly('java.lang.Object[]')]//ArrayDimensions[@Size=1]//NumericLiteral[@ValueAsInt=0])
+    and not( ../ConstructorCall[pmd-java:typeIs('java.util.concurrent.locks.Lock')]
 )][@Name = ancestor::ClassBody[1]//FieldDeclaration/ModifierList/Annotation[@SimpleName='GuardedBy']//MemberValuePair/StringLiteral/@ConstValue]
                 ]]></value>
             </property>
