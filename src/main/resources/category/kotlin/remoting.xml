@@ -79,9 +79,7 @@
   @Text="custom"
   and ancestor::PostfixUnaryExpression/PrimaryExpression/SimpleIdentifier/T-Identifier/@Text="RequestConfig"
   and not(
-    ancestor::PostfixUnaryExpression/PostfixUnarySuffix/NavigationSuffix/SimpleIdentifier/T-Identifier/@Text="setConnectionRequestTimeout"
-    and ancestor::PostfixUnaryExpression/PostfixUnarySuffix/NavigationSuffix/SimpleIdentifier/T-Identifier/@Text="setConnectTimeout"
-    and ancestor::PostfixUnaryExpression/PostfixUnarySuffix/NavigationSuffix/SimpleIdentifier/T-Identifier/@Text="setSocketTimeout"
+    count(ancestor::PostfixUnaryExpression/PostfixUnarySuffix/NavigationSuffix/SimpleIdentifier/T-Identifier[@Text=('setConnectionRequestTimeout','setConnectTimeout','setSocketTimeout')]/@Text) = 3
   )
 ]
 ,
@@ -96,12 +94,10 @@
   )
 ]
 ,
-(: Spring HttpComponentsClientHttpRequestFactory missing full timeout configuration in a function:)
+(: Spring HttpComponentsClientHttpRequestFactory missing full timeout configuration in a function :)
 //SimpleIdentifier/T-Identifier[@Text='HttpComponentsClientHttpRequestFactory'
   and ancestor::FunctionDeclaration[
-    not(.//SimpleIdentifier/T-Identifier/@Text='setConnectTimeout')
-    or not(.//SimpleIdentifier/T-Identifier/@Text='setConnectionRequestTimeout')
-    or not(.//SimpleIdentifier/T-Identifier/@Text='setReadTimeout')
+    count(.//SimpleIdentifier/T-Identifier[@Text=('setConnectTimeout', 'setConnectionRequestTimeout', 'setReadTimeout')]) < 3
   ]
 ]
 ]]>
