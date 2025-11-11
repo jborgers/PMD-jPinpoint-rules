@@ -875,5 +875,104 @@ fun goodWithSizes(): HttpClient =
 ]]></example>
     </rule>
 
+    <rule name="HttpClientBuilderWithoutTimeouts"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          language="kotlin"
+          message="Apache HttpClient builder is used and not all three timeouts are configured."
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#IBI10">
+        <description>Problem: for connectionRequestTimeout, connectTimeout, socketTimeout (using
+            HttpComponentsClientHttpRequestFactory/RequestConfig) or readTimeout/responseTimeout (using RequestConfig v4/v5) and connectTimeout (using ConnectionConfig v5)
+            the default timeout settings are not optimal in most cases. &#13;
+            Solution: Set the timeouts explicitly to proper reasoned values. See best practice values via the link. Use
+            the setDefaultRequestConfig with a method with a RequestConfig object on HttpClient builders to set the
+            timeouts. (jpinpoint-rules)
+        (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="tags" value="io,jpinpoint-rule,performance,pitfall,resilience" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+(: v4/v5 builders without setDefaultRequestConfig :)
+//PostfixUnarySuffix//SimpleIdentifier/T-Identifier[@Text="create"
+  and ancestor::PostfixUnaryExpression/PrimaryExpression/SimpleIdentifier/T-Identifier/@Text="HttpClientBuilder"
+  and not(ancestor::PostfixUnaryExpression/PostfixUnarySuffix/NavigationSuffix/SimpleIdentifier/T-Identifier/@Text="setDefaultRequestConfig")]
+,
+//PostfixUnarySuffix//SimpleIdentifier/T-Identifier[@Text="create"
+  and ancestor::PostfixUnaryExpression/PrimaryExpression/SimpleIdentifier/T-Identifier/@Text="HttpAsyncClientBuilder"
+  and not(ancestor::PostfixUnaryExpression/PostfixUnarySuffix/NavigationSuffix/SimpleIdentifier/T-Identifier/@Text="setDefaultRequestConfig")]
+,
+//PostfixUnarySuffix//SimpleIdentifier/T-Identifier[@Text="custom"
+  and ancestor::PostfixUnaryExpression/PrimaryExpression/SimpleIdentifier/T-Identifier/@Text="HttpClients"
+  and not(ancestor::PostfixUnaryExpression/PostfixUnarySuffix/NavigationSuffix/SimpleIdentifier/T-Identifier/@Text="setDefaultRequestConfig")]
+,
+(: v4 RequestConfig missing at least one of the three timeouts:)
+//ImportHeader[.//T-Identifier[@Text='org'] and .//T-Identifier[@Text='apache'] and .//T-Identifier[@Text='http'] and .//T-Identifier[@Text='client'] and .//T-Identifier[@Text='config'] and .//T-Identifier[@Text='RequestConfig']][1]/ancestor::KotlinFile
+//PostfixUnarySuffix//SimpleIdentifier/T-Identifier[
+  @Text="custom"
+  and ancestor::PostfixUnaryExpression/PrimaryExpression/SimpleIdentifier/T-Identifier/@Text="RequestConfig"
+  and not(
+    count(ancestor::PostfixUnaryExpression/PostfixUnarySuffix/NavigationSuffix/SimpleIdentifier/T-Identifier[@Text=('setConnectionRequestTimeout','setConnectTimeout','setSocketTimeout')]/@Text) = 3
+  )
+]
+,
+(: v5 RequestConfig missing at least one of the two timeouts:)
+//ImportHeader[.//T-Identifier[@Text='org'] and .//T-Identifier[@Text='apache'] and .//T-Identifier[@Text='hc'] and .//T-Identifier[@Text='client5'] and .//T-Identifier[@Text='http'] and .//T-Identifier[@Text='config'] and .//T-Identifier[@Text='RequestConfig']][1]/ancestor::KotlinFile
+//PostfixUnarySuffix//SimpleIdentifier/T-Identifier[
+  @Text="custom"
+  and ancestor::PostfixUnaryExpression/PrimaryExpression/SimpleIdentifier/T-Identifier/@Text="RequestConfig"
+  and not(
+    ancestor::PostfixUnaryExpression/PostfixUnarySuffix/NavigationSuffix/SimpleIdentifier/T-Identifier/@Text="setConnectionRequestTimeout"
+    and ancestor::PostfixUnaryExpression/PostfixUnarySuffix/NavigationSuffix/SimpleIdentifier/T-Identifier/@Text="setResponseTimeout"
+  )
+]
+,
+(: Spring HttpComponentsClientHttpRequestFactory missing full timeout configuration in a function :)
+//SimpleIdentifier/T-Identifier[@Text='HttpComponentsClientHttpRequestFactory'
+  and ancestor::FunctionDeclaration[
+    count(.//SimpleIdentifier/T-Identifier[@Text=('setConnectTimeout', 'setConnectionRequestTimeout', 'setReadTimeout')]) < 3
+  ]
+]
+]]>
+                </value>
+            </property>
+        </properties>
+        <example><![CDATA[
+class BadHttpClientV5 {
+    public HttpClient createClient() {
+        RequestConfig requestConfig = RequestConfig.custom()
+                .setResponseTimeout(Timeout.ofMilliseconds(1200))
+                .build();
+
+        return HttpClients.custom()
+                .build();
+    }
+}
+
+class GoodHttpClientV5 {
+    public CloseableHttpClient createHttpClient() {
+        ConnectionConfig connectionConfig = ConnectionConfig.custom()
+                .setConnectTimeout(Timeout.ofMilliseconds(300))
+                .build();
+
+        PoolingHttpClientConnectionManager connectionManager =
+                PoolingHttpClientConnectionManagerBuilder.create()
+                        .setDefaultConnectionConfig(connectionConfig)
+                        .build();
+
+        RequestConfig requestConfig = RequestConfig.custom()
+                .setConnectionRequestTimeout(Timeout.ofMilliseconds(100))
+                .setResponseTimeout(Timeout.ofMilliseconds(1200))
+                .build();
+
+        return HttpClients.custom() // good, all expected overrides for timeouts
+                .setDefaultRequestConfig(requestConfig)
+                .setConnectionManager(connectionManager)
+                .build();
+    }
+}
+]]>
+        </example>
+    </rule>
+
 <!-- END Included file 'remoting.xml' -->
 </ruleset>
