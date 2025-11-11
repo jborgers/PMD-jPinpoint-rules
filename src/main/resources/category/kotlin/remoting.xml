@@ -48,12 +48,12 @@
           language="kotlin"
           message="Apache HttpClient builder is used and not all three timeouts are configured. The defaults are probably not optimal (e.g. infinite). "
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#IBI10">
-        <description>Problem: for Apache HttpClient v4 and v5, for connectionRequestTimeout, connectTimeout, socketTimeout (for
-        HttpComponentsClientHttpRequestFactory) or readTimeout (for RequestConfig) the default timeout settings are
-        not optimal in most cases. &#13;
-        Solution: Set the timeouts explicitly to proper reasoned values. See best practice values via the link. Use
-        the setDefaultRequestConfig with a method with a RequestConfig object on HttpClient builders to set the
-        timeouts. (jpinpoint-rules)
+        <description>Problem: for connectionRequestTimeout, connectTimeout, socketTimeout (using
+            HttpComponentsClientHttpRequestFactory/RequestConfig) or readTimeout/responseTimeout (using RequestConfig v4/v5) the default
+            timeout settings are not optimal in most cases. &#13;
+            Solution: Set the timeouts explicitly to proper reasoned values. See best practice values via the link. Use
+            the setDefaultRequestConfig with a method with a RequestConfig object on HttpClient builders to set the
+            timeouts. (jpinpoint-rules)
         </description>
         <priority>2</priority>
         <properties>
