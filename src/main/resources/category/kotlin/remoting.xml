@@ -141,4 +141,104 @@ class Bad1 {
         </example>
     </rule>
 
+    <rule name="HttpClientBuilderWithoutPoolSize"
+          language="kotlin"
+          message="HttpClient builder connection pool is not configured."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi03">
+        <description>
+            Problem: when the [default max connections per route] external calls are being made to the same host,
+            the next thread requesting a connection to that host must wait for a free connection.
+            For Apache HttpClient v4, this default = 2 and for v5 this default = 5, often too low.
+            Max total connections are 20 and 25 respectively.&#13;
+            Solution: HttpClients should explicitly define the number of connections per route. If only one route is
+            used, make the max number of connections equal to conn per route.
+            Solution:
+            1. use setConnectionManager and call setMaxTotal and setDefaultMaxPerRoute on that connection manager, or
+            2. use no ConnectionManager, call setMaxConnTotal and setMaxConnPerRoute on the client directly (v4 only).
+            (jpinpoint-rules)
+        </description>
+        <priority>2</priority>
+        <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <property name="xpath">
+                <value><![CDATA[
+(: check if Apache HttpClient v4 or v5 imports exist to avoid name clashes :)
+//ImportHeader[
+  (.//T-Identifier[@Text='org'] and .//T-Identifier[@Text='apache'] and .//T-Identifier[@Text='http'])
+  or
+  (.//T-Identifier[@Text='org'] and .//T-Identifier[@Text='apache'] and .//T-Identifier[@Text='hc'] and .//T-Identifier[@Text='client5'])
+][1]/ancestor::KotlinFile
+//PostfixUnarySuffix//SimpleIdentifier/T-Identifier[
+  @Text='custom' and ancestor::PostfixUnaryExpression/PrimaryExpression/SimpleIdentifier/T-Identifier/@Text='HttpClients'
+][
+  ancestor::FunctionDeclaration[
+    not(.//SimpleIdentifier/T-Identifier[@Text='setConnectionManager'] or
+        (.//SimpleIdentifier/T-Identifier[@Text='setMaxConnTotal'] and .//SimpleIdentifier/T-Identifier[@Text='setMaxConnPerRoute'])
+    )
+  ]
+]
+|
+//ImportHeader[
+  (.//T-Identifier[@Text='org'] and .//T-Identifier[@Text='apache'] and .//T-Identifier[@Text='http'])
+  or
+  (.//T-Identifier[@Text='org'] and .//T-Identifier[@Text='apache'] and .//T-Identifier[@Text='hc'] and .//T-Identifier[@Text='client5'])
+][1]/ancestor::KotlinFile
+//PostfixUnarySuffix//SimpleIdentifier/T-Identifier[
+  @Text='create' and ancestor::PostfixUnaryExpression/PrimaryExpression/SimpleIdentifier/T-Identifier[@Text='HttpClientBuilder' or @Text='HttpAsyncClientBuilder']
+][
+  ancestor::FunctionDeclaration[
+    not(.//SimpleIdentifier/T-Identifier[@Text='setConnectionManager'] or
+        (.//SimpleIdentifier/T-Identifier[@Text='setMaxConnTotal'] and .//SimpleIdentifier/T-Identifier[@Text='setMaxConnPerRoute'])
+    )
+  ]
+]
+|
+//ImportHeader[
+  (.//T-Identifier[@Text='org'] and .//T-Identifier[@Text='apache'] and .//T-Identifier[@Text='http'])
+  or
+  (.//T-Identifier[@Text='org'] and .//T-Identifier[@Text='apache'] and .//T-Identifier[@Text='hc'] and .//T-Identifier[@Text='client5'])
+][1]/ancestor::KotlinFile
+//FunctionDeclaration//TypeReference//SimpleIdentifier/T-Identifier[@Text='PoolingHttpClientConnectionManager' or @Text='PoolingAsyncClientConnectionManager']
+[
+  ancestor::FunctionDeclaration[
+    not(
+      (.//SimpleIdentifier/T-Identifier[@Text='setMaxTotal'] and .//SimpleIdentifier/T-Identifier[@Text='setDefaultMaxPerRoute'])
+      or (
+        (.//SimpleIdentifier/T-Identifier[@Text='setMaxConnTotal'] and .//SimpleIdentifier/T-Identifier[@Text='setMaxConnPerRoute'])
+        and .//SimpleIdentifier/T-Identifier[@Text='PoolingHttpClientConnectionManagerBuilder']
+      )
+    )
+    and not(
+      ancestor::ClassBody//FunctionDeclaration[
+        (.//SimpleIdentifier/T-Identifier[@Text='setMaxTotal'] and .//SimpleIdentifier/T-Identifier[@Text='setDefaultMaxPerRoute'])
+        or (
+          (.//SimpleIdentifier/T-Identifier[@Text='setMaxConnTotal'] and .//SimpleIdentifier/T-Identifier[@Text='setMaxConnPerRoute'])
+          and .//SimpleIdentifier/T-Identifier[@Text='PoolingHttpClientConnectionManagerBuilder']
+        )
+      ]
+    )
+  ]
+]
+                ]]></value>
+            </property>
+        </properties>
+        <example><![CDATA[
+fun bad(conMgr: Any?): HttpClient =
+    HttpClientBuilder.create() // bad, missing setMaxConnPerRoute/setMaxConnTotal or setConnectionManager
+        .build()
+
+fun goodWithMgr(conMgr: Any?): HttpClient =
+    HttpClientBuilder.create()
+        .setConnectionManager(conMgr) // good, delegated to manager
+        .build()
+
+fun goodWithSizes(): HttpClient =
+    HttpClients.custom()
+        .setMaxConnPerRoute(MAX_CONNECTIONS)
+        .setMaxConnTotal(MAX_CONNECTIONS)
+        .build()
+]]></example>
+    </rule>
+
 </ruleset>

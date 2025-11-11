@@ -4688,6 +4688,7 @@ class Good {
             <description>
                 Problem: The field to which the GuardedBy annotation is applied is not accessed thread-safely as described by GuardedBy.
                 Solution: Make access thread-safe: synchronize access by a synchronized(LOCK) block with LOCK being a final field.
+                Alternatively, to avoid thread pinning with virtual threads before Java 24, use ReentrantLock with try/finally.
                 Note that methods with annotations @Autowired, @PostConstruct, @BeforeStep, @Value and @Inject are ignored.
                 (jpinpoint-rules)</description>
             <priority>2</priority>
@@ -4714,8 +4715,13 @@ class Good {
               @ConstValue = ancestor::ClassBody[1]/FieldDeclaration/VariableDeclarator/VariableId/@Name]
            ]/VariableDeclarator/VariableId/@Name
     (: and *IS NOT* in a synchronized block with the GuardedBy literal:)
-    and not(ancestor::SynchronizedStatement/VariableAccess/@Name =
-       ancestor::ClassBody[1]/FieldDeclaration[ModifierList/Annotation[@SimpleName='GuardedBy']]//MemberValuePair/StringLiteral/@ConstValue)
+    (: and *IS NOT* with lock.lock() and try statement with assignment/access and lock.unlock in finally :)
+    and not(ancestor::ClassBody[1]/FieldDeclaration[ModifierList/Annotation[@SimpleName='GuardedBy']]//MemberValuePair/StringLiteral/@ConstValue =
+        (ancestor::SynchronizedStatement/VariableAccess/@Name,
+         ancestor::MethodDeclaration//Block[
+            .//TryStatement[Block//(AssignmentExpression|VariableAccess)]/FinallyClause//MethodCall[@MethodName='unlock']/VariableAccess[pmd-java:typeIs('java.util.concurrent.locks.Lock')]
+        ]
+        //MethodCall[@MethodName='lock']/VariableAccess[pmd-java:typeIs('java.util.concurrent.locks.Lock')]/@Name))
 ]
 ,
 //MethodDeclaration[
@@ -5955,15 +5961,18 @@ class Good {
     <rule name="HttpClientBuilderWithoutPoolSize"
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           language="java"
-          message="HttpClient builder is used and the connection pool is not configured. HttpClient defaults of 2 per route and 20 max total are probably not right."
+          message="HttpClient builder connection pool is not configured."
           externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#ibi03">
-        <description>Problem: by default only 2 connections are available per route. When two external calls are being
-            made, a third thread requesting a connection must wait for a free connection.&#13;
+        <description>
+            Problem: when the [default max connections per route] external calls are being made to the same host,
+            the next thread requesting a connection to that host must wait for a free connection.
+            For Apache HttpClient v4, this default = 2 and for v5 this default = 5, often too low.
+            Max total connections are 20 and 25 respectively.&#13;
             Solution: HttpClients should explicitly define the number of connections per route. If only one route is
             used, make the max number of connections equal to conn per route.
             Solution:
             1. use setConnectionManager and call setMaxTotal and setDefaultMaxPerRoute on that connection manager, or
-            2. use no ConnectionManager, call setMaxConnTotal and setMaxConnPerRoute on the client directly.
+            2. use no ConnectionManager, call setMaxConnTotal and setMaxConnPerRoute on the client directly (v4 only).
             (jpinpoint-rules)
         (jpinpoint-rules)</description>
         <priority>2</priority>
@@ -5976,6 +5985,9 @@ class Good {
         pmd-java:typeIs('org.apache.http.impl.client.HttpClientBuilder')
         or pmd-java:typeIs('org.apache.http.impl.client.HttpClients')
         or pmd-java:typeIs('org.apache.http.impl.nio.client.HttpAsyncClientBuilder')
+        or pmd-java:typeIs('org.apache.hc.client5.http.impl.classic.HttpClientBuilder')
+        or pmd-java:typeIs('org.apache.hc.client5.http.impl.classic.HttpClients')
+        or pmd-java:typeIs('org.apache.hc.client5.http.impl.async.HttpAsyncClientBuilder')
 ][
     ancestor::MethodDeclaration[
         not(
@@ -5992,8 +6004,61 @@ class Good {
         not(
             .//MethodCall[@MethodName='setConnectionManager'] or
             (.//MethodCall[@MethodName='setMaxTotal'] and .//MethodCall[@MethodName='setDefaultMaxPerRoute'])
+            or ancestor::ClassBody//MethodDeclaration[.//MethodCall[@MethodName='setMaxTotal'] and .//MethodCall[@MethodName='setDefaultMaxPerRoute']]
         )
     ]
+]
+,
+//MethodDeclaration
+    /(Block|FormalParameters)//ClassType[pmd-java:typeIs('org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager')]
+[
+    ancestor::MethodDeclaration[
+        not(
+            (.//MethodCall[@MethodName='setMaxTotal'] and .//MethodCall[@MethodName='setDefaultMaxPerRoute'])
+            or (
+                (.//MethodCall[@MethodName='setMaxConnTotal'] and .//MethodCall[@MethodName='setMaxConnPerRoute'])
+                and .//(TypeExpression|ClassType|VariableAccess)[pmd-java:typeIs('org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder')]
+            )
+        )
+        and not(
+            ancestor::ClassBody//MethodDeclaration[
+                (.//MethodCall[@MethodName='setMaxTotal'] and .//MethodCall[@MethodName='setDefaultMaxPerRoute'])
+                or (
+                    (.//MethodCall[@MethodName='setMaxConnTotal'] and .//MethodCall[@MethodName='setMaxConnPerRoute'])
+                    and .//(TypeExpression|ClassType|VariableAccess)[pmd-java:typeIs('org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder')]
+                )
+            ]
+        )
+    ]
+]
+,
+//MethodDeclaration//MethodCall[@MethodName='setConnectionManager']
+    [ArgumentList//VariableAccess[pmd-java:typeIs('org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager')]]
+[
+    ancestor::MethodDeclaration[
+        not(
+            .//MethodCall[@MethodName='setDefaultMaxPerRoute']
+            or (
+                (.//MethodCall[@MethodName='setMaxConnTotal'] and .//MethodCall[@MethodName='setMaxConnPerRoute'])
+                and .//(TypeExpression|ClassType|VariableAccess)[pmd-java:typeIs('org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder')]
+            )
+        )
+        and not(
+            ancestor::ClassBody//MethodDeclaration[
+                (.//MethodCall[@MethodName='setDefaultMaxPerRoute'] and .//MethodCall[@MethodName='setMaxTotal'])
+                or (
+                    (.//MethodCall[@MethodName='setMaxConnTotal'] and .//MethodCall[@MethodName='setMaxConnPerRoute'])
+                    and .//(TypeExpression|ClassType|VariableAccess)[pmd-java:typeIs('org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder')]
+                )
+            ]
+        )
+    ]
+]
+,
+//MethodDeclaration
+    /(Block|FormalParameters)//ClassType[pmd-java:typeIs('org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManager')]
+[
+    ancestor::MethodDeclaration[not(.//MethodCall[@MethodName='setMaxTotal'] and .//MethodCall[@MethodName='setDefaultMaxPerRoute'])]
 ]
 ]]>
                 </value>
