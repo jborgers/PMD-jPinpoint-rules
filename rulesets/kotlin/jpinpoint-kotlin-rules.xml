@@ -788,21 +788,31 @@ class GoodKotlinMdc {
             <property name="tags" value="io,jpinpoint-rule,performance,pitfall,resilience" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
-(: v4/v5 builders without setDefaultRequestConfig :)
+(: v4/v5 builders without setDefaultRequestConfig — guarded by imports :)
+//ImportHeader[.//T-Identifier[@Text='org'] and .//T-Identifier[@Text='apache'] and .//T-Identifier[@Text='http'] and .//T-Identifier[@Text='impl'] and .//T-Identifier[@Text='client']][1]/ancestor::KotlinFile
 //PostfixUnarySuffix//SimpleIdentifier/T-Identifier[@Text="create"
   and ancestor::PostfixUnaryExpression/PrimaryExpression/SimpleIdentifier/T-Identifier/@Text="HttpClientBuilder"
   and not(ancestor::PostfixUnaryExpression/PostfixUnarySuffix/NavigationSuffix/SimpleIdentifier/T-Identifier/@Text="setDefaultRequestConfig")]
 ,
+//ImportHeader[.//T-Identifier[@Text='org'] and .//T-Identifier[@Text='apache'] and .//T-Identifier[@Text='http'] and .//T-Identifier[@Text='impl'] and .//T-Identifier[@Text='nio'] and .//T-Identifier[@Text='client']][1]/ancestor::KotlinFile
 //PostfixUnarySuffix//SimpleIdentifier/T-Identifier[@Text="create"
   and ancestor::PostfixUnaryExpression/PrimaryExpression/SimpleIdentifier/T-Identifier/@Text="HttpAsyncClientBuilder"
   and not(ancestor::PostfixUnaryExpression/PostfixUnarySuffix/NavigationSuffix/SimpleIdentifier/T-Identifier/@Text="setDefaultRequestConfig")]
 ,
+(: HttpClients.custom() for v4 :)
+//ImportHeader[.//T-Identifier[@Text='org'] and .//T-Identifier[@Text='apache'] and .//T-Identifier[@Text='http'] and .//T-Identifier[@Text='impl'] and .//T-Identifier[@Text='client']][1]/ancestor::KotlinFile
+//PostfixUnarySuffix//SimpleIdentifier/T-Identifier[@Text="custom"
+  and ancestor::PostfixUnaryExpression/PrimaryExpression/SimpleIdentifier/T-Identifier/@Text="HttpClients"
+  and not(ancestor::PostfixUnaryExpression/PostfixUnarySuffix/NavigationSuffix/SimpleIdentifier/T-Identifier/@Text="setDefaultRequestConfig")]
+,
+(: HttpClients.custom() for v5 :)
+//ImportHeader[.//T-Identifier[@Text='org'] and .//T-Identifier[@Text='apache'] and .//T-Identifier[@Text='hc'] and .//T-Identifier[@Text='client5'] and .//T-Identifier[@Text='http'] and .//T-Identifier[@Text='impl'] and .//T-Identifier[@Text='classic']][1]/ancestor::KotlinFile
 //PostfixUnarySuffix//SimpleIdentifier/T-Identifier[@Text="custom"
   and ancestor::PostfixUnaryExpression/PrimaryExpression/SimpleIdentifier/T-Identifier/@Text="HttpClients"
   and not(ancestor::PostfixUnaryExpression/PostfixUnarySuffix/NavigationSuffix/SimpleIdentifier/T-Identifier/@Text="setDefaultRequestConfig")]
 ,
 (: v4 RequestConfig missing at least one of the three timeouts:)
-//ImportHeader[.//T-Identifier[@Text='org'] and .//T-Identifier[@Text='apache'] and .//T-Identifier[@Text='http'] and .//T-Identifier[@Text='client'] and .//T-Identifier[@Text='config'] and .//T-Identifier[@Text='RequestConfig']][1]/ancestor::KotlinFile
+//ImportHeader[.//T-Identifier[@Text='org'] and .//T-Identifier[@Text='apache'] and .//T-Identifier[@Text='http'] and .//T-Identifier[@Text='client'] and .//T-Identifier[@Text='config']][1]/ancestor::KotlinFile
 //PostfixUnarySuffix//SimpleIdentifier/T-Identifier[
   @Text="custom"
   and ancestor::PostfixUnaryExpression/PrimaryExpression/SimpleIdentifier/T-Identifier/@Text="RequestConfig"
@@ -814,7 +824,7 @@ class GoodKotlinMdc {
 ]
 ,
 (: v5 RequestConfig missing at least one of the two timeouts:)
-//ImportHeader[.//T-Identifier[@Text='org'] and .//T-Identifier[@Text='apache'] and .//T-Identifier[@Text='hc'] and .//T-Identifier[@Text='client5'] and .//T-Identifier[@Text='http'] and .//T-Identifier[@Text='config'] and .//T-Identifier[@Text='RequestConfig']][1]/ancestor::KotlinFile
+//ImportHeader[.//T-Identifier[@Text='org'] and .//T-Identifier[@Text='apache'] and .//T-Identifier[@Text='hc'] and .//T-Identifier[@Text='client5'] and .//T-Identifier[@Text='http'] and .//T-Identifier[@Text='config']][1]/ancestor::KotlinFile
 //PostfixUnarySuffix//SimpleIdentifier/T-Identifier[
   @Text="custom"
   and ancestor::PostfixUnaryExpression/PrimaryExpression/SimpleIdentifier/T-Identifier/@Text="RequestConfig"
@@ -824,7 +834,8 @@ class GoodKotlinMdc {
   )
 ]
 ,
-(: Spring HttpComponentsClientHttpRequestFactory missing full timeout configuration in a function:)
+(: Spring HttpComponentsClientHttpRequestFactory missing full timeout configuration in a function — guarded by import :)
+//ImportHeader[.//T-Identifier[@Text='org'] and .//T-Identifier[@Text='springframework'] and .//T-Identifier[@Text='http'] and .//T-Identifier[@Text='client']][1]/ancestor::KotlinFile
 //SimpleIdentifier/T-Identifier[@Text='HttpComponentsClientHttpRequestFactory'
   and ancestor::FunctionDeclaration[
     not(.//SimpleIdentifier/T-Identifier/@Text='setConnectTimeout')
