@@ -189,18 +189,18 @@ class AComponent5 {
 @Singleton
 @ConcurrencyManagement(value = ConcurrencyManagementType.BEAN)
 class ASyncedSingletonConcurrencyBean {
-    private final Object LOCK = new Object();
-    @GuardedBy("LOCK")
+    private final Object lock = new Object();
+    @GuardedBy("lock")
     private String string1Ok = new String(); // OK!: guarded
-    @GuardedBy("LOCK")
+    @GuardedBy("lock")
     private final List list1OK = new ArrayList(); // OK, guarded
-    @GuardedBy("LOCK")
+    @GuardedBy("lock")
     private Map<String, String> map1Ok = new HashMap<>(); // OK, guarded
     @Autowired
     private String url;
 
     public void setString1Ok(String string1) {
-        synchronized(LOCK) { // Findbugs should be able to check
+        synchronized(lock) { // Findbugs should be able to check
             string1Ok = string1;
         }
     }
@@ -289,12 +289,12 @@ class AComponentMaoValidation {
 class ASingletonConcurrencyBean {
     static private Date date0Violate = new Date(); // violation: non-final, mutable, unguarded ; static or not doesn't make difference
     private Date date1Violate = new Date(); // violation: non-final, mutable, unguarded
-    private final Object Lock = new Object();
-    @GuardedBy("LOCK")
+    private final Object lock = new Object();
+    @GuardedBy("lock")
     private String string1Ok = new String(); // OK!: guarded
-    @GuardedBy("LOCK")
+    @GuardedBy("lock")
     private final List list1OK = new ArrayList(); // OK, guarded
-    @GuardedBy("LOCK")
+    @GuardedBy("lock")
     private Map<String, String> map1Ok = new HashMap<>(); // OK, guarded
 
     private final String string3Ok = new String(); // OK!: final, immutable

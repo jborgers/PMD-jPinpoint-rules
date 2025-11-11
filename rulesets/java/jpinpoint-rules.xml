@@ -4124,12 +4124,12 @@ public class Good {
 @Service
 class MyService {
 
-    private final LOCK = new Object();
+    private final lock = new Object();
 
     @Value("${batchService.http.url}")
     private String batchUrl;
 
-    @GuardedBy("LOCK")
+    @GuardedBy("lock")
     @Value("${otherService.http.url}")
     private String otherUrl;
 
@@ -4138,7 +4138,7 @@ class MyService {
     }
 
     public void setOtherUrl(final String url) {
-        synchronized(LOCK) {
+        synchronized(lock) {
             this.batchUrl = url; // good: synchronized accessor method
         }
     }
@@ -4241,8 +4241,8 @@ class MyService {
             </properties>
             <example><![CDATA[
 public class Bad {
-    private static Map staticMapField = new HashMap(); // bad, class has synchronized method
-    private Date date = new Date(); // bad, class has synchronized method
+    private static Map staticMapField = new HashMap(); // bad, unguarded and class has synchronized method
+    private Date date = new Date(); // bad, unguarded and class has synchronized method
 
     public Date getDate() {
         return date;
@@ -4256,7 +4256,7 @@ public class Bad {
         return staticMapField;
     }
 
-    public static  void setStaticMapField(Map smf) {
+    public static void setStaticMapField(Map smf) {
         staticMapField = smf;
     }
 }
@@ -4264,18 +4264,21 @@ public class Bad {
 public class Good {
     @GuardedBy("this")
     private static Map staticMapField = new HashMap(); // good, guarded
-    @GuardedBy("LOCK")
+    private final Object lock = new Object();
+    @GuardedBy("lock")
     private Date date = new Date(); // good, guarded
 
     public void setDate(Date d) {
-        date = d;
+        synchronized(lock) {
+            date = d;
+        }
     }
 
     public static synchronized Map getStaticMapField() {
         return staticMapField;
     }
 
-    public static  void setStaticMapField(Map smf) {
+    public static synchronized void setStaticMapField(Map smf) {
         staticMapField = smf;
     }
 }
@@ -4686,10 +4689,10 @@ class Good {
               class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" language="java"
               externalInfoUrl="https://jcip.net/annotations/doc/index.html">
             <description>
-                Problem: The field to which the GuardedBy annotation is applied is not accessed thread-safely as described by GuardedBy.
-                Solution: Make access thread-safe: synchronize access by a synchronized(LOCK) block with LOCK being a final field.
-                Alternatively, to avoid thread pinning with virtual threads before Java 24, use ReentrantLock with try/finally.
-                Note that methods with annotations @Autowired, @PostConstruct, @BeforeStep, @Value and @Inject are ignored.
+                Problem: The field to which the `@GuardedBy` annotation is applied is not accessed thread-safely as promised by GuardedBy.
+                Solution: Make access thread-safe: synchronize access by a `synchronized(lock)` block with `lock` being a private final field.
+                Alternatively, to avoid thread pinning with virtual threads before Java 24, use `ReentrantLock` with `try-finally`.
+                Note that methods with annotations `@Autowired`, `@PostConstruct`, `@BeforeStep`, `@Value` and `@Inject` are ignored.
                 (jpinpoint-rules)</description>
             <priority>2</priority>
             <properties>
@@ -4747,8 +4750,8 @@ class Good {
             <example>
                 <![CDATA[
 class Bad1 {
-    private final Object LOCK = new Object();
-    @GuardedBy("LOCK")
+    private final Object lock = new Object();
+    @GuardedBy("lock")
     private String txt;
 
     public String getText() { return txt; } // bad
@@ -4756,15 +4759,15 @@ class Bad1 {
 }
 
 class Good1 {
-    private final Object LOCK = new Object();
-    @GuardedBy("LOCK")
+    private final Object lock = new Object();
+    @GuardedBy("lock")
     private String txt;
 
     public String getText() {
-        synchronized(LOCK) { return txt; }
+        synchronized(lock) { return txt; }
     }
     public void setText(String t) {
-        synchronized(LOCK) { txt = t; }
+        synchronized(lock) { txt = t; }
     }
 }
                 ]]>

@@ -2654,17 +2654,17 @@ class ThisLockUsedGood {
 }
 
 class ReentrantLockUsedGood {
-    private final Lock LOCK = new ReentrantLock();
+    private final Lock lock = new ReentrantLock();
 
-    @GuardedBy("LOCK") // good, explicit lock object used
+    @GuardedBy("lock") // good, explicit lock object used
     private final Map<String, String> cachedData = new HashMap<>();
     public String getValue(String key) {
         try {
-            LOCK.lock();
+            lock.lock();
             return cachedData.get(key);
         }
         finally {
-            LOCK.unlock();
+            lock.unlock();
         }
     }
 } 
