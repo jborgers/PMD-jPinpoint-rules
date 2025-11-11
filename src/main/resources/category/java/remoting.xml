@@ -451,7 +451,7 @@ return HttpClientBuilder.create() // good
                     [count(.//MethodCall[@MethodName=('setConnectionRequestTimeout','setConnectTimeout','setSocketTimeout')]) = 3]
             ) or (
                 ancestor::ClassBody[
-                    count(.//MethodCall[@MethodName='setHttpClient']) == 1 and
+                    count(.//MethodCall[@MethodName='setHttpClient']) = 1 and
                     count(
                         .//MethodCall[@MethodName=('setConnectionRequestTimeout','setConnectTimeout','setReadTimeout')]
                         /VariableAccess[pmd-java:typeIs('org.springframework.http.client.HttpComponentsClientHttpRequestFactory')]
@@ -491,7 +491,7 @@ return HttpClientBuilder.create() // good
             )
             and not(
                 ancestor::ClassBody[
-                    count(.//MethodCall[@MethodName='setHttpClient']) > 0
+                    count(.//MethodCall[@MethodName='setHttpClient']) = 1
                     and count(
                         .//MethodCall[@MethodName=('setConnectionRequestTimeout','setConnectTimeout','setReadTimeout')]
                         /VariableAccess[pmd-java:typeIs('org.springframework.http.client.HttpComponentsClientHttpRequestFactory')]
