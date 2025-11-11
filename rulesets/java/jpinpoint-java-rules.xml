@@ -6085,11 +6085,11 @@ return HttpClientBuilder.create() // good, setConnectionManager called, pool con
     <rule name="HttpClientBuilderWithoutTimeouts"
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           language="java"
-          message="Apache HttpClient builder is used and not all three timeouts are configured. The defaults are probably not optimal (e.g. infinite). "
+          message="Apache HttpClient builder is used and not all three timeouts are configured."
           externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#IBI10">
         <description>Problem: for connectionRequestTimeout, connectTimeout, socketTimeout (using
-            HttpComponentsClientHttpRequestFactory/RequestConfig) or readTimeout/responseTimeout (using RequestConfig v4/v5) the default
-            timeout settings are not optimal in most cases. &#13;
+            HttpComponentsClientHttpRequestFactory/RequestConfig) or readTimeout/responseTimeout (using RequestConfig v4/v5) and connectTimeout (using ConnectionConfig v5)
+            the default timeout settings are not optimal in most cases. &#13;
             Solution: Set the timeouts explicitly to proper reasoned values. See best practice values via the link. Use
             the setDefaultRequestConfig with a method with a RequestConfig object on HttpClient builders to set the
             timeouts. (jpinpoint-rules)
@@ -6116,7 +6116,7 @@ return HttpClientBuilder.create() // good, setConnectionManager called, pool con
                     [count(.//MethodCall[@MethodName=('setConnectionRequestTimeout','setConnectTimeout','setSocketTimeout')]) = 3]
             ) or (
                 ancestor::ClassBody[
-                    count(.//MethodCall[@MethodName='setHttpClient']) > 0 and
+                    count(.//MethodCall[@MethodName='setHttpClient']) = 1 and
                     count(
                         .//MethodCall[@MethodName=('setConnectionRequestTimeout','setConnectTimeout','setReadTimeout')]
                         /VariableAccess[pmd-java:typeIs('org.springframework.http.client.HttpComponentsClientHttpRequestFactory')]
@@ -6156,7 +6156,7 @@ return HttpClientBuilder.create() // good, setConnectionManager called, pool con
             )
             and not(
                 ancestor::ClassBody[
-                    count(.//MethodCall[@MethodName='setHttpClient']) > 0
+                    count(.//MethodCall[@MethodName='setHttpClient']) = 1
                     and count(
                         .//MethodCall[@MethodName=('setConnectionRequestTimeout','setConnectTimeout','setReadTimeout')]
                         /VariableAccess[pmd-java:typeIs('org.springframework.http.client.HttpComponentsClientHttpRequestFactory')]
@@ -6187,15 +6187,41 @@ return HttpClientBuilder.create() // good, setConnectionManager called, pool con
         </properties>
         <example>
             <![CDATA[
-RequestConfig requestConfig = RequestConfig.custom()
-                                           .setSocketTimeout(4000)
-                                           .build(); // bad, not all timeouts set
+class BadHttpClientV5 {
+    public HttpClient bad() {
+        RequestConfig requestConfig = RequestConfig.custom() // bad, missing other timeouts
+                .setResponseTimeout(Timeout.ofMilliseconds(1200))
+                .build();
 
-return HttpClientBuilder.create()
-                        .setDefaultRequestConfig(requestConfig) // good
-                        .build();
+        return HttpClients.custom() // bad, missing calls to override default timeouts
+            .build();
+    }
+}
+
+class GoodHttpClientV5 {
+    public CloseableHttpClient httpClient() {
+        ConnectionConfig connectionConfig = ConnectionConfig.custom()
+            .setConnectTimeout(Timeout.ofMilliseconds(300))
+            .build();
+
+        PoolingHttpClientConnectionManager connectionManager = PoolingHttpClientConnectionManagerBuilder.create()
+            .setDefaultConnectionConfig(connectionConfig)
+            .build();
+
+        RequestConfig requestConfig = RequestConfig.custom()
+                .setConnectionRequestTimeout(Timeout.ofMilliseconds(100))
+                .setResponseTimeout(Timeout.ofMilliseconds(1200))
+                .build();
+
+        return HttpClients.custom() // good, all expected overrides for timeouts
+            .setDefaultRequestConfig(requestConfig)
+            .setConnectionManager(connectionManager)
+            .build();
+    }
+}
 ]]>
         </example>
+
     </rule>
 
     <rule name="HttpClientImproperConnectionTimeouts"
