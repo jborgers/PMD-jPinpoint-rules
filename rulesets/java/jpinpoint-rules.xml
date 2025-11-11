@@ -6085,14 +6085,14 @@ return HttpClientBuilder.create() // good, setConnectionManager called, pool con
     <rule name="HttpClientBuilderWithoutTimeouts"
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           language="java"
-          message="HttpClient builder is used and not all three timeouts are configured. The defaults are probably not optimal (e.g. infinite). "
+          message="Apache HttpClient builder is used and not all three timeouts are configured. The defaults are probably not optimal (e.g. infinite). "
           externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#IBI10">
-        <description>Problem: (Apache client version 4) For connectionRequestTimeout, connectTimeout, socketTimeout (for
+        <description>Problem: for Apache HttpClient v4 and v5, for connectionRequestTimeout, connectTimeout, socketTimeout (for
             HttpComponentsClientHttpRequestFactory) or readTimeout (for RequestConfig) the default timeout settings are
             not optimal in most cases. &#13;
             Solution: Set the timeouts explicitly to proper reasoned values. See best practice values via the link. Use
             the setDefaultRequestConfig with a method with a RequestConfig object on HttpClient builders to set the
-            timeouts.(jpinpoint-rules)
+            timeouts. (jpinpoint-rules)
         (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
