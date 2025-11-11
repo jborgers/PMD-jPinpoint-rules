@@ -191,7 +191,7 @@ class Issue537_10 {
     </test-code>
 
     <test-code>
-        <description>WrongUseOfGuardedBy - Fix Request: WrongUseOfGuardedBy does not support ReentrantLock #661</description>
+        <description>WrongUseOfGuardedBy - Fix Request: WrongUseOfGuardedBy does not support ReentrantLock #661, instance lock</description>
         <expected-problems>0</expected-problems>
         <code><![CDATA[
 import net.jcip.annotations.GuardedBy;
@@ -214,6 +214,34 @@ public class Foo {
         }
         finally {
             lock.unlock();
+        }
+    }
+}
+    ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>WrongUseOfGuardedBy - Fix Request: WrongUseOfGuardedBy does not support ReentrantLock #661 - static lock</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import net.jcip.annotations.GuardedBy;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.regex.Pattern;
+
+public class Foo {
+    private static final Lock LOCK = new ReentrantLock();
+
+    @GuardedBy("LOCK")
+    private static Pattern pattern;
+
+    public static void changePattern(String text) {
+        try {
+            LOCK.lock();
+            pattern = Pattern.compile(text);
+        }
+        finally {
+            LOCK.unlock();
         }
     }
 }
