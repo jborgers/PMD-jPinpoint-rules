@@ -1813,9 +1813,9 @@ class RightUseOfGuardedBy {
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#tutc15">
         <description>Problem: If-Modify constructs are the most subtle and most occurring concurrency bugs. A ConcurrentMap is used in a multi-threading environment, and a separate if and modify is a concurrency bug.
             Solution: Use an atomic if-combined-with-modify operation provided by the ConcurrentMap, like putIfAbsent. (jpinpoint-rules)</description>
-        <priority>2</priority>
+        <priority>1</priority>
         <properties>
-            <property name="tags" value="jpinpoint-rule,multi-threading,confusing,pitfall" type="String" description="classification"/>
+            <property name="tags" value="jpinpoint-rule,multi-threading,pitfall" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
 //MethodCall[@MethodName='containsKey']/VariableAccess[pmd-java:typeIs('java.util.concurrent.ConcurrentMap')][@Name =
