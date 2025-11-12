@@ -1806,4 +1806,34 @@ class RightUseOfGuardedBy {
                 ]]></example>
     </rule>
 
+    <rule name="AvoidNonAtomicIfModifyOnConcurrentMap"
+          message="Non-atomic if-modify used on a ConcurrentMap"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          language="java"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#tutc15">
+        <description>Problem: If-Modify constructs are the most subtle and most occurring concurrency bugs. A ConcurrentMap is used in a multi-threading environment, and a separate if and modify is a concurrency bug.
+            Solution: Use an atomic if-combined-with-modify operation provided by the ConcurrentMap, like putIfAbsent. (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,multi-threading,confusing,pitfall" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+//MethodCall[@MethodName='containsKey']/VariableAccess[pmd-java:typeIs('java.util.concurrent.ConcurrentMap')][@Name =
+./ancestor::IfStatement/Block//MethodCall[@MethodName=('put', 'compute', 'get', 'remove', 'replace')]/VariableAccess/@Name]
+                ]]></value>
+            </property>
+        </properties>
+        <example><![CDATA[
+    void bad(ConcurrentMap<String, String> accountMap, String accKey, String account) {
+        if(!accountMap.containsKey(accKey)){
+            accountMap.put(accKey, account);
+        }
+    }
+
+    void good(ConcurrentMap<String, String> accountMap, String accKey, String account) {
+        accountMap.putIfAbsent(accKey, account);
+    }
+                ]]></example>
+    </rule>
+
 </ruleset>

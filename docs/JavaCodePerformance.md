@@ -2681,6 +2681,38 @@ class LombokInstanceLockUsedGood {
   private Map<String, String> cachedData = new HashMap<>();
 }
 ```
+#### TUTC15
+**Observation: Non-atomic if-modify is used on a ConcurrentMap.**   
+**Problem:** If-Modify constructs are the most subtle and most occurring concurrency bugs. 
+A ConcurrentMap is used in a multi-threading environment, and a separate if and modify is a concurrency bug because one thread can execute the if operation, be scheduled-out, a second thread also executes the if operation, and then both will do the modify operation. The if and modify need to be atomically combined.   
+**Solution:** Utilize an atomic if-combined-with-modify operation provided by the `ConcurrentMap`: `putIfAbsent`, `computeIfAbsent`, `computeIfPresent`, `getOrDefault`, `remove` and `replace`.   
+**Note:** A `get` is not a modify, so if-get is stricly not a bug. Yet, replacing it with the atomic `getOrDefault` is recommended,   
+**Rule name:** AvoidNonAtomicIfModifyOnConcurrentMap.   
+**See:** [ConcurrentMap](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/concurrent/ConcurrentMap.html).    
+**Example:**
+```java
+class AvoidNonAtomicIfModifyOnConcurrentMap {
+    void badPut(ConcurrentMap<String, String> accountMap, String accKey, String account) {
+        if (!accountMap.containsKey(accKey)) {
+            accountMap.put(accKey, account);
+        }
+    }
+
+    void goodPut(ConcurrentMap<String, String> accountMap, String accKey, String account) {
+        accountMap.putIfAbsent(accKey, account);
+    }
+
+    void badRemove(ConcurrentMap<String, String> accountMap, String accKey, String account) {
+        if (accountMap.containsKey(accKey) && Objects.equals(accountMap.get(accKey), account)) {
+            accountMap.remove(accKey);
+        }
+    }
+
+    void goodRemove(ConcurrentMap<String, String> accountMap, String accKey, String account) {
+        accountMap.remove(accKey, account); // will only remove if currently mapped to the account
+    }
+}
+```
 
 Improper program flow
 ---------------------
