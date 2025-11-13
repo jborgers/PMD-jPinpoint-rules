@@ -61,11 +61,12 @@ The most important factor of application performance is the number of back-end s
 #### IBI03
 
 **Observation: The HTTP connection manager uses the default maximum connections per route.**  
-**Problem:** The default maximum connections per route is by default set to 2. This throttles the number of connections to the back-end usually much more than required, 
+**Problem:** For Apache HttpClient the default maximum connections per route is by default set to 2 or 5 for v4 or v5 respectively. 
+This throttles the number of connections to the back-end usually much more than required, 
 such that many requests have to wait for a connection and response times get much higher than needed.
 The connection timeout is usually set to a low number (e.g. 300 ms), in that case connection timeout exceptions will occur.  
 **Solution:** Set the default maximum connections per route to a higher number, e.g. 20. 
-Also increase the Max Total to at least the DefaultMaxPerRoute or a multiple in case of multiple routes.  
+Also increase the Max Total to at least the DefaultMaxPerRoute or a multiple in case of multiple routes. Defaults are 20 or 25 for v4 and v5 respectively.  
 **Example** for only one host. Can be done in two ways:
 
 * via the `PoolingHttpClientConnectionManager`:
@@ -99,13 +100,13 @@ Note that class PoolingClientConnectionManager and several others are deprecated
 **Rule name:** HttpClientBuilderWithoutPoolSize.
 
 **Pool size calculation**   
-The pool size must generally not be blocking, it should have enough connections for long yet still valid service times, during peak load. 
+The pool size should be large enough to handle peak load without blocking (waiting for a free connection), even when the service times are fairly high.
 For calculating the pool size, we suggest the following formula:
 ```
-#connections = 1,5 * #requests/s (at peak load) * service time (at 95th percentile, in seconds)
+#connections = 1.5 * #requests/s (at peak load) * service time (at 95th percentile, in seconds)
 ```
-So, with a peak load of 10 requests/s and the 95th percentile of the time of the called service of 1,2 second, this gets:
-`#connections = 1,5 * 10 * 1,2 = 18`
+So, with a peak load of 10 requests/s and the 95th percentile of the time of the called service of 1.2 seconds, this gets:
+`#connections = 1.5 * 10 * 1.2 = 18`
 
 If you don't know the peak load or the 95th percentile service time, estimate these values.
 
@@ -140,15 +141,16 @@ Other deprecated ones to remove: SimpleHttpConnectionManager, ClientConnectionMa
 Example (correct):
 
 ```java
-    @Bean(name = "saveObjectReferencesHttpClient")
-    public HttpClient httpClient(@Qualifier("saveObjectReferencesConnectionManager") PoolingHttpClientConnectionManager connectionManager,
-                                 SaveObjectReferenceConnectionProperties connectionProperties) {
-        return HttpClientBuilder.create()
-                .setConnectionManager(connectionManager)
-                .setDefaultRequestConfig(RequestConfigUtils.builder(connectionProperties))
-                .disableConnectionState() // allow re-use of mutual authenticated TLS connections
-                .build();
-    }
+```java
+@Bean(name = "myHttpClient")
+public CloseableHttpClient httpClient(@Qualifier("myConnectionManager") PoolingHttpClientConnectionManager connectionManager,
+                                      ConnectionProperties connectionProperties) {
+    return HttpClients.custom()
+            .setConnectionManager(connectionManager)
+            .setDefaultRequestConfig(RequestConfigUtils.builder(connectionProperties))
+            .disableConnectionState() // allow re-use of mutual authenticated TLS connections
+            .build();
+}
 ```
 
 #### IBI08
@@ -182,19 +184,20 @@ For more information, see [httpclient-connection-management](https://www.baeldun
 1. use setConnectionManager and *only* configure the pool on the connection manager or 
 2. not use a ConnectionManager and configure the connection pool on the client.   
 
-So, if you use a Connection Manager, remove the setMaxConnTotal and setMaxConnPerRoute calls on the HttpClient.  
+So, if you use a Connection Manager, remove the setMaxConnTotal and setMaxConnPerRoute calls on the HttpClient v4.
+With HttpClient v5 these setters are not available anymore, so use a correctly configured ConnectionManager instead.
 **Rule name:** HttpClientBuilderPoolSettingsIgnored  
 **Example:**  
 ```java
         return HttpClientBuilder.create()
                 .setConnectionManager(connMgr)
-                .setMaxConnPerRoute(MAX_CONNECTIONS_TOTAL) // bad, ignored
+                .setMaxConnPerRoute(MAX_CONNECTIONS_TOTAL) // bad, ignored (only possible in v4)
                 .build();
 
         return HttpClientBuilder.create() // good
                 .setMaxConnPerRoute(MAX_CONNECTIONS_TOTAL)
-                .setMaxConnTotal(MAX_CONNECTIONS_TOTAL)
-                .build();
+               .setMaxConnTotal(MAX_CONNECTIONS_TOTAL)
+               .build();
 
         return HttpClientBuilder.create() // good
                 .setConnectionManager(connMgr)
@@ -213,17 +216,25 @@ Connect timeout ~250 ms, Connection Manager/Request timeout = connect timeout + 
 **Example:**
 ```java
 RequestConfig requestConfig = RequestConfig.custom()
-        .setConnectionRequestTimeout(350)
-        .setConnectTimeout(250)
-        .setSocketTimeout(4000)
-        .build(); // good, all timeouts set
+                .setConnectionRequestTimeout(Timeout.ofMilliseconds(350))
+                .setResponseTimeout(Timeout.ofMilliseconds(4000))
+                .build(); // good, all timeouts set
 
-return HttpClientBuilder.create()
-        .setDefaultRequestConfig(requestConfig) // good, all timeouts set, if missing > default timeouts?
+ConnectionConfig connectionConfig = ConnectionConfig.custom()
+        .setConnectTimeout(Timeout.ofMilliseconds(250))
         .build();
 
-return HttpClientBuilder.create() // bad, no default HttpClient set with explicit timeouts set
-        .setConnectionTimeToLive(180, TimeUnit.SECONDS)
+HttpClientConnectionManager connectionManager =
+        PoolingHttpClientConnectionManagerBuilder.create()
+                .setDefaultConnectionConfig(connectionConfig)
+                .build();
+
+return HttpClients.custom()
+        .setConnectionManager(connectionManager)
+        .setDefaultRequestConfig(requestConfig) // good, all timeouts set
+        .build();
+
+return HttpClients.custom() // bad, no RequestConfig/ConnectionConfig set with explicit timeouts
         .build();
 ```
 
@@ -307,7 +318,7 @@ class Bad {
                 .setMaxConnPerRoute(config.getMaxConnPerRoute())
                 .build());
 
-        factory.setHttpClient(createHttpClient(config)); //bad
+        factory.setHttpClient(createHttpClient(config)); // bad
         return factory;
     }
 }
@@ -338,8 +349,8 @@ class Foo {
   private static final HttpHost hostBad1 = new HttpHost("localhost:8080"); // bad
 
   void bar() {
-    HttpHost hostBad2 = new HttpHost(URL);//bad
-    HttpHost hostGood1 = new HttpHost("localhost", 8080, "http"); //good
+    HttpHost hostBad2 = new HttpHost(URL); // bad
+    HttpHost hostGood1 = new HttpHost("localhost", 8080, "http"); // good
   }
 }
 ```
