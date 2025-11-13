@@ -2683,17 +2683,17 @@ class LombokInstanceLockUsedGood {
 ```
 #### TUTC15
 **Observation: Non-atomic if-modify is used on a ConcurrentMap.**   
-**Problem:** If-Modify constructs are the most subtle and most occurring concurrency bugs. 
+**Problem:** Non-atomic If-Modify constructs are the most subtle and most occurring concurrency bugs. 
 A ConcurrentMap is used in a multi-threading environment, and a separate if and modify is a concurrency bug because one thread can execute the if operation, be scheduled-out, a second thread also executes the if operation, and then both will do the modify operation. The if and modify need to be atomically combined.   
 **Solution:** Utilize an atomic if-combined-with-modify operation provided by the `ConcurrentMap`: `putIfAbsent`, `computeIfAbsent`, `computeIfPresent`, `getOrDefault`, `remove` and `replace`.   
-**Note:** A `get` is not a modify, so if-get is stricly not a bug. Yet, replacing it with the atomic `getOrDefault` is recommended,   
+**Note:** A `get` is not a modify operation, however, it may unexpectedly return a null in the non-atomic if-get case. Use the atomic `getOrDefault`.   
 **Rule name:** AvoidNonAtomicIfModifyOnConcurrentMap.   
 **See:** [ConcurrentMap](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/concurrent/ConcurrentMap.html).    
 **Example:**
 ```java
 class AvoidNonAtomicIfModifyOnConcurrentMap {
     void badPut(ConcurrentMap<String, String> accountMap, String accKey, String account) {
-        if (!accountMap.containsKey(accKey)) {
+        if (!accountMap.containsKey(accKey)) { // bad
             accountMap.put(accKey, account);
         }
     }
@@ -2702,8 +2702,19 @@ class AvoidNonAtomicIfModifyOnConcurrentMap {
         accountMap.putIfAbsent(accKey, account);
     }
 
+    String badGet(ConcurrentMap<String, String> accountMap, String accKey, String account) {
+        if(accountMap.containsKey(accKey)) { // bad 
+            return accountMap.get(accKey); // can unexpectedly return null, when another thread removes in between
+        }
+        return account;
+    }
+
+    String goodGet(ConcurrentMap<String, String> accountMap, String accKey, String account) {
+        return accountMap.getOrDefault(accKey, account);
+    }
+    
     void badRemove(ConcurrentMap<String, String> accountMap, String accKey, String account) {
-        if (accountMap.containsKey(accKey) && Objects.equals(accountMap.get(accKey), account)) {
+        if (accountMap.containsKey(accKey) && Objects.equals(accountMap.get(accKey), account)) { // bad
             accountMap.remove(accKey);
         }
     }

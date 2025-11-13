@@ -1811,7 +1811,7 @@ class RightUseOfGuardedBy {
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           language="java"
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#tutc15">
-        <description>Problem: If-Modify constructs are the most subtle and most occurring concurrency bugs. A ConcurrentMap is used in a multi-threading environment, and a separate if and modify is a concurrency bug.
+        <description>Problem: Non-atomic If-Modify constructs are the most subtle and most occurring concurrency bugs. A ConcurrentMap is used in a multi-threading environment, and a separate if and modify is a concurrency bug.
             Solution: Use an atomic if-combined-with-modify operation provided by the ConcurrentMap, like putIfAbsent. (jpinpoint-rules)</description>
         <priority>1</priority>
         <properties>

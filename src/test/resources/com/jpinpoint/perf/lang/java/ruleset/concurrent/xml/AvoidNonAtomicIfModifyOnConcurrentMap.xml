@@ -42,7 +42,7 @@ class Issue534 {
 
     String bad3(ConcurrentMap<String, String> accountMap, String accKey, String account) {
         if(accountMap.containsKey(accKey)) { // bad 3
-            return accountMap.get(accKey); // strictly not a modify, so actually not that bad
+            return accountMap.get(accKey); // can unexpectedly return null, when another thread removes in between
         }
         return account;
     }
