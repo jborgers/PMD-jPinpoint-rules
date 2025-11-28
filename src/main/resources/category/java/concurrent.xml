@@ -1818,9 +1818,10 @@ class RightUseOfGuardedBy {
             <property name="tags" value="jpinpoint-rule,multi-threading,pitfall" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
-//MethodCall[@MethodName='containsKey']/VariableAccess[pmd-java:typeIs('java.util.concurrent.ConcurrentMap')][@Name =
-./ancestor::IfStatement/Block//MethodCall[@MethodName=('put', 'compute', 'get', 'remove', 'replace')]/VariableAccess/@Name]
-                ]]></value>
+//IfStatement//(MethodCall[@MethodName='containsKey']|InfixExpression[@Operator=('==','!=') and NullLiteral]/MethodCall[@MethodName='get'])
+    /VariableAccess[pmd-java:typeIs('java.util.concurrent.ConcurrentMap')][@Name =
+    ./ancestor::IfStatement/Block//MethodCall[@MethodName=('put', 'compute', 'get', 'remove', 'replace')]/VariableAccess/@Name]
+]]></value>
             </property>
         </properties>
         <example><![CDATA[
