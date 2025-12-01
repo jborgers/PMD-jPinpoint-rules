@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>violation: AvoidNonAtomicIfModifyOnConcurrentMap</description>
+        <expected-problems>6</expected-problems>
+        <expected-linenumbers>6,16,34,45,55,65</expected-linenumbers>
+        <code><![CDATA[
+import java.util.concurrent.*;
+
+class Issue534 {
+
+    void bad1(ConcurrentMap<String, String> accountMap, String accKey, String account) {
+        if(!accountMap.containsKey(accKey)) { // bad 1
+            accountMap.put(accKey, account);
+        }
+    }
+
+    void good1(ConcurrentMap<String, String> accountMap, String accKey, String account) {
+        accountMap.putIfAbsent(accKey, account);
+    }
+
+    void bad2(ConcurrentMap<String, String> accountMap, String accKey) {
+        if(!accountMap.containsKey(accKey)) { // bad 2
+            accountMap.compute(accKey, this::getAccount);
+        }
+    }
+
+    private String getAccount(String key, String val) {
+        return "myAccount";
+    }
+
+    void good2(ConcurrentMap<String, String> accountMap, String accKey, String account) {
+        accountMap.computeIfAbsent(accKey, this::getAccount);
+    }
+
+    private String getAccount(String key) {
+        return "myAccount";
+    }
+
+    String bad3(ConcurrentMap<String, String> accountMap, String accKey, String account) {
+        if(accountMap.containsKey(accKey)) { // bad 3
+            return accountMap.get(accKey); // can unexpectedly return null, when another thread removes in between
+        }
+        return account;
+    }
+
+    String good3(ConcurrentMap<String, String> accountMap, String accKey, String account) {
+        return accountMap.getOrDefault(accKey, account);
+    }
+
+    void bad4(ConcurrentMap<String, String> accountMap, String accKey, String account) {
+        if(accountMap.containsKey(accKey) && Objects.equals(accountMap.get(accKey), account)){ // bad 4
+            accountMap.remove(accKey);
+        }
+    }
+
+    void good4(ConcurrentMap<String, String> accountMap, String accKey, String account) {
+        accountMap.remove(accKey, account); // will only remove if currently mapped to the given value
+    }
+
+    void bad5(ConcurrentMap<String, String> accountMap, String accKey, String account) {
+        if(accountMap.containsKey(accKey)) { // bad 5
+            accountMap.replace(accKey, account);
+        }
+    }
+
+    void good5(ConcurrentMap<String, String> accountMap, String accKey, String account) {
+        accountMap.replace(accKey, account); // will only replace if currently mapped to some value
+    }
+
+    void badEq1(ConcurrentMap<String, String> accountMap, String accKey, String account) {
+        if(accountMap.get(accKey) == null) { // bad 6, similar to containsKey
+            accountMap.put(accKey, account);
+        }
+    }
+
+    void goodEq1(ConcurrentMap<String, String> accountMap, String accKey, String account) {
+        accountMap.putIfAbsent(accKey, account);
+    }
+
+}
+     ]]></code>
+    </test-code>
+</test-data>

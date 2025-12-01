@@ -2692,6 +2692,50 @@ class LombokInstanceLockUsedGood {
   private Map<String, String> cachedData = new HashMap<>();
 }
 ```
+#### TUTC15
+**Observation: Non-atomic *if-modify* is used on a `ConcurrentMap`.**   
+**Problem:** Non-atomic *if-modify* constructs are the most subtle and most occurring concurrency bugs. 
+A `ConcurrentMap` is used in a multi-threading environment. A separate *if* and *modify* is a concurrency bug because one thread can execute the *if* operation, be scheduled-out, a second thread also executes the *if* operation, and then both will do the *modify* operation. The *if* and *modify* need to be atomically combined.   
+**Solution:** Utilize an atomic if-combined-with-modify operation provided by the `ConcurrentMap`: `putIfAbsent`, `computeIfAbsent`, `computeIfPresent`, `getOrDefault`, `remove` and `replace`.   
+**Note 1:** A `get` is not a modify operation, however, it may unexpectedly return a null in the non-atomic if-get case. Use the atomic `getOrDefault`.    
+**Note 2:** Putting synchronized on a wider scope like on the method level might be needed, for instance, in case of a third access to the map. Still, we recommend using the provided atomic operations.   
+**Rule name:** AvoidNonAtomicIfModifyOnConcurrentMap.   
+**See:** [ConcurrentMap](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/concurrent/ConcurrentMap.html).    
+**Example:**
+```java
+class AvoidNonAtomicIfModifyOnConcurrentMap {
+    void badPut(ConcurrentMap<String, String> accountMap, String accKey, String account) {
+        if (!accountMap.containsKey(accKey)) { // bad
+            accountMap.put(accKey, account);
+        }
+    }
+
+    void goodPut(ConcurrentMap<String, String> accountMap, String accKey, String account) {
+        accountMap.putIfAbsent(accKey, account);
+    }
+
+    String badGet(ConcurrentMap<String, String> accountMap, String accKey, String account) {
+        if(accountMap.containsKey(accKey)) { // bad 
+            return accountMap.get(accKey); // can unexpectedly return null, when another thread removes in between
+        }
+        return account;
+    }
+
+    String goodGet(ConcurrentMap<String, String> accountMap, String accKey, String account) {
+        return accountMap.getOrDefault(accKey, account);
+    }
+    
+    void badRemove(ConcurrentMap<String, String> accountMap, String accKey, String account) {
+        if (accountMap.containsKey(accKey) && Objects.equals(accountMap.get(accKey), account)) { // bad
+            accountMap.remove(accKey);
+        }
+    }
+
+    void goodRemove(ConcurrentMap<String, String> accountMap, String accKey, String account) {
+        accountMap.remove(accKey, account); // will only remove if currently mapped to the account
+    }
+}
+```
 
 Improper program flow
 ---------------------
