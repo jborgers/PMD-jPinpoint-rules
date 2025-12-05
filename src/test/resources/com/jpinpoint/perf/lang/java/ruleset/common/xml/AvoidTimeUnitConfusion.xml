@@ -182,4 +182,19 @@ import java.time.Duration;
 }
      ]]></code>
     </test-code>
+
+    <test-code>
+        <description>Fix Request: false positive in AvoidTimeUnitConfusion #666
+        </description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+class Issue666 {
+    public RetrieveCache(final boolean flagTimeToLive) { // <--- false pos
+    }
+    public void confuse(Boolean useExpiryTime) { // bad
+    }
+}
+     ]]></code>
+    </test-code>
+
 </test-data>
