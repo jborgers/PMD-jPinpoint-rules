@@ -1093,6 +1093,7 @@ class Foo {
             <property name="tags" value="confusing,jpinpoint-rule" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
+(: we assume confusion is limited to the following types: int, long, short, float, double, Integer, Long; these can be values of time without a unit :)
 //(VariableDeclarator[../PrimitiveType[@Kind=('int','long','short','float','double')] or ../ClassType[pmd-java:typeIs('java.lang.Long') or pmd-java:typeIs('java.lang.Integer')]]
   |FormalParameter[PrimitiveType[@Kind=('int','long','short','float','double')] or ../ClassType[pmd-java:typeIs('java.lang.Long') or pmd-java:typeIs('java.lang.Integer')]])/VariableId[
 ends-with(lower-case(@Name), 'timetolive')

@@ -191,7 +191,7 @@ import java.time.Duration;
 class Issue666 {
     public RetrieveCache(final boolean flagTimeToLive) { // <--- false pos
     }
-    public void confuse(Boolean useExpiryTime) { // bad
+    public void confuse(Boolean useExpiryTime) { // good
     }
 }
      ]]></code>
