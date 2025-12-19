@@ -1567,4 +1567,41 @@ class ValidatingClientHttpRequestInterceptorGoodEx implements ClientHttpRequestI
         </example>
     </rule>
 
+    <rule name="NettyConnectionProviderWithoutMaxOrTimeout"
+          message="Netty ConnectionProvider has no defined maxConnections or pendingAcquireTimeout."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          language="java"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ibi26">
+        <description>Problem: If a Reactor Netty Connection Provider is built without an explicit `maxConnections`, this defaults to `max(#CPU, 8) *2`.
+            This is often too low, leading to throttling, delays and too long response times.
+            If the provider is built without an explicit `pendingAcquireTimeout`, this defaults to `45s`.
+            This is often too high, leading to unnecessary long waiting times.
+            Solution: Define both `maxConnections` and `pendingAcquireTimeout` with proper values, for instance, `50` and `250 [ms]` respectively.
+            (jpinpoint-rules)
+        </description>
+        <priority>1</priority>
+        <properties>
+            <property name="tags" value="io,jpinpoint-rule,performance,sustainability-low,resilience" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+//TypeExpression[pmd-java:typeIs('reactor.netty.resources.ConnectionProvider')]
+[not(ancestor::MethodCall[@MethodName='maxConnections']) or not(ancestor::MethodCall[@MethodName='pendingAcquireTimeout'])]
+    ]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+public ConnectionProvider connectionProviderBad() {
+    return ConnectionProvider.builder("gupProvider").build(); // bad
+}
+public ConnectionProvider connectionProviderGood() {
+    return ConnectionProvider.builder("gupProvider")
+            .maxConnections(props.getMaxConnections())
+            .pendingAcquireTimeout(Duration.ofMillis(props.getPendingAcquireTimeoutMs()))
+            .build();
+}
+    ]]>
+        </example>
+    </rule>
+
 </ruleset>
