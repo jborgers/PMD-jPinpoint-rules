@@ -652,24 +652,24 @@ class ValidatingClientHttpRequestInterceptorGoodExample implements ClientHttpReq
 
 #### IBI26
 **Observation: The Netty HTTP connection provider uses the default maximum connections or the default pending acquire timeout.**   
-**Problem:** If a Reactor Netty Connection Provider is built without an explicit `maxConnections`, this defaults to `max(#CPU, 8) *2`.
+**Problem:** If a Reactor Netty Connection Provider is built without an explicit `maxConnections`, this defaults to `max(#CPU, 8) * 2`.
 This is often too low, leading to throttling, delays and too long response times.   
 If the provider is built without an explicit `pendingAcquireTimeout`, this defaults to `45s`.
 This is often too high, leading to unnecessary long waiting times.   
 **Solution:** Define both `maxConnections` and `pendingAcquireTimeout` explicitly, with proper values, for instance, `50` and `300 [ms]` respectively.   
 **Notes:** 
-* Different from Apache HttpClient, Reactor Netty uses only one HttpClient with one Connection Provider per route.  
+* Different from Apache HttpClient, Reactor Netty HttpClient cannot serve multiple routes in a Connection Provider, it has a simpler setup: one Connection Provider for each route.  
 * For calculating pool size, max connections, see: [IBI03](#IBI03)
 * For reasonable timeout values, see: [IBI10](#IBI10)   
 
 **Example**
 ```java
 public ConnectionProvider connectionProviderBad() {
-    return ConnectionProvider.builder("gupProvider").build();  // bad
+    return ConnectionProvider.builder("myProvider").build();  // bad
 }
 
 public ConnectionProvider connectionProviderGood() {
-    return ConnectionProvider.builder("gupProvider")
+    return ConnectionProvider.builder("myProvider")
             .maxConnections(props.getMaxConnections()) 
             .pendingAcquireTimeout(Duration.ofMillis(props.getPendingAcquireTimeoutMs()))
             .build();
