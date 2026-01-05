@@ -185,7 +185,7 @@ For more information, see [httpclient-connection-management](https://www.baeldun
 2. not use a ConnectionManager and configure the connection pool on the client.   
 
 So, if you use a Connection Manager, remove the setMaxConnTotal and setMaxConnPerRoute calls on the HttpClient v4.
-With HttpClient v5 these setters are not available anymore, so use a correctly configured ConnectionManager instead.
+With HttpClient v5 these setters are not available anymore, so use a correctly configured ConnectionManager instead.   
 **Rule name:** HttpClientBuilderPoolSettingsIgnored  
 **Example:**  
 ```java
@@ -211,12 +211,12 @@ With HttpClient v5 these setters are not available anymore, so use a correctly c
 This has impact on the stability of the app if too many threads are blocked waiting for a connection or a response.  
 **Solution:** Always set the timeouts explicitly. Use best practice values: Read/socket timeout ~4000 ms (note: 
 depends largely on use case and expected latency of remote calls),
-Connect timeout ~250 ms, Connection Manager/Request timeout = connect timeout + slack 250+100 = ~350 ms.  
+Connect timeout ~250 ms, Connection Manager/Request timeout = connect timeout + slack 250+50 = ~300 ms.  
 **Rule name:** HttpClientBuilderWithoutTimeouts   
 **Example:**
 ```java
 RequestConfig requestConfig = RequestConfig.custom()
-                .setConnectionRequestTimeout(Timeout.ofMilliseconds(350))
+                .setConnectionRequestTimeout(Timeout.ofMilliseconds(300))
                 .setResponseTimeout(Timeout.ofMilliseconds(4000))
                 .build(); // good, all timeouts set
 
@@ -649,6 +649,34 @@ class ValidatingClientHttpRequestInterceptorGoodExample implements ClientHttpReq
 
 ```
 **See:** [ClientHttpRequestInterceptor javadoc](https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/http/client/ClientHttpRequestInterceptor.html)  
+
+#### IBI26
+**Observation: The Netty HTTP connection provider uses the default maximum connections or the default pending acquire timeout.**   
+**Problem:** If a Reactor Netty Connection Provider is built without an explicit `maxConnections`, this defaults to `max(#CPU, 8) * 2`.
+This is often too low, leading to throttling, delays and too long response times.   
+If the provider is built without an explicit `pendingAcquireTimeout`, this defaults to `45s`.
+This is often too high, leading to unnecessary long waiting times.   
+**Solution:** Define both `maxConnections` and `pendingAcquireTimeout` explicitly, with proper values, for instance, `50` and `300 [ms]` respectively.   
+**Notes:** 
+* Different from Apache HttpClient, Reactor Netty HttpClient cannot serve multiple routes in a Connection Provider, it has a simpler setup: one Connection Provider for each route.  
+* For calculating pool size, max connections, see: [IBI03](#IBI03)
+* For reasonable timeout values, see: [IBI10](#IBI10)   
+
+**Example**
+```java
+public ConnectionProvider connectionProviderBad() {
+    return ConnectionProvider.builder("myProvider").build();  // bad
+}
+
+public ConnectionProvider connectionProviderGood() {
+    return ConnectionProvider.builder("myProvider")
+            .maxConnections(props.getMaxConnections()) 
+            .pendingAcquireTimeout(Duration.ofMillis(props.getPendingAcquireTimeoutMs()))
+            .build();
+}
+```
+**Rule name:** NettyConnectionProviderWithoutMaxOrTimeout.   
+**See:** [Reactor Netty ConnectionProvider - Connection Pool](https://projectreactor.io/docs/netty/release/reference/http-client.html#_connection_pool) 
 
 Improper asynchrony
 -------------------

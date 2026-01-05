@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>violation: NettyConnectionProviderWithoutMaxOrTimeout</description>
+        <expected-problems>3</expected-problems>
+        <expected-linenumbers>5,13,19</expected-linenumbers>
+        <code><![CDATA[
+import reactor.netty.resources.ConnectionProvider;
+
+class NettyCP {
+    public ConnectionProvider connectionProviderBad1() {
+        return ConnectionProvider.builder("gupProvider")
+                //.maxConnections(props.getMaxConnections()) // bad <-- this line was missing
+                .pendingAcquireTimeout(Duration.ofMillis(props.getPendingAcquireTimeoutMs()))
+                .pendingAcquireMaxCount(props.getPendingAcquireMaxCount())
+                .maxIdleTime(props.getIdleTimeSeconds())
+                .build();
+    }
+    public ConnectionProvider connectionProviderBad2() {
+        return ConnectionProvider.builder("gupProvider")
+                .maxConnections(props.getMaxConnections())
+                //.pendingAcquireTimeout(Duration.ofMillis(props.getPendingAcquireTimeoutMs())) //bad
+                .build();
+    }
+    public ConnectionProvider connectionProviderBad3() {
+        return ConnectionProvider.builder("gupProvider")
+                //.maxConnections(props.getMaxConnections()) //bad
+                //.pendingAcquireTimeout(Duration.ofMillis(props.getPendingAcquireTimeoutMs()))
+                .build();
+    }
+    public ConnectionProvider connectionProviderGood() {
+        return ConnectionProvider.builder("gupProvider")
+                .maxConnections(props.getMaxConnections())
+                .pendingAcquireTimeout(Duration.ofMillis(props.getPendingAcquireTimeoutMs()))
+                .build();
+    }
+}
+     ]]></code>
+    </test-code>
+
+
+</test-data>
