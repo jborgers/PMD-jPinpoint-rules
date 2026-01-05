@@ -6445,10 +6445,10 @@ class ValidatingClientHttpRequestInterceptorGoodEx implements ClientHttpRequestI
         <example>
             <![CDATA[
 public ConnectionProvider connectionProviderBad() {
-    return ConnectionProvider.builder("gupProvider").build(); // bad
+    return ConnectionProvider.builder("myProvider").build(); // bad
 }
 public ConnectionProvider connectionProviderGood() {
-    return ConnectionProvider.builder("gupProvider")
+    return ConnectionProvider.builder("myProvider")
             .maxConnections(props.getMaxConnections())
             .pendingAcquireTimeout(Duration.ofMillis(props.getPendingAcquireTimeoutMs()))
             .build();
