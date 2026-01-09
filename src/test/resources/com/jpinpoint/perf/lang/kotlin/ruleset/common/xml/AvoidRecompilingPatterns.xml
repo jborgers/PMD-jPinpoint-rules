@@ -97,4 +97,40 @@ class Foo {
      ]]></code>
     </test-code>
 
+    <test-code>
+        <description>Fix Request: Kotlin AvoidRecompilingPatterns gives XPathException #670</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>17</expected-linenumbers>
+        <code><![CDATA[
+import java.util.regex.Pattern
+class Foo2() {
+
+    fun isRuleEnabled(
+        name: String,
+        ruleProperties: Map<String, Rule>,
+    ): Boolean =
+        ruleProperties.values
+            .filter { name.equals(it.name, ignoreCase = true) }
+            .map { checkRule(name, it) }
+            .firstOrNull()
+            ?: false
+
+    private fun checkRule(name: String, rule: Rule): Boolean {
+        val regex = rule.regex()
+        if (regex.isNotEmpty()) {
+            val pattern = Pattern.compile(regex)
+            val matcher = pattern.matcher(rule.name)
+            return matcher.matches()
+        }
+        return false;
+    }
+}
+
+class Rule(val name: String, val regex: String) {
+    fun name(): String = name
+    fun regex(): String = regex
+}
+]]></code>
+    </test-code>
+
 </test-data>
