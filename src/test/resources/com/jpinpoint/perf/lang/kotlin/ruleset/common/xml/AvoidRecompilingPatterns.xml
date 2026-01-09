@@ -115,10 +115,10 @@ class Foo2() {
             .firstOrNull()
             ?: false
 
-    private fun checkRule(name: String, rule: Rule): Boolean {
+    private fun checkRule(name: String, rule: Rule): Boolean { // XPathException on this line: multiple params ended up in concat
         val regex = rule.regex()
         if (regex.isNotEmpty()) {
-            val pattern = Pattern.compile(regex)
+            val pattern = Pattern.compile(regex) // bad
             val matcher = pattern.matcher(rule.name)
             return matcher.matches()
         }
