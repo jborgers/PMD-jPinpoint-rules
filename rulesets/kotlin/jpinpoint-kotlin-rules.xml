@@ -266,10 +266,15 @@ ancestor::FunctionBody//PropertyDeclaration[(
 //ImportHeader[.//T-Identifier[@Text='java'] and .//T-Identifier[@Text='util'] and .//T-Identifier[@Text='regex']][1]/ancestor::KotlinFile
 
 //FunctionBody//T-Identifier[@Text='Pattern' and ../../../PostfixUnarySuffix//T-Identifier[@Text='compile']
-    (: check for variables $action or ${action} in String of compile() call (first in possible call chain): allow dynamic input :)
-    and not(((../../..//ValueArgument)[1]//PostfixUnaryExpression//T-Identifier|(../../..//ValueArgument)[1]//T-LineStrRef)[
-       @Text=ancestor::FunctionDeclaration//FunctionValueParameter/Parameter/SimpleIdentifier/T-Identifier/@Text
-       or @Text=concat('$', ancestor::FunctionDeclaration//FunctionValueParameter/Parameter/SimpleIdentifier/T-Identifier/@Text)])
+(: check for variables $action or ${action} in String of compile() call (first in possible call chain): allow dynamic input :)
+and not(
+  let $params := ancestor::FunctionDeclaration//FunctionValueParameter/Parameter/SimpleIdentifier/T-Identifier/@Text
+  return
+    ((../../..//ValueArgument)[1]//PostfixUnaryExpression//T-Identifier | (../../..//ValueArgument)[1]//T-LineStrRef)[
+      @Text = $params
+      or (some $x in $params satisfies @Text = concat('$', $x))
+    ]
+)
 ]
 ]]>
                 </value>
