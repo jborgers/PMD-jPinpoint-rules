@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>violations: NettyConnectionProviderWithoutMaxOrTimeoutKt </description>
+        <expected-problems>3</expected-problems>
+        <expected-linenumbers>8, 17, 24</expected-linenumbers>
+        <code><![CDATA[
+import reactor.netty.resources.ConnectionProvider
+import java.time.Duration
+
+class NettyConnectionProviderWithoutMaxOrTimeoutKt {
+    private val props: OurNettyConnectionProps = OurNettyConnectionProps()
+
+    fun connectionProviderBad1(): ConnectionProvider {
+        return ConnectionProvider.builder("gupProvider") // bad
+            //.maxConnections(props.getMaxConnections()) // <-- this line was missing
+            .pendingAcquireTimeout(Duration.ofMillis(props.pendingAcquireTimeoutMs.toLong()))
+            .pendingAcquireMaxCount(props.pendingAcquireMaxCount)
+            .maxIdleTime(props.idleTimeSeconds!!)
+            .build()
+    }
+
+    fun connectionProviderBad2(): ConnectionProvider {
+        return ConnectionProvider.builder("gupProvider") // bad
+            .maxConnections(props.maxConnections)
+            //.pendingAcquireTimeout(Duration.ofMillis(props.getPendingAcquireTimeoutMs()))
+            .build()
+    }
+
+    fun connectionProviderBad3(): ConnectionProvider {
+        return ConnectionProvider.builder("gupProvider") // bad
+            //.maxConnections(props.getMaxConnections())
+            //.pendingAcquireTimeout(Duration.ofMillis(props.getPendingAcquireTimeoutMs()))
+            .build()
+    }
+
+    fun connectionProviderGood(): ConnectionProvider {
+        return ConnectionProvider.builder("gupProvider")
+            .maxConnections(props.maxConnections)
+            .pendingAcquireTimeout(Duration.ofMillis(props.pendingAcquireTimeoutMs.toLong()))
+            .build()
+    }
+
+    internal inner class OurNettyConnectionProps {
+        val maxConnections: Int = 0
+        val pendingAcquireTimeoutMs: Int = 0
+        val pendingAcquireMaxCount: Int = 0
+        val idleTimeSeconds: Duration? = null
+    }
+}
+
+
+        ]]></code>
+    </test-code>
+
+</test-data>

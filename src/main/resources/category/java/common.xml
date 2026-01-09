@@ -734,6 +734,19 @@ public class Foo {
 //MethodCall[pmd-java:matchesSig('org.slf4j.MDC#put(java.lang.String,java.lang.String)')]/ArgumentList/*[1][self::StringLiteral or self::VariableAccess]
 [not(@Image=ancestor::MethodDeclaration//TryStatement//FinallyClause//MethodCall[pmd-java:matchesSig('org.slf4j.MDC#remove(java.lang.String)')]/ArgumentList/*[1]/@Image
 or ancestor::MethodDeclaration//TryStatement//FinallyClause//MethodCall[pmd-java:matchesSig('org.slf4j.MDC#clear()')]
+(: Helper method called from a finally block removes/clears the key — allow via class-level lookup (covers both class-level and current-method finally callers) :)
+or @Image = ancestor::ClassBody//MethodDeclaration[
+      @Name = (ancestor::ClassBody//TryStatement//FinallyClause//MethodCall | ancestor::MethodDeclaration//TryStatement//FinallyClause//MethodCall)/@MethodName
+    ]//MethodCall[
+         pmd-java:matchesSig('org.slf4j.MDC#remove(java.lang.String)')
+         or (@MethodName='remove' and TypeExpression/ClassType[pmd-java:typeIs('org.slf4j.MDC')])
+     ]/ArgumentList/*[1]/@Image
+or ancestor::ClassBody//MethodDeclaration[
+      @Name = (ancestor::ClassBody//TryStatement//FinallyClause//MethodCall | ancestor::MethodDeclaration//TryStatement//FinallyClause//MethodCall)/@MethodName
+    ]//MethodCall[
+         pmd-java:matchesSig('org.slf4j.MDC#clear()')
+         or (@MethodName='clear' and TypeExpression/ClassType[pmd-java:typeIs('org.slf4j.MDC')])
+     ]
 or @Image=ancestor::ClassBody//MethodDeclaration[@Name='afterCompletion' or @Name='postHandle']//MethodCall[pmd-java:matchesSig('org.slf4j.MDC#remove(java.lang.String)')]/ArgumentList/*[1]/@Image
 or ancestor::ClassBody//MethodDeclaration[@Name='afterCompletion' or @Name='postHandle']//MethodCall[pmd-java:matchesSig('org.slf4j.MDC#clear()')]
 (: Issue 326, doFinally, not sure to accept :)
@@ -750,9 +763,19 @@ or not(ancestor::TryStatement) and not(.//MethodCall[@MethodName='doFinally'])
         or not(ancestor::MethodDeclaration/@Name=ancestor::ClassBody//TryStatement[.//FinallyClause]/Block//MethodCall/@MethodName)
         (: or in a method called from a try statement and the key not removed / cleared in finally :)
         or (ancestor::MethodDeclaration/@Name=ancestor::ClassBody//TryStatement[.//FinallyClause]/Block//MethodCall/@MethodName and
-        not(@Image = ancestor::ClassBody//TryStatement/FinallyClause//MethodCall[pmd-java:matchesSig('org.slf4j.MDC#remove(java.lang.String)')]/ArgumentList/*[1]/@Image
-        or ancestor::ClassBody//TryStatement//FinallyClause//MethodCall[pmd-java:matchesSig('org.slf4j.MDC#clear()')]
-    )))
+        not(
+            (: direct remove in the same try's finally :)
+            @Image = ancestor::ClassBody//TryStatement/FinallyClause//MethodCall[pmd-java:matchesSig('org.slf4j.MDC#remove(java.lang.String)')]/ArgumentList/*[1]/@Image
+            or ancestor::ClassBody//TryStatement//FinallyClause//MethodCall[pmd-java:matchesSig('org.slf4j.MDC#clear()')]
+            (: or remove/clear inside a method that is called from that finally (Issue #653) :)
+            or @Image = ancestor::ClassBody//MethodDeclaration[
+                @Name = ancestor::ClassBody//TryStatement[.//Block//MethodCall/@MethodName = ancestor::MethodDeclaration/@Name]/FinallyClause//MethodCall/@MethodName
+            ]//MethodCall[pmd-java:matchesSig('org.slf4j.MDC#remove(java.lang.String)')]/ArgumentList/*[1]/@Image
+            or ancestor::ClassBody//MethodDeclaration[
+                @Name = ancestor::ClassBody//TryStatement[.//Block//MethodCall/@MethodName = ancestor::MethodDeclaration/@Name]/FinallyClause//MethodCall/@MethodName
+            ]//MethodCall[pmd-java:matchesSig('org.slf4j.MDC#clear()')]
+        )
+    ))
 )]
 ]]>
                 </value>
@@ -1070,9 +1093,9 @@ class Foo {
             <property name="tags" value="confusing,jpinpoint-rule" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
-(: for fields, formal parameters and local variables :)
-//(VariableDeclarator[../PrimitiveType or ../ClassType[pmd-java:typeIs('java.lang.Long') or pmd-java:typeIs('java.lang.Integer')]]
-  |FormalParameter[PrimitiveType])/VariableId[
+(: we assume confusion is limited to the following types: int, long, short, float, double, Integer, Long; these can be values of time without a unit :)
+//(VariableDeclarator[../PrimitiveType[@Kind=('int','long','short','float','double')] or ../ClassType[pmd-java:typeIs('java.lang.Long') or pmd-java:typeIs('java.lang.Integer')]]
+  |FormalParameter[PrimitiveType[@Kind=('int','long','short','float','double')] or ../ClassType[pmd-java:typeIs('java.lang.Long') or pmd-java:typeIs('java.lang.Integer')]])/VariableId[
 ends-with(lower-case(@Name), 'timetolive')
 or ends-with(lower-case(@Name), 'time_to_live')
 or ends-with(lower-case(@Name), 'time')
@@ -1085,7 +1108,7 @@ or ends-with(lower-case(@Name), 'ttl')
 or ends-with(lower-case(@Name), 'timestamp')]
 ,
 (: @Value :)
-//Annotation[(../../PrimitiveType or ../../ClassType[pmd-java:typeIs('java.lang.Long') or pmd-java:typeIs('java.lang.Integer')])
+//Annotation[(../../PrimitiveType[@Kind=('int','long','short','float','double')] or ../../ClassType[pmd-java:typeIs('java.lang.Long') or pmd-java:typeIs('java.lang.Integer')])
 and pmd-java:typeIs('org.springframework.beans.factory.annotation.Value') and .//MemberValuePair[@Image='value']/StringLiteral[
 ends-with(lower-case(@Image), 'timetolive')
 or ends-with(lower-case(@Image), 'time_to_live}"')
@@ -1736,7 +1759,7 @@ Set<YourEnumType> set = EnumSet.allOf(YourEnumType.class);
 //ClassDeclaration/ModifierList/Annotation
     [pmd-java:typeIs('lombok.Getter') or pmd-java:typeIs('lombok.Setter') or pmd-java:typeIs('lombok.Value') or
      pmd-java:typeIs('lombok.Data') or pmd-java:typeIs('lombok.EqualsAndHashCode')]
-    [ancestor::ClassDeclaration/ClassBody[count(FieldDeclaration) = 0]]
+    [ancestor::ClassDeclaration[1]/ClassBody[count(FieldDeclaration) = 0]]
                 ]]></value>
             </property>
         </properties>
@@ -2463,7 +2486,7 @@ class IterationsBetter {
           language="java"
           message="Avoid creating Comparator instances repeatedly. Initialize them as static final fields instead."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-          externalInfoUrl="${doc_root}/JavaCodePerformance.md#UE03">
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ue03">
         <description>Problem: Creating Comparator instances repeatedly in methods like compareTo or sort calls is inefficient.&#13;
             Solution: Initialize the Comparator once as a static final field and reuse.
         </description>
@@ -2516,6 +2539,34 @@ public class GoodPerson implements Comparable<Person> {
         return COMPARE_FIRST_LAST_NAME_AGE.compare(this, o);     // Good: Comparator initialized once as static final field
     }
 }
+        ]]>
+        </example>
+    </rule>
+
+    <rule name="LegacyTimeLibraryUsed"
+          language="java"
+          message="Migrate from the legacy time library to java.time for better performance."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#uoslc03">
+        <description>Problem: the JodaTime and ThreeTenBp libraries have non-optimal performance and memory usage.
+            Solution: Migrate to java.time for a modern solution with better performance and less memory usage. If you are stuck on Java 6 or 7, ThreeTenBp is the best option, then suppress the violation.
+        </description>
+        <priority>2</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,performance,sustainability-medium,cpu,memory" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+//ImportDeclaration[starts-with(@PackageName, 'org.joda.time')][1]
+|
+//ImportDeclaration[starts-with(@PackageName, 'org.threeten.bp')][1]
+]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+import org.joda.time.DateTime; // bad
+import org.threeten.bp.format.DateTimeFormatter; //bad
+import java.time.LocalDataTime; // good
         ]]>
         </example>
     </rule>

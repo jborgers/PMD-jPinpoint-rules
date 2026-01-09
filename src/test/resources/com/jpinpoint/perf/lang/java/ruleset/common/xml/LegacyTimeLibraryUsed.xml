@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>violation: Legacy time library used</description>
+        <expected-problems>2</expected-problems>
+        <expected-linenumbers>2,4</expected-linenumbers>
+        <code><![CDATA[
+import java.time.*;
+import org.joda.time.DateTime; // bad (1st of Joda)
+import org.joda.time.base.*;
+import org.threeten.bp.format.DateTimeFormatter; // bad (1st of ThreeTen)
+import org.joda.time.DateTimeZone;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+     ]]></code>
+    </test-code>
+</test-data>

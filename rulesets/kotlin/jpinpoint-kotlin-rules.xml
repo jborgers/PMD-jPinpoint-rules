@@ -608,6 +608,108 @@ class FooGood {
         </example>
     </rule>
 
+    <rule name="MDCPutWithoutRemove"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          language="kotlin"
+          message="MDC put is used without remove or clear in the same function"
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#IL04">
+        <description>
+            MDC values are added for logging, but no corresponding remove or clear is performed. Problem: MDC values can leak to other user transactions (requests) and log incorrect information. Solution: remove the MDC value in a finally clause or clear the MDC.
+            (jpinpoint-rules - Kotlin)
+        (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <property name="xpath">
+                <value><![CDATA[
+(: Only consider files that import org.slf4j.MDC :)
+//ImportHeader[.//T-Identifier[@Text='org'] and .//T-Identifier[@Text='slf4j'] and .//T-Identifier[@Text='MDC']][1]/ancestor::KotlinFile
+
+(: Select calls to MDC.put(..) :)
+//PostfixUnaryExpression[
+  PrimaryExpression/SimpleIdentifier/T-Identifier[@Text='MDC']
+  and PostfixUnarySuffix/NavigationSuffix/SimpleIdentifier/T-Identifier[@Text='put']
+]
+(: Report the 'put' identifier if there is no MDC.remove(..) or MDC.clear() in same function, nor via a method called from a finally block (Issue #653) :)
+/PostfixUnarySuffix/NavigationSuffix/SimpleIdentifier/T-Identifier[@Text='put'
+  and not(
+      (: same function body has direct MDC.remove/clear :)
+      ancestor::FunctionBody//PostfixUnaryExpression[
+          PrimaryExpression/SimpleIdentifier/T-Identifier[@Text='MDC']
+          and PostfixUnarySuffix/NavigationSuffix/SimpleIdentifier/T-Identifier[@Text=('remove','clear')]
+      ]
+      or
+      (
+        (: put-arg text equals any remove-arg text inside a helper method that is called from a finally block in this class :)
+        ancestor::ClassDeclaration
+          //FunctionDeclaration[
+            SimpleIdentifier/T-Identifier/@Text = ancestor::ClassDeclaration//TryExpression//FinallySection//PostfixUnaryExpression[PostfixUnarySuffix/CallSuffix]//PrimaryExpression/SimpleIdentifier/T-Identifier/@Text
+          ]
+          //PostfixUnaryExpression[
+            PrimaryExpression/SimpleIdentifier/T-Identifier[@Text='MDC']
+            and PostfixUnarySuffix/NavigationSuffix/SimpleIdentifier/T-Identifier[@Text='remove']
+          ]/PostfixUnarySuffix/CallSuffix/ValueArguments/ValueArgument[1]//(SimpleIdentifier/T-Identifier|LineStringLiteral//T-LineStrText)/@Text
+        =
+        ancestor::PostfixUnaryExpression/PostfixUnarySuffix/CallSuffix/ValueArguments/ValueArgument[1]//(SimpleIdentifier/T-Identifier|LineStringLiteral//T-LineStrText)/@Text
+      )
+      or
+      (
+        (: helper method called from finally does MDC.clear() :)
+        ancestor::ClassDeclaration
+          //FunctionDeclaration[
+            SimpleIdentifier/T-Identifier/@Text = ancestor::ClassDeclaration//TryExpression//FinallySection//PostfixUnaryExpression/PostfixUnarySuffix/NavigationSuffix/SimpleIdentifier/T-Identifier/@Text
+          ]
+          //PostfixUnaryExpression[
+            PrimaryExpression/SimpleIdentifier/T-Identifier[@Text='MDC']
+            and PostfixUnarySuffix/NavigationSuffix/SimpleIdentifier/T-Identifier[@Text='clear']
+          ]
+      )
+      or
+      (
+        (: looser, anywhere in class: a remove of same key exists :)
+        ancestor::ClassDeclaration//PostfixUnaryExpression[
+           PrimaryExpression/SimpleIdentifier/T-Identifier[@Text='MDC']
+           and PostfixUnarySuffix/NavigationSuffix/SimpleIdentifier/T-Identifier[@Text='remove']
+        ]/PostfixUnarySuffix/CallSuffix/ValueArguments/ValueArgument[1]//(SimpleIdentifier/T-Identifier|LineStringLiteral//T-LineStrText)/@Text
+        =
+        ancestor::PostfixUnaryExpression/PostfixUnarySuffix/CallSuffix/ValueArguments/ValueArgument[1]//(SimpleIdentifier/T-Identifier|LineStringLiteral//T-LineStrText)/@Text
+      )
+      or
+      (
+        (: looser, anywhere in class: a clear exists :)
+        ancestor::ClassDeclaration//PostfixUnaryExpression[
+           PrimaryExpression/SimpleIdentifier/T-Identifier[@Text='MDC']
+           and PostfixUnarySuffix/NavigationSuffix/SimpleIdentifier/T-Identifier[@Text='clear']
+        ]
+      )
+  )
+]
+]]></value>
+            </property>
+        </properties>
+        <example><![CDATA[
+import org.slf4j.MDC
+
+class BadKotlinMdc {
+    fun bad() {
+        MDC.put("levelKey1", "levelName1") // bad, not removed or cleared
+        MDC.put("levelKey2", "levelName2") // bad, not removed or cleared
+    }
+}
+
+class GoodKotlinMdc {
+    fun good() {
+        try {
+            MDC.put("levelKey1", "levelName1")
+            MDC.put("levelKey2", "levelName2")
+        } finally {
+            MDC.clear()
+        }
+    }
+}
+        ]]></example>
+    </rule>
+
 <!-- END Included file 'common.xml' -->
 <!-- BEGIN Included file 'remoting.xml' -->
     <rule name="AvoidDeprecatedHystrix"
@@ -670,6 +772,245 @@ class FooGood {
             .setMaxConnTotal(properties.maxConnTotal)
             .setMaxConnPerRoute(properties.maxConnPerRoute) // violation, no disableConnectionState() call
 ]]>
+        </example>
+    </rule>
+
+    <rule name="HttpClientBuilderWithoutPoolSize"
+          language="kotlin"
+          message="HttpClient builder connection pool is not configured."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#ibi03">
+        <description>
+            Problem: when the [default max connections per route] external calls are being made to the same host,
+            the next thread requesting a connection to that host must wait for a free connection.
+            For Apache HttpClient v4, this default = 2 and for v5 this default = 5, often too low.
+            Max total connections are 20 and 25 respectively.&#13;
+            Solution: HttpClients should explicitly define the number of connections per route. If only one route is
+            used, make the max number of connections equal to conn per route.
+            Solution:
+            1. use setConnectionManager and call setMaxTotal and setDefaultMaxPerRoute on that connection manager, or
+            2. use no ConnectionManager, call setMaxConnTotal and setMaxConnPerRoute on the client directly (v4 only).
+            (jpinpoint-rules)
+        (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <property name="xpath">
+                <value><![CDATA[
+(: check if Apache HttpClient v4 or v5 imports exist to avoid name clashes :)
+//ImportHeader[
+  (.//T-Identifier[@Text='org'] and .//T-Identifier[@Text='apache'] and .//T-Identifier[@Text='http'])
+  or
+  (.//T-Identifier[@Text='org'] and .//T-Identifier[@Text='apache'] and .//T-Identifier[@Text='hc'] and .//T-Identifier[@Text='client5'])
+][1]/ancestor::KotlinFile
+//PostfixUnarySuffix//SimpleIdentifier/T-Identifier[
+  @Text='custom' and ancestor::PostfixUnaryExpression/PrimaryExpression/SimpleIdentifier/T-Identifier/@Text='HttpClients'
+][
+  ancestor::FunctionDeclaration[
+    not(.//SimpleIdentifier/T-Identifier[@Text='setConnectionManager'] or
+        (.//SimpleIdentifier/T-Identifier[@Text='setMaxConnTotal'] and .//SimpleIdentifier/T-Identifier[@Text='setMaxConnPerRoute'])
+    )
+  ]
+]
+|
+//ImportHeader[
+  (.//T-Identifier[@Text='org'] and .//T-Identifier[@Text='apache'] and .//T-Identifier[@Text='http'])
+  or
+  (.//T-Identifier[@Text='org'] and .//T-Identifier[@Text='apache'] and .//T-Identifier[@Text='hc'] and .//T-Identifier[@Text='client5'])
+][1]/ancestor::KotlinFile
+//PostfixUnarySuffix//SimpleIdentifier/T-Identifier[
+  @Text='create' and ancestor::PostfixUnaryExpression/PrimaryExpression/SimpleIdentifier/T-Identifier[@Text='HttpClientBuilder' or @Text='HttpAsyncClientBuilder']
+][
+  ancestor::FunctionDeclaration[
+    not(.//SimpleIdentifier/T-Identifier[@Text='setConnectionManager'] or
+        (.//SimpleIdentifier/T-Identifier[@Text='setMaxConnTotal'] and .//SimpleIdentifier/T-Identifier[@Text='setMaxConnPerRoute'])
+    )
+  ]
+]
+|
+//ImportHeader[
+  (.//T-Identifier[@Text='org'] and .//T-Identifier[@Text='apache'] and .//T-Identifier[@Text='http'])
+  or
+  (.//T-Identifier[@Text='org'] and .//T-Identifier[@Text='apache'] and .//T-Identifier[@Text='hc'] and .//T-Identifier[@Text='client5'])
+][1]/ancestor::KotlinFile
+//FunctionDeclaration//TypeReference//SimpleIdentifier/T-Identifier[@Text='PoolingHttpClientConnectionManager' or @Text='PoolingAsyncClientConnectionManager']
+[
+  ancestor::FunctionDeclaration[
+    not(
+      (.//SimpleIdentifier/T-Identifier[@Text='setMaxTotal'] and .//SimpleIdentifier/T-Identifier[@Text='setDefaultMaxPerRoute'])
+      or (
+        (.//SimpleIdentifier/T-Identifier[@Text='setMaxConnTotal'] and .//SimpleIdentifier/T-Identifier[@Text='setMaxConnPerRoute'])
+        and .//SimpleIdentifier/T-Identifier[@Text='PoolingHttpClientConnectionManagerBuilder']
+      )
+    )
+    and not(
+      ancestor::ClassBody//FunctionDeclaration[
+        (.//SimpleIdentifier/T-Identifier[@Text='setMaxTotal'] and .//SimpleIdentifier/T-Identifier[@Text='setDefaultMaxPerRoute'])
+        or (
+          (.//SimpleIdentifier/T-Identifier[@Text='setMaxConnTotal'] and .//SimpleIdentifier/T-Identifier[@Text='setMaxConnPerRoute'])
+          and .//SimpleIdentifier/T-Identifier[@Text='PoolingHttpClientConnectionManagerBuilder']
+        )
+      ]
+    )
+  ]
+]
+                ]]></value>
+            </property>
+        </properties>
+        <example><![CDATA[
+fun bad(conMgr: Any?): HttpClient =
+    HttpClientBuilder.create() // bad, missing setMaxConnPerRoute/setMaxConnTotal or setConnectionManager
+        .build()
+
+fun goodWithMgr(conMgr: Any?): HttpClient =
+    HttpClientBuilder.create()
+        .setConnectionManager(conMgr) // good, delegated to manager
+        .build()
+
+fun goodWithSizes(): HttpClient =
+    HttpClients.custom()
+        .setMaxConnPerRoute(MAX_CONNECTIONS)
+        .setMaxConnTotal(MAX_CONNECTIONS)
+        .build()
+]]></example>
+    </rule>
+
+    <rule name="HttpClientBuilderWithoutTimeouts"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          language="kotlin"
+          message="Apache HttpClient builder is used and not all three timeouts are configured."
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#IBI10">
+        <description>Problem: for connectionRequestTimeout, connectTimeout, socketTimeout (using
+            HttpComponentsClientHttpRequestFactory/RequestConfig) or readTimeout/responseTimeout (using RequestConfig v4/v5) and connectTimeout (using ConnectionConfig v5)
+            the default timeout settings are not optimal in most cases. &#13;
+            Solution: Set the timeouts explicitly to proper reasoned values. See best practice values via the link. Use
+            the setDefaultRequestConfig with a method with a RequestConfig object on HttpClient builders to set the
+            timeouts. (jpinpoint-rules)
+        (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="tags" value="io,jpinpoint-rule,performance,pitfall,resilience" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+(: v4/v5 builders without setDefaultRequestConfig :)
+//PostfixUnarySuffix//SimpleIdentifier/T-Identifier[@Text="create"
+  and ancestor::PostfixUnaryExpression/PrimaryExpression/SimpleIdentifier/T-Identifier/@Text="HttpClientBuilder"
+  and not(ancestor::PostfixUnaryExpression/PostfixUnarySuffix/NavigationSuffix/SimpleIdentifier/T-Identifier/@Text="setDefaultRequestConfig")]
+,
+//PostfixUnarySuffix//SimpleIdentifier/T-Identifier[@Text="create"
+  and ancestor::PostfixUnaryExpression/PrimaryExpression/SimpleIdentifier/T-Identifier/@Text="HttpAsyncClientBuilder"
+  and not(ancestor::PostfixUnaryExpression/PostfixUnarySuffix/NavigationSuffix/SimpleIdentifier/T-Identifier/@Text="setDefaultRequestConfig")]
+,
+//PostfixUnarySuffix//SimpleIdentifier/T-Identifier[@Text="custom"
+  and ancestor::PostfixUnaryExpression/PrimaryExpression/SimpleIdentifier/T-Identifier/@Text="HttpClients"
+  and not(ancestor::PostfixUnaryExpression/PostfixUnarySuffix/NavigationSuffix/SimpleIdentifier/T-Identifier/@Text="setDefaultRequestConfig")]
+,
+(: v4 RequestConfig missing at least one of the three timeouts:)
+//ImportHeader[.//T-Identifier[@Text='org'] and .//T-Identifier[@Text='apache'] and .//T-Identifier[@Text='http'] and .//T-Identifier[@Text='client'] and .//T-Identifier[@Text='config'] and .//T-Identifier[@Text='RequestConfig']][1]/ancestor::KotlinFile
+//PostfixUnarySuffix//SimpleIdentifier/T-Identifier[
+  @Text="custom"
+  and ancestor::PostfixUnaryExpression/PrimaryExpression/SimpleIdentifier/T-Identifier/@Text="RequestConfig"
+  and not(
+    count(ancestor::PostfixUnaryExpression/PostfixUnarySuffix/NavigationSuffix/SimpleIdentifier/T-Identifier[@Text=('setConnectionRequestTimeout','setConnectTimeout','setSocketTimeout')]/@Text) = 3
+  )
+]
+,
+(: v5 RequestConfig missing at least one of the two timeouts:)
+//ImportHeader[.//T-Identifier[@Text='org'] and .//T-Identifier[@Text='apache'] and .//T-Identifier[@Text='hc'] and .//T-Identifier[@Text='client5'] and .//T-Identifier[@Text='http'] and .//T-Identifier[@Text='config'] and .//T-Identifier[@Text='RequestConfig']][1]/ancestor::KotlinFile
+//PostfixUnarySuffix//SimpleIdentifier/T-Identifier[
+  @Text="custom"
+  and ancestor::PostfixUnaryExpression/PrimaryExpression/SimpleIdentifier/T-Identifier/@Text="RequestConfig"
+  and not(
+    ancestor::PostfixUnaryExpression/PostfixUnarySuffix/NavigationSuffix/SimpleIdentifier/T-Identifier/@Text="setConnectionRequestTimeout"
+    and ancestor::PostfixUnaryExpression/PostfixUnarySuffix/NavigationSuffix/SimpleIdentifier/T-Identifier/@Text="setResponseTimeout"
+  )
+]
+,
+(: Spring HttpComponentsClientHttpRequestFactory missing full timeout configuration in a function :)
+//SimpleIdentifier/T-Identifier[@Text='HttpComponentsClientHttpRequestFactory'
+  and ancestor::FunctionDeclaration[
+    count(.//SimpleIdentifier/T-Identifier[@Text=('setConnectTimeout', 'setConnectionRequestTimeout', 'setReadTimeout')]) < 3
+  ]
+]
+]]>
+                </value>
+            </property>
+        </properties>
+        <example><![CDATA[
+class BadHttpClientV5 {
+    public HttpClient createClient() {
+        RequestConfig requestConfig = RequestConfig.custom()
+                .setResponseTimeout(Timeout.ofMilliseconds(1200))
+                .build();
+
+        return HttpClients.custom()
+                .build();
+    }
+}
+
+class GoodHttpClientV5 {
+    public CloseableHttpClient createHttpClient() {
+        ConnectionConfig connectionConfig = ConnectionConfig.custom()
+                .setConnectTimeout(Timeout.ofMilliseconds(300))
+                .build();
+
+        PoolingHttpClientConnectionManager connectionManager =
+                PoolingHttpClientConnectionManagerBuilder.create()
+                        .setDefaultConnectionConfig(connectionConfig)
+                        .build();
+
+        RequestConfig requestConfig = RequestConfig.custom()
+                .setConnectionRequestTimeout(Timeout.ofMilliseconds(100))
+                .setResponseTimeout(Timeout.ofMilliseconds(1200))
+                .build();
+
+        return HttpClients.custom() // good, all expected overrides for timeouts
+                .setDefaultRequestConfig(requestConfig)
+                .setConnectionManager(connectionManager)
+                .build();
+    }
+}
+]]>
+        </example>
+    </rule>
+
+    <rule name="NettyConnectionProviderWithoutMaxOrTimeout"
+          message="Netty ConnectionProvider has no defined maxConnections or pendingAcquireTimeout."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          language="kotlin"
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#ibi26">
+        <description>Problem: If a Reactor Netty Connection Provider is built without an explicit `maxConnections`, this defaults to `max(#CPU, 8) * 2`.
+            This is often too low, leading to throttling, delays and too long response times.
+            If the provider is built without an explicit `pendingAcquireTimeout`, this defaults to `45s`.
+            This is often too high, leading to unnecessary long waiting times.
+            Solution: Define both `maxConnections` and `pendingAcquireTimeout` with proper values, for instance, `50` and `300 [ms]` respectively.
+            (jpinpoint-rules)
+        (jpinpoint-rules)</description>
+        <priority>1</priority>
+        <properties>
+            <property name="tags" value="io,jpinpoint-rule,performance,sustainability-low,resilience" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+//ImportHeader[
+  .//T-Identifier[@Text='reactor'] and .//T-Identifier[@Text='netty'] and .//T-Identifier[@Text='resources']
+][1]/ancestor::KotlinFile
+  //FunctionBody//Statement//T-Identifier[@Text='ConnectionProvider']/../../..//T-Identifier[@Text='builder']
+    [not(ancestor::Statement//T-Identifier[@Text='maxConnections']) or not (ancestor::Statement//T-Identifier[@Text='pendingAcquireTimeout'])]
+                ]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+fun connectionProviderBad(): ConnectionProvider {
+    return ConnectionProvider.builder("myProvider").build() // bad
+}
+fun connectionProviderGood(): ConnectionProvider {
+    return ConnectionProvider.builder("myProvider")
+        .maxConnections(props.maxConnections)
+        .pendingAcquireTimeout(props.pendingAcquireTimeoutMs)
+        .build()
+}
+    ]]>
         </example>
     </rule>
 

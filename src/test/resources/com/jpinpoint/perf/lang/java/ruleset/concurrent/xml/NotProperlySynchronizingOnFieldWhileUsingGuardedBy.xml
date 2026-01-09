@@ -9,17 +9,17 @@
         <code><![CDATA[
    import net.jcip.annotations.GuardedBy;
    public class Good1 {
-        @GuardedBy("LOCK")
+        @GuardedBy("lock")
         private String txt;
-        private final Object LOCK = new Object();
+        private final Object lock = new Object();
 
         public String getText() {
-            synchronized(LOCK) {
+            synchronized(lock) {
                 return txt; // good
             }
         }
         public String setText(String t) {
-            synchronized(LOCK) {
+            synchronized(lock) {
                 txt = t; // good
             }
         }
@@ -28,8 +28,8 @@
    public class Good2 {
         @GuardedBy("this")
         private String txt;
-        private final Object LOCK = new Object();
-        private final Object WRONG_LOCK = new Object();
+        private final Object lock = new Object();
+        private final Object wrongLock = new Object();
 
         public String getText() {
             synchronized(this) {
@@ -44,38 +44,38 @@
    public class Good3 {
         @GuardedBy("this")
         private String txt;
-        @GuardedBy("LOCK")
+        @GuardedBy("lock")
         private String txt2;
-        private final Object LOCK = new Object();
-        private final Object WRONG_LOCK = new Object();
+        private final Object lock = new Object();
+        private final Object wrongLock = new Object();
 
         public String getText() {
             synchronized(this) {
                 return txt; // good
             }
         }
-        public  String setText2(String t) {
-            synchronized(LOCK) {
+        public String setText2(String t) {
+            synchronized(lock) {
                 txt2 = t; // good
             }
         }
     }
 
    public class Good4 {
-        @GuardedBy("LOCK1")
+        @GuardedBy("lock1")
         private String txt1;
-        @GuardedBy("LOCK2")
+        @GuardedBy("lock2")
         private String txt2;
-        private final Object LOCK1 = new Object();
-        private final Object LOCK2 = new Object();
+        private final Object lock1 = new Object();
+        private final Object lock2 = new Object();
 
         public String getText1() {
-            synchronized(LOCK1) {
+            synchronized(lock1) {
                 return txt1; // good
             }
         }
         public  String setText2(String t) {
-            synchronized(LOCK2) {
+            synchronized(lock2) {
                 txt2 = t; // good
             }
         }
@@ -91,9 +91,9 @@
         <code><![CDATA[
     import net.jcip.annotations.GuardedBy;
     public class Bad1 {
-        @GuardedBy("LOCK")
+        @GuardedBy("lock")
         private String txt1;
-        private final Object LOCK = new Object();
+        private final Object lock = new Object();
         public String getText() {
                 return txt1; // bad
         }
@@ -105,19 +105,19 @@
     </test-code>
 
    <test-code>
-        <description>NotProperlySynchronizingOnFieldWhileUsingGuardedBy, synchronized with not the GuardedBy LOCK</description>
+        <description>NotProperlySynchronizingOnFieldWhileUsingGuardedBy, synchronized with not the GuardedBy lock</description>
         <expected-problems>2</expected-problems>
         <expected-linenumbers>10, 15</expected-linenumbers>
         <code><![CDATA[
     import javax.annotation.concurrent.GuardedBy;
     public class Bad2 {
-        @GuardedBy("LOCK")
+        @GuardedBy("lock")
         private String txt2;
-        private final Object LOCK = new Object();
-        private final Object WRONG_LOCK = new Object();
+        private final Object lock = new Object();
+        private final Object wrongLock = new Object();
 
         public String getText() {
-            synchronized(WRONG_LOCK) {
+            synchronized(wrongLock) {
                 return txt2; // bad
             }
         }
@@ -137,18 +137,18 @@
         <code><![CDATA[
    import com.google.errorprone.annotations.concurrent.GuardedBy;
    public class Bad3 {
-        @GuardedBy("LOCK")
+        @GuardedBy("lock")
         private String txt3;
 
         public String getText() {
-            final Object LOCK = new Object();
-            synchronized(LOCK) {
+            final Object lock = new Object();
+            synchronized(lock) {
                 return txt3; // bad
             }
         }
         public String setText(String t) {
-            final Object LOCK = new Object();
-            synchronized(LOCK) {
+            final Object lock = new Object();
+            synchronized(lock) {
                 txt3 = t; // bad
             }
         }
@@ -163,9 +163,9 @@
         <code><![CDATA[
    import net.jcip.annotations.GuardedBy;
    public class Bad4 {
-        @GuardedBy("LOCK")
+        @GuardedBy("lock")
         private String txt4;
-        private final Object LOCK = new Object();
+        private final Object lock = new Object();
 
         public String getText() {
             synchronized(txt4) {
@@ -173,7 +173,7 @@
             }
         }
         public String setText(String t) {
-            synchronized("LOCK") {
+            synchronized("lock") {
                 txt4 = t; // bad
             }
         }
@@ -188,38 +188,38 @@
         <code><![CDATA[
     import net.jcip.annotations.GuardedBy;
     public class HardToViolate1 {
-        @GuardedBy("LOCK1")
+        @GuardedBy("lock1")
         private String txt1;
-        @GuardedBy("LOCK2")
+        @GuardedBy("lock2")
         private String txt2;
-        private final Object LOCK1 = new Object();
-        private final Object LOCK2 = new Object();
+        private final Object lock1 = new Object();
+        private final Object lock2 = new Object();
 
         public String getText1() {
-            synchronized(LOCK2) {
+            synchronized(lock2) {
                 return txt1; // not really good
             }
         }
         public  String setText2(String t) {
-            synchronized(LOCK2) {
+            synchronized(lock2) {
                 txt2 = t; // not really good
             }
         }
     }
 
     public class HardToViolate2 {
-        @GuardedBy("WRONG_LOCK")
+        @GuardedBy("wrongLock")
         private String txt;
-        private final Object LOCK = new Object();
-        private final Object WRONG_LOCK = new Object();
+        private final Object lock = new Object();
+        private final Object wrongLock = new Object();
 
         public String getText() {
-            synchronized(LOCK) {
+            synchronized(lock) {
                 return txt; // bad
             }
         }
         public String setText(String t) {
-            synchronized(LOCK) {
+            synchronized(lock) {
                 txt = t; // bad
             }
         }
@@ -241,6 +241,143 @@ class Issue442 {
 
         public void setText(String t) {
             txt = t; //  <-- false positive
+        }
+}
+        ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>Fix request: use of ReentrantLock in NotProperlySynchronizingOnFieldWhileUsingGuardedBy #474</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import org.springframework.stereotype.Component;
+import javax.annotation.concurrent.GuardedBy;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.regex.Pattern;
+
+@Component
+class Issue474_good1 {
+
+        private final Lock lock = new ReentrantLock();
+
+        @GuardedBy("lock")
+        private Pattern pattern;
+
+        public void doChangePattern(String text) {
+            lock.lock();
+            try {
+                pattern = Pattern.compile(text);
+            }
+            finally {
+                lock.unlock();
+            }
+        }
+}
+@Component
+class Issue474_good2 {
+        private final Lock lock = new ReentrantLock();
+
+        @GuardedBy("lock")
+        private Pattern pattern;
+
+        public void doChangePattern(String text) {
+            try {
+                lock.lock();
+                pattern = Pattern.compile(text);
+            }
+            finally {
+                lock.unlock();
+            }
+        }
+}
+        ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>Fix request: use of ReentrantLock in NotProperlySynchronizingOnFieldWhileUsingGuardedBy #474 - wrong case 1</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>11</expected-linenumbers>
+        <code><![CDATA[
+@Component
+class Issue474_bad1 {
+        private final Lock lock = new ReentrantLock();
+
+        @GuardedBy("LOCK") // bad, wrong name, should be lowercase
+        private Pattern pattern;
+
+        public void doChangePattern(String text) {
+            lock.lock();
+            try {
+                pattern = Pattern.compile(text);
+            }
+            finally {
+                lock.unlock();
+            }
+        }
+}
+        ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>Fix request: use of ReentrantLock in NotProperlySynchronizingOnFieldWhileUsingGuardedBy #474 - wrong case 2</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>10</expected-linenumbers>
+        <code><![CDATA[
+@Component
+class Issue474_bad2 {
+        private final Lock lock = new ReentrantLock();
+
+        @GuardedBy("lock")
+        private Pattern pattern;
+
+        public void doChangePattern(String text) {
+            lock.lock();
+            pattern = Pattern.compile(text); // bad, should use try/finally
+            lock.unlock();
+        }
+}
+        ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>Fix request: use of ReentrantLock in NotProperlySynchronizingOnFieldWhileUsingGuardedBy #474 - wrong case 3</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>11</expected-linenumbers>
+        <code><![CDATA[
+@Component
+class Issue474_bad3 {
+        private final Lock lock = new ReentrantLock();
+        private final Lock lock2 = new ReentrantLock();
+        @GuardedBy("lock")
+        private Pattern pattern;
+
+        public void doChangePattern(String text) {
+            lock.lock();
+            try {
+                pattern = Pattern.compile(text); // bad, unlock on wrong lock
+            }
+            finally {
+                lock2.unlock();
+            }
+        }
+}
+       ]]></code>
+    </test-code>
+
+   <test-code>
+        <description>Fix request: use of ReentrantLock in NotProperlySynchronizingOnFieldWhileUsingGuardedBy #474 - wrong case 4</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>8</expected-linenumbers>
+        <code><![CDATA[
+@Component
+class Issue474_bad4 {
+        private final Lock lock = new ReentrantLock();
+        @GuardedBy("lock")
+        private Pattern pattern;
+
+        public void doChangePattern(String text) {
+             pattern = Pattern.compile(text); // bad, ReentrantLock not used
         }
 }
         ]]></code>

@@ -61,11 +61,12 @@ The most important factor of application performance is the number of back-end s
 #### IBI03
 
 **Observation: The HTTP connection manager uses the default maximum connections per route.**  
-**Problem:** The default maximum connections per route is by default set to 2. This throttles the number of connections to the back-end usually much more than required, 
+**Problem:** For Apache HttpClient the default maximum connections per route is by default set to 2 or 5 for v4 or v5 respectively. 
+This throttles the number of connections to the back-end usually much more than required, 
 such that many requests have to wait for a connection and response times get much higher than needed.
 The connection timeout is usually set to a low number (e.g. 300 ms), in that case connection timeout exceptions will occur.  
 **Solution:** Set the default maximum connections per route to a higher number, e.g. 20. 
-Also increase the Max Total to at least the DefaultMaxPerRoute or a multiple in case of multiple routes.  
+Also increase the Max Total to at least the DefaultMaxPerRoute or a multiple in case of multiple routes. Defaults are 20 or 25 for v4 and v5 respectively.  
 **Example** for only one host. Can be done in two ways:
 
 * via the `PoolingHttpClientConnectionManager`:
@@ -99,13 +100,13 @@ Note that class PoolingClientConnectionManager and several others are deprecated
 **Rule name:** HttpClientBuilderWithoutPoolSize.
 
 **Pool size calculation**   
-The pool size must generally not be blocking, it should have enough connections for long yet still valid service times, during peak load. 
+The pool size should be large enough to handle peak load without blocking (waiting for a free connection), even when the service times are fairly high.
 For calculating the pool size, we suggest the following formula:
 ```
-#connections = 1,5 * #requests/s (at peak load) * service time (at 95th percentile, in seconds)
+#connections = 1.5 * #requests/s (at peak load) * service time (at 95th percentile, in seconds)
 ```
-So, with a peak load of 10 requests/s and the 95th percentile of the time of the called service of 1,2 second, this gets:
-`#connections = 1,5 * 10 * 1,2 = 18`
+So, with a peak load of 10 requests/s and the 95th percentile of the time of the called service of 1.2 seconds, this gets:
+`#connections = 1.5 * 10 * 1.2 = 18`
 
 If you don't know the peak load or the 95th percentile service time, estimate these values.
 
@@ -140,15 +141,16 @@ Other deprecated ones to remove: SimpleHttpConnectionManager, ClientConnectionMa
 Example (correct):
 
 ```java
-    @Bean(name = "saveObjectReferencesHttpClient")
-    public HttpClient httpClient(@Qualifier("saveObjectReferencesConnectionManager") PoolingHttpClientConnectionManager connectionManager,
-                                 SaveObjectReferenceConnectionProperties connectionProperties) {
-        return HttpClientBuilder.create()
-                .setConnectionManager(connectionManager)
-                .setDefaultRequestConfig(RequestConfigUtils.builder(connectionProperties))
-                .disableConnectionState() // allow re-use of mutual authenticated TLS connections
-                .build();
-    }
+```java
+@Bean(name = "myHttpClient")
+public CloseableHttpClient httpClient(@Qualifier("myConnectionManager") PoolingHttpClientConnectionManager connectionManager,
+                                      ConnectionProperties connectionProperties) {
+    return HttpClients.custom()
+            .setConnectionManager(connectionManager)
+            .setDefaultRequestConfig(RequestConfigUtils.builder(connectionProperties))
+            .disableConnectionState() // allow re-use of mutual authenticated TLS connections
+            .build();
+}
 ```
 
 #### IBI08
@@ -182,19 +184,20 @@ For more information, see [httpclient-connection-management](https://www.baeldun
 1. use setConnectionManager and *only* configure the pool on the connection manager or 
 2. not use a ConnectionManager and configure the connection pool on the client.   
 
-So, if you use a Connection Manager, remove the setMaxConnTotal and setMaxConnPerRoute calls on the HttpClient.  
+So, if you use a Connection Manager, remove the setMaxConnTotal and setMaxConnPerRoute calls on the HttpClient v4.
+With HttpClient v5 these setters are not available anymore, so use a correctly configured ConnectionManager instead.   
 **Rule name:** HttpClientBuilderPoolSettingsIgnored  
 **Example:**  
 ```java
         return HttpClientBuilder.create()
                 .setConnectionManager(connMgr)
-                .setMaxConnPerRoute(MAX_CONNECTIONS_TOTAL) // bad, ignored
+                .setMaxConnPerRoute(MAX_CONNECTIONS_TOTAL) // bad, ignored (only possible in v4)
                 .build();
 
         return HttpClientBuilder.create() // good
                 .setMaxConnPerRoute(MAX_CONNECTIONS_TOTAL)
-                .setMaxConnTotal(MAX_CONNECTIONS_TOTAL)
-                .build();
+               .setMaxConnTotal(MAX_CONNECTIONS_TOTAL)
+               .build();
 
         return HttpClientBuilder.create() // good
                 .setConnectionManager(connMgr)
@@ -208,22 +211,30 @@ So, if you use a Connection Manager, remove the setMaxConnTotal and setMaxConnPe
 This has impact on the stability of the app if too many threads are blocked waiting for a connection or a response.  
 **Solution:** Always set the timeouts explicitly. Use best practice values: Read/socket timeout ~4000 ms (note: 
 depends largely on use case and expected latency of remote calls),
-Connect timeout ~250 ms, Connection Manager/Request timeout = connect timeout + slack 250+100 = ~350 ms.  
+Connect timeout ~250 ms, Connection Manager/Request timeout = connect timeout + slack 250+50 = ~300 ms.  
 **Rule name:** HttpClientBuilderWithoutTimeouts   
 **Example:**
 ```java
 RequestConfig requestConfig = RequestConfig.custom()
-        .setConnectionRequestTimeout(350)
-        .setConnectTimeout(250)
-        .setSocketTimeout(4000)
-        .build(); // good, all timeouts set
+                .setConnectionRequestTimeout(Timeout.ofMilliseconds(300))
+                .setResponseTimeout(Timeout.ofMilliseconds(4000))
+                .build(); // good, all timeouts set
 
-return HttpClientBuilder.create()
-        .setDefaultRequestConfig(requestConfig) // good, all timeouts set, if missing > default timeouts?
+ConnectionConfig connectionConfig = ConnectionConfig.custom()
+        .setConnectTimeout(Timeout.ofMilliseconds(250))
         .build();
 
-return HttpClientBuilder.create() // bad, no default HttpClient set with explicit timeouts set
-        .setConnectionTimeToLive(180, TimeUnit.SECONDS)
+HttpClientConnectionManager connectionManager =
+        PoolingHttpClientConnectionManagerBuilder.create()
+                .setDefaultConnectionConfig(connectionConfig)
+                .build();
+
+return HttpClients.custom()
+        .setConnectionManager(connectionManager)
+        .setDefaultRequestConfig(requestConfig) // good, all timeouts set
+        .build();
+
+return HttpClients.custom() // bad, no RequestConfig/ConnectionConfig set with explicit timeouts
         .build();
 ```
 
@@ -307,7 +318,7 @@ class Bad {
                 .setMaxConnPerRoute(config.getMaxConnPerRoute())
                 .build());
 
-        factory.setHttpClient(createHttpClient(config)); //bad
+        factory.setHttpClient(createHttpClient(config)); // bad
         return factory;
     }
 }
@@ -338,8 +349,8 @@ class Foo {
   private static final HttpHost hostBad1 = new HttpHost("localhost:8080"); // bad
 
   void bar() {
-    HttpHost hostBad2 = new HttpHost(URL);//bad
-    HttpHost hostGood1 = new HttpHost("localhost", 8080, "http"); //good
+    HttpHost hostBad2 = new HttpHost(URL); // bad
+    HttpHost hostGood1 = new HttpHost("localhost", 8080, "http"); // good
   }
 }
 ```
@@ -639,10 +650,38 @@ class ValidatingClientHttpRequestInterceptorGoodExample implements ClientHttpReq
 ```
 **See:** [ClientHttpRequestInterceptor javadoc](https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/http/client/ClientHttpRequestInterceptor.html)  
 
+#### IBI26
+**Observation: The Netty HTTP connection provider uses the default maximum connections or the default pending acquire timeout.**   
+**Problem:** If a Reactor Netty Connection Provider is built without an explicit `maxConnections`, this defaults to `max(#CPU, 8) * 2`.
+This is often too low, leading to throttling, delays and too long response times.   
+If the provider is built without an explicit `pendingAcquireTimeout`, this defaults to `45s`.
+This is often too high, leading to unnecessary long waiting times.   
+**Solution:** Define both `maxConnections` and `pendingAcquireTimeout` explicitly, with proper values, for instance, `50` and `300 [ms]` respectively.   
+**Notes:** 
+* Different from Apache HttpClient, Reactor Netty HttpClient cannot serve multiple routes in a Connection Provider, it has a simpler setup: one Connection Provider for each route.  
+* For calculating pool size, max connections, see: [IBI03](#IBI03)
+* For reasonable timeout values, see: [IBI10](#IBI10)   
+
+**Example**
+```java
+public ConnectionProvider connectionProviderBad() {
+    return ConnectionProvider.builder("myProvider").build();  // bad
+}
+
+public ConnectionProvider connectionProviderGood() {
+    return ConnectionProvider.builder("myProvider")
+            .maxConnections(props.getMaxConnections()) 
+            .pendingAcquireTimeout(Duration.ofMillis(props.getPendingAcquireTimeoutMs()))
+            .build();
+}
+```
+**Rule name:** NettyConnectionProviderWithoutMaxOrTimeout.   
+**See:** [Reactor Netty ConnectionProvider - Connection Pool](https://projectreactor.io/docs/netty/release/reference/http-client.html#_connection_pool) 
+
 Improper asynchrony
 -------------------
 
-This categry could be seen as a subcategory of the previous category. However, above mostly deals with remote connections, asynchony mostly deals with threading and parallelism.
+This categry could be seen as a subcategory of the previous category. However, above mostly deals with remote connections, asynchrony mostly deals with threading and parallelism.
 We assume asynchronous calls are typically made to remote services. 
 
 #### IA01
@@ -2230,7 +2269,12 @@ public boolean equals(final Object arg0) {
 Thread unsafety and lock contention
 -----------------------------------
 
-When multiple threads access the same object, access it in a thread safe way. Getting thread safety right and not hindering performance is difficult. Locking with the synchronized keyword may introduce lock contention under load, which is bad for performance. To make threading aspects easier to understand in source code, we recommend the use of [Java Concurrency In Practice annotations.](http://jcip.net.s3-website-us-east-1.amazonaws.com/annotations/doc/index.html)
+When multiple threads access the same object, access it in a thread safe way. Getting thread safety right and not hindering performance is difficult. 
+Locking with the synchronized keyword may introduce lock contention under load, which is bad for performance. To make threading aspects easier to understand in source code, we recommend the use of [Java Concurrency In Practice annotations.](https://jcip.net/annotations/doc/index.html)
+
+### Virtual threads and locking
+Virtual threads are a very efficient way to handle concurrency, especially for I/O bound tasks. Up to JDK 24, they have an issue with doing I/O within a synchronized block, called thread pinning.
+To work around this, use a Reentrant lock with try-finally. However, we consider using virtual threads before JDK 24 risky and do *not* recommend it. Therefore, we also do not promote this workaround.
 
 #### TUTC01
 
@@ -2588,18 +2632,20 @@ class SingletonBMGood {
 **Observation: Locking and describing the locking behaviour with `@GuardedBy` is applied in a wrong way or not meeting best practices.**   
 **Problem:** Wrong use of locking and `@GuardedBy` may result in thread-unsafety and concurrency bugs. It may obstruct other GuardedBy rules which check whether the promise of guarding is actually met, it may disguise high risk violations.  
 **Solution:** Use `@GuardedBy` properly: 
-* use a private final lock object constructed with `new Object()` or `new Object[0]` 
+* use a private final lock object constructed with `new Object()` or `new Object[0]`
 * a String literal of the lock object name as `@GuardedBy` argument 
-* and use that explicit or `this` lock with proper use of `synchronized`; 
-* or use `$lock` or `$LOCK` as lock name when you use Lombok `@Synchronized`.   
+* and use that explicit or `this` lock with proper use of `synchronized`. 
+* Alternatively, use a private final lock object constructed with `new ReentrantLock()` and use it with try-finally.
+* When you use Lombok `@Synchronized`, use `$lock` or `$LOCK` as lock name .   
 
 **Notes:**  
 * Lombok has `@Synchronized` which uses generated lock objects: `$lock` for instance fields and `$LOCK` for static fields. Use those as your GuardedBy argument. See [Lombok @Synchronized](https://projectlombok.org/features/Synchronized)   
 * You can add `@Synchronized` on all your generated getters and setters with `@Getter(onMethod=@__({@Synchronized})` and `@Setter(onMethod=@__({@Synchronized})`, see [Lombok @Getter and @Setter](https://projectlombok.org/features/GetterSetter)   
-* If you need to be Serializable, use a new Object[0] as lock object. An empty array is Serializable while new Object() is not. See [Lombok Synchronized small print](https://projectlombok.org/features/Synchronized).   
-* If you share state like a cache Map as shown below in the examples, also the access of the Map and its elements needs to be thread-safe. 
-The easiest and preferred way is to initialize the Map once and make it final immutable, thereby making it inherently thread-safe hence no need for locking nor @GuardedBy. 
-If it needs to be mutable, assign a thread-safe Map like ConcurrentHashMap with immutable elements to a final field.   
+* If you need to be Serializable, use a new Object[0] as lock object. An empty array is `Serializable` while new Object() is not. See [Lombok Synchronized small print](https://projectlombok.org/features/Synchronized).   
+* If you share state like a cache Map as shown below in the examples, also the access of the `Map` and its elements needs to be thread-safe. 
+The easiest and preferred way is to initialize the Map once and make it final immutable, thereby making it inherently thread-safe hence no need for locking nor `@GuardedBy`. 
+If it needs to be mutable, assign a thread-safe `Map` like `ConcurrentHashMap` with immutable elements to a final field.   
+* `ReentrantLock`-s as alternative to `synchronized` can be used as a work-around when using virtual threads with Java 21-24, to avoid thread-pinning issues. 
 
 **Rule name:** WrongUseOfGuardedBy   
 **See:** 
@@ -2633,18 +2679,35 @@ class RightUseOfGuardedBy {
 class NoThisLockUsedBad {
   @GuardedBy("this") // bad, 'this' lock object not used
   private Map<String, String> cachedData = new HashMap<>();
-  public Map<String, String> getData() {
-    return cachedData; // NotProperlySynchronizingOnThisWhileUsingGuardedBy
+  public String getValue(String key) {
+    return cachedData.get(key); // NotProperlySynchronizingOnThisWhileUsingGuardedBy
   }
 }
 
 class ThisLockUsedGood {
-  @GuardedBy("this") // bad, 'this' lock object not used
+  @GuardedBy("this") // good, 'this' lock object is used, implicitly with 'synchronized'
   private final Map<String, String> cachedData = new HashMap<>();
-  public synchronized Map<String, String> getData() {
-    return cachedData; 
-  }
+    public synchronized String getValue(String key) {
+        return cachedData.get(key); 
+    }
 }
+
+class ReentrantLockUsedGood {
+    private final Lock lock = new ReentrantLock();
+
+    @GuardedBy("lock") // good, explicit lock object used
+    private final Map<String, String> cachedData = new HashMap<>();
+    public String getValue(String key) {
+        try {
+            lock.lock();
+            return cachedData.get(key);
+        }
+        finally {
+            lock.unlock();
+        }
+    }
+} 
+
 @Getter
 class NoActualLockObjectBad {
   @GuardedBy("lock") // bad, no lock object exists
@@ -2655,6 +2718,50 @@ class NoActualLockObjectBad {
 class LombokInstanceLockUsedGood {
   @GuardedBy("$lock") // good, lombok '$lock' object used as lock
   private Map<String, String> cachedData = new HashMap<>();
+}
+```
+#### TUTC15
+**Observation: Non-atomic *if-modify* is used on a `ConcurrentMap`.**   
+**Problem:** Non-atomic *if-modify* constructs are the most subtle and most occurring concurrency bugs. 
+A `ConcurrentMap` is used in a multi-threading environment. A separate *if* and *modify* is a concurrency bug because one thread can execute the *if* operation, be scheduled-out, a second thread also executes the *if* operation, and then both will do the *modify* operation. The *if* and *modify* need to be atomically combined.   
+**Solution:** Utilize an atomic if-combined-with-modify operation provided by the `ConcurrentMap`: `putIfAbsent`, `computeIfAbsent`, `computeIfPresent`, `getOrDefault`, `remove` and `replace`.   
+**Note 1:** A `get` is not a modify operation, however, it may unexpectedly return a null in the non-atomic if-get case. Use the atomic `getOrDefault`.    
+**Note 2:** Putting synchronized on a wider scope like on the method level might be needed, for instance, in case of a third access to the map. Still, we recommend using the provided atomic operations.   
+**Rule name:** AvoidNonAtomicIfModifyOnConcurrentMap.   
+**See:** [ConcurrentMap](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/concurrent/ConcurrentMap.html).    
+**Example:**
+```java
+class AvoidNonAtomicIfModifyOnConcurrentMap {
+    void badPut(ConcurrentMap<String, String> accountMap, String accKey, String account) {
+        if (!accountMap.containsKey(accKey)) { // bad
+            accountMap.put(accKey, account);
+        }
+    }
+
+    void goodPut(ConcurrentMap<String, String> accountMap, String accKey, String account) {
+        accountMap.putIfAbsent(accKey, account);
+    }
+
+    String badGet(ConcurrentMap<String, String> accountMap, String accKey, String account) {
+        if(accountMap.containsKey(accKey)) { // bad 
+            return accountMap.get(accKey); // can unexpectedly return null, when another thread removes in between
+        }
+        return account;
+    }
+
+    String goodGet(ConcurrentMap<String, String> accountMap, String accKey, String account) {
+        return accountMap.getOrDefault(accKey, account);
+    }
+    
+    void badRemove(ConcurrentMap<String, String> accountMap, String accKey, String account) {
+        if (accountMap.containsKey(accKey) && Objects.equals(accountMap.get(accKey), account)) { // bad
+            accountMap.remove(accKey);
+        }
+    }
+
+    void goodRemove(ConcurrentMap<String, String> accountMap, String accKey, String account) {
+        accountMap.remove(accKey, account); // will only remove if currently mapped to the account
+    }
 }
 ```
 
@@ -3227,6 +3334,20 @@ Use of slow library calls
 **Observation: Base64 encoding is achieved with sun.misc.BASE64Encoder and decoding with sun.misc.BASE64Decoder.**  
 **Problem:** These implementations are not efficient  
 **Solution:** There is actually a hidden fast alternative since JAXB 1.0 / JavaEE 5+: [javax.xml.bind.DatatypeConverter](http://docs.oracle.com/javaee/6/api/javax/xml/bind/DatatypeConverter.html) parseBase64Binary and printBase64Binary methods, see [here](http://java-performance.info/base64-encoding-and-decoding-performance/). If you have Java 8+, use java.util.Base64, it is even a little faster.
+
+#### UOSLC03
+
+**Observation: Legacy time library: Joda-time or ThreeTenBp is used.**   
+**Problem:** These legacy libraries have non-optimal performance and memory usage.   
+**Solution:** Migrate to java.time for a modern solution with substantially better performance and less memory usage. If you are stuck on Java 6 or 7, ThreeTenBp is the best option.    
+**Rule name:** LegacyTimeLibraryUsed   
+**Note:** If you use ThreeTenBp and cannot migrate because you are stuck on Java 6 or 7: suppress the violation on the import statement with //NOPMD //NOSONAR.   
+**Example:**
+```java
+import org.joda.time.DateTime; // bad
+import org.threeten.bp.format.DateTimeFormatter; //bad
+import java.time.LocalDataTime; // good
+```   
 
 Potential memory leaks
 ----------------------

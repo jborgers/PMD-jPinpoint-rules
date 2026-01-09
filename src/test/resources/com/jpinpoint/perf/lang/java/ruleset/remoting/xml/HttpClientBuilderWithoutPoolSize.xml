@@ -294,4 +294,252 @@ class Foo {
        ]]></code>
     </test-code>
 
+    <test-code>
+        <description>violation: HttpClient5 missing pool size calls</description>
+        <expected-problems>2</expected-problems>
+        <expected-linenumbers>34,49</expected-linenumbers>
+        <code><![CDATA[
+import lombok.extern.slf4j.Slf4j;
+
+import org.apache.hc.client5.http.config.ConnectionConfig;
+import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
+import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
+import org.apache.hc.client5.http.ssl.TlsSocketStrategy;
+import org.apache.hc.core5.http.HttpHeaders;
+import org.apache.hc.core5.http.message.BasicHeader;
+import org.apache.hc.core5.util.TimeValue;
+import org.apache.hc.core5.util.Timeout;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+import java.util.List;
+
+@Slf4j
+@Configuration
+public class AppConfig {
+
+    @Bean
+    public CloseableHttpClient httpClient5Minimal(SslBundles sslBundles) {
+
+        // Define defaults that do NOT include TTL; TTL is set on the connection manager itself.
+        ConnectionConfig connectionConfig = ConnectionConfig.custom()
+                // .setTimeToLive(TimeValue.ofSeconds(60)) // TTL for persistent connections // BAD: call missing
+                // .setConnectTimeout(Timeout.ofMilliseconds(300)) // BAD: call missing
+                .build();
+
+        // Build connection manager with optional TLS strategy from SSL bundle
+        PoolingHttpClientConnectionManager connectionManager = PoolingHttpClientConnectionManagerBuilder.create()
+                    .setDefaultConnectionConfig(connectionConfig)
+                    //.setConnectionTimeToLive(TimeValue.ofSeconds(60)) // -> DEPRECATED
+                    .build();
+
+        // Tune pool sizes to ensure reuse under concurrency
+        // connectionManager.setMaxTotal(100); // BAD: call missing
+        // connectionManager.setDefaultMaxPerRoute(50); // BAD: call missing
+
+        RequestConfig requestConfig = RequestConfig.custom()
+                //.setConnectionRequestTimeout(Timeout.ofMilliseconds(100)) // BAD: call missing
+                .setConnectTimeout(Timeout.ofMilliseconds(100)) // -> DEPRECATED
+                //.setResponseTimeout(Timeout.ofMilliseconds(1200)) // BAD: call missing
+                .build();
+
+        var httpClientBuilder = HttpClients.custom()
+                //.disableAutomaticRetries() // BAD: call missing
+                //.disableConnectionState() // needed for mTLS connection reuse! // BAD: call missing
+                .evictExpiredConnections()
+                .evictIdleConnections(TimeValue.ofSeconds(30))
+                .setConnectionManager(connectionManager)
+                //.setDefaultRequestConfig(requestConfig) // BAD: call missing
+                // Encourage persistent connections even when server omits keep-alive headers
+                .setKeepAliveStrategy((response, context) -> TimeValue.ofSeconds(60))
+                // Be explicit about intent to keep the connection alive
+                .setDefaultHeaders(List.of(new BasicHeader(HttpHeaders.CONNECTION, "keep-alive")));
+
+        return httpClientBuilder.build();
+    }
+}
+       ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>no violation: HttpClient5 missing pool size calls</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import lombok.extern.slf4j.Slf4j;
+
+import org.apache.hc.client5.http.config.ConnectionConfig;
+import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
+import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
+import org.apache.hc.client5.http.ssl.TlsSocketStrategy;
+import org.apache.hc.core5.http.HttpHeaders;
+import org.apache.hc.core5.http.message.BasicHeader;
+import org.apache.hc.core5.util.TimeValue;
+import org.apache.hc.core5.util.Timeout;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+import java.util.List;
+
+@Slf4j
+@Configuration
+public class AppConfig {
+
+    @Bean
+    public CloseableHttpClient httpClient5Minimal(SslBundles sslBundles) {
+
+        // Define defaults that do NOT include TTL; TTL is set on the connection manager itself.
+        ConnectionConfig connectionConfig = ConnectionConfig.custom()
+                .setTimeToLive(TimeValue.ofSeconds(60)) // TTL for persistent connections
+                .setConnectTimeout(Timeout.ofMilliseconds(300))
+                .build();
+
+        // Build connection manager with optional TLS strategy from SSL bundle
+        PoolingHttpClientConnectionManager connectionManager = PoolingHttpClientConnectionManagerBuilder.create()
+                    .setDefaultConnectionConfig(connectionConfig)
+                    //.setConnectionTimeToLive(TimeValue.ofSeconds(60)) // -> DEPRECATED
+                    .build();
+
+        // Tune pool sizes to ensure reuse under concurrency
+        connectionManager.setMaxTotal(100);
+        connectionManager.setDefaultMaxPerRoute(50);
+
+        RequestConfig requestConfig = RequestConfig.custom()
+                .setConnectionRequestTimeout(Timeout.ofMilliseconds(100))
+                //.setConnectTimeout(Timeout.ofMilliseconds(100)) // -> DEPRECATED use ConnectionConfig.setConnectTimeout
+                .setResponseTimeout(Timeout.ofMilliseconds(1200))
+                .build();
+
+        var httpClientBuilder = HttpClients.custom()
+                .disableAutomaticRetries()
+                .disableConnectionState() // needed for mTLS connection reuse!
+                .evictExpiredConnections()
+                .evictIdleConnections(TimeValue.ofSeconds(30))
+                .setConnectionManager(connectionManager)
+                .setDefaultRequestConfig(requestConfig)
+                // Encourage persistent connections even when server omits keep-alive headers
+                .setKeepAliveStrategy((response, context) -> TimeValue.ofSeconds(60))
+                // Be explicit about intent to keep the connection alive
+                .setDefaultHeaders(List.of(new BasicHeader(HttpHeaders.CONNECTION, "keep-alive")));
+
+        return httpClientBuilder.build();
+    }
+}
+       ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>false positive: connection manager set sizes called in other method in same class</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import lombok.extern.slf4j.Slf4j;
+
+import org.apache.hc.client5.http.config.ConnectionConfig;
+import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
+import org.apache.hc.core5.util.TimeValue;
+import org.apache.hc.core5.util.Timeout;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+import java.util.List;
+
+@Slf4j
+@Configuration
+public class AppConfig {
+    @Bean
+    public CloseableHttpClient httpClient5minimalWithMethodCall(SslBundles sslBundles) {
+
+        ConnectionConfig connectionConfig = ConnectionConfig.custom()
+                .setTimeToLive(TimeValue.ofSeconds(60)) // TTL for persistent connections
+                .setConnectTimeout(Timeout.ofMilliseconds(300))
+                .build();
+
+        // Build connection manager with TLS strategy from SSL bundle
+        PoolingHttpClientConnectionManager connectionManager = createConnectionManagerWithMtlsMinimal(sslBundles, connectionConfig);
+
+        // Tune pool sizes to ensure reuse under concurrency
+        connectionManager.setMaxTotal(100);
+        connectionManager.setDefaultMaxPerRoute(50);
+
+        return HttpClients.custom().setConnectionManager(connectionManager).build();
+    }
+
+    private static PoolingHttpClientConnectionManager createConnectionManagerWithMtlsMinimal(SslBundles sslBundles, ConnectionConfig connectionConfig) {
+        PoolingHttpClientConnectionManager connectionManager;
+
+        // skipped all mTLS code in the minimal example
+
+        connectionManager = PoolingHttpClientConnectionManagerBuilder.create()
+                .setDefaultConnectionConfig(connectionConfig)
+                //.setTlsSocketStrategy(tlsStrategy)
+                .build();
+
+            return connectionManager;
+    }
+}
+       ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>no violation: set sizes called on manager builder direclty instead of on connection manager</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import lombok.extern.slf4j.Slf4j;
+
+import org.apache.hc.client5.http.config.ConnectionConfig;
+import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
+import org.apache.hc.core5.util.TimeValue;
+import org.apache.hc.core5.util.Timeout;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+import java.util.List;
+
+@Slf4j
+@Configuration
+public class AppConfig {
+    @Bean
+    public CloseableHttpClient httpClient5minimalOtherWithMethodCall() {
+
+        ConnectionConfig connectionConfig = ConnectionConfig.custom()
+                .setTimeToLive(TimeValue.ofSeconds(60)) // TTL for persistent connections
+                .setConnectTimeout(Timeout.ofMilliseconds(300))
+                .build();
+
+        // Build connection manager with TLS strategy from SSL bundle
+        PoolingHttpClientConnectionManager connectionManager = createConnectionManagerWithMtlsMinimalOther(connectionConfig);
+
+        return HttpClients.custom().setConnectionManager(connectionManager).build();
+    }
+
+    private static PoolingHttpClientConnectionManager createConnectionManagerWithMtlsMinimalOther(ConnectionConfig connectionConfig) {
+        PoolingHttpClientConnectionManager connectionManager;
+
+        connectionManager = PoolingHttpClientConnectionManagerBuilder.create()
+                .setDefaultConnectionConfig(connectionConfig)
+                .setMaxConnPerRoute(10)
+                .setMaxConnTotal(50)
+                .build();
+
+        return connectionManager;
+    }
+}
+       ]]></code>
+    </test-code>
+
 </test-data>

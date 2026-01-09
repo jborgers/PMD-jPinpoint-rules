@@ -200,18 +200,18 @@ class AComponent6 {
 @Singleton
 @ConcurrencyManagement(value = ConcurrencyManagementType.BEAN)
 class ASyncedSingletonConcurrencyBean {
-    private final Object LOCK = new Object();
-    @GuardedBy("LOCK")
+    private final Object lock = new Object();
+    @GuardedBy("lock")
     private String string1Good = new String(); // good - guarded
-    @GuardedBy("LOCK")
+    @GuardedBy("lock")
     private final List list1Good = new ArrayList(); // good - guarded
-    @GuardedBy("LOCK")
+    @GuardedBy("lock")
     private Map<String, String> map1Good = new HashMap<>(); // good - guarded
     @Autowired
     private String url;
 
     public void setString1Good(String string1) {
-        synchronized(LOCK) { // Findbugs should be able to check
+        synchronized(lock) { // Findbugs should be able to check
             this.string1Good = string1;
         }
     }
@@ -428,7 +428,7 @@ class SubClassBad extends Base {
 // inherited field used
 @Component
 class SubClassGood extends Base {
-    private final Object LOCK = new Object();
+    private final Object lock = new Object();
     SubClassGood() {
         baseField = ""; // good, could be final TODO
     }
@@ -437,7 +437,7 @@ class SubClassGood extends Base {
         baseField = val; // assumed good
     }
     public  void setBaseField2(final String val) {
-        synchronized(LOCK) {
+        synchronized(lock) {
             baseField = val; // assumed good
         }
     }
@@ -614,3 +614,4 @@ public class Foo {
         ]]></code>
     </test-code>
 </test-data>
+

@@ -542,7 +542,7 @@ class Good {
 //ClassDeclaration/ModifierList/Annotation
     [pmd-java:typeIs('lombok.Getter') or pmd-java:typeIs('lombok.Setter') or pmd-java:typeIs('lombok.Value') or
      pmd-java:typeIs('lombok.Data') or pmd-java:typeIs('lombok.EqualsAndHashCode')]
-    [ancestor::ClassDeclaration/ClassBody[count(FieldDeclaration) = 0]]
+    [ancestor::ClassDeclaration[1]/ClassBody[count(FieldDeclaration) = 0]]
                 ]]></value>
             </property>
         </properties>
@@ -1044,9 +1044,9 @@ class Foo {
             <property name="tags" value="confusing,jpinpoint-rule" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
-(: for fields, formal parameters and local variables :)
-//(VariableDeclarator[../PrimitiveType or ../ClassType[pmd-java:typeIs('java.lang.Long') or pmd-java:typeIs('java.lang.Integer')]]
-  |FormalParameter[PrimitiveType])/VariableId[
+(: we assume confusion is limited to the following types: int, long, short, float, double, Integer, Long; these can be values of time without a unit :)
+//(VariableDeclarator[../PrimitiveType[@Kind=('int','long','short','float','double')] or ../ClassType[pmd-java:typeIs('java.lang.Long') or pmd-java:typeIs('java.lang.Integer')]]
+  |FormalParameter[PrimitiveType[@Kind=('int','long','short','float','double')] or ../ClassType[pmd-java:typeIs('java.lang.Long') or pmd-java:typeIs('java.lang.Integer')]])/VariableId[
 ends-with(lower-case(@Name), 'timetolive')
 or ends-with(lower-case(@Name), 'time_to_live')
 or ends-with(lower-case(@Name), 'time')
@@ -1059,7 +1059,7 @@ or ends-with(lower-case(@Name), 'ttl')
 or ends-with(lower-case(@Name), 'timestamp')]
 ,
 (: @Value :)
-//Annotation[(../../PrimitiveType or ../../ClassType[pmd-java:typeIs('java.lang.Long') or pmd-java:typeIs('java.lang.Integer')])
+//Annotation[(../../PrimitiveType[@Kind=('int','long','short','float','double')] or ../../ClassType[pmd-java:typeIs('java.lang.Long') or pmd-java:typeIs('java.lang.Integer')])
 and pmd-java:typeIs('org.springframework.beans.factory.annotation.Value') and .//MemberValuePair[@Image='value']/StringLiteral[
 ends-with(lower-case(@Image), 'timetolive')
 or ends-with(lower-case(@Image), 'time_to_live}"')
@@ -1773,7 +1773,7 @@ class Foo {
           language="java"
           message="Avoid creating Comparator instances repeatedly. Initialize them as static final fields instead."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#UE03">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#ue03">
         <description>Problem: Creating Comparator instances repeatedly in methods like compareTo or sort calls is inefficient.&#13;
             Solution: Initialize the Comparator once as a static final field and reuse.
         (jpinpoint-rules)</description>
@@ -1830,6 +1830,34 @@ public class GoodPerson implements Comparable<Person> {
         </example>
     </rule>
 
+    <rule name="LegacyTimeLibraryUsed"
+          language="java"
+          message="Migrate from the legacy time library to java.time for better performance."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#uoslc03">
+        <description>Problem: the JodaTime and ThreeTenBp libraries have non-optimal performance and memory usage.
+            Solution: Migrate to java.time for a modern solution with better performance and less memory usage. If you are stuck on Java 6 or 7, ThreeTenBp is the best option, then suppress the violation.
+        (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,performance,sustainability-medium,cpu,memory" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+//ImportDeclaration[starts-with(@PackageName, 'org.joda.time')][1]
+|
+//ImportDeclaration[starts-with(@PackageName, 'org.threeten.bp')][1]
+]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+import org.joda.time.DateTime; // bad
+import org.threeten.bp.format.DateTimeFormatter; //bad
+import java.time.LocalDataTime; // good
+        ]]>
+        </example>
+    </rule>
+
     <rule name="MDCPutWithoutRemove"
           message="MDC put is used without finally remove."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
@@ -1846,6 +1874,19 @@ public class GoodPerson implements Comparable<Person> {
 //MethodCall[pmd-java:matchesSig('org.slf4j.MDC#put(java.lang.String,java.lang.String)')]/ArgumentList/*[1][self::StringLiteral or self::VariableAccess]
 [not(@Image=ancestor::MethodDeclaration//TryStatement//FinallyClause//MethodCall[pmd-java:matchesSig('org.slf4j.MDC#remove(java.lang.String)')]/ArgumentList/*[1]/@Image
 or ancestor::MethodDeclaration//TryStatement//FinallyClause//MethodCall[pmd-java:matchesSig('org.slf4j.MDC#clear()')]
+(: Helper method called from a finally block removes/clears the key — allow via class-level lookup (covers both class-level and current-method finally callers) :)
+or @Image = ancestor::ClassBody//MethodDeclaration[
+      @Name = (ancestor::ClassBody//TryStatement//FinallyClause//MethodCall | ancestor::MethodDeclaration//TryStatement//FinallyClause//MethodCall)/@MethodName
+    ]//MethodCall[
+         pmd-java:matchesSig('org.slf4j.MDC#remove(java.lang.String)')
+         or (@MethodName='remove' and TypeExpression/ClassType[pmd-java:typeIs('org.slf4j.MDC')])
+     ]/ArgumentList/*[1]/@Image
+or ancestor::ClassBody//MethodDeclaration[
+      @Name = (ancestor::ClassBody//TryStatement//FinallyClause//MethodCall | ancestor::MethodDeclaration//TryStatement//FinallyClause//MethodCall)/@MethodName
+    ]//MethodCall[
+         pmd-java:matchesSig('org.slf4j.MDC#clear()')
+         or (@MethodName='clear' and TypeExpression/ClassType[pmd-java:typeIs('org.slf4j.MDC')])
+     ]
 or @Image=ancestor::ClassBody//MethodDeclaration[@Name='afterCompletion' or @Name='postHandle']//MethodCall[pmd-java:matchesSig('org.slf4j.MDC#remove(java.lang.String)')]/ArgumentList/*[1]/@Image
 or ancestor::ClassBody//MethodDeclaration[@Name='afterCompletion' or @Name='postHandle']//MethodCall[pmd-java:matchesSig('org.slf4j.MDC#clear()')]
 (: Issue 326, doFinally, not sure to accept :)
@@ -1862,9 +1903,19 @@ or not(ancestor::TryStatement) and not(.//MethodCall[@MethodName='doFinally'])
         or not(ancestor::MethodDeclaration/@Name=ancestor::ClassBody//TryStatement[.//FinallyClause]/Block//MethodCall/@MethodName)
         (: or in a method called from a try statement and the key not removed / cleared in finally :)
         or (ancestor::MethodDeclaration/@Name=ancestor::ClassBody//TryStatement[.//FinallyClause]/Block//MethodCall/@MethodName and
-        not(@Image = ancestor::ClassBody//TryStatement/FinallyClause//MethodCall[pmd-java:matchesSig('org.slf4j.MDC#remove(java.lang.String)')]/ArgumentList/*[1]/@Image
-        or ancestor::ClassBody//TryStatement//FinallyClause//MethodCall[pmd-java:matchesSig('org.slf4j.MDC#clear()')]
-    )))
+        not(
+            (: direct remove in the same try's finally :)
+            @Image = ancestor::ClassBody//TryStatement/FinallyClause//MethodCall[pmd-java:matchesSig('org.slf4j.MDC#remove(java.lang.String)')]/ArgumentList/*[1]/@Image
+            or ancestor::ClassBody//TryStatement//FinallyClause//MethodCall[pmd-java:matchesSig('org.slf4j.MDC#clear()')]
+            (: or remove/clear inside a method that is called from that finally (Issue #653) :)
+            or @Image = ancestor::ClassBody//MethodDeclaration[
+                @Name = ancestor::ClassBody//TryStatement[.//Block//MethodCall/@MethodName = ancestor::MethodDeclaration/@Name]/FinallyClause//MethodCall/@MethodName
+            ]//MethodCall[pmd-java:matchesSig('org.slf4j.MDC#remove(java.lang.String)')]/ArgumentList/*[1]/@Image
+            or ancestor::ClassBody//MethodDeclaration[
+                @Name = ancestor::ClassBody//TryStatement[.//Block//MethodCall/@MethodName = ancestor::MethodDeclaration/@Name]/FinallyClause//MethodCall/@MethodName
+            ]//MethodCall[pmd-java:matchesSig('org.slf4j.MDC#clear()')]
+        )
+    ))
 )]
 ]]>
                 </value>
@@ -3583,6 +3634,37 @@ enum Good {
         ]]></example>
     </rule>
 
+    <rule name="AvoidNonAtomicIfModifyOnConcurrentMap"
+          message="Non-atomic if-modify used on a ConcurrentMap"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          language="java"
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#tutc15">
+        <description>Problem: Non-atomic If-Modify constructs are the most subtle and most occurring concurrency bugs. A ConcurrentMap is used in a multi-threading environment, and a separate if and modify is a concurrency bug.
+            Solution: Use an atomic if-combined-with-modify operation provided by the ConcurrentMap, like putIfAbsent. (jpinpoint-rules)</description>
+        <priority>1</priority>
+        <properties>
+            <property name="tags" value="jpinpoint-rule,multi-threading,pitfall" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+//IfStatement//(MethodCall[@MethodName='containsKey']|InfixExpression[@Operator=('==','!=') and NullLiteral]/MethodCall[@MethodName='get'])
+    /VariableAccess[pmd-java:typeIs('java.util.concurrent.ConcurrentMap')][@Name =
+    ./ancestor::IfStatement/Block//MethodCall[@MethodName=('put', 'compute', 'get', 'remove', 'replace')]/VariableAccess/@Name]
+]]></value>
+            </property>
+        </properties>
+        <example><![CDATA[
+    void bad(ConcurrentMap<String, String> accountMap, String accKey, String account) {
+        if(!accountMap.containsKey(accKey)){
+            accountMap.put(accKey, account);
+        }
+    }
+
+    void good(ConcurrentMap<String, String> accountMap, String accKey, String account) {
+        accountMap.putIfAbsent(accKey, account);
+    }
+                ]]></example>
+    </rule>
+
     <rule name="AvoidNonPrivateFieldsInSharedObjects"
           message="Avoid non-private objects shared among threads. Make fields private to ensure thread-safety."
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" language="java"
@@ -4073,12 +4155,12 @@ public class Good {
 @Service
 class MyService {
 
-    private final LOCK = new Object();
+    private final lock = new Object();
 
     @Value("${batchService.http.url}")
     private String batchUrl;
 
-    @GuardedBy("LOCK")
+    @GuardedBy("lock")
     @Value("${otherService.http.url}")
     private String otherUrl;
 
@@ -4087,7 +4169,7 @@ class MyService {
     }
 
     public void setOtherUrl(final String url) {
-        synchronized(LOCK) {
+        synchronized(lock) {
             this.batchUrl = url; // good: synchronized accessor method
         }
     }
@@ -4190,8 +4272,8 @@ class MyService {
             </properties>
             <example><![CDATA[
 public class Bad {
-    private static Map staticMapField = new HashMap(); // bad, class has synchronized method
-    private Date date = new Date(); // bad, class has synchronized method
+    private static Map staticMapField = new HashMap(); // bad, unguarded and class has synchronized method
+    private Date date = new Date(); // bad, unguarded and class has synchronized method
 
     public Date getDate() {
         return date;
@@ -4205,7 +4287,7 @@ public class Bad {
         return staticMapField;
     }
 
-    public static  void setStaticMapField(Map smf) {
+    public static void setStaticMapField(Map smf) {
         staticMapField = smf;
     }
 }
@@ -4213,18 +4295,21 @@ public class Bad {
 public class Good {
     @GuardedBy("this")
     private static Map staticMapField = new HashMap(); // good, guarded
-    @GuardedBy("LOCK")
+    private final Object lock = new Object();
+    @GuardedBy("lock")
     private Date date = new Date(); // good, guarded
 
     public void setDate(Date d) {
-        date = d;
+        synchronized(lock) {
+            date = d;
+        }
     }
 
     public static synchronized Map getStaticMapField() {
         return staticMapField;
     }
 
-    public static  void setStaticMapField(Map smf) {
+    public static synchronized void setStaticMapField(Map smf) {
         staticMapField = smf;
     }
 }
@@ -4635,9 +4720,10 @@ class Good {
               class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" language="java"
               externalInfoUrl="https://jcip.net/annotations/doc/index.html">
             <description>
-                Problem: The field to which the GuardedBy annotation is applied is not accessed thread-safely as described by GuardedBy.
-                Solution: Make access thread-safe: synchronize access by a synchronized(LOCK) block with LOCK being a final field.
-                Note that methods with annotations @Autowired, @PostConstruct, @BeforeStep, @Value and @Inject are ignored.
+                Problem: The field to which the `@GuardedBy` annotation is applied is not accessed thread-safely as promised by GuardedBy.
+                Solution: Make access thread-safe: synchronize access by a `synchronized(lock)` block with `lock` being a private final field.
+                Alternatively, to avoid thread pinning with virtual threads before Java 24, use `ReentrantLock` with `try-finally`.
+                Note that methods with annotations `@Autowired`, `@PostConstruct`, `@BeforeStep`, `@Value` and `@Inject` are ignored.
                 (jpinpoint-rules)</description>
             <priority>2</priority>
             <properties>
@@ -4663,8 +4749,13 @@ class Good {
               @ConstValue = ancestor::ClassBody[1]/FieldDeclaration/VariableDeclarator/VariableId/@Name]
            ]/VariableDeclarator/VariableId/@Name
     (: and *IS NOT* in a synchronized block with the GuardedBy literal:)
-    and not(ancestor::SynchronizedStatement/VariableAccess/@Name =
-       ancestor::ClassBody[1]/FieldDeclaration[ModifierList/Annotation[@SimpleName='GuardedBy']]//MemberValuePair/StringLiteral/@ConstValue)
+    (: and *IS NOT* with lock.lock() and try statement with assignment/access and lock.unlock in finally :)
+    and not(ancestor::ClassBody[1]/FieldDeclaration[ModifierList/Annotation[@SimpleName='GuardedBy']]//MemberValuePair/StringLiteral/@ConstValue =
+        (ancestor::SynchronizedStatement/VariableAccess/@Name,
+         ancestor::MethodDeclaration//Block[
+            .//TryStatement[Block//(AssignmentExpression|VariableAccess)]/FinallyClause//MethodCall[@MethodName='unlock']/VariableAccess[pmd-java:typeIs('java.util.concurrent.locks.Lock')]
+        ]
+        //MethodCall[@MethodName='lock']/VariableAccess[pmd-java:typeIs('java.util.concurrent.locks.Lock')]/@Name))
 ]
 ,
 //MethodDeclaration[
@@ -4690,8 +4781,8 @@ class Good {
             <example>
                 <![CDATA[
 class Bad1 {
-    private final Object LOCK = new Object();
-    @GuardedBy("LOCK")
+    private final Object lock = new Object();
+    @GuardedBy("lock")
     private String txt;
 
     public String getText() { return txt; } // bad
@@ -4699,15 +4790,15 @@ class Bad1 {
 }
 
 class Good1 {
-    private final Object LOCK = new Object();
-    @GuardedBy("LOCK")
+    private final Object lock = new Object();
+    @GuardedBy("lock")
     private String txt;
 
     public String getText() {
-        synchronized(LOCK) { return txt; }
+        synchronized(lock) { return txt; }
     }
     public void setText(String t) {
-        synchronized(LOCK) { txt = t; }
+        synchronized(lock) { txt = t; }
     }
 }
                 ]]>
@@ -4823,8 +4914,8 @@ public class Foo {
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           language="java"
           externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#tutc14">
-        <description>Problem: Wrong use of locking and '@GuardedBy' may result in thread-unsafety and concurrency bugs. It may obstruct other GuardedBy rules which check whether the promise of guarding is actually met, it may disguise high risk violations.
-            Solution: Use '@GuardedBy' properly: use a private final lock object constructed with 'new Object()' or 'new Object[0]'; a String literal of the lock name as '@GuardedBy' argument; and use that explicit or 'this' lock with 'synchronized'; or '$lock' or '$LOCK' with lombok '@Synchronized'. (jpinpoint-rules)</description>
+        <description>Problem: Wrong use of locking and '@GuardedBy' may result in thread-unsafety and concurrency bugs. It may obstruct other GuardedBy rules which check whether the promise of guarding is actually met, it may disguise high-risk violations.
+            Solution: Use '@GuardedBy' properly: use a private final lock object constructed with 'new Object()' or 'new Object[0]'; a String literal of the lock name as '@GuardedBy' argument; and use that explicit or 'this' lock with 'synchronized'; or as ReentrantLock with try-finally, or '$lock' or '$LOCK' with lombok '@Synchronized'. (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
             <property name="tags" value="jpinpoint-rule,multi-threading,confusing,pitfall" type="String" description="classification"/>
@@ -4839,7 +4930,9 @@ public class Foo {
 |
 (: GuardedBy argument being non-'this' is not used in a synchronized statement, nor with @Synchronized lombok annotation on class or method level :)
 //FieldDeclaration/ModifierList/Annotation[@SimpleName='GuardedBy']//MemberValuePair/StringLiteral[not(@ConstValue = 'this')
-    and not(@ConstValue = ancestor::ClassBody[1]//SynchronizedStatement/VariableAccess/@Name) and not(ancestor::ClassDeclaration[1]//ModifierList//Annotation[@SimpleName='Synchronized'])]
+    and not(@ConstValue = ancestor::ClassBody[1]//SynchronizedStatement/VariableAccess/@Name)
+    and not(ancestor::ClassDeclaration[1]//ModifierList//Annotation[@SimpleName='Synchronized'])
+    and not(@ConstValue = ancestor::ClassBody[1]/FieldDeclaration/VariableDeclarator/VariableId[pmd-java:typeIs('java.util.concurrent.locks.Lock')]/@Name)]
 |
 (: GuardedBy argument being 'this' is not used as modifier nor as in a synchronized statement:)
 //FieldDeclaration/ModifierList/Annotation[@SimpleName='GuardedBy']//MemberValuePair/StringLiteral[@ConstValue = 'this'
@@ -4848,7 +4941,8 @@ public class Foo {
 (: a field that is not both private and final, not an allocated Object nor Object[0], and used as GuardedBy argument on another field :)
 //FieldDeclaration/VariableDeclarator/VariableId[not(pmd-java:modifiers()=('private') and pmd-java:modifiers()=('final')) or not(
     ../ConstructorCall[pmd-java:typeIsExactly('java.lang.Object')])
-    and not(../ArrayAllocation[pmd-java:typeIsExactly('java.lang.Object[]')]//ArrayDimensions[@Size=1]//NumericLiteral[@ValueAsInt=0]
+    and not(../ArrayAllocation[pmd-java:typeIsExactly('java.lang.Object[]')]//ArrayDimensions[@Size=1]//NumericLiteral[@ValueAsInt=0])
+    and not( ../ConstructorCall[pmd-java:typeIs('java.util.concurrent.locks.Lock')]
 )][@Name = ancestor::ClassBody[1]//FieldDeclaration/ModifierList/Annotation[@SimpleName='GuardedBy']//MemberValuePair/StringLiteral/@ConstValue]
                 ]]></value>
             </property>
@@ -5904,15 +5998,18 @@ class Good {
     <rule name="HttpClientBuilderWithoutPoolSize"
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           language="java"
-          message="HttpClient builder is used and the connection pool is not configured. HttpClient defaults of 2 per route and 20 max total are probably not right."
+          message="HttpClient builder connection pool is not configured."
           externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#ibi03">
-        <description>Problem: by default only 2 connections are available per route. When two external calls are being
-            made, a third thread requesting a connection must wait for a free connection.&#13;
+        <description>
+            Problem: when the [default max connections per route] external calls are being made to the same host,
+            the next thread requesting a connection to that host must wait for a free connection.
+            For Apache HttpClient v4, this default = 2 and for v5 this default = 5, often too low.
+            Max total connections are 20 and 25 respectively.&#13;
             Solution: HttpClients should explicitly define the number of connections per route. If only one route is
             used, make the max number of connections equal to conn per route.
             Solution:
             1. use setConnectionManager and call setMaxTotal and setDefaultMaxPerRoute on that connection manager, or
-            2. use no ConnectionManager, call setMaxConnTotal and setMaxConnPerRoute on the client directly.
+            2. use no ConnectionManager, call setMaxConnTotal and setMaxConnPerRoute on the client directly (v4 only).
             (jpinpoint-rules)
         (jpinpoint-rules)</description>
         <priority>2</priority>
@@ -5925,6 +6022,9 @@ class Good {
         pmd-java:typeIs('org.apache.http.impl.client.HttpClientBuilder')
         or pmd-java:typeIs('org.apache.http.impl.client.HttpClients')
         or pmd-java:typeIs('org.apache.http.impl.nio.client.HttpAsyncClientBuilder')
+        or pmd-java:typeIs('org.apache.hc.client5.http.impl.classic.HttpClientBuilder')
+        or pmd-java:typeIs('org.apache.hc.client5.http.impl.classic.HttpClients')
+        or pmd-java:typeIs('org.apache.hc.client5.http.impl.async.HttpAsyncClientBuilder')
 ][
     ancestor::MethodDeclaration[
         not(
@@ -5941,8 +6041,61 @@ class Good {
         not(
             .//MethodCall[@MethodName='setConnectionManager'] or
             (.//MethodCall[@MethodName='setMaxTotal'] and .//MethodCall[@MethodName='setDefaultMaxPerRoute'])
+            or ancestor::ClassBody//MethodDeclaration[.//MethodCall[@MethodName='setMaxTotal'] and .//MethodCall[@MethodName='setDefaultMaxPerRoute']]
         )
     ]
+]
+,
+//MethodDeclaration
+    /(Block|FormalParameters)//ClassType[pmd-java:typeIs('org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager')]
+[
+    ancestor::MethodDeclaration[
+        not(
+            (.//MethodCall[@MethodName='setMaxTotal'] and .//MethodCall[@MethodName='setDefaultMaxPerRoute'])
+            or (
+                (.//MethodCall[@MethodName='setMaxConnTotal'] and .//MethodCall[@MethodName='setMaxConnPerRoute'])
+                and .//(TypeExpression|ClassType|VariableAccess)[pmd-java:typeIs('org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder')]
+            )
+        )
+        and not(
+            ancestor::ClassBody//MethodDeclaration[
+                (.//MethodCall[@MethodName='setMaxTotal'] and .//MethodCall[@MethodName='setDefaultMaxPerRoute'])
+                or (
+                    (.//MethodCall[@MethodName='setMaxConnTotal'] and .//MethodCall[@MethodName='setMaxConnPerRoute'])
+                    and .//(TypeExpression|ClassType|VariableAccess)[pmd-java:typeIs('org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder')]
+                )
+            ]
+        )
+    ]
+]
+,
+//MethodDeclaration//MethodCall[@MethodName='setConnectionManager']
+    [ArgumentList//VariableAccess[pmd-java:typeIs('org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager')]]
+[
+    ancestor::MethodDeclaration[
+        not(
+            .//MethodCall[@MethodName='setDefaultMaxPerRoute']
+            or (
+                (.//MethodCall[@MethodName='setMaxConnTotal'] and .//MethodCall[@MethodName='setMaxConnPerRoute'])
+                and .//(TypeExpression|ClassType|VariableAccess)[pmd-java:typeIs('org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder')]
+            )
+        )
+        and not(
+            ancestor::ClassBody//MethodDeclaration[
+                (.//MethodCall[@MethodName='setDefaultMaxPerRoute'] and .//MethodCall[@MethodName='setMaxTotal'])
+                or (
+                    (.//MethodCall[@MethodName='setMaxConnTotal'] and .//MethodCall[@MethodName='setMaxConnPerRoute'])
+                    and .//(TypeExpression|ClassType|VariableAccess)[pmd-java:typeIs('org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder')]
+                )
+            ]
+        )
+    ]
+]
+,
+//MethodDeclaration
+    /(Block|FormalParameters)//ClassType[pmd-java:typeIs('org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManager')]
+[
+    ancestor::MethodDeclaration[not(.//MethodCall[@MethodName='setMaxTotal'] and .//MethodCall[@MethodName='setDefaultMaxPerRoute'])]
 ]
 ]]>
                 </value>
@@ -5969,14 +6122,14 @@ return HttpClientBuilder.create() // good, setConnectionManager called, pool con
     <rule name="HttpClientBuilderWithoutTimeouts"
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           language="java"
-          message="HttpClient-v4 builder is used and not all three timeouts are configured. The defaults are probably not optimal (e.g. infinite). "
+          message="Apache HttpClient builder is used and not all three timeouts are configured."
           externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#IBI10">
-        <description>Problem: (Apache client version 4) For connectionRequestTimeout, connectTimeout, socketTimeout (for
-            HttpComponentsClientHttpRequestFactory) or readTimeout (for RequestConfig) the default timeout settings are
-            not optimal in most cases. &#13;
+        <description>Problem: for connectionRequestTimeout, connectTimeout, socketTimeout (using
+            HttpComponentsClientHttpRequestFactory/RequestConfig) or readTimeout/responseTimeout (using RequestConfig v4/v5) and connectTimeout (using ConnectionConfig v5)
+            the default timeout settings are not optimal in most cases. &#13;
             Solution: Set the timeouts explicitly to proper reasoned values. See best practice values via the link. Use
             the setDefaultRequestConfig with a method with a RequestConfig object on HttpClient builders to set the
-            timeouts.(jpinpoint-rules)
+            timeouts. (jpinpoint-rules)
         (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
@@ -5988,12 +6141,24 @@ return HttpClientBuilder.create() // good, setConnectionManager called, pool con
         pmd-java:typeIs('org.apache.http.impl.client.HttpClientBuilder')
         or pmd-java:typeIs('org.apache.http.impl.client.HttpClients')
         or pmd-java:typeIs('org.apache.http.impl.nio.client.HttpAsyncClientBuilder')
+        or pmd-java:typeIs('org.apache.hc.client5.http.impl.classic.HttpClientBuilder')
+        or pmd-java:typeIs('org.apache.hc.client5.http.impl.classic.HttpClients')
+        or pmd-java:typeIs('org.apache.hc.client5.http.impl.async.HttpAsyncClientBuilder')
+
 ][
     ancestor::MethodDeclaration[
         not(
             .//MethodCall[@MethodName='setDefaultRequestConfig'] or (
                 ancestor::ClassBody//MethodCall[@MethodName='setRequestConfigCallback'] and ancestor::ClassBody/MethodDeclaration/ClassType[@SimpleName='Builder']/ClassType[@SimpleName='RequestConfig']/../..
                     [count(.//MethodCall[@MethodName=('setConnectionRequestTimeout','setConnectTimeout','setSocketTimeout')]) = 3]
+            ) or (
+                ancestor::ClassBody[
+                    count(.//MethodCall[@MethodName='setHttpClient']) = 1 and
+                    count(
+                        .//MethodCall[@MethodName=('setConnectionRequestTimeout','setConnectTimeout','setReadTimeout')]
+                        /VariableAccess[pmd-java:typeIs('org.springframework.http.client.HttpComponentsClientHttpRequestFactory')]
+                    ) = 3
+                ]
             )
         )
     ]
@@ -6003,16 +6168,49 @@ return HttpClientBuilder.create() // good, setConnectionManager called, pool con
     [ancestor::MethodDeclaration//MethodCall[@MethodName='custom']]
     [ancestor::MethodDeclaration[count(.//MethodCall[@MethodName=('setConnectionRequestTimeout','setConnectTimeout','setSocketTimeout')]) != 3]]
 ,
-(: only client v4 :)
-//ImportDeclaration[starts-with(@PackageName, 'org.apache.http.')]/..
+//MethodDeclaration//MethodCall[(TypeExpression|VariableAccess)[pmd-java:typeIs('org.apache.hc.client5.http.config.RequestConfig')]]
+    [@MethodName='custom']
+    [ancestor::MethodDeclaration[count(.//MethodCall[@MethodName=('setConnectionRequestTimeout','setResponseTimeout')]) != 2]]
+,
+//MethodDeclaration//MethodCall[(TypeExpression|VariableAccess)[pmd-java:typeIs('org.apache.hc.client5.http.config.ConnectionConfig')]]
+    [@MethodName='custom']
+    [ancestor::MethodDeclaration[count(.//MethodCall[@MethodName='setConnectTimeout']) = 0]]
+,
+//MethodDeclaration//MethodCall[@MethodName='create']
+    [(TypeExpression|VariableAccess)[pmd-java:typeIs('org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder')]]
+    [ancestor::MethodDeclaration[count(.//MethodCall[@MethodName='setDefaultConnectionConfig']) = 0]]
+,
+//MethodDeclaration//MethodCall[@MethodName='custom']
+    [(TypeExpression|VariableAccess)[pmd-java:typeIs('org.apache.hc.client5.http.impl.classic.HttpClients')]]
+    [
+        ancestor::MethodDeclaration[
+            count(.//MethodCall[@MethodName=('setDefaultRequestConfig','setConnectionManager')]) != 2
+            and not(
+                count(
+                    .//MethodCall[@MethodName=('setConnectionRequestTimeout','setConnectTimeout','setReadTimeout')]
+                    /VariableAccess[pmd-java:typeIs('org.springframework.http.client.HttpComponentsClientHttpRequestFactory')]
+                ) = 3
+            )
+            and not(
+                ancestor::ClassBody[
+                    count(.//MethodCall[@MethodName='setHttpClient']) = 1
+                    and count(
+                        .//MethodCall[@MethodName=('setConnectionRequestTimeout','setConnectTimeout','setReadTimeout')]
+                        /VariableAccess[pmd-java:typeIs('org.springframework.http.client.HttpComponentsClientHttpRequestFactory')]
+                    ) = 3
+                ]
+            )
+        ]
+    ]
+,
 //MethodDeclaration//(
     ConstructorCall[not(
-        .//MethodCall[pmd-java:typeIs('org.apache.http.client.HttpClient')]
+        .//MethodCall[pmd-java:typeIs('org.apache.http.client.HttpClient') or pmd-java:typeIs('org.apache.hc.client5.http.classic.HttpClient')]
     )]
     |FormalParameter
 )[pmd-java:typeIs('org.springframework.http.client.HttpComponentsClientHttpRequestFactory')]
 [not(
-   (.//VariableAccess[pmd-java:typeIs('org.apache.http.client.HttpClient')] or ancestor::MethodDeclaration//MethodCall[@MethodName='setHttpClient'])
+   (.//VariableAccess[pmd-java:typeIs('org.apache.http.client.HttpClient') or pmd-java:typeIs('org.apache.hc.client5.http.classic.HttpClient')] or ancestor::MethodDeclaration//MethodCall[@MethodName='setHttpClient'])
    and ancestor::MethodDeclaration[
         count(.//MethodCall[@MethodName=('setConnectionRequestTimeout','setConnectTimeout','setReadTimeout')]/VariableAccess[
             pmd-java:typeIs('org.springframework.http.client.HttpComponentsClientHttpRequestFactory')
@@ -6026,15 +6224,41 @@ return HttpClientBuilder.create() // good, setConnectionManager called, pool con
         </properties>
         <example>
             <![CDATA[
-RequestConfig requestConfig = RequestConfig.custom()
-                                           .setSocketTimeout(4000)
-                                           .build(); // bad, not all timeouts set
+class BadHttpClientV5 {
+    public HttpClient bad() {
+        RequestConfig requestConfig = RequestConfig.custom() // bad, missing other timeouts
+                .setResponseTimeout(Timeout.ofMilliseconds(1200))
+                .build();
 
-return HttpClientBuilder.create()
-                        .setDefaultRequestConfig(requestConfig) // good
-                        .build();
+        return HttpClients.custom() // bad, missing calls to override default timeouts
+            .build();
+    }
+}
+
+class GoodHttpClientV5 {
+    public CloseableHttpClient httpClient() {
+        ConnectionConfig connectionConfig = ConnectionConfig.custom()
+            .setConnectTimeout(Timeout.ofMilliseconds(300))
+            .build();
+
+        PoolingHttpClientConnectionManager connectionManager = PoolingHttpClientConnectionManagerBuilder.create()
+            .setDefaultConnectionConfig(connectionConfig)
+            .build();
+
+        RequestConfig requestConfig = RequestConfig.custom()
+                .setConnectionRequestTimeout(Timeout.ofMilliseconds(100))
+                .setResponseTimeout(Timeout.ofMilliseconds(1200))
+                .build();
+
+        return HttpClients.custom() // good, all expected overrides for timeouts
+            .setDefaultRequestConfig(requestConfig)
+            .setConnectionManager(connectionManager)
+            .build();
+    }
+}
 ]]>
         </example>
+
     </rule>
 
     <rule name="HttpClientImproperConnectionTimeouts"
@@ -6194,6 +6418,43 @@ class ValidatingClientHttpRequestInterceptorGoodEx implements ClientHttpRequestI
                 ]]></value>
             </property>
         </properties>
+    </rule>
+
+    <rule name="NettyConnectionProviderWithoutMaxOrTimeout"
+          message="Netty ConnectionProvider has no defined maxConnections or pendingAcquireTimeout."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          language="java"
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#ibi26">
+        <description>Problem: If a Reactor Netty Connection Provider is built without an explicit `maxConnections`, this defaults to `max(#CPU, 8) * 2`.
+            This is often too low, leading to throttling, delays and too long response times.
+            If the provider is built without an explicit `pendingAcquireTimeout`, this defaults to `45s`.
+            This is often too high, leading to unnecessary long waiting times.
+            Solution: Define both `maxConnections` and `pendingAcquireTimeout` with proper values, for instance, `50` and `300 [ms]` respectively.
+            (jpinpoint-rules)
+        (jpinpoint-rules)</description>
+        <priority>1</priority>
+        <properties>
+            <property name="tags" value="io,jpinpoint-rule,performance,sustainability-low,resilience" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+//TypeExpression[pmd-java:typeIs('reactor.netty.resources.ConnectionProvider')]
+[not(ancestor::MethodCall[@MethodName='maxConnections']) or not(ancestor::MethodCall[@MethodName='pendingAcquireTimeout'])]
+    ]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+public ConnectionProvider connectionProviderBad() {
+    return ConnectionProvider.builder("myProvider").build(); // bad
+}
+public ConnectionProvider connectionProviderGood() {
+    return ConnectionProvider.builder("myProvider")
+            .maxConnections(props.getMaxConnections())
+            .pendingAcquireTimeout(Duration.ofMillis(props.getPendingAcquireTimeoutMs()))
+            .build();
+}
+    ]]>
+        </example>
     </rule>
 
     <rule name="ObjectMapperCreatedForEachMethodCall"

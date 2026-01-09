@@ -136,15 +136,15 @@ import net.jcip.annotations.GuardedBy;
 public class Bad7 {
     @GuardedBy("this")
     private String txt;
-    private final Object LOCK = new Object();
+    private final Object lock = new Object();
 
     public String getText() {
-        synchronized(LOCK) {
+        synchronized(lock) {
             return txt; // bad
         }
     }
     public String setText(String t) {
-        synchronized(LOCK) {
+        synchronized(lock) {
             txt = t; // bad
         }
     }
