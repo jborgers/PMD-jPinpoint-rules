@@ -203,4 +203,28 @@ class AvoidMultipleConcatStatementsKt {
         ]]></code>
     </test-code>
 
+    <test-code>
+        <description>Fix Request: Kotlin AvoidMultipleConcatStatements false positive on MutableList #651</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+class Foo(private val isActive: Boolean, private val canCreate: Boolean) {
+
+    private fun calculate(myList: List<String>): List<String> {
+
+        val mutableList = myList.toMutableList()
+
+        if (isActive) {
+            mutableList += "one" // false positive, not two lines with += are needed to trigger this rule
+            if (canCreate) {
+                mutableList += listOf("two", "three") // false positive
+            }
+        } else {
+            mutableList.removeAll(listOf("one", "two"))
+        }
+        return myList
+    }
+}
+     ]]></code>
+    </test-code>
+
 </test-data>
