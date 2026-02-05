@@ -203,4 +203,21 @@ class AvoidMultipleConcatStatementsKt {
         ]]></code>
     </test-code>
 
+    <test-code>
+        <description>Fix Request: false positive on Kotlin AvoidMultipleConcatStatements for mutableMap #674</description>
+        <expected-problems>0</expected-problems>
+
+        <code><![CDATA[
+class AvoidMultipleConcatStatementsFalsePos {
+    private fun falsePos(): Map<String, String> {
+            val key = "key:"
+            return mutableMapOf<String, String>().apply {
+                this[key + "A"] = "valA"
+                this[key + "B"] = "valB" // <-- false positive
+            }
+    }
+}
+        ]]></code>
+    </test-code>
+
 </test-data>
