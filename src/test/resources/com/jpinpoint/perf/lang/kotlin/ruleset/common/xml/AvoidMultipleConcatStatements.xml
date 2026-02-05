@@ -203,4 +203,101 @@ class AvoidMultipleConcatStatementsKt {
         ]]></code>
     </test-code>
 
+    <test-code>
+        <description>Fix Request: Kotlin AvoidMultipleConcatStatements false positive on MutableList #651</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+class Foo(private val isActive: Boolean, private val canCreate: Boolean) {
+
+    private fun calculate(myList: List<String>): List<String> {
+
+        val mutableList = myList.toMutableList()
+
+        if (isActive) {
+            mutableList += "one" // false positive, not two lines with += are needed to trigger this rule
+            if (canCreate) {
+                mutableList += listOf("two", "three") // false positive
+            }
+        } else {
+            mutableList.removeAll(listOf("one", "two"))
+        }
+        return myList
+    }
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>Kotlin non-String plus operator usages should not trigger AvoidMultipleConcatStatements</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import java.math.BigDecimal
+
+data class Vec2(val x: Int, val y: Int) {
+    operator fun plus(other: Vec2): Vec2 = Vec2(this.x + other.x, this.y + other.y)
+}
+
+class NonStringPlusUsages {
+
+    fun numericPlus(): Int {
+        var a = 10
+        a += 5
+        a = a + 2
+        val b = 3 + 4
+        return a + b
+    }
+
+    fun bigDecimalPlus(): BigDecimal {
+        var total = BigDecimal.ZERO
+        total += BigDecimal("1.5")
+        total = total + BigDecimal("2.25")
+        return total + BigDecimal("3.0")
+    }
+
+    fun listPlus(x: List<Int>, y: List<Int>): List<Int> {
+        var base = listOf(1, 2)
+        base = base + 3
+        base += listOf(4, 5)
+        val more = base + listOf(6)
+        val evenMore = x + y
+        return more
+    }
+
+    fun mutableListPlusAssign(): MutableList<Int> {
+        val ml = mutableListOf(1)
+        ml += 2
+        ml += listOf(3, 4)
+        return ml
+    }
+
+    fun setUnion(): Set<Int> {
+        val s1 = setOf(1, 2)
+        val s2 = setOf(2, 3)
+        val s3 = s1 + s2
+        return s3 + 4
+    }
+
+    fun mapPlus(): Map<String, Int> {
+        val m1 = mapOf("a" to 1)
+        val m2 = m1 + ("b" to 2)
+        val m3 = m2 + mapOf("c" to 3)
+        return m3
+    }
+
+    fun arrayPlus(): IntArray {
+        val arr = intArrayOf(1, 2)
+        val extended = arr + 3
+        return extended + intArrayOf(4, 5)
+    }
+
+    fun customOperatorPlus(): Vec2 {
+        var v = Vec2(1, 2)
+        v += Vec2(3, 4)
+        v = v + Vec2(5, 6)
+        return v + Vec2(7, 8)
+    }
+}
+    ]]></code>
+    </test-code>
+
 </test-data>
