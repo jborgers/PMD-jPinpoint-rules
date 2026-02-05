@@ -220,4 +220,42 @@ class AvoidMultipleConcatStatementsFalsePos {
         ]]></code>
     </test-code>
 
+    <test-code>
+        <description>Plus usages on non-String types should not be flagged</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+class AvoidMultipleConcatStatementsNonStringPlus {
+    fun numericPlus() {
+        var sum = 0
+        val a = 1
+        val b = 2
+        sum += a
+        sum += b
+        sum = sum + 3
+        sum = sum + 4
+    }
+    fun listPlus() {
+        var list = listOf(1, 2)
+        list = list + listOf(3)
+        list = list + listOf(4)
+    }
+    fun arrayPlus() {
+        var arr = arrayOf(1)
+        arr = arr + arrayOf(2)
+        arr = arr + arrayOf(3)
+    }
+    fun setPlus() {
+        var set = setOf(1)
+        set = set + 2
+        set = set + 3
+    }
+    fun mapPlus() {
+        var m = mapOf("a" to 1)
+        m = m + mapOf("b" to 2)
+        m = m + mapOf("c" to 3)
+    }
+}
+        ]]></code>
+    </test-code>
+
 </test-data>
