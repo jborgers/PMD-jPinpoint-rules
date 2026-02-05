@@ -336,8 +336,8 @@ class AvoidMultipleConcatStatementsMapPairPlus {
 
     <test-code>
         <description>String property LHS with repeated += should be flagged once</description>
-        <expected-problems>0</expected-problems>
-        <!-- was 1 problem on line 8; current rule does not report class property LHS -->
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>8</expected-linenumbers>
         <code><![CDATA[
 class AvoidMultipleConcatStatementsStringPropertyPlus {
     var prop: String = ""
@@ -381,8 +381,8 @@ class AvoidMultipleConcatStatementsCharToStringPlus {
 
     <test-code>
         <description>Scope function apply modifies String property with two += should be flagged once</description>
-        <expected-problems>0</expected-problems>
-        <!-- current rule doesn’t match property inside apply scope -->
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>6</expected-linenumbers>
         <code><![CDATA[
 class AvoidMultipleConcatStatementsApplyPlus {
     var msg: String = ""
