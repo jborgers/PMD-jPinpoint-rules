@@ -254,11 +254,12 @@ class NonStringPlusUsages {
         return total + BigDecimal("3.0")
     }
 
-    fun listPlus(): List<Int> {
+    fun listPlus(x: List<Int>, y: List<Int>): List<Int> {
         var base = listOf(1, 2)
         base = base + 3
         base += listOf(4, 5)
         val more = base + listOf(6)
+        val evenMore = x + y
         return more
     }
 
