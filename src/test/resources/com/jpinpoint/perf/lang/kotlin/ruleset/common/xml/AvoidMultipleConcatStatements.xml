@@ -203,4 +203,197 @@ class AvoidMultipleConcatStatementsKt {
         ]]></code>
     </test-code>
 
+    <test-code>
+        <description>Fix Request: false positive on Kotlin AvoidMultipleConcatStatements for mutableMap #674</description>
+        <expected-problems>0</expected-problems>
+
+        <code><![CDATA[
+class AvoidMultipleConcatStatementsFalsePos {
+    private fun falsePos(): Map<String, String> {
+            val key = "key:"
+            return mutableMapOf<String, String>().apply {
+                this[key + "A"] = "valA"
+                this[key + "B"] = "valB" // <-- false positive
+            }
+    }
+}
+        ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>Plus usages on non-String types should not be flagged</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+class AvoidMultipleConcatStatementsNonStringPlus {
+    fun numericPlus() {
+        var sum = 0
+        val a = 1
+        val b = 2
+        sum += a
+        sum += b
+        sum = sum + 3
+        sum = sum + 4
+    }
+    fun listPlus() {
+        var list = listOf(1, 2)
+        list = list + listOf(3)
+        list = list + listOf(4)
+    }
+    fun arrayPlus() {
+        var arr = arrayOf(1)
+        arr = arr + arrayOf(2)
+        arr = arr + arrayOf(3)
+    }
+    fun setPlus() {
+        var set = setOf(1)
+        set = set + 2
+        set = set + 3
+    }
+    fun mapPlus() {
+        var m = mapOf("a" to 1)
+        m = m + mapOf("b" to 2)
+        m = m + mapOf("c" to 3)
+    }
+}
+        ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>Char arithmetic plus should not be flagged</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+class AvoidMultipleConcatStatementsCharPlus {
+    fun charPlus() {
+        var c = 'a'
+        c = (c + 1)
+        c = (c + 1)
+    }
+}
+        ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>Primitive arrays plus should not be flagged</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+class AvoidMultipleConcatStatementsPrimitiveArrayPlus {
+    fun intArrayPlus() {
+        var arr = intArrayOf(1)
+        arr = arr + 2
+        arr = arr + intArrayOf(3)
+    }
+}
+        ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>Sequence plus should not be flagged</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+class AvoidMultipleConcatStatementsSequencePlus {
+    fun seqPlus() {
+        var s = sequenceOf(1)
+        s = s + 2
+        s = s + 3
+    }
+}
+        ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>plusAssign on mutable collections should not be flagged</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+class AvoidMultipleConcatStatementsPlusAssign {
+    fun mutablePlusAssign() {
+        val ml = mutableListOf(1)
+        ml += 2
+        ml += 3
+        val ms = mutableSetOf(1)
+        ms += 2
+        ms += 3
+        val mm = mutableMapOf("a" to 1)
+        mm += ("b" to 2)
+        mm += ("c" to 3)
+    }
+}
+        ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>Map plus with Pair entry should not be flagged</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+class AvoidMultipleConcatStatementsMapPairPlus {
+    fun mapPairPlus() {
+        var m = mapOf("a" to 1)
+        m = m + ("b" to 2)
+        m = m + ("c" to 3)
+    }
+}
+        ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>String property LHS with repeated += should be flagged once</description>
+        <expected-problems>0</expected-problems>
+<!--        <expected-linenumbers>5</expected-linenumbers>-->
+        <code><![CDATA[
+class AvoidMultipleConcatStatementsStringPropertyPlus {
+    var prop: String = ""
+    fun bad() {
+        prop += "A"
+        prop += "B" // bad (not reported by current rule)
+    }
+}
+        ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>Nullable String with elvis in += twice should be flagged once</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>5</expected-linenumbers>
+        <code><![CDATA[
+class AvoidMultipleConcatStatementsNullableStringPlus {
+    fun bad(s1: String?, s2: String?) {
+        var log = ""
+        log += (s1 ?: "")
+        log += (s2 ?: "") // bad
+    }
+}
+        ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>Char concatenation via += twice should be flagged once</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>5</expected-linenumbers>
+        <code><![CDATA[
+class AvoidMultipleConcatStatementsCharToStringPlus {
+    fun bad() {
+        var s = ""
+        s += 'a'
+        s += 'b' // bad
+    }
+}
+        ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>Scope function apply modifies String property with two += should be flagged once</description>
+        <expected-problems>0</expected-problems>
+<!--        <expected-linenumbers>6</expected-linenumbers>-->
+        <code><![CDATA[
+class AvoidMultipleConcatStatementsApplyPlus {
+    var msg: String = ""
+    fun bad() {
+        this.apply {
+            msg += "A"
+            msg += "B" // bad (not reported by current rule)
+        }
+    }
+}
+        ]]></code>
+    </test-code>
+
 </test-data>
