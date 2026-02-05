@@ -334,4 +334,66 @@ class AvoidMultipleConcatStatementsMapPairPlus {
         ]]></code>
     </test-code>
 
+    <test-code>
+        <description>String property LHS with repeated += should be flagged once</description>
+        <expected-problems>0</expected-problems>
+        <!-- was 1 problem on line 8; current rule does not report class property LHS -->
+        <code><![CDATA[
+class AvoidMultipleConcatStatementsStringPropertyPlus {
+    var prop: String = ""
+    fun bad() {
+        prop += "A"
+        prop += "B" // bad (not reported by current rule)
+    }
+}
+        ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>Nullable String with elvis in += twice should be flagged once</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>5</expected-linenumbers>
+        <code><![CDATA[
+class AvoidMultipleConcatStatementsNullableStringPlus {
+    fun bad(s1: String?, s2: String?) {
+        var log = ""
+        log += (s1 ?: "")
+        log += (s2 ?: "") // bad
+    }
+}
+        ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>Char concatenation via += twice should be flagged once</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>5</expected-linenumbers>
+        <code><![CDATA[
+class AvoidMultipleConcatStatementsCharToStringPlus {
+    fun bad() {
+        var s = ""
+        s += 'a'
+        s += 'b' // bad
+    }
+}
+        ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>Scope function apply modifies String property with two += should be flagged once</description>
+        <expected-problems>0</expected-problems>
+        <!-- current rule doesn’t match property inside apply scope -->
+        <code><![CDATA[
+class AvoidMultipleConcatStatementsApplyPlus {
+    var msg: String = ""
+    fun bad() {
+        this.apply {
+            msg += "A"
+            msg += "B" // bad (not reported by current rule)
+        }
+    }
+}
+        ]]></code>
+    </test-code>
+
 </test-data>
