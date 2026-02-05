@@ -402,6 +402,8 @@ class Foo {
   count(
     .//Assignment[
       .//(AssignmentAndOperator/T-ADD_ASSIGNMENT|AdditiveOperator/T-ADD)
+      (: exclude assignments like map[key + "A"] = ... :)
+      and not((AssignableExpression|DirectlyAssignableExpression)//IndexingSuffix)
       and
       (AssignableExpression|DirectlyAssignableExpression)//T-Identifier[
         (: property a string literal :)
