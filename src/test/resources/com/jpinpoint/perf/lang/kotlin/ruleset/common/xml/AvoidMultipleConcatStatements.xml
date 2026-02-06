@@ -326,4 +326,25 @@ class HashCodeSample(
         ]]></code>
     </test-code>
 
+    <test-code>
+        <!-- this is a known ommission to avoid false positives on hashCode implementations -->
+        <!-- currently hard to implement in XPath, so keep this test around for a future fix -->
+        <description>INACTIVE CHECK: hashCode with explicit String concatenation should be flagged</description>
+        <expected-problems>0</expected-problems>
+<!--        <expected-linenumbers>8</expected-linenumbers>-->
+        <code><![CDATA[
+class HashCodeStringConcat(
+    private val a: String,
+    private val b: String
+) {
+    override fun hashCode(): Int {
+        var s = "" // String LHS
+        s += a
+        s += b // bad 8
+        return s.length // returns Int, but rule should still flag string concatenation
+    }
+}
+        ]]></code>
+    </test-code>
+
 </test-data>
