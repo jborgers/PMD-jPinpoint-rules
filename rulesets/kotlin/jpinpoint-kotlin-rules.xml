@@ -228,6 +228,8 @@ class AvoidInMemoryStreamingDefaultConstructor {
             <property name="xpath">
                 <value><![CDATA[
 //FunctionBody[
+  not(ancestor::FunctionDeclaration/SimpleIdentifier/T-Identifier[@Text='hashCode'])
+  and
   count(
     .//Assignment[
       .//(AssignmentAndOperator/T-ADD_ASSIGNMENT|AdditiveOperator/T-ADD)
@@ -257,6 +259,7 @@ class AvoidInMemoryStreamingDefaultConstructor {
         <example>
 
         </example>
+
     </rule>
 
     <rule name="AvoidRecompilingPatterns"
