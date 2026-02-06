@@ -300,4 +300,31 @@ class NonStringPlusUsages {
     ]]></code>
     </test-code>
 
+    <test-code>
+        <description>Kotlin hashCode numeric plus should not trigger AvoidMultipleConcatStatements</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+class HashCodeSample(
+    group1: String,
+    group2: String,
+    group3: String
+) {
+    private val group1: String
+    private val group2: String
+    private val group3: String
+
+    // note: without this line, there is no false positive
+    override fun toString(): String = java.lang.String.join(group1, group2, group3)
+
+    override fun hashCode(): Int {
+        var result = group1.hashCode()
+        result = 31 * result + group2.hashCode()
+        result = 31 * result + group3.hashCode() // <-- false positive
+        return result
+    }
+}
+        ]]></code>
+    </test-code>
+
+
 </test-data>
