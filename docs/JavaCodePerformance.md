@@ -804,7 +804,7 @@ See: [completablefuture-and-timeout](https://stackoverflow.com/questions/6041931
 which is suitable to keep all CPU's busy with in-memory processing.
 For I/O, however, this number is typically not suitable because relatively much time is spent waiting for the response and not in CPU.
 This likely exhausts the common pool for some time thereby blocking all other use of the common pool. 
-The common pool must *not* be used for blocking calls, see [Be Aware of ForkJoinPool#commonPool()](https://dzone.com/articles/be-aware-of-forkjoinpoolcommonpo)   
+The common pool must *not* be used for blocking calls, see [Be Aware of ForkJoinPool#commonPool()](https://dzone.com/articles/be-aware-of-forkjoinpoolcommonpool)   
 **Solution:** A separate, properly sized, pool of threads (an Executor) should be used for the async calls.   
 **Rule name:** AvoidCommonPoolForFutureAsync   
 **Example:**
@@ -832,7 +832,7 @@ public class Foo {
 which is suitable to keep all CPU's busy with in-memory processing.
 For I/O or other blocking calls, however, this number is typically not suitable because relatively much time is spent waiting for the response and not in CPU.
 This likely exhausts the common pool for some time thereby blocking all other use of the common pool.
-The common pool must *not* be used for blocking calls, see [Be Aware of ForkJoinPool#commonPool()](https://dzone.com/articles/be-aware-of-forkjoinpoolcommonpo)   
+The common pool must *not* be used for blocking calls, see [Be Aware of ForkJoinPool#commonPool()](https://dzone.com/articles/be-aware-of-forkjoinpoolcommonpool)   
 **Solution:** A separate, properly sized, pool of threads (an Executor or ForkJoinPool) should be used for the async calls.
 **Rule name:** AvoidCommonPoolForBlockingCalls   
 **Example:**
@@ -902,7 +902,7 @@ class AxualProducerGood2{
 It is designed to distribute much CPU work over the cores. 
 It is *not* meant for remote calls nor other blocking calls.
 In addition, parallelizing has overhead and risks, should only be used for much pure CPU processing.
-The common pool must *not* be used for blocking calls, see [Be Aware of ForkJoinPool#commonPool()](https://dzone.com/articles/be-aware-of-forkjoinpoolcommonpo)   
+The common pool must *not* be used for blocking calls, see [Be Aware of ForkJoinPool#commonPool()](https://dzone.com/articles/be-aware-of-forkjoinpoolcommonpool)   
 **Solution:** For remote/blocking calls: Use a dedicated thread pool with enough threads to get proper parallelism independent of the number of cores.
 For pure CPU processing: use ordinary sequential streaming unless the work takes more than about 0,1 ms in sequential form and proves to be faster with parallelization. 
 So only for large collections and much processing without having to wait.    
