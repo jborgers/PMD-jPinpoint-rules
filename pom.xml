@@ -27,8 +27,6 @@
                 <configuration>
                     <source>11</source>
                     <target>11</target>
-                    <!-- no need to compile this project -->
-                    <skipMain>true</skipMain>
                 </configuration>
             </plugin>
             <plugin>
@@ -84,7 +82,6 @@
             <groupId>net.sourceforge.pmd</groupId>
             <artifactId>pmd-kotlin</artifactId>
             <version>${pmd.version}</version>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>junit</groupId>

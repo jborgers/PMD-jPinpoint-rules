@@ -38,7 +38,7 @@ Rules live in per-category XML files under `src/main/resources/category/`:
 
 Each category is registered in `src/main/resources/category/{java,kotlin}/categories.properties`.
 
-Almost all rules use `class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"` — rules are XPath 2.0 queries over the PMD AST.
+Most rules use `class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"` — rules are XPath 2.0 queries over the PMD AST. Complex rules that are hard to express in XPath can be implemented as Java classes (see below).
 
 ### Combined rulesets (generated)
 `rulesets/java/jpinpoint-rules.xml` and `rulesets/kotlin/jpinpoint-kotlin-rules.xml` are **generated** by the merger tool from the category files. Edit the category files, not these.
@@ -69,6 +69,23 @@ Each rule has exactly two files:
 6. Run `./test` to verify
 
 For a new category, also add an entry to `categories.properties`.
+
+### Java-based Kotlin rules
+
+For complex logic that is hard to express in XPath, rules can be implemented as Java classes:
+
+- **Location**: `src/main/java/com/jpinpoint/perf/lang/kotlin/rule/{category}/{RuleName}Rule.java`
+- **Pattern**: extend `AbstractKotlinRule`, override `buildTargetSelector()` and `buildVisitor()`
+- **Visitor**: inner class extending `KotlinVisitorBase<RuleContext, Void>`, override `visitXxx()` methods
+- **pmd-kotlin dependency**: must be `compile`-scoped (not `test`) so the rule class can import from `net.sourceforge.pmd.lang.kotlin.*`
+- **XML registration**: use `class="com.jpinpoint.perf.lang.kotlin.rule.common.MyRule"` instead of `class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"`; keep `language="kotlin"` attribute
+
+**Key API notes** (PMD 7.x ANTLR-based Kotlin AST):
+- `node.descendants(KtFoo.class)` / `node.ancestors(KtFoo.class)` / `node.children(KtFoo.class)` return `NodeStream<T>`
+- `NodeStream` methods: `.any(Predicate)`, `.filter(Predicate)`, `.first()`, `.toList()`, `.nonEmpty()`, `.isEmpty()`
+- `KotlinTerminalNode.getText()` returns the token image (e.g. `"String"`, `"+="`, `"+"`)
+- **Do NOT use** `node.getToken(type, idx)` or `terminalNode.ADD()` / `terminalNode.ADD_ASSIGNMENT()` style methods — `BaseAntlrTerminalNode.getTokenKind()` returns the token stream index, not the token type, causing these to always return null. Use **text comparison** instead: `t.getText().equals("+=")`
+- Reference implementation in pmd-kotlin jar: `net.sourceforge.pmd.lang.kotlin.rule.errorprone.OverrideBothEqualsAndHashcodeRule`
 
 ## Code Style
 
