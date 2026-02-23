@@ -1,5 +1,6 @@
 package com.jpinpoint.perf.lang.kotlin.rule.common;
 
+import com.jpinpoint.perf.lang.kotlin.util.KotlinAstUtil;
 import net.sourceforge.pmd.lang.kotlin.AbstractKotlinRule;
 import net.sourceforge.pmd.lang.kotlin.ast.KotlinParser;
 import net.sourceforge.pmd.lang.kotlin.ast.KotlinTerminalNode;
@@ -32,24 +33,19 @@ public class AvoidMultipleConcatStatementsRule extends AbstractKotlinRule {
 
         @Override
         public Void visitFunctionBody(KotlinParser.KtFunctionBody node, RuleContext ctx) {
-            Set<String> stringParams = findStringParamNames(node);
-            Set<String> stringFunctions = findStringFunctionNames(node);
+            Set<String> stringParams = KotlinAstUtil.findParamNamesOfType(node, "String");
+            Set<String> stringFunctions = KotlinAstUtil.findFunctionNamesReturningType(node, "String");
 
             // Collect string variable names declared directly in this function body (not in nested lambdas)
             Set<String> stringVarNames = new HashSet<>();
             for (KotlinParser.KtPropertyDeclaration propDecl :
                     node.descendants(KotlinParser.KtPropertyDeclaration.class).toList()) {
-                KotlinParser.KtFunctionBody nearestFb =
-                        propDecl.ancestors(KotlinParser.KtFunctionBody.class).first();
-                if (nearestFb != node) continue;
+                if (!KotlinAstUtil.isDirectChildOfFunctionBody(propDecl, node)) continue;
                 if (!isStringProperty(propDecl, stringParams, stringFunctions)) continue;
                 KotlinParser.KtVariableDeclaration varDecl = propDecl.variableDeclaration();
-                if (varDecl != null && varDecl.simpleIdentifier() != null) {
-                    KotlinTerminalNode token =
-                            varDecl.simpleIdentifier().children(KotlinTerminalNode.class).first();
-                    if (token != null) {
-                        stringVarNames.add(token.getText());
-                    }
+                if (varDecl != null) {
+                    String name = KotlinAstUtil.getIdentifierText(varDecl.simpleIdentifier());
+                    if (name != null) stringVarNames.add(name);
                 }
             }
 
@@ -61,13 +57,13 @@ public class AvoidMultipleConcatStatementsRule extends AbstractKotlinRule {
             Map<String, List<KotlinParser.KtStatement>> concatStmts = new LinkedHashMap<>();
             for (KotlinParser.KtStatement stmt :
                     node.descendants(KotlinParser.KtStatement.class)
-                        .filter(s -> s.ancestors(KotlinParser.KtFunctionBody.class).first() == node)
+                        .filter(s -> KotlinAstUtil.isDirectChildOfFunctionBody(s, node))
                         .toList()) {
                 KotlinParser.KtAssignment assignment = stmt.assignment();
                 if (assignment == null) continue;
                 if (!hasConcatOperator(assignment)) continue;
 
-                String lhsName = getLhsVarName(assignment);
+                String lhsName = KotlinAstUtil.getLhsVarName(assignment);
                 if (lhsName == null || !stringVarNames.contains(lhsName)) continue;
 
                 concatStmts.computeIfAbsent(lhsName, k -> new ArrayList<>()).add(stmt);
@@ -81,62 +77,6 @@ public class AvoidMultipleConcatStatementsRule extends AbstractKotlinRule {
             }
 
             return visitChildren(node, ctx);
-        }
-
-        /**
-         * Finds names of parameters of type String in the enclosing function declaration.
-         */
-        private Set<String> findStringParamNames(KotlinParser.KtFunctionBody node) {
-            Set<String> result = new HashSet<>();
-            KotlinParser.KtFunctionDeclaration funcDecl =
-                    node.ancestors(KotlinParser.KtFunctionDeclaration.class).first();
-            if (funcDecl == null) return result;
-
-            KotlinParser.KtFunctionValueParameters params = funcDecl.functionValueParameters();
-            if (params == null) return result;
-
-            for (KotlinParser.KtFunctionValueParameter param : params.functionValueParameter()) {
-                KotlinParser.KtParameter p = param.parameter();
-                if (p != null && p.type() != null
-                        && p.type().descendants(KotlinTerminalNode.class)
-                                   .any(t -> "String".equals(t.getText()))) {
-                    KotlinParser.KtSimpleIdentifier nameId = p.simpleIdentifier();
-                    if (nameId != null) {
-                        KotlinTerminalNode token = nameId.children(KotlinTerminalNode.class).first();
-                        if (token != null) {
-                            result.add(token.getText());
-                        }
-                    }
-                }
-            }
-            return result;
-        }
-
-        /**
-         * Finds names of class-level functions that explicitly return String.
-         */
-        private Set<String> findStringFunctionNames(KotlinParser.KtFunctionBody node) {
-            Set<String> result = new HashSet<>();
-            KotlinParser.KtClassMemberDeclarations classMembers =
-                    node.ancestors(KotlinParser.KtClassMemberDeclarations.class).first();
-            if (classMembers == null) return result;
-
-            for (KotlinParser.KtFunctionDeclaration funcDecl :
-                    classMembers.descendants(KotlinParser.KtFunctionDeclaration.class).toList()) {
-                KotlinParser.KtType returnType = funcDecl.type();
-                if (returnType != null
-                        && returnType.descendants(KotlinTerminalNode.class)
-                                     .any(t -> "String".equals(t.getText()))) {
-                    KotlinParser.KtSimpleIdentifier nameId = funcDecl.simpleIdentifier();
-                    if (nameId != null) {
-                        KotlinTerminalNode token = nameId.children(KotlinTerminalNode.class).first();
-                        if (token != null) {
-                            result.add(token.getText());
-                        }
-                    }
-                }
-            }
-            return result;
         }
 
         /**
@@ -156,9 +96,7 @@ public class AvoidMultipleConcatStatementsRule extends AbstractKotlinRule {
 
             // (a) explicit type annotation: var x: String = ...
             KotlinParser.KtVariableDeclaration varDecl = propDecl.variableDeclaration();
-            if (varDecl != null && varDecl.type() != null
-                    && varDecl.type().descendants(KotlinTerminalNode.class)
-                               .any(t -> "String".equals(t.getText()))) {
+            if (varDecl != null && KotlinAstUtil.typeContainsName(varDecl.type(), "String")) {
                 return true;
             }
 
@@ -208,26 +146,6 @@ public class AvoidMultipleConcatStatementsRule extends AbstractKotlinRule {
             return assignment.descendants(KotlinParser.KtAdditiveOperator.class)
                              .any(op -> op.children(KotlinTerminalNode.class)
                                           .any(t -> "+".equals(t.getText())));
-        }
-
-        /**
-         * Extracts the simple identifier name from the LHS of an assignment.
-         * Returns null if the LHS is not a simple identifier.
-         */
-        private String getLhsVarName(KotlinParser.KtAssignment assignment) {
-            // directlyAssignableExpression covers `x = ...` (plain assignment)
-            KotlinParser.KtDirectlyAssignableExpression dae = assignment.directlyAssignableExpression();
-            if (dae != null && dae.simpleIdentifier() != null) {
-                KotlinTerminalNode token = dae.simpleIdentifier().children(KotlinTerminalNode.class).first();
-                if (token != null) return token.getText();
-            }
-            // assignableExpression covers `x += ...` (compound assignment)
-            KotlinParser.KtAssignableExpression ae = assignment.assignableExpression();
-            if (ae != null) {
-                KotlinTerminalNode token = ae.descendants(KotlinTerminalNode.class).first();
-                if (token != null) return token.getText();
-            }
-            return null;
         }
     }
 }
