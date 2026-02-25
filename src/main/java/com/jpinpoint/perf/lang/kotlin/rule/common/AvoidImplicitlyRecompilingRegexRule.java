@@ -193,8 +193,10 @@ public class AvoidImplicitlyRecompilingRegexRule extends AbstractKotlinRule {
                                                   Set<String> classVarFields) {
             // Condition 1: any PrimaryExpression in the CallSuffix contains a param identifier
             if (callSuffix.descendants(KotlinParser.KtPrimaryExpression.class)
-                    .any(pe -> paramNames.contains(
-                            KotlinAstUtil.getPrimaryExpressionSimpleIdentifierText(pe)))) {
+                    .any(pe -> {
+                        String name = KotlinAstUtil.getPrimaryExpressionSimpleIdentifierText(pe);
+                        return paramNames.contains(name) || classVarFields.contains(name);
+                    })) {
                 return true;
             }
 

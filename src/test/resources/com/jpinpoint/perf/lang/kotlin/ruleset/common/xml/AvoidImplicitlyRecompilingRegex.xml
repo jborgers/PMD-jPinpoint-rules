@@ -6,7 +6,7 @@
     <test-code>
         <description>violation: Avoid implicit recompiling of regular expressions</description>
         <expected-problems>29</expected-problems>
-        <expected-linenumbers>14,15,16, 20,21,22,23, 29,32,33, 40,41,42,44,46,47, 54,55,56, 62,63,64,67, 73, 82,83,84,86, 108</expected-linenumbers>
+        <expected-linenumbers>13,14,15, 19,20,21,22, 28,31,32, 39,40,41,43,45,46, 53,54,55, 60,62,63,66, 72, 81,82,83,85, 107</expected-linenumbers>
         <code><![CDATA[
 import java.nio.file.FileSystems
 import java.nio.file.Path
@@ -123,7 +123,7 @@ class Foo {
     <test-code>
         <description>violation: Avoid implicit recompiling of regular expressions - non toRegex</description>
         <expected-problems>8</expected-problems>
-        <expected-linenumbers>16,24,25,26,32,33,34,37</expected-linenumbers>
+        <expected-linenumbers>16,24,25,26,31,33,34,37</expected-linenumbers>
         <!--
            (: also accept var based on FileSystems.getDefault(), now a match on 'simple' identifier (e.g. var) is accepted :)
                or (ancestor::PostfixUnaryExpression/PrimaryExpression/SimpleIdentifier/T-Identifier[
@@ -398,7 +398,7 @@ internal object Foo {
     <test-code>
         <description>violation: Avoid recompiling of Kotlin Regex</description>
         <expected-problems>22</expected-problems>
-        <expected-linenumbers>13,14,15, 25,27,30,33, 39,42,43, 54,55,56,58,60,62, 69,78,79, 80,81,84</expected-linenumbers>
+        <expected-linenumbers>13,14,15, 25,27,30,33, 39,42,43, 54,55,56,58,60,62, 69,78,79,80,81,84</expected-linenumbers>
         <code><![CDATA[
 class Foo(private val dynPatStringInit: String, private var dynRegexInitVar: Regex) {
     private var action: String = "this.is.an.action"
