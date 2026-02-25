@@ -422,10 +422,9 @@ return HttpClientBuilder.create() // good
           language="java"
           message="Apache HttpClient builder is used and not all three timeouts are configured."
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#IBI10">
-        <description>Problem: for connectionRequestTimeout, connectTimeout, socketTimeout (using
-            HttpComponentsClientHttpRequestFactory/RequestConfig) or readTimeout/responseTimeout (using RequestConfig v4/v5) and connectTimeout (using ConnectionConfig v5)
-            the default timeout settings are not optimal in most cases. &#13;
-            Solution: Set the timeouts explicitly to proper reasoned values. See best practice values via the link. Use
+        <description>Problem: default timeout values for Apache HttpClient are often sub optimal (connectionRequestTimeout, connectTimeout, socketTimeout in HttpComponentsClientHttpRequestFactory;
+            readTimeout/responseTimeout in RequestConfig v4/v5; and connectTimeout in ConnectionConfig v5) &#13;
+            Solution: Set all these timeouts explicitly to proper reasoned values. See best practice values via the link. Use
             the setDefaultRequestConfig with a method with a RequestConfig object on HttpClient builders to set the
             timeouts. (jpinpoint-rules)
         </description>
