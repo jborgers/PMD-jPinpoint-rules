@@ -3,7 +3,6 @@ package com.jpinpoint.perf.lang.kotlin.rule.common;
 import com.jpinpoint.perf.lang.kotlin.util.KotlinAstUtil;
 import net.sourceforge.pmd.lang.kotlin.AbstractKotlinRule;
 import net.sourceforge.pmd.lang.kotlin.ast.KotlinParser;
-import net.sourceforge.pmd.lang.kotlin.ast.KotlinTerminalNode;
 import net.sourceforge.pmd.lang.kotlin.ast.KotlinVisitor;
 import net.sourceforge.pmd.lang.kotlin.ast.KotlinVisitorBase;
 import net.sourceforge.pmd.lang.rule.RuleTargetSelector;
@@ -21,7 +20,7 @@ import java.util.*;
  *       (requires {@code import java.nio.file.FileSystems} or {@code java.nio.file.Path})</li>
  * </ul>
  *
- * <p>Patterns that are dynamic (derived from function parameters, local variables, or method-call
+ * <p>Regex that are dynamic (derived from function parameters, local variables, or method-call
  * results) are not flagged, as they cannot be pre-compiled.</p>
  */
 public class AvoidImplicitlyRecompilingRegexRule extends AbstractKotlinRule {
@@ -48,10 +47,10 @@ public class AvoidImplicitlyRecompilingRegexRule extends AbstractKotlinRule {
             Set<String> classVarFields = KotlinAstUtil.collectClassVarFieldNames(node);
 
             boolean hasPatternImport =
-                    KotlinAstUtil.hasImport(node, "java", "util", "regex", "Pattern");
+                    KotlinAstUtil.hasImport(node, "java.util.regex.Pattern");
             boolean hasFileImport =
-                    KotlinAstUtil.hasImport(node, "java", "nio", "file", "FileSystems")
-                    || KotlinAstUtil.hasImport(node, "java", "nio", "file", "Path");
+                    KotlinAstUtil.hasImport(node, "java.nio.file.FileSystems")
+                    || KotlinAstUtil.hasImport(node, "java.nio.file.Path");
 
             // --- .toRegex() calls ---
             for (KotlinParser.KtNavigationSuffix navSuffix :
@@ -107,15 +106,6 @@ public class AvoidImplicitlyRecompilingRegexRule extends AbstractKotlinRule {
             return visitChildren(node, ctx);
         }
 
-        // =====================================================================
-        // .toRegex() helpers
-        // =====================================================================
-
-        /** Returns true if the NavigationSuffix refers to {@code toRegex}. */
-        private static boolean isToRegexNavSuffix(KotlinParser.KtNavigationSuffix navSuffix) {
-            return "toRegex".equals(KotlinAstUtil.getIdentifierText(navSuffix.simpleIdentifier()));
-        }
-
         /**
          * Returns true if the .toRegex() call should be treated as dynamic (no violation):
          * <ul>
@@ -151,28 +141,6 @@ public class AvoidImplicitlyRecompilingRegexRule extends AbstractKotlinRule {
             if (receiverName != null && localVarNames.contains(receiverName)) return true;
 
             return false;
-        }
-
-        // =====================================================================
-        // Regex(...) constructor helpers
-        // =====================================================================
-
-        /**
-         * Returns true if the PostfixUnaryExpression represents a {@code Regex(...)} constructor
-         * call (primary expression is SimpleIdentifier "Regex" and first suffix is a CallSuffix).
-         */
-        private static boolean isRegexConstructorCall(KotlinParser.KtPostfixUnaryExpression pue) {
-            KotlinParser.KtPrimaryExpression pe = pue.primaryExpression();
-            if (pe == null) return false;
-            if (!"Regex".equals(KotlinAstUtil.getIdentifierText(pe.simpleIdentifier()))) return false;
-            KotlinParser.KtPostfixUnarySuffix firstSuffix = pue.postfixUnarySuffix(0);
-            return firstSuffix != null && firstSuffix.callSuffix() != null;
-        }
-
-        /** Returns the CallSuffix of the first PostfixUnarySuffix, or null. */
-        private static KotlinParser.KtCallSuffix getFirstCallSuffix(KotlinParser.KtPostfixUnaryExpression pue) {
-            KotlinParser.KtPostfixUnarySuffix firstSuffix = pue.postfixUnarySuffix(0);
-            return firstSuffix != null ? firstSuffix.callSuffix() : null;
         }
 
         /**
@@ -232,21 +200,15 @@ public class AvoidImplicitlyRecompilingRegexRule extends AbstractKotlinRule {
             // Condition 6: additive expression in the arg contains a class var field identifier
             //   (only when the arg also contains a string literal, matching XPath [//LineStringLiteral])
             if (callSuffix.descendants(KotlinParser.KtStringLiteral.class).nonEmpty()) {
-                if (callSuffix.descendants(KotlinParser.KtAdditiveExpression.class)
+                return callSuffix.descendants(KotlinParser.KtAdditiveExpression.class)
                         .any(ae -> ae.descendants(KotlinParser.KtMultiplicativeExpression.class)
                                 .any(me -> me.descendants(KotlinParser.KtSimpleIdentifier.class)
                                         .any(si -> classVarFields.contains(
-                                                KotlinAstUtil.getIdentifierText(si)))))) {
-                    return true;
-                }
+                                                KotlinAstUtil.getIdentifierText(si)))));
             }
 
             return false;
         }
-
-        // =====================================================================
-        // Pattern.matches(...) helpers
-        // =====================================================================
 
         /**
          * Returns true if the PostfixUnaryExpression is a {@code Pattern.matches(...)} call:
@@ -279,47 +241,12 @@ public class AvoidImplicitlyRecompilingRegexRule extends AbstractKotlinRule {
                     if (i + 1 < suffixes.size()) {
                         KotlinParser.KtCallSuffix callSuffix = suffixes.get(i + 1).callSuffix();
                         if (callSuffix != null) {
-                            return firstArgIsParam(callSuffix, paramNames);
+                            return KotlinAstUtil.firstArgIsParam(callSuffix, paramNames);
                         }
                     }
                 }
             }
             return false;
-        }
-
-        // =====================================================================
-        // FileSystems.getPathMatcher(...) helpers
-        // =====================================================================
-
-        /** Returns true if the NavigationSuffix refers to {@code getPathMatcher}. */
-        private static boolean isGetPathMatcherNavSuffix(KotlinParser.KtNavigationSuffix navSuffix) {
-            return "getPathMatcher".equals(
-                    KotlinAstUtil.getIdentifierText(navSuffix.simpleIdentifier()));
-        }
-
-        /**
-         * Returns true if the getPathMatcher call is on a FileSystems instance:
-         * either {@code FileSystems.getDefault().getPathMatcher(...)} (direct) or
-         * {@code fs.getPathMatcher(...)} where {@code fs} was assigned from a FileSystems call.
-         */
-        private static boolean isOnFileSystemsReceiver(KotlinParser.KtNavigationSuffix navSuffix,
-                                                        Set<String> fileSystemsVarNames) {
-            KotlinParser.KtPostfixUnarySuffix suffix =
-                    navSuffix.ancestors(KotlinParser.KtPostfixUnarySuffix.class).first();
-            if (suffix == null) return false;
-            KotlinParser.KtPostfixUnaryExpression pue =
-                    suffix.ancestors(KotlinParser.KtPostfixUnaryExpression.class).first();
-            if (pue == null) return false;
-
-            String receiverName = KotlinAstUtil.getPrimaryExpressionSimpleIdentifierText(
-                    pue.primaryExpression());
-            if (receiverName == null) return false;
-
-            // Direct: receiver is "FileSystems"
-            if ("FileSystems".equals(receiverName)) return true;
-
-            // Via local var: receiver was assigned from FileSystems
-            return fileSystemsVarNames.contains(receiverName);
         }
 
         /**
@@ -343,7 +270,7 @@ public class AvoidImplicitlyRecompilingRegexRule extends AbstractKotlinRule {
                     if (i + 1 < suffixes.size()) {
                         KotlinParser.KtCallSuffix callSuffix = suffixes.get(i + 1).callSuffix();
                         if (callSuffix != null) {
-                            if (firstArgIsParam(callSuffix, paramNames)) return true;
+                            if (KotlinAstUtil.firstArgIsParam(callSuffix, paramNames)) return true;
                             // String template with param
                             if (KotlinAstUtil.descendantHasStringTemplateRefFromSet(callSuffix, paramNames)) return true;
                         }
@@ -352,55 +279,6 @@ public class AvoidImplicitlyRecompilingRegexRule extends AbstractKotlinRule {
                 }
             }
             return false;
-        }
-
-        /**
-         * Collects names of local variables in the function body that were initialized from
-         * an expression containing {@code FileSystems} (e.g. {@code val fs = FileSystems.getDefault()}).
-         */
-        private static Set<String> collectFileSystemsVarNames(KotlinParser.KtFunctionDeclaration funcDecl) {
-            Set<String> result = new HashSet<>();
-            KotlinParser.KtFunctionBody body = funcDecl.functionBody();
-            if (body == null) return result;
-            for (KotlinParser.KtStatement stmt : body.descendants(KotlinParser.KtStatement.class).toList()) {
-                KotlinParser.KtDeclaration decl = stmt.declaration();
-                if (decl == null) continue;
-                KotlinParser.KtPropertyDeclaration propDecl = decl.propertyDeclaration();
-                if (propDecl == null) continue;
-                KotlinParser.KtExpression initExpr = propDecl.expression();
-                if (initExpr == null) continue;
-                if (initExpr.descendants(KotlinTerminalNode.class)
-                        .any(t -> "FileSystems".equals(t.getText()))) {
-                    KotlinParser.KtVariableDeclaration varDecl = propDecl.variableDeclaration();
-                    if (varDecl != null) {
-                        String name = KotlinAstUtil.getIdentifierText(varDecl.simpleIdentifier());
-                        if (name != null) result.add(name);
-                    }
-                }
-            }
-            return result;
-        }
-
-        // =====================================================================
-        // Shared helpers
-        // =====================================================================
-
-        /**
-         * Returns true if the first ValueArgument in the CallSuffix is a simple identifier
-         * that matches a function parameter name.
-         */
-        private static boolean firstArgIsParam(KotlinParser.KtCallSuffix callSuffix,
-                                                Set<String> paramNames) {
-            if (callSuffix.valueArguments() == null) return false;
-            List<KotlinParser.KtValueArgument> args =
-                    callSuffix.valueArguments().valueArgument();
-            if (args.isEmpty()) return false;
-            KotlinParser.KtValueArgument firstArg = args.get(0);
-            // Check if the first argument's expression contains a param reference
-            // (matches XPath: not if first param is fun parameter)
-            return firstArg.descendants(KotlinParser.KtPrimaryExpression.class)
-                    .any(pe -> paramNames.contains(
-                            KotlinAstUtil.getPrimaryExpressionSimpleIdentifierText(pe)));
         }
     }
 }

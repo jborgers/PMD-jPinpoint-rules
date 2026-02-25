@@ -230,6 +230,15 @@ public final class KotlinAstUtil {
 
     /**
      * Returns {@code true} if the Kotlin file enclosing {@code node} has an import that matches
+     */
+    public static boolean hasImport(Node node, String fullyQualifiedName) {
+        if (fullyQualifiedName == null || fullyQualifiedName.isEmpty()) return false;
+        String[] identifier = fullyQualifiedName.split("\\.");
+        return hasImport(node, identifier);
+    }
+
+    /**
+     * Returns {@code true} if the Kotlin file enclosing {@code node} has an import that matches
      * all the given identifier parts (or has a wildcard import). For example, to check for
      * {@code import java.util.regex.Pattern}, pass {@code "java", "util", "regex", "Pattern"}.
      *
@@ -385,5 +394,6 @@ public final class KotlinAstUtil {
         return firstArg.descendants(KotlinParser.KtPrimaryExpression.class)
                 .any(pe -> paramNames.contains(getPrimaryExpressionSimpleIdentifierText(pe)));
     }
+
 }
 
