@@ -5,6 +5,7 @@ import net.sourceforge.pmd.lang.kotlin.ast.KotlinParser;
 import net.sourceforge.pmd.lang.kotlin.ast.KotlinTerminalNode;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -19,6 +20,10 @@ public final class KotlinAstUtil {
 
     private KotlinAstUtil() { /* utility class */ }
 
+    // -------------------------------------------------------------------------
+    // Identifier helpers
+    // -------------------------------------------------------------------------
+
     /**
      * Returns the text of the first terminal-node child of a {@link KotlinParser.KtSimpleIdentifier},
      * or {@code null} if the node itself is {@code null} or has no terminal children.
@@ -30,6 +35,19 @@ public final class KotlinAstUtil {
     }
 
     /**
+     * Returns the text of the SimpleIdentifier child of a {@link KotlinParser.KtPrimaryExpression},
+     * or {@code null} if none is present.
+     */
+    public static String getPrimaryExpressionSimpleIdentifierText(KotlinParser.KtPrimaryExpression pe) {
+        if (pe == null) return null;
+        return getIdentifierText(pe.simpleIdentifier());
+    }
+
+    // -------------------------------------------------------------------------
+    // Type / field helpers
+    // -------------------------------------------------------------------------
+
+    /**
      * Returns {@code true} if any terminal-node descendant of {@code type} has text equal to
      * {@code typeName}. Useful for checking type annotations like {@code var x: String} or a
      * declared return type of {@code String}.
@@ -39,6 +57,10 @@ public final class KotlinAstUtil {
         return type.descendants(KotlinTerminalNode.class).any(t -> typeName.equals(t.getText()));
     }
 
+    // -------------------------------------------------------------------------
+    // Scope helpers
+    // -------------------------------------------------------------------------
+
     /**
      * Returns {@code true} if the nearest enclosing {@link KotlinParser.KtFunctionBody} ancestor
      * of {@code node} is exactly {@code body}. Used to restrict descendant searches to a single
@@ -47,6 +69,21 @@ public final class KotlinAstUtil {
     public static boolean isDirectChildOfFunctionBody(Node node, KotlinParser.KtFunctionBody body) {
         return node.ancestors(KotlinParser.KtFunctionBody.class).first() == body;
     }
+
+    /**
+     * Returns {@code true} if the nearest enclosing {@link KotlinParser.KtFunctionDeclaration}
+     * ancestor of {@code node} is exactly {@code funcDecl}. Used to restrict descendant searches
+     * to a single function declaration without crossing into nested local functions.
+     * Note: lambdas (KtFunctionLiteral) are not KtFunctionDeclaration so they are transparent to this check.
+     */
+    public static boolean isDirectDescendantOfFunctionDeclaration(Node node,
+                                                                    KotlinParser.KtFunctionDeclaration funcDecl) {
+        return node.ancestors(KotlinParser.KtFunctionDeclaration.class).first() == funcDecl;
+    }
+
+    // -------------------------------------------------------------------------
+    // Assignment helpers
+    // -------------------------------------------------------------------------
 
     /**
      * Extracts the simple variable name from the left-hand side of an assignment.
@@ -67,6 +104,28 @@ public final class KotlinAstUtil {
             if (token != null) return token.getText();
         }
         return null;
+    }
+
+    // -------------------------------------------------------------------------
+    // Parameter collection
+    // -------------------------------------------------------------------------
+
+    /**
+     * Returns the names of all parameters in the function declaration (regardless of type).
+     */
+    public static Set<String> collectAllParamNames(KotlinParser.KtFunctionDeclaration funcDecl) {
+        Set<String> result = new HashSet<>();
+        if (funcDecl == null) return result;
+        KotlinParser.KtFunctionValueParameters params = funcDecl.functionValueParameters();
+        if (params == null) return result;
+        for (KotlinParser.KtFunctionValueParameter param : params.functionValueParameter()) {
+            KotlinParser.KtParameter p = param.parameter();
+            if (p != null) {
+                String name = getIdentifierText(p.simpleIdentifier());
+                if (name != null) result.add(name);
+            }
+        }
+        return result;
     }
 
     /**
@@ -93,6 +152,57 @@ public final class KotlinAstUtil {
         return result;
     }
 
+    // -------------------------------------------------------------------------
+    // Local variable collection
+    // -------------------------------------------------------------------------
+
+    /**
+     * Returns the names of all local variables (PropertyDeclarations) declared anywhere within
+     * {@code functionBody}, including inside nested lambdas. This matches the XPath behaviour of
+     * {@code ancestor::FunctionBody//PropertyDeclaration/VariableDeclaration/...}.
+     */
+    public static Set<String> collectLocalVarNames(KotlinParser.KtFunctionBody functionBody) {
+        Set<String> result = new HashSet<>();
+        if (functionBody == null) return result;
+        for (KotlinParser.KtPropertyDeclaration propDecl :
+                functionBody.descendants(KotlinParser.KtPropertyDeclaration.class).toList()) {
+            KotlinParser.KtVariableDeclaration varDecl = propDecl.variableDeclaration();
+            if (varDecl != null) {
+                String name = getIdentifierText(varDecl.simpleIdentifier());
+                if (name != null) result.add(name);
+            }
+        }
+        return result;
+    }
+
+    // -------------------------------------------------------------------------
+    // Class field collection
+    // -------------------------------------------------------------------------
+
+    /**
+     * Returns the names of all mutable ({@code var}) class fields declared in the class
+     * body that encloses {@code node}. This matches the XPath pattern
+     * {@code ancestor::ClassDeclaration//PropertyDeclaration[T-VAR]//SimpleIdentifier/T-Identifier/@Text}.
+     */
+    public static Set<String> collectClassVarFieldNames(Node node) {
+        Set<String> result = new HashSet<>();
+        KotlinParser.KtClassDeclaration classDecl =
+                node.ancestors(KotlinParser.KtClassDeclaration.class).first();
+        if (classDecl == null) return result;
+        for (KotlinParser.KtPropertyDeclaration propDecl :
+                classDecl.descendants(KotlinParser.KtPropertyDeclaration.class).toList()) {
+            // Check for `var` keyword using text comparison (not VAR() method which may be unreliable)
+            if (propDecl.children(KotlinTerminalNode.class).any(t -> "var".equals(t.getText()))) {
+                KotlinParser.KtVariableDeclaration varDecl = propDecl.variableDeclaration();
+                if (varDecl != null) {
+                    String name = getIdentifierText(varDecl.simpleIdentifier());
+                    if (name != null) result.add(name);
+                }
+            }
+        }
+        return result;
+    }
+
     /**
      * Returns the names of all class-level functions that explicitly declare {@code typeName} as
      * their return type, searching within the class body that encloses {@code functionBody}.
@@ -112,5 +222,86 @@ public final class KotlinAstUtil {
             }
         }
         return result;
+    }
+
+    // -------------------------------------------------------------------------
+    // Import checking
+    // -------------------------------------------------------------------------
+
+    /**
+     * Returns {@code true} if the Kotlin file enclosing {@code node} has an import that matches
+     * all the given identifier parts (or has a wildcard import). For example, to check for
+     * {@code import java.util.regex.Pattern}, pass {@code "java", "util", "regex", "Pattern"}.
+     *
+     * <p>A wildcard import (containing {@code *}) always matches.</p>
+     */
+    public static boolean hasImport(Node node, String... identifiers) {
+        KotlinParser.KtKotlinFile file = node.ancestors(KotlinParser.KtKotlinFile.class).first();
+        if (file == null) return false;
+        KotlinParser.KtImportList importList = file.importList();
+        if (importList == null) return false;
+
+        for (KotlinParser.KtImportHeader importHeader : importList.importHeader()) {
+            List<KotlinTerminalNode> tokens = importHeader.descendants(KotlinTerminalNode.class).toList();
+
+            // Wildcard import (*) matches everything
+            for (KotlinTerminalNode t : tokens) {
+                if ("*".equals(t.getText())) return true;
+            }
+
+            // Collect all identifier texts in the import header
+            Set<String> texts = new HashSet<>();
+            for (KotlinTerminalNode t : tokens) {
+                texts.add(t.getText());
+            }
+
+            // Check if all required identifiers are present
+            boolean allPresent = true;
+            for (String id : identifiers) {
+                if (!texts.contains(id)) {
+                    allPresent = false;
+                    break;
+                }
+            }
+            if (allPresent) return true;
+        }
+        return false;
+    }
+
+    // -------------------------------------------------------------------------
+    // Expression content helpers
+    // -------------------------------------------------------------------------
+
+    /**
+     * Returns {@code true} if {@code node} has any descendant {@link KotlinTerminalNode} whose
+     * text is in {@code names}. Useful for checking if an expression references any of a set
+     * of variable names.
+     */
+    public static boolean descendantHasIdentifierFromSet(Node node, Set<String> names) {
+        if (node == null || names == null || names.isEmpty()) return false;
+        return node.descendants(KotlinTerminalNode.class).any(t -> names.contains(t.getText()));
+    }
+
+    /**
+     * Returns {@code true} if any {@link KotlinParser.KtLineStringContent} descendant of
+     * {@code node} has a {@code LineStrRef} token whose text (including the leading {@code $})
+     * equals {@code "$" + name} for some {@code name} in {@code names}.
+     * <p>
+     * This matches the XPath pattern
+     * {@code //LineStringContent/T-LineStrRef[@Text = concat('$', name)]}.
+     */
+    public static boolean descendantHasStringTemplateRefFromSet(Node node, Set<String> names) {
+        if (node == null || names == null || names.isEmpty()) return false;
+        for (KotlinParser.KtLineStringContent lsc :
+                node.descendants(KotlinParser.KtLineStringContent.class).toList()) {
+            KotlinTerminalNode lineStrRef = lsc.children(KotlinTerminalNode.class)
+                    .filter(t -> t.getText() != null && t.getText().startsWith("$"))
+                    .first();
+            if (lineStrRef != null) {
+                String refText = lineStrRef.getText(); // e.g. "$context1"
+                if (refText.length() > 1 && names.contains(refText.substring(1))) return true;
+            }
+        }
+        return false;
     }
 }
