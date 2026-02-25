@@ -58,7 +58,7 @@ public class AvoidImplicitlyRecompilingRegexRule extends AbstractKotlinRule {
                     node.descendants(KotlinParser.KtNavigationSuffix.class)
                         .filter(ns -> KotlinAstUtil.isDirectDescendantOfFunctionDeclaration(ns, node))
                         .toList()) {
-                if (!isToRegexNavSuffix(navSuffix)) continue;
+                if (!KotlinAstUtil.isToRegexNavSuffix(navSuffix)) continue;
                 if (isToRegexDynamic(navSuffix, paramNames, localVarNames)) continue;
                 ctx.addViolation(navSuffix);
             }
@@ -68,8 +68,8 @@ public class AvoidImplicitlyRecompilingRegexRule extends AbstractKotlinRule {
                     node.descendants(KotlinParser.KtPostfixUnaryExpression.class)
                         .filter(p -> KotlinAstUtil.isDirectDescendantOfFunctionDeclaration(p, node))
                         .toList()) {
-                if (!isRegexConstructorCall(pue)) continue;
-                KotlinParser.KtCallSuffix callSuffix = getFirstCallSuffix(pue);
+                if (!KotlinAstUtil.isRegexConstructorCall(pue)) continue;
+                KotlinParser.KtCallSuffix callSuffix = KotlinAstUtil.getFirstCallSuffix(pue);
                 if (callSuffix == null) continue;
                 if (isRegexArgDynamic(pue, callSuffix, paramNames, localVarNames, classVarFields)) continue;
                 // Report on the SimpleIdentifier "Regex" inside the PrimaryExpression
@@ -92,13 +92,13 @@ public class AvoidImplicitlyRecompilingRegexRule extends AbstractKotlinRule {
 
             // --- FileSystems.getPathMatcher(...) calls ---
             if (hasFileImport) {
-                Set<String> fileSystemsVarNames = collectFileSystemsVarNames(node);
+                Set<String> fileSystemsVarNames = KotlinAstUtil.collectFileSystemsVarNames(node);
                 for (KotlinParser.KtNavigationSuffix navSuffix :
                         node.descendants(KotlinParser.KtNavigationSuffix.class)
                             .filter(ns -> KotlinAstUtil.isDirectDescendantOfFunctionDeclaration(ns, node))
                             .toList()) {
-                    if (!isGetPathMatcherNavSuffix(navSuffix)) continue;
-                    if (!isOnFileSystemsReceiver(navSuffix, fileSystemsVarNames)) continue;
+                    if (!KotlinAstUtil.isGetPathMatcherNavSuffix(navSuffix)) continue;
+                    if (!KotlinAstUtil.isOnFileSystemsReceiver(navSuffix, fileSystemsVarNames)) continue;
                     if (isGetPathMatcherArgDynamic(navSuffix, paramNames)) continue;
                     ctx.addViolation(navSuffix);
                 }

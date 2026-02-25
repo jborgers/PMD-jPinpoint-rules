@@ -304,4 +304,86 @@ public final class KotlinAstUtil {
         }
         return false;
     }
+
+    // -------------------------------------------------------------------------
+    // Regex/PathMatcher helpers (moved from rule)
+    // -------------------------------------------------------------------------
+
+    /** Returns true if the NavigationSuffix refers to {@code toRegex}. */
+    public static boolean isToRegexNavSuffix(KotlinParser.KtNavigationSuffix navSuffix) {
+        return "toRegex".equals(getIdentifierText(navSuffix.simpleIdentifier()));
+    }
+
+    /** Returns true if the PostfixUnaryExpression represents a {@code Regex(...)} constructor call. */
+    public static boolean isRegexConstructorCall(KotlinParser.KtPostfixUnaryExpression pue) {
+        KotlinParser.KtPrimaryExpression pe = pue.primaryExpression();
+        if (pe == null) return false;
+        if (!"Regex".equals(getIdentifierText(pe.simpleIdentifier()))) return false;
+        KotlinParser.KtPostfixUnarySuffix firstSuffix = pue.postfixUnarySuffix(0);
+        return firstSuffix != null && firstSuffix.callSuffix() != null;
+    }
+
+    /** Returns the CallSuffix of the first PostfixUnarySuffix, or null. */
+    public static KotlinParser.KtCallSuffix getFirstCallSuffix(KotlinParser.KtPostfixUnaryExpression pue) {
+        KotlinParser.KtPostfixUnarySuffix firstSuffix = pue.postfixUnarySuffix(0);
+        return firstSuffix != null ? firstSuffix.callSuffix() : null;
+    }
+
+    /** Returns true if the NavigationSuffix refers to {@code getPathMatcher}. */
+    public static boolean isGetPathMatcherNavSuffix(KotlinParser.KtNavigationSuffix navSuffix) {
+        return "getPathMatcher".equals(getIdentifierText(navSuffix.simpleIdentifier()));
+    }
+
+    /** Returns true if the getPathMatcher call is on a FileSystems instance. */
+    public static boolean isOnFileSystemsReceiver(KotlinParser.KtNavigationSuffix navSuffix, Set<String> fileSystemsVarNames) {
+        KotlinParser.KtPostfixUnarySuffix suffix = navSuffix.ancestors(KotlinParser.KtPostfixUnarySuffix.class).first();
+        if (suffix == null) return false;
+        KotlinParser.KtPostfixUnaryExpression pue = suffix.ancestors(KotlinParser.KtPostfixUnaryExpression.class).first();
+        if (pue == null) return false;
+        String receiverName = getPrimaryExpressionSimpleIdentifierText(pue.primaryExpression());
+        if (receiverName == null) return false;
+        if ("FileSystems".equals(receiverName)) return true;
+        return fileSystemsVarNames.contains(receiverName);
+    }
+
+    /**
+     * Collects names of local variables in the function body that were initialized from
+     * an expression containing {@code FileSystems} (e.g. {@code val fs = FileSystems.getDefault()}).
+     */
+    public static Set<String> collectFileSystemsVarNames(KotlinParser.KtFunctionDeclaration funcDecl) {
+        Set<String> result = new HashSet<>();
+        KotlinParser.KtFunctionBody body = funcDecl.functionBody();
+        if (body == null) return result;
+        for (KotlinParser.KtStatement stmt : body.descendants(KotlinParser.KtStatement.class).toList()) {
+            KotlinParser.KtDeclaration decl = stmt.declaration();
+            if (decl == null) continue;
+            KotlinParser.KtPropertyDeclaration propDecl = decl.propertyDeclaration();
+            if (propDecl == null) continue;
+            KotlinParser.KtExpression initExpr = propDecl.expression();
+            if (initExpr == null) continue;
+            if (initExpr.descendants(KotlinTerminalNode.class)
+                    .any(t -> "FileSystems".equals(t.getText()))) {
+                KotlinParser.KtVariableDeclaration varDecl = propDecl.variableDeclaration();
+                if (varDecl != null) {
+                    String name = getIdentifierText(varDecl.simpleIdentifier());
+                    if (name != null) result.add(name);
+                }
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Returns true if the first ValueArgument in the CallSuffix is a simple identifier
+     * that matches a function parameter name.
+     */
+    public static boolean firstArgIsParam(KotlinParser.KtCallSuffix callSuffix, Set<String> paramNames) {
+        if (callSuffix.valueArguments() == null) return false;
+        List<KotlinParser.KtValueArgument> args = callSuffix.valueArguments().valueArgument();
+        if (args.isEmpty()) return false;
+        KotlinParser.KtValueArgument firstArg = args.get(0);
+        return firstArg.descendants(KotlinParser.KtPrimaryExpression.class)
+                .any(pe -> paramNames.contains(getPrimaryExpressionSimpleIdentifierText(pe)));
+    }
 }
+

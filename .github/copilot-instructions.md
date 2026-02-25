@@ -3,10 +3,10 @@
 ## Build, Test, and Lint Commands
 
 - **Build and test all rules:**
-  - `mvn clean test`
+  - `./mvnw clean test`
   - `./test` (shortcut for `./mvnw test`)
 - **Run a single test class:**
-  - `mvn test -Dtest=YourRuleTest`
+  - `./mvnw test -Dtest=YourRuleTest`
 - **Merge rule categories into combined rulesets:**
   - `./merge` (Java)
   - `./merge kotlin` (Kotlin)
@@ -35,7 +35,7 @@
   - Use class names like `Foo`, method names like `bad`/`good`, and `//bad` comments on flagged lines.
 - **Kotlin rules:**
   - Complex rules can be implemented as Java classes extending `AbstractKotlinRule`.
-  - Use text comparison for token checks (e.g., `t.getText().equals("+=")`).
+  - Use text comparison for token checks (e.g., `t.getText().equals("+=")`) (this is due to a little bug in pmd-core lib, waiting to be fixed).
 - **Indentation:**
   - Use spaces only (no tabs).
 
