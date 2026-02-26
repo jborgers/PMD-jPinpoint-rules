@@ -245,9 +245,8 @@ public final class KotlinAstUtil {
      * <p>A wildcard import (containing {@code *}) always matches.</p>
      */
     public static boolean hasImport(Node node, String... identifiers) {
-        KotlinParser.KtKotlinFile file = node.ancestors(KotlinParser.KtKotlinFile.class).first();
-        if (file == null) return false;
-        KotlinParser.KtImportList importList = file.importList();
+        KotlinParser.KtImportList importList = node.descendants(KotlinParser.KtImportList.class).first();
+
         if (importList == null) return false;
 
         for (KotlinParser.KtImportHeader importHeader : importList.importHeader()) {
@@ -304,7 +303,7 @@ public final class KotlinAstUtil {
         for (KotlinParser.KtLineStringContent lsc :
                 node.descendants(KotlinParser.KtLineStringContent.class).toList()) {
             KotlinTerminalNode lineStrRef = lsc.children(KotlinTerminalNode.class)
-                    .filter(t -> t.getText() != null && t.getText().startsWith("$"))
+                    .filter(t -> t.getText().startsWith("$"))
                     .first();
             if (lineStrRef != null) {
                 String refText = lineStrRef.getText(); // e.g. "$context1"

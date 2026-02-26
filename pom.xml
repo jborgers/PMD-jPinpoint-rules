@@ -32,7 +32,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.5.2</version>
+                <version>3.5.4</version>
                 <configuration>
                     <includes>
                         <include>**/kotlin/**</include>
@@ -69,6 +69,12 @@
         <dependency>
             <groupId>net.sourceforge.pmd</groupId>
             <artifactId>pmd-test</artifactId>
+            <version>${pmd.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>net.sourceforge.pmd</groupId>
+            <artifactId>pmd-lang-test</artifactId>
             <version>${pmd.version}</version>
             <scope>test</scope>
         </dependency>
@@ -220,12 +226,6 @@
                 <version>1.18.34</version>
                 <!--scope>provided</scope-->
             </dependency>
-        <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-surefire-plugin -->
-        <dependency>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-surefire-plugin</artifactId>
-            <version>3.3.1</version>
-        </dependency>
         <!-- https://mvnrepository.com/artifact/io.github.resilience4j/resilience4j-core -->
         <dependency>
             <groupId>io.github.resilience4j</groupId>
@@ -255,7 +255,7 @@
             <version>2.20.0</version>
             <scope>compile</scope>
         </dependency>
-
+        <!-- Use JUnit 4 only for test discovery (remove JUnit 5/platform to avoid version mismatches) -->
     </dependencies>
     <repositories>
         <repository>
@@ -266,3 +266,4 @@
     </repositories>
 
 </project>
+
