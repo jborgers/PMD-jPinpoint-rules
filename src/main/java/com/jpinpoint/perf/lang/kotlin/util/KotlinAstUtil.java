@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 /**
  * Static utility methods for navigating the PMD 7 ANTLR-based Kotlin AST.
@@ -227,7 +228,9 @@ public final class KotlinAstUtil {
             for (KotlinTerminalNode tn : tokens) {
                 String txt = tn.getText().trim();
                 if (txt.isEmpty()) continue;
-                idTokens.add(txt);
+                if (!".".equals(txt) && !"import".equals(txt)) {
+                    idTokens.add(txt);
+                }
             }
 
             // If this import has a wildcard (e.g. import x.y.z.*), only match when the prefix before '*'
@@ -249,9 +252,9 @@ public final class KotlinAstUtil {
                 continue;
             }
 
-            // No wildcard: check whether the requested identifiers appear in order within the identifier tokens.
-            // This is a subsequence match: each identifier must be found in order (not necessarily adjacent).
-            return identifierMatchAllTokens(identifiers, idTokens);
+            // No wildcard: check whether the requested identifiers appear as an adjacent, exact sequence
+            // in the identifier tokens (must be contiguous and in exact order).
+            if (identifierMatchAllTokens(identifiers, idTokens)) return true;
         }
         return false;
     }
@@ -261,33 +264,14 @@ public final class KotlinAstUtil {
     }
 
     private static boolean identifierMatchAllTokens(String[] identifiers, List<String> idTokens) {
-        boolean allPresent = true;
-        int pos = 0;
-        for (String id : identifiers) {
-            boolean found = false;
-            for (int i = pos; i < idTokens.size(); i++) {
-                if (id.equals(idTokens.get(i))) {
-                    found = true;
-                    pos = i + 1;
-                    break;
-                }
-            }
-            if (!found) {
-                allPresent = false;
-                break;
-            }
+        // Require exact same size and exact element equality (contiguous and same length).
+        int n = idTokens.size();
+        int m = identifiers.length;
+        if (m != n) return false;
+        for (int i = 0; i < m; i++) {
+            if (!identifiers[i].equals(idTokens.get(i))) return false;
         }
-        return allPresent;
-    }
-
-    /**
-     * Returns {@code true} if {@code node} has any descendant {@link KotlinTerminalNode} whose
-     * text is in {@code names}. Useful for checking if an expression references any of a set
-     * of variable names.
-     */
-    public static boolean descendantHasIdentifierFromSet(Node node, Set<String> names) {
-        if (node == null || names == null || names.isEmpty()) return false;
-        return node.descendants(KotlinTerminalNode.class).any(t -> names.contains(t.getText()));
+        return true;
     }
 
     /**

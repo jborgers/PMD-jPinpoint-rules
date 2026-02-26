@@ -42,6 +42,7 @@ public class KotlinAstUtilTest {
         Node node = parseResource("src/test/resources/com/jpinpoint/perf/lang/kotlin/util/TestImports.kt");
         assertTrue(KotlinAstUtil.hasImport(node, "java.util.regex.Pattern"));
         assertTrue(KotlinAstUtil.hasImport(node, "org.example.Foo"));
-        assertFalse(KotlinAstUtil.hasImport(node, "java.util.ListNotPresent"));
+        assertTrue(KotlinAstUtil.hasImport(node, "java.util.MatchAnything"));
+        assertFalse(KotlinAstUtil.hasImport(node, "io.test.ListNotPresent"));
     }
 }
