@@ -22,9 +22,6 @@ public final class KotlinAstUtil {
 
     private KotlinAstUtil() { /* utility class */ }
 
-    // Precompiled identifier pattern for import token matching
-    private static final Pattern IDENT_PAT = Pattern.compile("[\\p{L}_`][\\p{L}0-9_`]*");
-
     // -------------------------------------------------------------------------
     // Identifier helpers
     // -------------------------------------------------------------------------
@@ -263,9 +260,7 @@ public final class KotlinAstUtil {
             for (KotlinTerminalNode tn : tokens) {
                 String txt = tn.getText().trim();
                 if (txt.isEmpty()) continue;
-                if ("*".equals(txt) || IDENT_PAT.matcher(txt).matches()) {
-                    idTokens.add(txt);
-                }
+                idTokens.add(txt);
             }
 
             // If this import has a wildcard (e.g. import x.y.z.*), only match when the prefix before '*'
