@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.regex.Pattern;
 
 /**
  * Static utility methods for navigating the PMD 7 ANTLR-based Kotlin AST.
@@ -21,13 +20,6 @@ import java.util.regex.Pattern;
 public final class KotlinAstUtil {
 
     private KotlinAstUtil() { /* utility class */ }
-
-    // Precompiled identifier pattern for import token matching
-    private static final Pattern IDENT_PAT = Pattern.compile("[\\p{L}_`][\\p{L}0-9_`]*");
-
-    // -------------------------------------------------------------------------
-    // Identifier helpers
-    // -------------------------------------------------------------------------
 
     /**
      * Returns the text of the first terminal-node child of a {@link KotlinParser.KtSimpleIdentifier},
@@ -48,10 +40,6 @@ public final class KotlinAstUtil {
         return getIdentifierText(pe.simpleIdentifier());
     }
 
-    // -------------------------------------------------------------------------
-    // Type / field helpers
-    // -------------------------------------------------------------------------
-
     /**
      * Returns {@code true} if any terminal-node descendant of {@code type} has text equal to
      * {@code typeName}. Useful for checking type annotations like {@code var x: String} or a
@@ -61,10 +49,6 @@ public final class KotlinAstUtil {
         if (type == null || typeName == null) return false;
         return type.descendants(KotlinTerminalNode.class).any(t -> typeName.equals(t.getText()));
     }
-
-    // -------------------------------------------------------------------------
-    // Scope helpers
-    // -------------------------------------------------------------------------
 
     /**
      * Returns {@code true} if the nearest enclosing {@link KotlinParser.KtFunctionBody} ancestor
@@ -86,10 +70,6 @@ public final class KotlinAstUtil {
         return node.ancestors(KotlinParser.KtFunctionDeclaration.class).first() == funcDecl;
     }
 
-    // -------------------------------------------------------------------------
-    // Assignment helpers
-    // -------------------------------------------------------------------------
-
     /**
      * Extracts the simple variable name from the left-hand side of an assignment.
      * Handles both plain assignment ({@code x = ...}) and compound assignment ({@code x += ...}).
@@ -110,10 +90,6 @@ public final class KotlinAstUtil {
         }
         return null;
     }
-
-    // -------------------------------------------------------------------------
-    // Parameter collection
-    // -------------------------------------------------------------------------
 
     /**
      * Returns the names of all parameters in the function declaration (regardless of type).
@@ -157,10 +133,6 @@ public final class KotlinAstUtil {
         return result;
     }
 
-    // -------------------------------------------------------------------------
-    // Local variable collection
-    // -------------------------------------------------------------------------
-
     /**
      * Returns the names of all local variables (PropertyDeclarations) declared anywhere within
      * {@code functionBody}, including inside nested lambdas. This matches the XPath behaviour of
@@ -179,10 +151,6 @@ public final class KotlinAstUtil {
         }
         return result;
     }
-
-    // -------------------------------------------------------------------------
-    // Class field collection
-    // -------------------------------------------------------------------------
 
     /**
      * Returns the names of all mutable ({@code var}) class fields declared in the class
@@ -229,10 +197,6 @@ public final class KotlinAstUtil {
         return result;
     }
 
-    // -------------------------------------------------------------------------
-    // Import checking
-    // -------------------------------------------------------------------------
-
     /**
      * Returns {@code true} if the Kotlin file enclosing {@code node} has an import that matches
      */
@@ -263,9 +227,7 @@ public final class KotlinAstUtil {
             for (KotlinTerminalNode tn : tokens) {
                 String txt = tn.getText().trim();
                 if (txt.isEmpty()) continue;
-                if ("*".equals(txt) || IDENT_PAT.matcher(txt).matches()) {
-                    idTokens.add(txt);
-                }
+                idTokens.add(txt);
             }
 
             // If this import has a wildcard (e.g. import x.y.z.*), only match when the prefix before '*'
@@ -289,8 +251,7 @@ public final class KotlinAstUtil {
 
             // No wildcard: check whether the requested identifiers appear in order within the identifier tokens.
             // This is a subsequence match: each identifier must be found in order (not necessarily adjacent).
-            boolean allPresent = identifierMatchAllTokens(identifiers, idTokens);
-            if (allPresent) return true;
+            return identifierMatchAllTokens(identifiers, idTokens);
         }
         return false;
     }
@@ -318,10 +279,6 @@ public final class KotlinAstUtil {
         }
         return allPresent;
     }
-
-    // -------------------------------------------------------------------------
-    // Expression content helpers
-    // -------------------------------------------------------------------------
 
     /**
      * Returns {@code true} if {@code node} has any descendant {@link KotlinTerminalNode} whose
@@ -356,11 +313,8 @@ public final class KotlinAstUtil {
         return false;
     }
 
-    // -------------------------------------------------------------------------
-    // Regex/PathMatcher helpers (moved from rule)
-    // -------------------------------------------------------------------------
-
-    /** Returns true if the NavigationSuffix refers to {@code toRegex}. */
+    /**
+     * Returns true if the NavigationSuffix refers to {@code toRegex}. */
     public static boolean isToRegexNavSuffix(KotlinParser.KtNavigationSuffix navSuffix) {
         return "toRegex".equals(getIdentifierText(navSuffix.simpleIdentifier()));
     }
@@ -438,4 +392,3 @@ public final class KotlinAstUtil {
     }
 
 }
-
