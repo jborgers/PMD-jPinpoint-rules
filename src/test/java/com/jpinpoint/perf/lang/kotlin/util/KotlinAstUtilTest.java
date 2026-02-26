@@ -1,13 +1,13 @@
 package com.jpinpoint.perf.lang.kotlin.util;
 
 import net.sourceforge.pmd.lang.ast.Node;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class KotlinAstUtilTest {
 

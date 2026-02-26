@@ -4,9 +4,11 @@ import net.sourceforge.pmd.lang.ast.Node;
 import net.sourceforge.pmd.lang.kotlin.ast.KotlinParser;
 import net.sourceforge.pmd.lang.kotlin.ast.KotlinTerminalNode;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 /**
  * Static utility methods for navigating the PMD 7 ANTLR-based Kotlin AST.
@@ -19,6 +21,9 @@ import java.util.Set;
 public final class KotlinAstUtil {
 
     private KotlinAstUtil() { /* utility class */ }
+
+    // Precompiled identifier pattern for import token matching
+    private static final Pattern IDENT_PAT = Pattern.compile("[\\p{L}_`][\\p{L}0-9_`]*");
 
     // -------------------------------------------------------------------------
     // Identifier helpers
@@ -245,35 +250,73 @@ public final class KotlinAstUtil {
      * <p>A wildcard import (containing {@code *}) always matches.</p>
      */
     public static boolean hasImport(Node node, String... identifiers) {
-        KotlinParser.KtImportList importList = node.descendants(KotlinParser.KtImportList.class).first();
-
+        KotlinParser.KtKotlinFile file = node.getClass().equals(KotlinParser.KtKotlinFile.class) ? (KotlinParser.KtKotlinFile) node : node.ancestors(KotlinParser.KtKotlinFile.class).first();
+        if (file == null) return false;
+        KotlinParser.KtImportList importList = file.importList();
         if (importList == null) return false;
 
         for (KotlinParser.KtImportHeader importHeader : importList.importHeader()) {
             List<KotlinTerminalNode> tokens = importHeader.descendants(KotlinTerminalNode.class).toList();
 
-            // Wildcard import (*) matches everything
-            for (KotlinTerminalNode t : tokens) {
-                if ("*".equals(t.getText())) return true;
-            }
-
-            // Collect all identifier texts in the import header
-            Set<String> texts = new HashSet<>();
-            for (KotlinTerminalNode t : tokens) {
-                texts.add(t.getText());
-            }
-
-            // Check if all required identifiers are present
-            boolean allPresent = true;
-            for (String id : identifiers) {
-                if (!texts.contains(id)) {
-                    allPresent = false;
-                    break;
+            // Build identifier-like token list directly from terminal nodes (keep original order).
+            List<String> idTokens = new ArrayList<>();
+            for (KotlinTerminalNode tn : tokens) {
+                String txt = tn.getText().trim();
+                if (txt.isEmpty()) continue;
+                if ("*".equals(txt) || IDENT_PAT.matcher(txt).matches()) {
+                    idTokens.add(txt);
                 }
             }
+
+            // If this import has a wildcard (e.g. import x.y.z.*), only match when the prefix before '*'
+            // equals the leading part of the requested identifiers. For example, import a.b.* matches
+            // identifiers ["a","b","C"] but should NOT match an unrelated package.
+            if (!idTokens.isEmpty() && lastTokenIsWildcard(idTokens)) {
+                int prefixLen = idTokens.size() - 1;
+                if (identifiers.length >= prefixLen) {
+                    boolean prefixMatches = true;
+                    for (int i = 0; i < prefixLen; i++) {
+                        if (!idTokens.get(i).equals(identifiers[i])) {
+                            prefixMatches = false;
+                            break;
+                        }
+                    }
+                    if (prefixMatches) return true;
+                }
+                // wildcard present but prefix doesn't match; continue checking other imports
+                continue;
+            }
+
+            // No wildcard: check whether the requested identifiers appear in order within the identifier tokens.
+            // This is a subsequence match: each identifier must be found in order (not necessarily adjacent).
+            boolean allPresent = identifierMatchAllTokens(identifiers, idTokens);
             if (allPresent) return true;
         }
         return false;
+    }
+
+    private static boolean lastTokenIsWildcard(List<String> idTokens) {
+        return "*".equals(idTokens.get(idTokens.size() - 1));
+    }
+
+    private static boolean identifierMatchAllTokens(String[] identifiers, List<String> idTokens) {
+        boolean allPresent = true;
+        int pos = 0;
+        for (String id : identifiers) {
+            boolean found = false;
+            for (int i = pos; i < idTokens.size(); i++) {
+                if (id.equals(idTokens.get(i))) {
+                    found = true;
+                    pos = i + 1;
+                    break;
+                }
+            }
+            if (!found) {
+                allPresent = false;
+                break;
+            }
+        }
+        return allPresent;
     }
 
     // -------------------------------------------------------------------------
