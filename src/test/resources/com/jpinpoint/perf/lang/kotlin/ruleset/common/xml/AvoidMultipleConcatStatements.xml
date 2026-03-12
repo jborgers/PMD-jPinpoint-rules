@@ -345,4 +345,20 @@ class HashCodeStringConcat(
         ]]></code>
     </test-code>
 
+    <test-code>
+        <description>issue #674: false positive on Kotlin AvoidMultipleConcatStatements for mutableMap</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+class MapDynamicKey {
+    private fun falsePos(): Map<String, String> {
+        val key = "key:"
+        return mutableMapOf<String, String>().apply {
+            this[key + "A"] = "valA"
+            this[key + "B"] = "valB" // <-- false positive
+        }
+    }
+}
+        ]]></code>
+    </test-code>
+
 </test-data>
