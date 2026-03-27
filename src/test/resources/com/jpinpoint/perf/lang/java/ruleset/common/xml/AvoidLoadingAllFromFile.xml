@@ -32,4 +32,66 @@ class Good {
      ]]></code>
     </test-code>
 
+    <test-code>
+        <description>violations: Extended AvoidLoadingAllFromFile rule</description>
+
+        <expected-problems>12</expected-problems>
+        <expected-linenumbers>
+            11, 12, 13, 14, 15,
+            18, 19, 20,
+            23,
+            28,
+            32,
+            35
+        </expected-linenumbers>
+
+        <code><![CDATA[
+import java.io.*;
+import java.net.*;
+import java.nio.file.*;
+import java.nio.charset.*;
+import org.apache.commons.io.IOUtils;
+import org.springframework.util.ResizableByteArrayOutputStream;
+
+class Bad_Issue697 {
+    void bad(Path path, InputStream in, URL url) throws Exception {
+
+        byte[] b1 = Files.readAllBytes(path);              // bad line 11
+        var l1 = Files.readAllLines(path);                 // bad line 12
+        var l2 = Files.readAllLines(path, Charset.defaultCharset()); // bad line 13
+        var s1 = Files.readString(path);                   // bad line 14
+        var s2 = Files.readString(path, Charset.defaultCharset()); // bad line 15
+
+        byte[] b2 = in.readAllBytes();                     // bad line 18
+        byte[] b3 = IOUtils.toByteArray(in);               // bad line 19
+        byte[] b4 = IOUtils.toByteArray(url);              // bad line 20
+
+        ByteArrayInputStream bis = new ByteArrayInputStream(b1); // bad line 23
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        byte[] arr = baos.toByteArray();                   // bad line 28
+
+        ResizableByteArrayOutputStream rbaos =
+            new ResizableByteArrayOutputStream();          // OK (constructor only)
+
+        byte[] arr2 = rbaos.toByteArray();                 // bad line 32
+
+        byte[] arr3 = IOUtils.toByteArray(path);           // bad line 35
+    }
+}
+
+class Good_Issue697 {
+    void good(Path path, InputStream in) throws Exception {
+        try (InputStream s = Files.newInputStream(path)) {
+            IOUtils.copy(s, System.out);          // streaming OK
+        }
+        try (BufferedInputStream bin = new BufferedInputStream(in)) {
+            int c = bin.read();                   // streaming OK
+        }
+        // No violations expected
+    }
+}
+        ]]></code>
+    </test-code>
+
 </test-data>
