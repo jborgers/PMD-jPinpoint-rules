@@ -481,49 +481,96 @@ class IterationsBetter {
     </rule>
 
     <rule name="AvoidLoadingAllFromFile"
-          language="java"
-          message="Files.readAll methods load all bytes from a file into memory: a risk of memory problems."
-          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+        language="java"
+        message="Files.readAll methods and similar APIs load all bytes into memory: a risk of memory problems."
+        class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+        externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#isio03">
 
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#isio03">
-        <description>Problem: Files.readAllBytes and Files.readAllLines load all bytes from a file into the heap memory.
-            This may result in an OutOfMemoryError crash, or long gc pauses and slow responses.
-            Solution: Stream-through: use streaming all the way, don't store the whole thing in memory, don't use byte arrays.
-            Often, functionality can be achieved in a streaming way.
-            Note: not a problem for small files.
+        <description>
+            Problem: APIs like Files.readAllBytes, Files.readAllLines, Files.readString,
+            InputStream.readAllBytes, IOUtils.toByteArray, ByteArrayInputStream,
+            ByteArrayOutputStream.toByteArray, and ResizableByteArrayOutputStream.toByteArray
+            load entire content into heap memory. This risks OutOfMemoryError, long GC pauses,
+            and slow responses when processing large files.
+            Solution: Use streaming APIs end-to-end, do not buffer whole files in memory.
+            Note: Not a problem for small files.
+            (jpinpoint-rules)
         (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
-            <property name="tags" value="jpinpoint-rule,memory,performance,sustainability-medium" type="String" description="classification"/>
+            <property name="tags"
+                      value="jpinpoint-rule,memory,performance,sustainability-medium"
+                      type="String"/>
             <property name="xpath">
                 <value><![CDATA[
-//MethodDeclaration//MethodCall[pmd-java:matchesSig('java.nio.file.Files#readAllBytes(java.nio.file.Path)')
-    or pmd-java:matchesSig('java.nio.file.Files#readAllLines(java.nio.file.Path)')
-    or pmd-java:matchesSig('java.nio.file.Files#readAllLines(java.nio.file.Path,_)')
-]
+                    (: Java read-all file APIs :)
+                    //MethodCall[
+                           pmd-java:matchesSig('java.nio.file.Files#readAllBytes(java.nio.file.Path)')
+                        or pmd-java:matchesSig('java.nio.file.Files#readAllLines(java.nio.file.Path)')
+                        or pmd-java:matchesSig('java.nio.file.Files#readAllLines(java.nio.file.Path,_)')
+                    ]
+                    (: Java read-all string APIs :)
+                    or //MethodCall[
+                           pmd-java:matchesSig('java.nio.file.Files#readString(java.nio.file.Path)')
+                        or pmd-java:matchesSig('java.nio.file.Files#readString(java.nio.file.Path,_)')
+                    ]
+                    (: Java InputStream read-all API :)
+                    or //MethodCall[
+                           pmd-java:matchesSig('java.io.InputStream#readAllBytes()')
+                    ]
+                    (: Apache Commons IO read-all APIs :)
+                    or //MethodCall[
+                           pmd-java:matchesSig('org.apache.commons.io.IOUtils#toByteArray(java.io.InputStream)')
+                        or pmd-java:matchesSig('org.apache.commons.io.IOUtils#toByteArray(java.net.URL)')
+                        or pmd-java:matchesSig('org.apache.commons.io.IOUtils#toByteArray(java.nio.file.Path)')
+                    ]
+                    (: ByteArrayInputStream allocation :)
+                    or //AllocationExpression[
+                           pmd-java:typeIs('java.io.ByteArrayInputStream')
+                    ]
+                    (: ByteArrayOutputStream.toByteArray :)
+                    or //PrimaryExpression[
+                           PrimaryPrefix/Name[
+                               pmd-java:typeIs('java.io.ByteArrayOutputStream')
+                               and ends-with(@Image, 'toByteArray')
+                           ]
+                    ]
+                    (: ResizableByteArrayOutputStream.toByteArray :)
+                    or //PrimaryExpression[
+                           PrimaryPrefix/Name[
+                               pmd-java:typeIs('org.springframework.util.ResizableByteArrayOutputStream')
+                               and ends-with(@Image, 'toByteArray')
+                           ]
+                    ]
                 ]]></value>
             </property>
         </properties>
-        <example>
-            <![CDATA[
+
+        <example><![CDATA[
 class Bad {
-    void bad(Path path) {
-        byte[] fileBytes = Files.readAllBytes(path); // bad
-        List<String> fileLines = Files.readAllLines(path); // bad
-        // process bytes / lines
+    void bad(Path path, InputStream in) throws Exception {
+        byte[] fileBytes = Files.readAllBytes(path);                        // bad
+        java.util.List<String> fileLines = Files.readAllLines(path);        // bad
+
+        String s = Files.readString(path);                                  // bad
+        byte[] full = IOUtils.toByteArray(in);                              // bad
+        ByteArrayInputStream bis = new ByteArrayInputStream(full);          // bad
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        byte[] arr = baos.toByteArray();                                    // bad
     }
 }
 
 class Good {
-    void good(Path in) throws IOException {
-        try (BufferedReader reader = Files.newBufferedReader(in)) {
-            String line = reader.readLine();
-            // process line by line
+    void good(Path path, InputStream in) throws Exception {
+        try (InputStream s = Files.newInputStream(path)) {
+            IOUtils.copy(s, System.out);                                    // streaming OK
+        }
+        try (BufferedReader reader = Files.newBufferedReader(path)) {
+            String line = reader.readLine();                                // streaming OK
         }
     }
 }
-            ]]>
-        </example>
+]]>     </example>
     </rule>
 
     <rule name="AvoidLombokAnnotationForNonExistentFields"
@@ -6124,10 +6171,9 @@ return HttpClientBuilder.create() // good, setConnectionManager called, pool con
           language="java"
           message="Apache HttpClient builder is used and not all three timeouts are configured."
           externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#IBI10">
-        <description>Problem: for connectionRequestTimeout, connectTimeout, socketTimeout (using
-            HttpComponentsClientHttpRequestFactory/RequestConfig) or readTimeout/responseTimeout (using RequestConfig v4/v5) and connectTimeout (using ConnectionConfig v5)
-            the default timeout settings are not optimal in most cases. &#13;
-            Solution: Set the timeouts explicitly to proper reasoned values. See best practice values via the link. Use
+        <description>Problem: default timeout values for Apache HttpClient are often sub optimal (connectionRequestTimeout, connectTimeout, socketTimeout in HttpComponentsClientHttpRequestFactory;
+            readTimeout/responseTimeout in RequestConfig v4/v5; and connectTimeout in ConnectionConfig v5) &#13;
+            Solution: Set all these timeouts explicitly to proper reasoned values. See best practice values via the link. Use
             the setDefaultRequestConfig with a method with a RequestConfig object on HttpClient builders to set the
             timeouts. (jpinpoint-rules)
         (jpinpoint-rules)</description>
