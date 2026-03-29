@@ -34,17 +34,8 @@ class Good {
 
     <test-code>
         <description>violations: Extended AvoidLoadingAllFromFile rule</description>
-
         <expected-problems>12</expected-problems>
-        <expected-linenumbers>
-            11, 12, 13, 14, 15,
-            18, 19, 20,
-            23,
-            28,
-            32,
-            35
-        </expected-linenumbers>
-
+        <expected-linenumbers>11, 12, 13, 14, 15,  17, 18, 19,  21, 24, 28, 30</expected-linenumbers>
         <code><![CDATA[
 import java.io.*;
 import java.net.*;
@@ -62,21 +53,20 @@ class Bad_Issue697 {
         var s1 = Files.readString(path);                   // bad line 14
         var s2 = Files.readString(path, Charset.defaultCharset()); // bad line 15
 
-        byte[] b2 = in.readAllBytes();                     // bad line 18
-        byte[] b3 = IOUtils.toByteArray(in);               // bad line 19
-        byte[] b4 = IOUtils.toByteArray(url);              // bad line 20
+        byte[] b2 = in.readAllBytes();                     // bad line 17
+        byte[] b3 = IOUtils.toByteArray(in);               // bad line 18
+        byte[] b4 = IOUtils.toByteArray(url);              // bad line 19
 
-        ByteArrayInputStream bis = new ByteArrayInputStream(b1); // bad line 23
+        ByteArrayInputStream bis = new ByteArrayInputStream(b1); // bad line 21
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        byte[] arr = baos.toByteArray();                   // bad line 28
+        byte[] arr = baos.toByteArray();                   // bad line 24
 
         ResizableByteArrayOutputStream rbaos =
             new ResizableByteArrayOutputStream();          // OK (constructor only)
+        byte[] arr2 = rbaos.toByteArray();                 // bad line 29
 
-        byte[] arr2 = rbaos.toByteArray();                 // bad line 32
-
-        byte[] arr3 = IOUtils.toByteArray(path);           // bad line 35
+        byte[] arr3 = IOUtils.toByteArray(path);           // bad line 30
     }
 }
 

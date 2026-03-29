@@ -2139,13 +2139,11 @@ class Foo {
         </example>
     </rule>
 
-
     <rule name="AvoidLoadingAllFromFile"
-        language="java"
-        message="Files.readAll methods and similar APIs load all bytes into memory: a risk of memory problems."
-        class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-        externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#isio03">
-
+          language="java"
+          message="Files.readAll methods and similar APIs load all bytes into memory: a risk of memory problems."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#isio03">
         <description>
             Problem: APIs like Files.readAllBytes, Files.readAllLines, Files.readString,
             InputStream.readAllBytes, IOUtils.toByteArray, ByteArrayInputStream,
@@ -2158,59 +2156,26 @@ class Foo {
         </description>
         <priority>2</priority>
         <properties>
-            <property name="tags"
-                      value="jpinpoint-rule,memory,performance,sustainability-medium"
-                      type="String"/>
+            <property name="tags" value="jpinpoint-rule,memory,performance,sustainability-medium" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
-                    (: Java read-all file APIs :)
-                    //MethodCall[
-                           pmd-java:matchesSig('java.nio.file.Files#readAllBytes(java.nio.file.Path)')
-                        or pmd-java:matchesSig('java.nio.file.Files#readAllLines(java.nio.file.Path)')
-                        or pmd-java:matchesSig('java.nio.file.Files#readAllLines(java.nio.file.Path,_)')
-                    ]
-                    (: Java read-all string APIs :)
-                    or //MethodCall[
-                           pmd-java:matchesSig('java.nio.file.Files#readString(java.nio.file.Path)')
-                        or pmd-java:matchesSig('java.nio.file.Files#readString(java.nio.file.Path,_)')
-                    ]
-                    (: Java InputStream read-all API :)
-                    or //MethodCall[
-                           pmd-java:matchesSig('java.io.InputStream#readAllBytes()')
-                    ]
-                    (: Apache Commons IO read-all APIs :)
-                    or //MethodCall[
-                           pmd-java:matchesSig('org.apache.commons.io.IOUtils#toByteArray(java.io.InputStream)')
-                        or pmd-java:matchesSig('org.apache.commons.io.IOUtils#toByteArray(java.net.URL)')
-                        or pmd-java:matchesSig('org.apache.commons.io.IOUtils#toByteArray(java.nio.file.Path)')
-                    ]
-                    (: ByteArrayInputStream allocation :)
-                    or //AllocationExpression[
-                           pmd-java:typeIs('java.io.ByteArrayInputStream')
-                    ]
-                    (: ByteArrayOutputStream.toByteArray :)
-                    or //PrimaryExpression[
-                           PrimaryPrefix/Name[
-                               pmd-java:typeIs('java.io.ByteArrayOutputStream')
-                               and ends-with(@Image, 'toByteArray')
-                           ]
-                    ]
-                    (: ResizableByteArrayOutputStream.toByteArray :)
-                    or //PrimaryExpression[
-                           PrimaryPrefix/Name[
-                               pmd-java:typeIs('org.springframework.util.ResizableByteArrayOutputStream')
-                               and ends-with(@Image, 'toByteArray')
-                           ]
-                    ]
-                ]]></value>
+//MethodCall[
+    (TypeExpression[pmd-java:typeIs('java.nio.file.Files')] and @MethodName=('readAllBytes', 'readAllLines', 'readString'))
+    or pmd-java:matchesSig('java.io.InputStream#readAllBytes()')
+    or (TypeExpression[pmd-java:typeIs('org.apache.commons.io.IOUtils')] and @MethodName='toByteArray')
+    or (VariableAccess[pmd-java:typeIs('java.io.ByteArrayOutputStream')] and @MethodName='toByteArray')
+    or (VariableAccess[pmd-java:typeIs('org.springframework.util.ResizableByteArrayOutputStream')] and @MethodName='toByteArray')
+]
+|
+//ConstructorCall[pmd-java:typeIs('java.io.ByteArrayInputStream')]
+    ]]></value>
             </property>
         </properties>
         <example><![CDATA[
 class Bad {
     void bad(Path path, InputStream in) throws Exception {
         byte[] fileBytes = Files.readAllBytes(path);                        // bad
-        java.util.List<String> fileLines = Files.readAllLines(path);        // bad
-
+        List<String> fileLines = Files.readAllLines(path);                  // bad
         String s = Files.readString(path);                                  // bad
         byte[] full = IOUtils.toByteArray(in);                              // bad
         ByteArrayInputStream bis = new ByteArrayInputStream(full);          // bad
