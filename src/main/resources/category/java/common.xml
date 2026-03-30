@@ -2151,7 +2151,8 @@ class Foo {
             load entire content into heap memory. This risks OutOfMemoryError, long GC pauses,
             and slow responses when processing large files.
             Solution: Use streaming APIs end-to-end, do not buffer whole files in memory.
-            Note: Not a problem for small files.
+            Note: Not a problem for small files. In that case use e.g.:
+            @SuppressWarnings("PMD.AvoidLoadingAllFromFile") // only small files: max 1 kB.
             (jpinpoint-rules)
         </description>
         <priority>2</priority>
