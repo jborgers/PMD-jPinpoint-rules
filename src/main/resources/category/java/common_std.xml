@@ -1,22 +1,21 @@
 <ruleset name="jpinpoint-common_std-rules"
-    xmlns="http://pmd.sourceforge.net/ruleset/2.0.0"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 https://pmd.sourceforge.io/ruleset_2_0_0.xsd">
+         xmlns="http://pmd.sourceforge.net/ruleset/2.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 https://pmd.sourceforge.io/ruleset_2_0_0.xsd">
     <description>jPinpoint rule set for performance aware Java coding, sponsored by Rabobank.</description>
 
     <rule name="AvoidApacheCommonsFileItemNonStreaming"
-        language="java"
-        message="Avoid memory intensive FileItem.get and FileItem.getString"
-        class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-        externalInfoUrl="${doc_root}/JavaCodePerformance.md#isio03">
+          language="java"
+          message="Avoid memory intensive FileItem.get and FileItem.getString"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#isio03">
         <description>
             Problem: Use of FileItem.get and FileItem.getString could exhaust memory since they load the entire file into memory&#13;
             Solution: Use streaming methods and buffering.
         </description>
         <priority>2</priority>
         <properties>
-            <property name="tags" value="io,jpinpoint-rule,memory,performance,sustainability-medium"
-                type="String" description="classification" />
+            <property name="tags" value="io,jpinpoint-rule,memory,performance,sustainability-medium" type="String" description="classification"/>
             <property name="xpath">
                 <value>
                     <![CDATA[
@@ -41,36 +40,26 @@ public class FileStuff {
     </rule>
 
     <rule name="AvoidCalendarDateCreation"
-        language="java"
-        message="A Calendar is used to create a Date or DateTime, this is expensive."
-        class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-        externalInfoUrl="${doc_root}/JavaCodePerformance.md#ue01">
+          language="java"
+          message="A Calendar is used to create a Date or DateTime, this is expensive."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ue01">
         <description>Problem: A Calendar is a heavyweight object and expensive to create. &#13;
             Solution: Use 'new Date()', Java 8+ java.time.[Local/Zoned]DateTime.now().
         </description>
         <priority>2</priority>
         <properties>
-            <property name="tags"
-                value="cpu,jpinpoint-rule,memory,performance,sustainability-medium" type="String"
-                description="classification" />
+            <property name="tags" value="cpu,jpinpoint-rule,memory,performance,sustainability-medium" type="String" description="classification"/>
             <property name="xpath">
                 <value>
-                <![CDATA[
-(: 1. Direct conversion from Calendar/GregorianCalendar instance to Date or millis :)
-//MethodCall[pmd-java:matchesSig('java.util.Calendar#getInstance()') or pmd-java:matchesSig('java.util.GregorianCalendar#getInstance()')]
-  [ancestor::MethodCall[@MethodName='getTime' or @MethodName='getTimeInMillis']]
+                    <![CDATA[
+//MethodCall[pmd-java:matchesSig('java.util.Calendar#getInstance()') or pmd-java:matchesSig('java.util.GregorianCalendar#getInstance()')][ancestor::MethodCall[@MethodName='getTime' or @MethodName='getTimeInMillis']]
 |
-(: 2. Calling time-getter methods on an existing Calendar variable, except in main :)
-//MethodCall[@MethodName='getTime' or @MethodName='getTimeInMillis']
-  [VariableAccess[pmd-java:typeIs('java.util.Calendar')]]
-  [not(ancestor::MethodDeclaration[@Name='main'])]
+//MethodCall[@MethodName='getTime' or @MethodName='getTimeInMillis'][VariableAccess[pmd-java:typeIs('java.util.Calendar')]]
 |
-(: 3. Inefficient Joda-Time DateTime construction using a Calendar instance :)
-//ConstructorCall/ClassType[pmd-java:typeIs('org.joda.time.DateTime')]
-  /.. /ArgumentList//MethodCall[pmd-java:matchesSig('java.util.Calendar#getInstance()') 
-  or pmd-java:matchesSig('java.util.GregorianCalendar#getInstance()')]
-                ]]>
-            </value>
+//ConstructorCall/ClassType[pmd-java:typeIs('org.joda.time.DateTime')]/../ArgumentList//MethodCall[pmd-java:matchesSig('java.util.Calendar#getInstance()') or pmd-java:matchesSig('java.util.GregorianCalendar#getInstance()')]
+                    ]]>
+                </value>
             </property>
         </properties>
         <example>
@@ -97,17 +86,16 @@ public class DateStuff {
     </rule>
 
     <rule name="AvoidConcatInLoop"
-        language="java"
-        message="A String is concatenated in a loop. Use StringBuilder.append."
-        class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-        externalInfoUrl="${doc_root}/JavaCodePerformance.md#isu02">
+          language="java"
+          message="A String is concatenated in a loop. Use StringBuilder.append."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#isu02">
         <description>A String is built in a loop by concatenation. Problem: Each statement with one or more +-operators creates a hidden temporary StringBuilder, a char[] and a new String object, which all have to be garbage collected. &#13;
             Solution: Use the StringBuilder append method.
         </description>
         <priority>2</priority>
         <properties>
-            <property name="tags" value="cpu,jpinpoint-rule,performance,sustainability-medium"
-                type="String" description="classification" />
+            <property name="tags" value="cpu,jpinpoint-rule,performance,sustainability-medium" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
 (//ForStatement | //ForeachStatement | //WhileStatement | //DoStatement)//AssignmentExpression[
@@ -153,17 +141,16 @@ public class StringStuff {
     </rule>
 
     <rule name="AvoidConcatInAppend"
-        language="java"
-        message="Concatenation inside append. Use extra append."
-        class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-        externalInfoUrl="${doc_root}/JavaCodePerformance.md#isu04">
+          language="java"
+          message="Concatenation inside append. Use extra append."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#isu04">
         <description>Concatenation of Strings is used inside an StringBuilder.append argument. Problem: Each statement with one or more +-operators creates a hidden temporary StringBuilder, a char[] and a new String object, which all have to be garbage collected.&#13;
             Solution: Use an extra fluent append instead of concatenation.
         </description>
         <priority>2</priority>
         <properties>
-            <property name="tags" value="cpu,jpinpoint-rule,performance,sustainability-low"
-                type="String" description="classification" />
+            <property name="tags" value="cpu,jpinpoint-rule,performance,sustainability-low" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
 //(ReturnStatement|ExpressionStatement|LocalVariableDeclaration)
@@ -195,19 +182,17 @@ public class StringStuff {
     </rule>
 
     <rule name="LimitWildcardStaticImports"
-        language="java"
-        message="The number of static imports with a wildcard should be limited"
-        class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-        externalInfoUrl="${doc_root}/JavaCodeQuality.md#isr01">
+          language="java"
+          message="The number of static imports with a wildcard should be limited"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          externalInfoUrl="${doc_root}/JavaCodeQuality.md#isr01">
         <description>Importing a class statically allows you to use its public static members easily: without qualifying them with the class name. Problem: if you import too many classes statically, your code can become confusing and difficult to maintain. The default maximum = 3.
             Solution: Import class members individually.
         </description>
         <priority>2</priority>
         <properties>
-            <property name="tags" value="confusing,jpinpoint-rule,pitfall,replaces-sonar-rule"
-                type="String" description="classification" />
-            <property name="param-max" value="3" type="String"
-                description="Maximum number of allowed static imports with wildcard" />
+            <property name="tags" value="confusing,jpinpoint-rule,pitfall,replaces-sonar-rule" type="String" description="classification"/>
+            <property name="param-max" value="3" type="String" description="Maximum number of allowed static imports with wildcard"/>
             <property name="xpath">
                 <value><![CDATA[
 //ImportDeclaration[@Static=true() and @ImportOnDemand=true()][position() > number($param-max)]
@@ -235,10 +220,10 @@ import static com.co.corporate.Constants.GREAT; // good
     </rule>
 
     <rule name="LetFieldsMeetSerializable"
-        language="java"
-        message="Fields in a Serializable class should be serializable or transient."
-        class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-        externalInfoUrl="${doc_root}/JavaCodeQuality.md#isr02">
+          language="java"
+          message="Fields in a Serializable class should be serializable or transient."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          externalInfoUrl="${doc_root}/JavaCodeQuality.md#isr02">
         <description>Problem: Field in a Serializable class is not serializable nor transient. When (de)serialization happens, a RuntimeException will be thrown and (de)serialization fails.
             Solution: make the field either transient, make its class implement Serializable or interface extend Serializable.
             Note: Classes extending Throwable do, by inheritance, implement Serializable, yet are excluded in this rule, since they are typically never actually serialized.
@@ -246,8 +231,7 @@ import static com.co.corporate.Constants.GREAT; // good
         </description>
         <priority>2</priority>
         <properties>
-            <property name="tags" value="jpinpoint-rule,pitfall,replaces-sonar-rule" type="String"
-                description="classification" />
+            <property name="tags" value="jpinpoint-rule,pitfall,replaces-sonar-rule" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
 (: non-transient, non-static, non-primitive fields :)
@@ -306,19 +290,17 @@ class Baz extends RemoteException {
     </rule>
 
     <rule name="LimitStatementsInLambdas"
-        language="java"
-        message="Avoid many statements in lambda expressions."
-        class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-        externalInfoUrl="${doc_root}/JavaCodeQuality.md#isr03">
+          language="java"
+          message="Avoid many statements in lambda expressions."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          externalInfoUrl="${doc_root}/JavaCodeQuality.md#isr03">
         <description>Problem: lambda expressions with many statements are hard to understand and maintain.
             Solution: extract the lambda expression code block into one or more well-named separate method(s).
         </description>
         <priority>3</priority>
         <properties>
-            <property name="tags" value="brain-overload,jpinpoint-rule,replaces-sonar-rule"
-                type="String" description="classification" />
-            <property name="param-max" value="5" type="String"
-                description="Maximum number of allowed non-setter statements" />
+            <property name="tags" value="brain-overload,jpinpoint-rule,replaces-sonar-rule" type="String" description="classification"/>
+            <property name="param-max" value="5" type="String" description="Maximum number of allowed non-setter statements"/>
             <property name="xpath">
                 <value><![CDATA[
 (: number of statements should be limited, setters are ignored. Chained methods are one statement :)
@@ -359,10 +341,10 @@ class Foo {
     </rule>
 
     <rule name="LimitNestingInLambdas"
-        language="java"
-        message="Avoid deep nesting of lambdas in lambda expressions."
-        class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-        externalInfoUrl="${doc_root}/JavaCodeQuality.md#isr05">
+          language="java"
+          message="Avoid deep nesting of lambdas in lambda expressions."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          externalInfoUrl="${doc_root}/JavaCodeQuality.md#isr05">
         <description>Problem: lambda expressions with deep nesting (lambda's in lambda's) are hard to understand and maintain.
             Solution: extract the lambda expression code block(s) into one or more well-named separate method(s).
             Note: A violation when the depth of lambda-with-code-block nesting exceeds (by default) 1,
@@ -370,12 +352,9 @@ class Foo {
         </description>
         <priority>3</priority>
         <properties>
-            <property name="tags" value="brain-overload,jpinpoint-rule,replaces-sonar-rule"
-                type="String" description="classification" />
-            <property name="param-block-max" value="1" type="String"
-                description="Maximum allowed depth of lambda-with-code-block nesting" />
-            <property name="param-single-max" value="4" type="String"
-                description="Maximum allowed depth of lambda-single-expression nesting" />
+            <property name="tags" value="brain-overload,jpinpoint-rule,replaces-sonar-rule" type="String" description="classification"/>
+            <property name="param-block-max" value="1" type="String" description="Maximum allowed depth of lambda-with-code-block nesting"/>
+            <property name="param-single-max" value="4" type="String" description="Maximum allowed depth of lambda-single-expression nesting"/>
             <property name="xpath">
                 <value><![CDATA[
 //LambdaExpression[Block][count(ancestor::LambdaExpression/Block) > number($param-block-max)]
@@ -413,10 +392,10 @@ class Foo {
     </rule>
 
     <rule name="AvoidForEachInStreams"
-        language="java"
-        message="Prefer side-effect-free functions in streams, use forEach only for logging."
-        class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-        externalInfoUrl="${doc_root}/JavaCodeQuality.md#ils01">
+          language="java"
+          message="Prefer side-effect-free functions in streams, use forEach only for logging."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          externalInfoUrl="${doc_root}/JavaCodeQuality.md#ils01">
         <description>Problem: Streams is a paradigm based on functional programming: the result should depend only on its input and not update any state.
             Use of forEach is actually iterative code masquerading as streams code. It is typically harder to read and less maintainable than the iterative form.
             For parallel streams, side effects are dangerous: accessing a thread-unsafe shared variable is a concurrency bug.
@@ -424,8 +403,7 @@ class Foo {
         </description>
         <priority>4</priority>
         <properties>
-            <property name="tags" value="bad-practice,jpinpoint-rule,pitfall" type="String"
-                description="classification" />
+            <property name="tags" value="bad-practice,jpinpoint-rule,pitfall" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
 (: should match java.lang.Stream#forEach(java.util.function.Consumer) but also others like java.util.stream.IntStream#forEach(java.util.function.IntConsumer) :)
@@ -487,10 +465,10 @@ letters.forEach(l -> map.put(l, 0));
     </rule>
 
     <rule name="AvoidSideEffectsInStreams"
-        language="java"
-        message="Apply functional programming with streams, avoid side-effects."
-        class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-        externalInfoUrl="${doc_root}/JavaCodeQuality.md#ils02">
+          language="java"
+          message="Apply functional programming with streams, avoid side-effects."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          externalInfoUrl="${doc_root}/JavaCodeQuality.md#ils02">
         <description>Problem: Streams is a paradigm based on functional programming: the result should depend only on its input, and the stream should not update any state: not modify any variable.
             By the spec, everything that does not contribute to the result, may be optimized away. So, side effects are not guaranteed to be executed!
             For parallel streams, side effects are dangerous: accessing a thread-unsafe shared variable is a concurrency bug. Accessing a (thread-safe) shared variable may cause data mix-up between the threads.
@@ -498,8 +476,7 @@ letters.forEach(l -> map.put(l, 0));
         </description>
         <priority>3</priority>
         <properties>
-            <property name="tags" value="bad-practice,data-mix-up,jpinpoint-rule,pitfall"
-                type="String" description="classification" />
+            <property name="tags" value="bad-practice,data-mix-up,jpinpoint-rule,pitfall" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
 (: matches java.lang.Stream and java.util.stream.IntStream like types :)
@@ -529,17 +506,16 @@ public List<String> getEndpointsInfo(String... endpoints) {
     </rule>
 
     <rule name="UnresolvedType"
-        language="java"
-        message="A type cannot be resolved. Make sure all sources are compiled and annotations processed."
-        class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-        externalInfoUrl="${doc_root}/JavaCodeQuality.md#M04">
+          language="java"
+          message="A type cannot be resolved. Make sure all sources are compiled and annotations processed."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          externalInfoUrl="${doc_root}/JavaCodeQuality.md#M04">
         <description>Problem: When analyzing code, PMD could not resolve a used type (class, annotation or other type). Several rules make use of type information and assume it is available. If not, those rules typically fail to work correctly and will for instance show false positives.
             Solution: Make sure all types can be resolved: compile all source code, process all annotations (like lombok), compile generated code, make all dependencies available on the classpath, etc. Note: this rule is still somewhat experimental and may show false positives.
         </description>
         <priority>5</priority>
         <properties>
-            <property name="tags" value="confusing,jpinpoint-rule" type="String"
-                description="classification" />
+            <property name="tags" value="confusing,jpinpoint-rule" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
 (: variable access for unknown variable type :)
