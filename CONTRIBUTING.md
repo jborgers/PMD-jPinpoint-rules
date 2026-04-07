@@ -1,14 +1,15 @@
 # Contributing
 
-This repository contains **PMD jPinpoint rules** (Java + Kotlin) and their unit tests.
+This repository contains **PMD jPinpoint rules, unit tests and documentation** (Java + Kotlin).
 
 ## General guidelines
 
 A couple of general guidelines that help the review process:
 
+- Create an issue with a clear problem description and add test cases and a solution approach when possible.
+- Align on the applicability, scope and approach before opening a pull request.
 - Please avoid reformatting unrelated code; keep changes limited to the area you’re fixing so the diff stays focused and easier to review.
 - When changing a rule, please add (or update) unit tests that cover the new behavior.
-- Please create an issue before opening a pull request so we can align on the scope and approach beforehand.
 
 ## How to contribute
 
@@ -18,7 +19,7 @@ A couple of general guidelines that help the review process:
    - Please use standard issue title prefixes and include the language:
      - `Fix Request (Java): ...` / `Fix Request (Kotlin): ...`
      - `Rule Request (Java): ...` / `Rule Request (Kotlin): ...`
-2. **Create a branch** from `main` and keep the change focused.
+2. **Create a branch** from `pmd7` (!) and keep the change focused.
 3. **Update/add unit tests** for the behavior you changed.
 4. **Run tests locally** (`./mvnw clean test`) and ensure they pass.
 5. **Open a pull request**
@@ -34,7 +35,7 @@ Download it from the [PMD project at github](https://pmd.github.io/) and install
 After installation and configuration you can start the designer from the command prompt:
 
 ```bash
-designer.bat
+pmd.bat designer
 ```
 
 or
@@ -48,12 +49,6 @@ or
 The project is built using **Maven**. The build runs the **unit tests** which validate the rules.
 
 From the repository root:
-
-```bash
-./mvnw clean test
-```
-
-or simply:
 
 ```bash
 ./test
@@ -109,7 +104,7 @@ Following are some conventions and recommendations on how to construct the unit 
 ## Run Kotlin unit tests
 
 When running unit tests for Kotlin, PMD 7 is needed.
-Make sure you have access to the PMD jars of the `7.0.0-SNAPSHOT` branch (e.g. `./mvnw install` the PMD 7.0.x jars from https://github.com/pmd/pmd).
+Make sure you have access to the PMD jars of the `7.2.24-SNAPSHOT` branch (e.g. `./mvnw install` the PMD 7.2.x jars from https://github.com/pmd/pmd).
 Use the Maven `kotlin-pmd7` profile when running the Kotlin unit tests.
 
 > Note: use `./mvnw` (the Maven Wrapper) for all builds in this repository.

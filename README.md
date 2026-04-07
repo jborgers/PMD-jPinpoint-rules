@@ -36,7 +36,7 @@ We have distilled these code checks from what we learned in several years of ana
 We didn't find these checks in other places, like the standard PMD, FindBugs/Spotbugs, Checkstyle or Sonar rules.
 We are working with the PMD-team to move some of the jpinpoint rules in the standard rule set, as well as make PMD suitable for Kotlin.
 
-## Rules documentation
+## Documentation
 
 * [JavaCodePerformance](docs/JavaCodePerformance.md)
 * [JavaDataAccessPerformance](docs/JavaDataAccessPerformance.md)
