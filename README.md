@@ -13,9 +13,17 @@ Next, add the Java and/or Kotlin rule sets:
 
     Settings > Tools > PMD > RuleSets > + > Choose RuleSet > drop down > Choose 'jpinpoint-kotlin-rules' or 'jpinpoint-java-rules' > OK > OK
 
-Then right click on a source folder or file and choose:
+<img src="docs/images/intellij-pmd-dropdown-light.png?raw=true" width="400" height="240" alt="IntelliJ PMD dropdown" title="IntelliJ PMD dropdown" />
+
+Then right-click on a source folder or file and choose:
 
     Run PMD > Custom rules > jpinpoint-java-rules or jpinpoint-kotlin-rules
+
+<img src="docs/images/intellij-pmd-run-light.png?raw=true" width="488" height="89" alt="IntelliJ PMD run" title="IntelliJ PMD run" />
+
+The result is a list of violations of the rules, with a description and a link to documentation on the rule, the problem and the solution.
+
+<img src="docs/images/intellij-pmd-results-light.png?raw=true" width="915" height="325" alt="IntelliJ PMD results" title="IntelliJ PMD results" />
 
 ## Purpose
 

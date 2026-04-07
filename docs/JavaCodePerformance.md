@@ -1704,7 +1704,7 @@ Loading the classes every time means excessive class loading, it results in poor
 **Note:** The implementation class of the factory actually used might be just the default class specified in the factory interface code. The service loading mechanism will use this class when no other implementor is found in your classpath.
 Find out from a heap dump or classloading logging (-verbose:class) which one is actually used in your app.   
 Here it shows in a heap dump in VisualVM as only class with objects retaining bytes:
-![transformerFactory in heap](transformerFactoryInHeap.png)
+![transformerFactory in heap](images/transformerFactoryInHeap.png)
 
 **Note:** More on `TransformerFactory` and caching compiled templates, see IBM's [XSLT transformations cause high CPU and slow performance](http://www-01.ibm.com/support/docview.wss?uid=swg21641274).
 
