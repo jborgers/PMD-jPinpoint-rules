@@ -1411,7 +1411,28 @@ public class CacheKeyGenerator // bad, unclear name
   }
 }
 ```
+#### IC18
 
+**Observation: Simple caching providers like `SimpleCacheManager` or `ConcurrentMapCache` are used in production.** **Problem:** These simple implementations are intended for testing and prototyping. They lack critical production features such as eviction policies (e.g., LRU), maximum size limits, and manageability. This can lead to memory leaks and `OutOfMemoryError` as the cache grows indefinitely.  
+**Solution:** Use a robust, production-ready caching provider like **Caffeine**, **Ehcache**, or a distributed solution like **Redis**.  
+**Example:**
+```java
+// Bad: Simple caching with no limits
+@Bean 
+public CacheManager cacheManager() {
+    return new SimpleCacheManager().setCaches(Arrays.asList(new ConcurrentMapCache("myCache")));
+}
+
+// Good: Using Caffeine with size and time limits
+@Bean
+public CacheManager cacheManager() {
+    CaffeineCacheManager cacheManager = new CaffeineCacheManager("myCache");
+    cacheManager.setCaffeine(Caffeine.newBuilder()
+        .maximumSize(1000)
+        .expireAfterWrite(10, TimeUnit.MINUTES));
+    return cacheManager;
+}
+```
 Too much session usage
 ----------------------
 
