@@ -1636,7 +1636,7 @@ static {
 }
 ```
 
-**Rule name:** implemented, will give false positives: any construction in a method will be flagged. Construction in a static block, the safe way, will not be flagged.
+**Rule name:** JAXBContextCreatedForEachMethodCall   
 
 #### IUOXAR05
 
