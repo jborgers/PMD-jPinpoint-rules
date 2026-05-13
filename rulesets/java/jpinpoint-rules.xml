@@ -1662,6 +1662,7 @@ class Good {
 [not(pmd-java:hasAnnotation('lombok.Data') or pmd-java:hasAnnotation('lombok.Value')or pmd-java:hasAnnotation('lombok.EqualsAndHashCode')
 (: exclusions, the following annotations assume a non-value object -:)
     or pmd-java:hasAnnotation('javax.ejb.Singleton') or pmd-java:hasAnnotation('jakarta.ejb.Singleton')
+    or pmd-java:hasAnnotation('javax.ejb.Stateless') or pmd-java:hasAnnotation('jakarta.enterprise.context.ApplicationScoped')
     or pmd-java:hasAnnotation('org.springframework.stereotype.Component') or pmd-java:hasAnnotation('org.springframework.stereotype.Controller')
     or pmd-java:hasAnnotation('org.springframework.stereotype.Service') or pmd-java:hasAnnotation('org.springframework.stereotype.Repository')
     or pmd-java:hasAnnotation('org.springframework.context.annotation.Configuration')
@@ -6890,7 +6891,7 @@ public ModelAndView initialOverviewRender(RenderRequest request, String viewName
     </rule>
 
     <rule name="AvoidSimpleCaches" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" language="java" message="Avoid simple caching in production"
-          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#ic08">
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#ic18">
         <description>Simple caches are used. Problem: Simple caching is meant for testing and prototyping plus it lacks manageability and monitorability.&#13;
             Solution: Use a proper cache implementation like ehcache or a cloud cache.
             (jpinpoint-rules)</description>

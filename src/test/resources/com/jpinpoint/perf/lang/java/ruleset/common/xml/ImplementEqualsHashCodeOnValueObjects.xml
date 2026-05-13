@@ -729,4 +729,38 @@ class Foo implements ClientRequestFilter {
 }
             ]]></code>
     </test-code>
+
+    <test-code>
+        <description>no violation: ImplementEqualsHashCodeOnValueObjects has false positives #703</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import javax.ejb.Stateless;
+import jakarta.enterprise.context.ApplicationScoped;
+
+@Stateless
+class Foo1 {
+    String field1;
+    String field2;
+    public String getField1() {
+        return field1;
+    }
+    public String getField2() {
+        return field2;
+    }
+}
+
+@ApplicationScoped
+class Foo2 {
+    String field1;
+    String field2;
+    public String getField1() {
+        return field1;
+    }
+    public String getField2() {
+        return field2;
+    }
+}
+            ]]></code>
+    </test-code>
+
 </test-data>

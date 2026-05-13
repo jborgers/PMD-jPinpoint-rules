@@ -1662,6 +1662,7 @@ class Good {
 [not(pmd-java:hasAnnotation('lombok.Data') or pmd-java:hasAnnotation('lombok.Value')or pmd-java:hasAnnotation('lombok.EqualsAndHashCode')
 (: exclusions, the following annotations assume a non-value object -:)
     or pmd-java:hasAnnotation('javax.ejb.Singleton') or pmd-java:hasAnnotation('jakarta.ejb.Singleton')
+    or pmd-java:hasAnnotation('javax.ejb.Stateless') or pmd-java:hasAnnotation('jakarta.enterprise.context.ApplicationScoped')
     or pmd-java:hasAnnotation('org.springframework.stereotype.Component') or pmd-java:hasAnnotation('org.springframework.stereotype.Controller')
     or pmd-java:hasAnnotation('org.springframework.stereotype.Service') or pmd-java:hasAnnotation('org.springframework.stereotype.Repository')
     or pmd-java:hasAnnotation('org.springframework.context.annotation.Configuration')
