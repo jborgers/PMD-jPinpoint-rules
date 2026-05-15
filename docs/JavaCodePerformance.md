@@ -2037,6 +2037,7 @@ MDC.remove("UserId");
 **Problem:** Creation of a log argument with a toString or other operation(s) may be expensive, while depending on the log level, the result may not be used.     
 **Solution:** Create the log argument conditionally on the log level, within an if statement. For just 'obj.toString()', just pass 'obj' to the log method and leave it to SLF4J to call toString() only if needed. See IL02 for a nice solution using a lambda.   
 **Rule name:** UnconditionalCreatedLogArguments   
+**Note:** If creation of the log argument has side effects, the rule may show a false positive.
 
 #### IL07
 
