@@ -6377,7 +6377,7 @@ public class HttpClientStuff {
             <property name="xpath">
                 <value><![CDATA[
 //ClassDeclaration[pmd-java:typeIs('org.springframework.http.client.ClientHttpRequestInterceptor')]
-//IfStatement[.//VariableAccess[pmd-java:typeIs('org.springframework.http.client.ClientHttpResponse')]
+//IfStatement[ancestor::MethodDeclaration//VariableAccess[pmd-java:typeIs('org.springframework.http.client.ClientHttpResponse')]
 and not(Block//MethodCall[pmd-java:matchesSig('org.springframework.http.client.ClientHttpResponse#close()')]
     or ancestor::ClassBody/MethodDeclaration[@Name='intercept']//TryStatement/CatchClause/Block//MethodCall[pmd-java:matchesSig('org.springframework.http.client.ClientHttpResponse#close()')])]
 //ThrowStatement

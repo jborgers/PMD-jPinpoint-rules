@@ -102,4 +102,57 @@ class ValidatingClientHttpRequestInterceptorGood2 implements ClientHttpRequestIn
 ]]></code>
     </test-code>
 
+    <test-code>
+        <description>violation: HttpInterceptorNotClosedOnException false negative #705</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>23</expected-linenumbers>
+        <code><![CDATA[
+import org.springframework.http.HttpRequest;
+import org.springframework.http.client.ClientHttpRequestExecution;
+import org.springframework.http.client.ClientHttpRequestInterceptor;
+import org.springframework.http.client.ClientHttpResponse;
+
+import java.io.IOException;
+
+class ValidatingClientHttpRequestInterceptorBad705 implements ClientHttpRequestInterceptor {
+    @Override
+    public ClientHttpResponse intercept(HttpRequest request, byte[] body, ClientHttpRequestExecution execution) throws IOException {
+        final ClientHttpResponse response = execution.execute(request, body);
+
+        // should call ClientHttpResponse.close() and release resources if an exception is thrown
+        someValidation(response);
+
+        return response;
+    }
+
+    public static void someValidation(ClientHttpResponse response) {
+        HttpHeaders headers = response.getHeaders();
+        if (!headers.containsKey("X-Some-Header")) {
+            // Log error
+            throw new RuntimeException("some error"); // bad <-- missing case, false negative
+        }
+    }
+}
+
+class ValidatingClientHttpRequestInterceptorGood705 implements ClientHttpRequestInterceptor {
+    @Override
+    public ClientHttpResponse intercept(HttpRequest request, byte[] body, ClientHttpRequestExecution execution) throws IOException {
+        final ClientHttpResponse response = execution.execute(request, body);
+
+        // should call ClientHttpResponse.close() and release resources if an exception is thrown (it does below)
+        someValidation(response);
+        return response;
+    }
+
+    public static void someValidation(ClientHttpResponse response) {
+        HttpHeaders headers = response.getHeaders();
+        if (!headers.containsKey("X-Some-Header")) {
+            // Log error
+            response.close(); // good
+            throw new RuntimeException("some error"); // good
+        }
+    }
+}
+            ]]></code>
+    </test-code>
 </test-data>
