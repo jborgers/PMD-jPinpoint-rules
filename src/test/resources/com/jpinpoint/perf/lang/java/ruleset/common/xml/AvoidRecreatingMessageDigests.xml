@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>violation: avoid recreating message digests</description>
+        <expected-problems>5</expected-problems>
+        <expected-linenumbers>10,19,23,31,36</expected-linenumbers>
+        <code><![CDATA[
+import java.security.MessageDigest;
+import org.apache.commons.codec.digest.DigestUtils;
+import static org.apache.commons.codec.digest.MessageDigestAlgorithms.SHA_256;
+
+class MessageDigestIssue {
+    MessageDigest mdField = MessageDigest.getInstance("SHA-256");
+    byte[] dataToDigest = "helloworld".getBytes("UTF-8");
+
+    byte[] bad() {
+        MessageDigest mdLocal = MessageDigest.getInstance("SHA-256"); // bad1
+        return mdLocal.digest(dataToDigest);
+    }
+    byte[] good() {
+        MessageDigest mdLocal = mdField.clone();
+        return mdLocal.digest(dataToDigest);
+    }
+
+    byte[] bad1DigestUtils() {
+        return new DigestUtils(SHA_256).digest(dataToDigest); // bad2
+    }
+
+    String bad2DigestUtils() {
+        return new DigestUtils(SHA_256).digestAsHex(dataToDigest); //bad3
+    }
+
+    MessageDigest good1DigestUtils() {
+        return DigestUtils.getMd5Digest(); // okay, can be used to initialize once
+    }
+
+    byte[] bad3DigestUtils() {
+        MessageDigest mdLocal = DigestUtils.getMd5Digest(); // bad4, as local var
+        return mdLocal.digest(dataToDigest);
+    }
+
+     byte[] bad4DigestUtils() {
+        return DigestUtils.sha256(dataToDigest); // bad5
+    }
+
+    // for the simple good cases I see no advantage of using DigestUtils.
+    // But for others like streaming it seems useful, to add
+    byte[] good2DigestUtils() {
+        MessageDigest mdLocal = mdField.clone();
+        return DigestUtils.digest(mdLocal, dataToDigest);
+    }
+
+    MessageDigest good3DigestUtils() {
+        MessageDigest mdLocal = mdField.clone();
+        return DigestUtils.updateDigest(mdLocal, dataToDigest);
+    }
+}
+     ]]></code>
+    </test-code>
+    <test-code>
+        <description>no violation: creating a MessageDigest in main is allowed</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import java.security.MessageDigest;
+
+class MessageDigestInMain {
+    public static void main(String[] args) throws Exception {
+        MessageDigest mdLocal = MessageDigest.getInstance("SHA-256"); // okay, in main
+        mdLocal.digest("helloworld".getBytes("UTF-8"));
+    }
+}
+     ]]></code>
+    </test-code>
+    <test-code>
+        <description>no violation: creating a MessageDigest in a @PostConstruct method is allowed</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import java.security.MessageDigest;
+import javax.annotation.PostConstruct;
+
+class MessageDigestInPostConstruct {
+    private MessageDigest mdField;
+
+    @PostConstruct
+    void init() throws Exception {
+        mdField = MessageDigest.getInstance("SHA-256"); // okay, in @PostConstruct
+    }
+}
+     ]]></code>
+    </test-code>
+</test-data>

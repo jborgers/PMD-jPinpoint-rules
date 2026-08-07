@@ -888,6 +888,59 @@ class Good {
         </properties>
     </rule>
 
+    <rule name="AvoidRecreatingMessageDigests"
+          language="java"
+          message="Avoid re-creating MessageDigest objects, this is expensive."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#iuosf02">
+        <description>Problem: Creating a MessageDigest object is expensive because of loading of algorithms and other classes. Additionally, it uses synchronized which leads to lock contention when used with multiple threads.
+            Solution: Since MessageDigest is not thread-safe, an instance cannot simply be shared among threads. Create the MessageDigest only once and clone it for each use. MessageDigest.clone() is efficient and typically supported by the provider, yet note that support is not guaranteed.
+        (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="tags" value="cpu,io,jpinpoint-rule,performance,sustainability-high" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+//MethodDeclaration[not((@Name='main' and @Static=true()) or ModifierList/Annotation/@SimpleName='PostConstruct')]//(
+    LocalVariableDeclaration[ClassType[pmd-java:typeIs('java.security.MessageDigest')]]/VariableDeclarator/MethodCall[@MethodName='getInstance']
+  | MethodCall[starts-with(@MethodName,'digest')]/ConstructorCall[pmd-java:typeIs('org.apache.commons.codec.digest.DigestUtils')]
+  | LocalVariableDeclaration[ClassType[pmd-java:typeIs('java.security.MessageDigest')]]//MethodCall/TypeExpression[pmd-java:typeIs('org.apache.commons.codec.digest.DigestUtils')]
+  | MethodCall[starts-with(@MethodName,'sha') or starts-with(@MethodName,'md')]/TypeExpression[pmd-java:typeIs('org.apache.commons.codec.digest.DigestUtils')]
+)
+                ]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+import java.security.MessageDigest;
+import org.apache.commons.codec.digest.DigestUtils;
+import static org.apache.commons.codec.digest.MessageDigestAlgorithms.SHA_256;
+
+class MessageDigestIssue {
+    MessageDigest mdField = MessageDigest.getInstance("SHA-256");
+    byte[] dataToDigest = "helloworld".getBytes("UTF-8");
+
+    byte[] bad() {
+        MessageDigest mdLocal = MessageDigest.getInstance("SHA-256"); // bad
+        return mdLocal.digest(dataToDigest);
+    }
+    byte[] good() {
+        MessageDigest mdLocal = mdField.clone();
+        return mdLocal.digest(dataToDigest);
+    }
+    byte[] badDigestUtils() {
+        return new DigestUtils(SHA_256).digest(dataToDigest); // bad
+    }
+    byte[] goodDigestUtils() {
+        MessageDigest mdLocal = mdField.clone();
+        return DigestUtils.digest(mdLocal, dataToDigest);
+    }
+}
+            ]]>
+        </example>
+    </rule>
+
     <rule name="AvoidRecreatingSecurityProviders"
           language="java"
           message="Avoid re-creating security providers, this is expensive."
@@ -903,7 +956,7 @@ class Good {
             <property name="xpath">
                 <value><![CDATA[
 //MethodDeclaration
-   [not((@Name='main' and @Static=true())or ModifierList/Annotation/@SimpleName='PostConstruct'
+   [not((@Name='main' and @Static=true()) or ModifierList/Annotation/@SimpleName='PostConstruct'
       or .//IfStatement//InfixExpression
          [@Operator='=='][VariableAccess[pmd-java:typeIs('java.security.Provider')] and NullLiteral]
    )]

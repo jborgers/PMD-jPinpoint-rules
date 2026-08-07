@@ -2237,7 +2237,7 @@ Inefficient use of security features
 
 **Observation: A security provider is re-created, that is, created in a method called more than once.**   
 **Problem:** Creating a security provider is expensive because of loading of algorithms and other classes. 
-Additionally, it uses synchronized which leads to lock contention when used with multiple threads.  
+Additionally, it uses synchronized which leads to lock contention when used with multiple threads, resulting in response time spikes.   
 **Solution:** This only needs to happen once in the JVM lifetime, because once loaded, the provider is available from the Security class. 
 Create the security provider only once: only in case it is not available from the Security class, yet.   
 **Rule name:** AvoidRecreatingSecurityProviders.    
@@ -2259,7 +2259,48 @@ class Foo {
   }
 }
 ```
-**Note:** An addProvider call inside a static main method or inside a @PostConstruct annotated method is not reported as a violation since it is assumed to be called only once. 
+**Note:** An addProvider call inside a static main method or inside a @PostConstruct annotated method is *not* reported as a violation since it is assumed to be called only once. 
+
+#### IUOSF02
+
+**Observation: A MessageDigest object is re-created, that is, created in a method called more than once.**   
+**Problem:** Creating a MessageDigest object is expensive because of provider lookup, loading of algorithms and other classes.
+Additionally, it uses synchronized which leads to lock contention when used with multiple threads, resulting in response time spikes.  
+**Solution:** Since MessageDigest is not thread-safe, an instance cannot simply be shared among threads. Create the MessageDigest only once and clone it for each use. 
+MessageDigest.clone() is efficient and typically supported by the provider, yet note that support is not guaranteed.   
+**Note:** Apache Commons codec DigestUtils does not do such optimization. Only methods which create a MessageDigest under the hood are, therefore, to avoid.   
+**Rule name:** AvoidRecreatingMessageDigests.    
+**Example:**
+```java
+import java.security.MessageDigest;
+import org.apache.commons.codec.digest.DigestUtils;
+import static org.apache.commons.codec.digest.MessageDigestAlgorithms.SHA_256;
+
+class Foo {
+    MessageDigest mdField = MessageDigest.getInstance("SHA-256");
+    byte[] dataToDigest = "Hello World!".getBytes("UTF-8");
+
+    byte[] bad() {
+        MessageDigest mdLocal = MessageDigest.getInstance("SHA-256"); // bad
+        return mdLocal.digest(dataToDigest);
+    }
+
+    byte[] good() {
+        MessageDigest mdLocal = mdField.clone();
+        return mdLocal.digest(dataToDigest);
+    }
+
+    byte[] badDigestUtils() {
+        return new DigestUtils(SHA_256).digest(dataToDigest); // bad
+    }
+
+    byte[] goodDigestUtils() {
+        MessageDigest mdLocal = mdField.clone();
+        return DigestUtils.digest(mdLocal, dataToDigest);
+    }
+}
+```
+**Note:** Creating a MessageDigest inside a static main method or inside a @PostConstruct annotated method is *not* reported as a violation since it is assumed to be called only once.
 
 Extensive use of classpath scanning
 -----------------------------------
