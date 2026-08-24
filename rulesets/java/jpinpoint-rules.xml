@@ -911,17 +911,18 @@ class Good {
 (:    transiently - as a local variable or used inline - not when returned as a factory or stored to a (static) field. :)
 (:    So a create-once helper called from a field initializer, @PostConstruct or main is not flagged. :)
 (:  - One-shot hashers return byte[]/String (DigestUtils.md5/sha256/... and their *Hex variants) and create-hash-discard :)
-(:    a digest on every call, so they are always a smell inside a repeatedly-callable method. :)
+(:    a digest on every call, so they are always a smell inside a repeatedly-callable method. Matched as a deny-list :)
+(:    (any static DigestUtils call that is not a producer/reuse/query) so new algorithm variants are covered automatically. :)
 (:  - Reuse APIs are never flagged: DigestUtils.digest(md,..), DigestUtils.updateDigest(md,..), new DigestUtils(MessageDigest). :)
     MethodCall[@MethodName='getInstance'][TypeExpression[pmd-java:typeIs('java.security.MessageDigest')]]
              [parent::VariableDeclarator[parent::LocalVariableDeclaration] or parent::MethodCall]
   | MethodCall[TypeExpression[pmd-java:typeIs('org.apache.commons.codec.digest.DigestUtils')]]
-             [@MethodName='getDigest' or matches(@MethodName,'^get(Md|Sha).*Digest$')]
+             [matches(@MethodName,'^get.*Digest$')]
              [parent::VariableDeclarator[parent::LocalVariableDeclaration] or parent::MethodCall]
   | ConstructorCall[ClassType[pmd-java:typeIs('org.apache.commons.codec.digest.DigestUtils')]][not(ArgumentList/*[pmd-java:typeIs('java.security.MessageDigest')])]
              [parent::VariableDeclarator[parent::LocalVariableDeclaration] or parent::MethodCall]
   | MethodCall[TypeExpression[pmd-java:typeIs('org.apache.commons.codec.digest.DigestUtils')]]
-             [matches(@MethodName,'^(md[25]|sha(1|256|384|512)?|sha3_(224|256|384|512)|sha512_(224|256))(Hex)?$')]
+             [not(starts-with(@MethodName,'get')) and not(@MethodName = ('digest','updateDigest','isAvailable'))]
 )
                 ]]></value>
             </property>

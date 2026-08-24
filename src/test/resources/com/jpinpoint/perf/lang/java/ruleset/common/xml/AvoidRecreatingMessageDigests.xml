@@ -5,8 +5,8 @@
         xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
     <test-code>
         <description>violation: a digest-creating API is used transiently (created and consumed within a repeatedly-callable method)</description>
-        <expected-problems>8</expected-problems>
-        <expected-linenumbers>11,15,18,22,25,28,32,35</expected-linenumbers>
+        <expected-problems>11</expected-problems>
+        <expected-linenumbers>11,15,18,22,25,28,32,35,38,41,44</expected-linenumbers>
         <code><![CDATA[
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -43,6 +43,15 @@ class MessageDigestCreatedForUse {
     }
     String oneShotSha256Hex() {
         return DigestUtils.sha256Hex(dataToDigest); // bad8: one-shot hasher (Hex variant)
+    }
+    byte[] oneShotMd5() {
+        return DigestUtils.md5(dataToDigest); // bad9: one-shot hasher (md family)
+    }
+    String oneShotSha512Hex() {
+        return DigestUtils.sha512Hex(dataToDigest); // bad10: deny-list matches every hasher, not just sha256
+    }
+    String oneShotShake() {
+        return DigestUtils.shake256_512Hex(dataToDigest); // bad11: newer SHAKE API (commons-codec 1.20+), covered automatically by the deny-list
     }
 }
      ]]></code>

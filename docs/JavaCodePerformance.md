@@ -2268,7 +2268,7 @@ class Foo {
 causing lock contention and latency spikes under heavy multi-threading.  
 **Solution:** Since MessageDigest is not thread-safe, create a single baseline instance and call .clone() for each operation. Cloning bypasses startup overhead and synchronization.   
 **Notes:** 
-1. While major providers (like Bouncy Castle and Oracle) support clone(), implementation support is optional and should include a fallback.   
+1. While major providers (like Bouncy Castle and Oracle) support clone(), implementation support is optional and should include a fallback (catch `CloneNotSupportedException` and create a fresh instance via `getInstance`).   
 2. Apache Commons codec DigestUtils does not use clone(). Avoid its methods that create a MessageDigest under the hood.   
 3. Creating a MessageDigest inside a static main method or inside a @PostConstruct annotated method is *not* reported as a violation since it is assumed to be called only once.   
 4. The rule flags only calls to APIs that create a new MessageDigest, matched by signature, split by what the API returns:   
