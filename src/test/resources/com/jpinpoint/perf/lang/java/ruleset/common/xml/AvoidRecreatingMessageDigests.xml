@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>violation: a digest-creating API is used transiently (created and consumed within a repeatedly-callable method)</description>
+        <expected-problems>11</expected-problems>
+        <expected-linenumbers>11,15,18,22,25,28,32,35,38,41,44</expected-linenumbers>
+        <code><![CDATA[
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.nio.charset.StandardCharsets;
+import org.apache.commons.codec.digest.DigestUtils;
+import static org.apache.commons.codec.digest.MessageDigestAlgorithms.SHA_256;
+
+class MessageDigestCreatedForUse {
+    byte[] dataToDigest = "hello world".getBytes(StandardCharsets.UTF_8);
+
+    byte[] localGetInstance() throws NoSuchAlgorithmException {
+        MessageDigest localDigest = MessageDigest.getInstance("SHA-256"); // bad1: producer as local var
+        return localDigest.digest(dataToDigest);
+    }
+    byte[] inlineGetInstance() throws NoSuchAlgorithmException {
+        return MessageDigest.getInstance("MD5").digest(dataToDigest); // bad2: producer used inline
+    }
+    byte[] localGetMd5Digest() {
+        MessageDigest localDigest = DigestUtils.getMd5Digest(); // bad3: producer as local var
+        return localDigest.digest(dataToDigest);
+    }
+    byte[] inlineNewDigestUtils() {
+        return new DigestUtils(SHA_256).digest(dataToDigest); // bad4: new DigestUtils(String) used inline
+    }
+    String inlineNewDigestUtilsHex() {
+        return new DigestUtils(SHA_256).digestAsHex(dataToDigest); // bad5: new DigestUtils(String) used inline
+    }
+    byte[] storedNewDigestUtils() {
+        DigestUtils du = new DigestUtils(SHA_256); // bad6: new DigestUtils(String) stored, then used
+        return du.digest(dataToDigest);
+    }
+    byte[] oneShotSha256() {
+        return DigestUtils.sha256(dataToDigest); // bad7: one-shot hasher, creates-hashes-discards each call
+    }
+    String oneShotSha256Hex() {
+        return DigestUtils.sha256Hex(dataToDigest); // bad8: one-shot hasher (Hex variant)
+    }
+    byte[] oneShotMd5() {
+        return DigestUtils.md5(dataToDigest); // bad9: one-shot hasher (md family)
+    }
+    String oneShotSha512Hex() {
+        return DigestUtils.sha512Hex(dataToDigest); // bad10: deny-list matches every hasher, not just sha256
+    }
+    String oneShotShake() {
+        return DigestUtils.shake256_512Hex(dataToDigest); // bad11: newer SHAKE API (commons-codec 1.20+), covered automatically by the deny-list
+    }
+}
+     ]]></code>
+    </test-code>
+    <test-code>
+        <description>no violation: digest created once (field/factory/store) or a reusing DigestUtils API is used</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.nio.charset.StandardCharsets;
+import org.apache.commons.codec.digest.DigestUtils;
+import static org.apache.commons.codec.digest.MessageDigestAlgorithms.SHA_256;
+
+class MessageDigestReused {
+    // producer stored in a (static) field is the good 'create once' pattern - field init is outside any method, so never flagged
+    static final MessageDigest baseDigest = MessageDigest.getInstance("SHA-256");
+    MessageDigest field;
+    byte[] dataToDigest = "hello world".getBytes(StandardCharsets.UTF_8);
+
+    // create-once helper (e.g. called from a field initializer or @PostConstruct): producer is just returned, not consumed here
+    static MessageDigest createBaseDigest() throws NoSuchAlgorithmException {
+        return MessageDigest.getInstance("SHA-256"); // ok: factory return
+    }
+
+    byte[] good() throws CloneNotSupportedException {
+        MessageDigest localDigest = (MessageDigest) baseDigest.clone(); // ok: clone, not a creating API
+        return localDigest.digest(dataToDigest);
+    }
+    MessageDigest goodFactoryReturn() {
+        return DigestUtils.getMd5Digest(); // ok: producer returned for the caller to keep and clone
+    }
+    void goodStoreToField() throws NoSuchAlgorithmException {
+        this.field = MessageDigest.getInstance("SHA-256"); // ok: stored to a field, created once
+    }
+    byte[] goodDigestUtilsReuse() throws CloneNotSupportedException {
+        MessageDigest localDigest = (MessageDigest) baseDigest.clone();
+        return DigestUtils.digest(localDigest, dataToDigest); // ok: reuses the supplied digest
+    }
+    MessageDigest goodUpdateDigest() throws CloneNotSupportedException {
+        MessageDigest localDigest = (MessageDigest) baseDigest.clone();
+        return DigestUtils.updateDigest(localDigest, dataToDigest); // ok: reuses the supplied digest
+    }
+    byte[] goodNewDigestUtilsFromExisting(MessageDigest existing) {
+        return new DigestUtils(existing).digest(dataToDigest); // ok: new DigestUtils(MessageDigest) reuses the supplied digest
+    }
+}
+     ]]></code>
+    </test-code>
+    <test-code>
+        <description>no violation: creating a MessageDigest in main is allowed</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import java.security.MessageDigest;
+
+class MessageDigestInMain {
+    public static void main(String[] args) throws Exception {
+        MessageDigest localDigest = MessageDigest.getInstance("SHA-256"); // okay, in main
+        localDigest.digest("hello world".getBytes());
+    }
+}
+     ]]></code>
+    </test-code>
+    <test-code>
+        <description>no violation: creating a MessageDigest in a @PostConstruct method is allowed</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import java.security.MessageDigest;
+import javax.annotation.PostConstruct;
+
+class MessageDigestInPostConstruct {
+    private MessageDigest field;
+
+    @PostConstruct
+    void init() throws Exception {
+        field = MessageDigest.getInstance("SHA-256"); // okay, in @PostConstruct
+    }
+}
+     ]]></code>
+    </test-code>
+</test-data>

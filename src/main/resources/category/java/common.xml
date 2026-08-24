@@ -2270,7 +2270,7 @@ class Good {
             <property name="xpath">
                 <value><![CDATA[
 //MethodDeclaration
-   [not((@Name='main' and @Static=true())or ModifierList/Annotation/@SimpleName='PostConstruct'
+   [not((@Name='main' and @Static=true()) or ModifierList/Annotation/@SimpleName='PostConstruct'
       or .//IfStatement//InfixExpression
          [@Operator='=='][VariableAccess[pmd-java:typeIs('java.security.Provider')] and NullLiteral]
    )]
@@ -2583,6 +2583,78 @@ import org.joda.time.DateTime; // bad
 import org.threeten.bp.format.DateTimeFormatter; //bad
 import java.time.LocalDataTime; // good
         ]]>
+        </example>
+    </rule>
+
+    <rule name="AvoidRecreatingMessageDigests"
+          language="java"
+          message="Avoid re-creating MessageDigest objects, this is expensive."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#iuosf02">
+        <description>Problem: Instantiating MessageDigest is expensive due to provider lookups and class loading. Additionally, provider lookup uses synchronization, causing lock contention and latency spikes under heavy multi-threading.
+            Solution: Since MessageDigest is not thread-safe, create a single baseline instance (e.g. a static field) and call .clone() for each operation. Cloning bypasses startup overhead and synchronization.
+            Note: while major providers (like Bouncy Castle and Oracle) support clone(), implementation support is optional and should include a fallback. Apache Commons codec DigestUtils does not use clone(); avoid its methods that create a MessageDigest under the hood.
+            The rule flags only calls to APIs that create a new MessageDigest (MessageDigest.getInstance and DigestUtils' digest-creating methods and String constructor) and only when created transiently (as a local variable or used inline); a single create-once via a (static) field, factory or @PostConstruct, and the digest-reusing DigestUtils APIs, are not flagged.
+        </description>
+        <priority>2</priority>
+        <properties>
+            <property name="tags" value="cpu,io,jpinpoint-rule,performance,sustainability-high" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+//MethodDeclaration[not((@Name='main' and @Static=true()) or ModifierList/Annotation/@SimpleName='PostConstruct')]//(
+(: Flag only calls to APIs that CREATE a MessageDigest, matched by signature rather than by surrounding syntax. Split by what the API returns: :)
+(:  - Producers return a reusable MessageDigest (MessageDigest.getInstance, DigestUtils.getDigest/getXxxDigest, new DigestUtils(String)). :)
+(:    These are the building blocks of the good 'create once, then clone' pattern, so they are only a smell when created :)
+(:    transiently - as a local variable or used inline - not when returned as a factory or stored to a (static) field. :)
+(:    So a create-once helper called from a field initializer, @PostConstruct or main is not flagged. :)
+(:  - One-shot hashers return byte[]/String (DigestUtils.md5/sha256/... and their *Hex variants) and create-hash-discard :)
+(:    a digest on every call, so they are always a smell inside a repeatedly-callable method. Matched as a deny-list :)
+(:    (any static DigestUtils call that is not a producer/reuse/query) so new algorithm variants are covered automatically. :)
+(:  - Reuse APIs are never flagged: DigestUtils.digest(md,..), DigestUtils.updateDigest(md,..), new DigestUtils(MessageDigest). :)
+    MethodCall[@MethodName='getInstance'][TypeExpression[pmd-java:typeIs('java.security.MessageDigest')]]
+             [parent::VariableDeclarator[parent::LocalVariableDeclaration] or parent::MethodCall]
+  | MethodCall[TypeExpression[pmd-java:typeIs('org.apache.commons.codec.digest.DigestUtils')]]
+             [matches(@MethodName,'^get.*Digest$')]
+             [parent::VariableDeclarator[parent::LocalVariableDeclaration] or parent::MethodCall]
+  | ConstructorCall[ClassType[pmd-java:typeIs('org.apache.commons.codec.digest.DigestUtils')]][not(ArgumentList/*[pmd-java:typeIs('java.security.MessageDigest')])]
+             [parent::VariableDeclarator[parent::LocalVariableDeclaration] or parent::MethodCall]
+  | MethodCall[TypeExpression[pmd-java:typeIs('org.apache.commons.codec.digest.DigestUtils')]]
+             [not(starts-with(@MethodName,'get')) and not(@MethodName = ('digest','updateDigest','isAvailable'))]
+)
+                ]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.nio.charset.StandardCharsets;
+import org.apache.commons.codec.digest.DigestUtils;
+import static org.apache.commons.codec.digest.MessageDigestAlgorithms.SHA_256;
+
+class MessageDigestIssue {
+    // created once, only cloned – never updated. Handle NoSuchAlgorithmException (omitted for brevity)
+    static final MessageDigest baseDigest = MessageDigest.getInstance("SHA-256");
+    byte[] dataToDigest = "Hello World!".getBytes(StandardCharsets.UTF_8);
+
+    byte[] bad() throws NoSuchAlgorithmException {
+        MessageDigest localDigest = MessageDigest.getInstance("SHA-256"); // bad
+        return localDigest.digest(dataToDigest);
+    }
+    byte[] good() throws CloneNotSupportedException {
+        MessageDigest localDigest = (MessageDigest) baseDigest.clone();
+        return localDigest.digest(dataToDigest);
+    }
+    byte[] badDigestUtils() {
+        return new DigestUtils(SHA_256).digest(dataToDigest); // bad
+    }
+    byte[] goodDigestUtils() throws CloneNotSupportedException {
+        MessageDigest localDigest = (MessageDigest) baseDigest.clone();
+        return DigestUtils.digest(localDigest, dataToDigest);
+    }
+}
+            ]]>
         </example>
     </rule>
 </ruleset>

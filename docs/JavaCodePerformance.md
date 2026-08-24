@@ -2237,7 +2237,7 @@ Inefficient use of security features
 
 **Observation: A security provider is re-created, that is, created in a method called more than once.**   
 **Problem:** Creating a security provider is expensive because of loading of algorithms and other classes. 
-Additionally, it uses synchronized which leads to lock contention when used with multiple threads.  
+Additionally, it uses synchronized which leads to lock contention when used with multiple threads, resulting in response time spikes.   
 **Solution:** This only needs to happen once in the JVM lifetime, because once loaded, the provider is available from the Security class. 
 Create the security provider only once: only in case it is not available from the Security class, yet.   
 **Rule name:** AvoidRecreatingSecurityProviders.    
@@ -2259,7 +2259,64 @@ class Foo {
   }
 }
 ```
-**Note:** An addProvider call inside a static main method or inside a @PostConstruct annotated method is not reported as a violation since it is assumed to be called only once. 
+**Note:** An addProvider call inside a static main method or inside a @PostConstruct annotated method is *not* reported as a violation since it is assumed to be called only once. 
+
+#### IUOSF02
+
+**Observation: A MessageDigest instance is repeatedly created inside a potentially frequently called method.**   
+**Problem:** Instantiating MessageDigest is expensive due to provider lookups and class loading. Additionally, provider lookup uses synchronization, 
+causing lock contention and latency spikes under heavy multi-threading.  
+**Solution:** Since MessageDigest is not thread-safe, create a single baseline instance and call .clone() for each operation. Cloning bypasses startup overhead and synchronization.   
+**Notes:** 
+1. While major providers (like Bouncy Castle and Oracle) support clone(), implementation support is optional and should include a fallback (catch `CloneNotSupportedException` and create a fresh instance via `getInstance`).   
+2. Apache Commons codec DigestUtils does not use clone(). Avoid its methods that create a MessageDigest under the hood.   
+3. Creating a MessageDigest inside a static main method or inside a @PostConstruct annotated method is *not* reported as a violation since it is assumed to be called only once.   
+4. The rule flags only calls to APIs that create a new MessageDigest, matched by signature, split by what the API returns:   
+   - *Producers* return a reusable MessageDigest (e.g. `MessageDigest.getInstance`). Reported only when created transiently (local variable or used inline), not when returned as a factory or stored in a field.   
+   - *One-shot hashers* return `byte[]`/`String` (e.g. `DigestUtils.sha256`) and recreate a digest on every call, so they are always reported.   
+   - *Reuse APIs* (e.g. `DigestUtils.updateDigest(md, ..)`) are never reported.   
+
+**Rule name:** AvoidRecreatingMessageDigests.    
+**Example:**
+```java
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.nio.charset.StandardCharsets;
+import org.apache.commons.codec.digest.DigestUtils;
+import static org.apache.commons.codec.digest.MessageDigestAlgorithms.SHA_256;
+
+class Foo {
+    static final MessageDigest baseDigest = createBaseDigest(); // created once, only cloned - never updated
+    byte[] dataToDigest = "Hello World!".getBytes(StandardCharsets.UTF_8);
+
+    static MessageDigest createBaseDigest() {
+        try {
+            return MessageDigest.getInstance("SHA-256");
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException("SHA-256 not available", e);
+        }
+    }
+
+    byte[] bad() throws NoSuchAlgorithmException {
+        MessageDigest localDigest = MessageDigest.getInstance("SHA-256"); // bad
+        return localDigest.digest(dataToDigest);
+    }
+
+    byte[] good() throws CloneNotSupportedException {
+        MessageDigest localDigest = (MessageDigest) baseDigest.clone();
+        return localDigest.digest(dataToDigest);
+    }
+
+    byte[] badDigestUtils() {
+        return new DigestUtils(SHA_256).digest(dataToDigest); // bad
+    }
+
+    byte[] goodDigestUtils() throws CloneNotSupportedException {
+        MessageDigest localDigest = (MessageDigest) baseDigest.clone();
+        return DigestUtils.digest(localDigest, dataToDigest);
+    }
+}
+```
 
 Extensive use of classpath scanning
 -----------------------------------
