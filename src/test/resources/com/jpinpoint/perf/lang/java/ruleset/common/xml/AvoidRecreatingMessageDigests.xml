@@ -4,58 +4,90 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
     <test-code>
-        <description>violation: avoid recreating message digests</description>
-        <expected-problems>5</expected-problems>
-        <expected-linenumbers>10,19,23,31,36</expected-linenumbers>
+        <description>violation: a digest-creating API is used transiently (created and consumed within a repeatedly-callable method)</description>
+        <expected-problems>8</expected-problems>
+        <expected-linenumbers>11,15,18,22,25,28,32,35</expected-linenumbers>
         <code><![CDATA[
 import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.nio.charset.StandardCharsets;
 import org.apache.commons.codec.digest.DigestUtils;
 import static org.apache.commons.codec.digest.MessageDigestAlgorithms.SHA_256;
 
-class MessageDigestIssue {
-    MessageDigest mdField = MessageDigest.getInstance("SHA-256");
-    byte[] dataToDigest = "helloworld".getBytes("UTF-8");
+class MessageDigestCreatedForUse {
+    byte[] dataToDigest = "hello world".getBytes(StandardCharsets.UTF_8);
 
-    byte[] bad() {
-        MessageDigest mdLocal = MessageDigest.getInstance("SHA-256"); // bad1
-        return mdLocal.digest(dataToDigest);
+    byte[] localGetInstance() throws NoSuchAlgorithmException {
+        MessageDigest localDigest = MessageDigest.getInstance("SHA-256"); // bad1: producer as local var
+        return localDigest.digest(dataToDigest);
     }
-    byte[] good() {
-        MessageDigest mdLocal = mdField.clone();
-        return mdLocal.digest(dataToDigest);
+    byte[] inlineGetInstance() throws NoSuchAlgorithmException {
+        return MessageDigest.getInstance("MD5").digest(dataToDigest); // bad2: producer used inline
+    }
+    byte[] localGetMd5Digest() {
+        MessageDigest localDigest = DigestUtils.getMd5Digest(); // bad3: producer as local var
+        return localDigest.digest(dataToDigest);
+    }
+    byte[] inlineNewDigestUtils() {
+        return new DigestUtils(SHA_256).digest(dataToDigest); // bad4: new DigestUtils(String) used inline
+    }
+    String inlineNewDigestUtilsHex() {
+        return new DigestUtils(SHA_256).digestAsHex(dataToDigest); // bad5: new DigestUtils(String) used inline
+    }
+    byte[] storedNewDigestUtils() {
+        DigestUtils du = new DigestUtils(SHA_256); // bad6: new DigestUtils(String) stored, then used
+        return du.digest(dataToDigest);
+    }
+    byte[] oneShotSha256() {
+        return DigestUtils.sha256(dataToDigest); // bad7: one-shot hasher, creates-hashes-discards each call
+    }
+    String oneShotSha256Hex() {
+        return DigestUtils.sha256Hex(dataToDigest); // bad8: one-shot hasher (Hex variant)
+    }
+}
+     ]]></code>
+    </test-code>
+    <test-code>
+        <description>no violation: digest created once (field/factory/store) or a reusing DigestUtils API is used</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.nio.charset.StandardCharsets;
+import org.apache.commons.codec.digest.DigestUtils;
+import static org.apache.commons.codec.digest.MessageDigestAlgorithms.SHA_256;
+
+class MessageDigestReused {
+    // producer stored in a (static) field is the good 'create once' pattern - field init is outside any method, so never flagged
+    static final MessageDigest baseDigest = MessageDigest.getInstance("SHA-256");
+    MessageDigest field;
+    byte[] dataToDigest = "hello world".getBytes(StandardCharsets.UTF_8);
+
+    // create-once helper (e.g. called from a field initializer or @PostConstruct): producer is just returned, not consumed here
+    static MessageDigest createBaseDigest() throws NoSuchAlgorithmException {
+        return MessageDigest.getInstance("SHA-256"); // ok: factory return
     }
 
-    byte[] bad1DigestUtils() {
-        return new DigestUtils(SHA_256).digest(dataToDigest); // bad2
+    byte[] good() throws CloneNotSupportedException {
+        MessageDigest localDigest = (MessageDigest) baseDigest.clone(); // ok: clone, not a creating API
+        return localDigest.digest(dataToDigest);
     }
-
-    String bad2DigestUtils() {
-        return new DigestUtils(SHA_256).digestAsHex(dataToDigest); //bad3
+    MessageDigest goodFactoryReturn() {
+        return DigestUtils.getMd5Digest(); // ok: producer returned for the caller to keep and clone
     }
-
-    MessageDigest good1DigestUtils() {
-        return DigestUtils.getMd5Digest(); // okay, can be used to initialize once
+    void goodStoreToField() throws NoSuchAlgorithmException {
+        this.field = MessageDigest.getInstance("SHA-256"); // ok: stored to a field, created once
     }
-
-    byte[] bad3DigestUtils() {
-        MessageDigest mdLocal = DigestUtils.getMd5Digest(); // bad4, as local var
-        return mdLocal.digest(dataToDigest);
+    byte[] goodDigestUtilsReuse() throws CloneNotSupportedException {
+        MessageDigest localDigest = (MessageDigest) baseDigest.clone();
+        return DigestUtils.digest(localDigest, dataToDigest); // ok: reuses the supplied digest
     }
-
-     byte[] bad4DigestUtils() {
-        return DigestUtils.sha256(dataToDigest); // bad5
+    MessageDigest goodUpdateDigest() throws CloneNotSupportedException {
+        MessageDigest localDigest = (MessageDigest) baseDigest.clone();
+        return DigestUtils.updateDigest(localDigest, dataToDigest); // ok: reuses the supplied digest
     }
-
-    // for the simple good cases I see no advantage of using DigestUtils.
-    // But for others like streaming it seems useful, to add
-    byte[] good2DigestUtils() {
-        MessageDigest mdLocal = mdField.clone();
-        return DigestUtils.digest(mdLocal, dataToDigest);
-    }
-
-    MessageDigest good3DigestUtils() {
-        MessageDigest mdLocal = mdField.clone();
-        return DigestUtils.updateDigest(mdLocal, dataToDigest);
+    byte[] goodNewDigestUtilsFromExisting(MessageDigest existing) {
+        return new DigestUtils(existing).digest(dataToDigest); // ok: new DigestUtils(MessageDigest) reuses the supplied digest
     }
 }
      ]]></code>
@@ -68,8 +100,8 @@ import java.security.MessageDigest;
 
 class MessageDigestInMain {
     public static void main(String[] args) throws Exception {
-        MessageDigest mdLocal = MessageDigest.getInstance("SHA-256"); // okay, in main
-        mdLocal.digest("helloworld".getBytes("UTF-8"));
+        MessageDigest localDigest = MessageDigest.getInstance("SHA-256"); // okay, in main
+        localDigest.digest("hello world".getBytes());
     }
 }
      ]]></code>
@@ -82,11 +114,11 @@ import java.security.MessageDigest;
 import javax.annotation.PostConstruct;
 
 class MessageDigestInPostConstruct {
-    private MessageDigest mdField;
+    private MessageDigest field;
 
     @PostConstruct
     void init() throws Exception {
-        mdField = MessageDigest.getInstance("SHA-256"); // okay, in @PostConstruct
+        field = MessageDigest.getInstance("SHA-256"); // okay, in @PostConstruct
     }
 }
      ]]></code>
