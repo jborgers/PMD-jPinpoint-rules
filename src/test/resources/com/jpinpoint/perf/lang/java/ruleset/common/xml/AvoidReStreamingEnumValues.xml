@@ -5,8 +5,8 @@
         xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
     <test-code>
         <description>violation: AvoidReStreamingEnumValues bad</description>
-        <expected-problems>2</expected-problems>
-        <expected-linenumbers>15, 18</expected-linenumbers>
+        <expected-problems>3</expected-problems>
+        <expected-linenumbers>15, 18, 24</expected-linenumbers>
         <code><![CDATA[
 import java.util.*;
 import java.util.stream.*;
@@ -26,6 +26,12 @@ public enum BadFruit {
     }
     public static Optional<BadFruit> fromName(String name) {
         return Arrays.stream(BadFruit.values()).filter(f -> f.toString().equals(name)).findFirst(); // bad: iterates for every call, O(n) access time
+    }
+}
+
+class BadFruitHelper {
+    BadFruit toBadFruit(String name) {
+        return Arrays.stream(BadFruit.values()).filter(v -> v.toString().equals(name)).findFirst().orElse(null); // bad: iterates for every call
     }
 }
      ]]></code>
