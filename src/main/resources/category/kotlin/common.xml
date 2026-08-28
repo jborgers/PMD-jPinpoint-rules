@@ -389,44 +389,19 @@ class Foo {
         </example>
     </rule>
 
-    <rule name="AvoidMultipleConcatStatements" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" language="kotlin" message="Multiple statements concatenate to the same String. Use StringBuilder append." externalInfoUrl="${doc_root}/JavaCodePerformance.md#isu02">
+    <rule name="AvoidMultipleConcatStatements"
+          language="kotlin"
+          message="Multiple statements concatenate to the same String. Use StringBuilder append."
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#isu02"
+          class="com.jpinpoint.perf.lang.kotlin.rule.common.AvoidMultipleConcatStatementsRule">
         <description>Multiple statements concatenate to the same String. Problem: Each statement with one or more +-operators creates a hidden temporary StringBuilder, a char[] and a new String object, which all have to be garbage collected.&#13;
             Solution: Use StringBuilder.append.
             (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="xpath">
-                <value><![CDATA[
-//FunctionBody[
-  count(
-    .//Assignment[
-      .//(AssignmentAndOperator/T-ADD_ASSIGNMENT|AdditiveOperator/T-ADD)
-      and
-      (AssignableExpression|DirectlyAssignableExpression)//T-Identifier[
-        (: property a string literal :)
-        @Text = ancestor::FunctionBody//PropertyDeclaration[
-          (
-            Expression[not(.//Expression)]//StringLiteral
-            (: explicit type String:)
-            or VariableDeclaration/Type//T-Identifier[@Text='String']
-            (: assigned parameter of type String :)
-            or Expression[.//T-Identifier[@Text = ancestor::FunctionDeclaration/FunctionValueParameters/FunctionValueParameter[Parameter/Type//T-Identifier[@Text='String']]//T-Identifier/@Text]]
-            (: assigned non-nested function of explicit type String :) (: known issue: ignores parameters, may give false positives with overloaded methods :)
-            or Expression[.//T-Identifier[not(ancestor::CallSuffix)][@Text = ancestor::ClassMemberDeclarations//FunctionDeclaration[Type//T-Identifier[@Text='String']]//T-Identifier/@Text]]
-          )
-          and not(Expression//T-Identifier[@Text='toMutableList'])
-        ]/VariableDeclaration//T-Identifier/@Text
-      ]
-    ]
-  ) > 1
-]
-//Statement[Assignment//(T-ADD_ASSIGNMENT|T-ADD)][position()=last()]
-                ]]></value>
-            </property>
         </properties>
         <example>
-
         </example>
     </rule>
 
@@ -600,7 +575,7 @@ class FooGood {
     </rule>
 
     <rule name="AvoidImplicitlyRecompilingRegex"
-          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          class="com.jpinpoint.perf.lang.kotlin.rule.common.AvoidImplicitlyRecompilingRegexRule"
           language="kotlin"
           message="String regex method, Pattern.matches or FileSystem.getPathMatcher is used. Implicitly compiles a regex pattern, can be expensive."
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#ireu01">
@@ -610,80 +585,6 @@ class FooGood {
         <priority>2</priority>
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
-            <property name="xpath">
-                <value><![CDATA[
-//FunctionDeclaration//PostfixUnaryExpression//SimpleIdentifier/T-Identifier[
-    @Text='Regex'
-    (: not called on fun parameter :)
-    and not(ancestor::PostfixUnaryExpression//CallSuffix//PrimaryExpression//T-Identifier[
-        @Text = ancestor::FunctionDeclaration//FunctionValueParameter//Parameter/SimpleIdentifier/T-Identifier/@Text])
-    (: not called on 'dynamic' function call :)
-    and not(ancestor::PostfixUnaryExpression/PostfixUnarySuffix/CallSuffix//CallSuffix//CallSuffix)
-    (: not if based on local variable initialized by fun parameter :)
-    and not(ancestor::CallSuffix//PostfixUnaryExpression/PrimaryExpression/SimpleIdentifier/T-Identifier[
-        @Text = ancestor::FunctionBody//PropertyDeclaration/VariableDeclaration/SimpleIdentifier/T-Identifier/@Text])
-    (: not param in String template in fun parameter :)
-    and not(../../../../PostfixUnaryExpression//CallSuffix/ValueArguments/ValueArgument//LineStringContent/T-LineStrRef[
-       @Text = ancestor::FunctionDeclaration//Parameter/SimpleIdentifier/T-Identifier/concat('$', @Text)])
-    (: not param in String template of class var field :)
-    and not(../../../../PostfixUnaryExpression//CallSuffix/ValueArguments/ValueArgument//LineStringContent/T-LineStrRef[
-       @Text = ancestor::ClassDeclaration//PropertyDeclaration[T-VAR]//SimpleIdentifier/T-Identifier/concat('$', @Text)])
-    (: not param in String concatenation of class var field :)
-    and not(../../../../PostfixUnaryExpression//CallSuffix/ValueArguments/ValueArgument[//LineStringLiteral]//AdditiveExpression/MultiplicativeExpression//SimpleIdentifier/T-Identifier[
-       @Text = ancestor::ClassDeclaration//PropertyDeclaration[T-VAR]//SimpleIdentifier/T-Identifier/@Text])
-]
-
-|
-
-//FunctionDeclaration//PostfixUnaryExpression/PostfixUnarySuffix/NavigationSuffix/SimpleIdentifier/T-Identifier[
-    @Text='toRegex'
-    (: not called on function parameter :)
-    and not(../../../../PrimaryExpression//T-Identifier[
-        @Text = ancestor::FunctionDeclaration//FunctionValueParameter//Parameter/SimpleIdentifier/T-Identifier/@Text])
-    (: not called on 'dynamic' function call :)
-    and not(ancestor::PostfixUnaryExpression/PostfixUnarySuffix[1]/CallSuffix)
-    (: not if based on local variable initialized by fun parameter :)
-    and not(../../../../../PostfixUnaryExpression/PrimaryExpression/SimpleIdentifier/T-Identifier[
-        @Text = ancestor::FunctionBody//PropertyDeclaration/VariableDeclaration/SimpleIdentifier/T-Identifier/@Text])
-]
-
-|
-
-(: check if java.util.regex.Pattern import exists as filter for same named classes in other packages :)
-//ImportHeader[
-    (.//T-Identifier[@Text='java'] and .//T-Identifier[@Text='util'] and .//T-Identifier[@Text='regex'] and .//T-Identifier[@Text='Pattern'] or .//T-MULT)
-  ][1]/ancestor::KotlinFile
-//SimpleIdentifier/T-Identifier[@Text='Pattern'
-    and ../../../PostfixUnarySuffix//T-Identifier[@Text='matches']
-    (: not if first param is fun parameter :)
-    and not(../../../PostfixUnarySuffix/CallSuffix/ValueArguments/ValueArgument[1]//SimpleIdentifier/T-Identifier[
-        @Text = ancestor::FunctionDeclaration//Parameter/SimpleIdentifier/T-Identifier/@Text])
-]
-
-|
-
-(: check if java.nio.file.FileSystems or java.nio.file.Path imports exists as filter for same named classes in other packages :)
-(: TODO is this a bug: having to use T-FILE for 'file' :)
-//ImportHeader[
-    (.//T-Identifier[@Text='java']
-        and .//T-Identifier[@Text='nio'] and .//T-FILE[@Text='file'] and .//T-Identifier[@Text='FileSystems' or @Text='Path'] or .//T-MULT)
-  ][1]/ancestor::KotlinFile
-(: added [ancestor::NavigationSuffix] to avoid PAT_STRING param from being selected too :)
-//FunctionDeclaration//PostfixUnarySuffix//T-Identifier[ancestor::NavigationSuffix][@Text='getPathMatcher'
-    and (ancestor::PostfixUnaryExpression/PrimaryExpression//T-Identifier[@Text=
-              ancestor::Statement/preceding-sibling::Statement//VariableDeclaration[../Expression//T-Identifier[@Text='FileSystems']]//T-Identifier/@Text]
-         or ancestor::PostfixUnaryExpression/PrimaryExpression/SimpleIdentifier/T-Identifier[@Text='FileSystems']
-
-    )
-    (: not if first param is fun parameter :)
-    and not(ancestor::PrefixUnaryExpression//CallSuffix/ValueArguments/ValueArgument//SimpleIdentifier/T-Identifier[
-       @Text = ancestor::FunctionDeclaration//Parameter/SimpleIdentifier/T-Identifier/@Text])
-    (: not param in String template in fun parameter :)
-    and not(ancestor::PrefixUnaryExpression//CallSuffix/ValueArguments/ValueArgument//LineStringContent/T-LineStrRef[
-       @Text = ancestor::FunctionDeclaration//Parameter/SimpleIdentifier/T-Identifier/concat('$', @Text)])
-]
-                ]]></value>
-            </property>
         </properties>
         <example>
 class Foo {
