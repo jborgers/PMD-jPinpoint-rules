@@ -1866,10 +1866,10 @@ class Foo {
             <property name="tags" value="cpu,jpinpoint-rule,performance,sustainability-medium" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
-//EnumDeclaration/EnumBody[count(EnumConstant) > 3]//MethodDeclaration/Block
+(//EnumDeclaration/EnumBody[count(EnumConstant) > 3]|ClassDeclaration)//MethodDeclaration/Block
     //MethodCall[pmd-java:matchesSig('java.util.stream.Stream#findFirst()') or pmd-java:matchesSig('java.util.stream.Stream#findAny()')]
-    [//MethodCall[pmd-java:matchesSig('java.util.stream.Stream#of(_)') or pmd-java:matchesSig('java.util.Arrays#stream(_)')]
-    [ArgumentList/MethodCall[pmd-java:matchesSig('_#values()')]]]
+    [.//MethodCall[pmd-java:matchesSig('java.util.stream.Stream#of(_)') or pmd-java:matchesSig('java.util.Arrays#stream(_)')]
+    [ArgumentList/MethodCall[pmd-java:matchesSig('_#values()')][pmd-java:typeIs('java.lang.Enum[]')]]]
                 ]]></value>
             </property>
         </properties>

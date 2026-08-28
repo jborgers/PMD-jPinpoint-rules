@@ -3115,9 +3115,11 @@ Set<YourEnumType> set = EnumSet.allOf(YourEnumType.class);
 #### IUOC07
 
 **Observation: To get an enum value by its defined field, the values are streamed on every call.**   
-**Problem:** the time to find element is O(n); n = the number of enum values. This identical processing is executed for every call. Considered problematic when n > 3.     
+**Problem:** the time to find an element is O(n); n = the number of enum values. This identical processing is executed for every call. Considered problematic when n > 3.     
 **Solution:** use a static field-to-enum-value Map. Access time is O(1), provided the [hashCode is well-defined](http://www.ibm.com/developerworks/library/j-jtp05273/).
-For one String field, usually toString returns that field. Consider to implement a fromString method to provide the reverse conversion by using the map, see the following examples:   
+For one String field, usually toString returns that field. Consider implementing a fromString method to provide the reverse conversion by using the map, see the following examples.   
+**Rule name:** AvoidReStreamingEnumValues   
+**Note:** The rule will flag for cases with more than 3 enum values, in case it occurs in a method inside the enum itself. Outside the enum it does not consider the number of enum values.    
 **Examples:**
 ```java
 // BAD
@@ -3136,6 +3138,12 @@ public enum Fruit {
 
     public static Optional<Fruit> fromString(String name) {
         return Stream.of(values()).filter(v -> v.toString().equals(name)).findAny(); // bad: iterates for every call, O(n) access time
+    }
+}
+
+class BadFruitHelper {
+    BadFruit toBadFruit(String name) {
+        return Arrays.stream(BadFruit.values()).filter(v -> v.toString().equals(name)).findFirst().orElse(null); // bad: iterates for every call
     }
 }
 ```
