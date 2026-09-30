@@ -227,21 +227,28 @@ class AvoidInMemoryStreamingDefaultConstructor {
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="xpath">
                 <value><![CDATA[
-//FunctionBody[count(.//Assignment[.//(AssignmentAndOperator/T-ADD_ASSIGNMENT|AdditiveOperator/T-ADD)
-    (: exclude assignments like map[key + "A"] = ... :)
-    and not((AssignableExpression|DirectlyAssignableExpression)//IndexingSuffix)
-  ]/(AssignableExpression|DirectlyAssignableExpression)//T-Identifier[@Text=
-    (: property a string literal :)
-    ancestor::FunctionBody//PropertyDeclaration[(
-        Expression[not(.//Expression)]//StringLiteral
-        (: explicit type String:)
-        or VariableDeclaration/Type//T-Identifier[@Text='String']
-        (: assigned parameter of type String :)
-        or Expression[.//T-Identifier[@Text = ancestor::FunctionDeclaration/FunctionValueParameters/FunctionValueParameter[Parameter/Type//T-Identifier[@Text='String']]//T-Identifier/@Text]]
-        (: assigned non-nested function of explicit type String :) (: known issue: ignores parameters, may give false positives with overloaded methods :)
-        or Expression[.//T-Identifier[not(ancestor::CallSuffix)][@Text = ancestor::ClassMemberDeclarations//FunctionDeclaration[Type//T-Identifier[@Text='String']]//T-Identifier/@Text]]
-    )]
-  /VariableDeclaration//T-Identifier/@Text]) > 1]
+//FunctionBody[
+  count(
+    .//Assignment[
+      .//(AssignmentAndOperator/T-ADD_ASSIGNMENT | AdditiveOperator/T-ADD)
+      (: exclude assignments like map[key + "A"] = ... :)
+      and not((AssignableExpression|DirectlyAssignableExpression)//IndexingSuffix)
+    ]
+    /(AssignableExpression|DirectlyAssignableExpression)//T-Identifier[
+      let $name := @Text return
+      (: local var/val declared (or inferred) as String in the enclosing function, if any (may shadow a class property of the same name) :)
+      let $local := ancestor::FunctionBody//PropertyDeclaration[VariableDeclaration/@Identifier = $name][1]
+      return
+        if ($local)
+        then $local[pmd-kotlin:typeIs('kotlin.String')]
+        else
+          (: no local shadow: look up a class/object-level String property; also covers use inside scope functions like apply/run/let :)
+          (ancestor::ClassDeclaration|ancestor::ObjectDeclaration)[1]/ClassBody/ClassMemberDeclarations/ClassMemberDeclaration/Declaration/PropertyDeclaration
+            [VariableDeclaration/@Identifier = $name]
+            [pmd-kotlin:typeIs('kotlin.String')]
+    ]
+  ) > 1
+]
 //Statement[Assignment//(T-ADD_ASSIGNMENT|T-ADD)][position()=last()]
                 ]]></value>
             </property>
