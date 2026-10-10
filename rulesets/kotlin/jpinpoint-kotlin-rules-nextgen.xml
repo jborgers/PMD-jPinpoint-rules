@@ -28,7 +28,8 @@
             <property name="xpath">
                 <value><![CDATA[
 //FunctionBody[
-  count(
+  (: collect, per qualifying concat statement, the name of the String var/property it concatenates to :)
+  let $qualifyingNames :=
     .//Assignment[
       .//(AssignmentAndOperator/T-ADD_ASSIGNMENT | AdditiveOperator/T-ADD)
       (: exclude assignments like map[key + "A"] = ... :)
@@ -46,8 +47,9 @@
           (ancestor::ClassDeclaration|ancestor::ObjectDeclaration)[1]/ClassBody/ClassMemberDeclarations/ClassMemberDeclaration/Declaration/PropertyDeclaration
             [VariableDeclaration/@Identifier = $name]
             [pmd-kotlin:typeIs('kotlin.String')]
-    ]
-  ) > 1
+    ]/@Text
+  (: only a violation if some SINGLE name occurs 2+ times, not 2+ different vars each concatenated once :)
+  return some $n in distinct-values($qualifyingNames) satisfies count($qualifyingNames[. = $n]) > 1
 ]
 //Statement[Assignment//(T-ADD_ASSIGNMENT|T-ADD)][position()=last()]
                 ]]></value>

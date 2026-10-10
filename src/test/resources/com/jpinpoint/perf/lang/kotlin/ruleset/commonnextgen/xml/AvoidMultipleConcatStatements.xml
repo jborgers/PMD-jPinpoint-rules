@@ -426,4 +426,19 @@ object AvoidMultipleConcatStatementsObjectProperty {
         ]]></code>
     </test-code>
 
+    <test-code>
+        <description>Two different String vars, each with a single += should not be flagged (not the same var twice)</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+class AvoidMultipleConcatStatementsTwoDifferentVarsOnceEach {
+    fun ok() {
+        var a: String = ""
+        var b: String = ""
+        a += "x"
+        b += "y"
+    }
+}
+        ]]></code>
+    </test-code>
+
 </test-data>
