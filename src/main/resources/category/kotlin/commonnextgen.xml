@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ruleset name="jpinpoint-nextgen-rules" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 https://pmd.sourceforge.io/ruleset_2_0_0.xsd" xmlns="http://pmd.sourceforge.net/ruleset/2.0.0">
+    <description>jPinpoint "nextgen" rule set: rewrites of existing rules using newer PMD language-module features
+        (e.g. Kotlin type-resolution XPath functions from PMD 7.28.0). These rules REQUIRE a PMD version that supports
+        those features and therefore are NOT included in the standard jpinpoint-kotlin-rules.xml, to keep that file
+        working on older PMD versions as before. Instead, they are published separately in
+        jpinpoint-kotlin-rules-nextgen.xml, which overlays jpinpoint-kotlin-rules.xml and replaces the listed rules
+        with their improved nextgen version. Use jpinpoint-kotlin-rules-nextgen.xml only if your PMD version supports
+        the features used (see each rule's description for its minimum PMD version).
+    </description>
+
+    <rule name="AvoidMultipleConcatStatements" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule" language="kotlin" message="Multiple statements concatenate to the same String. Use StringBuilder append." externalInfoUrl="${doc_root}/JavaCodePerformance.md#isu02">
+        <description>Multiple statements concatenate to the same String. Problem: Each statement with one or more +-operators creates a hidden temporary StringBuilder, a char[] and a new String object, which all have to be garbage collected.&#13;
+            Solution: Use StringBuilder.append.
+            Nextgen: uses Kotlin type-resolution XPath functions, requires PMD >= 7.28.0.
+            (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
+            <property name="xpath">
+                <value><![CDATA[
+//FunctionBody[
+  count(
+    .//Assignment[
+      .//(AssignmentAndOperator/T-ADD_ASSIGNMENT | AdditiveOperator/T-ADD)
+      (: exclude assignments like map[key + "A"] = ... :)
+      and not((AssignableExpression|DirectlyAssignableExpression)//IndexingSuffix)
+    ]
+    /(AssignableExpression|DirectlyAssignableExpression)//T-Identifier[
+      let $name := @Text return
+      (: local var/val declared (or inferred) as String in the enclosing function, if any (may shadow a class property of the same name) :)
+      let $local := ancestor::FunctionBody//PropertyDeclaration[VariableDeclaration/@Identifier = $name][1]
+      return
+        if ($local)
+        then $local[pmd-kotlin:typeIs('kotlin.String')]
+        else
+          (: no local shadow: look up a class/object-level String property; also covers use inside scope functions like apply/run/let :)
+          (ancestor::ClassDeclaration|ancestor::ObjectDeclaration)[1]/ClassBody/ClassMemberDeclarations/ClassMemberDeclaration/Declaration/PropertyDeclaration
+            [VariableDeclaration/@Identifier = $name]
+            [pmd-kotlin:typeIs('kotlin.String')]
+    ]
+  ) > 1
+]
+//Statement[Assignment//(T-ADD_ASSIGNMENT|T-ADD)][position()=last()]
+                ]]></value>
+            </property>
+        </properties>
+        <example>
+
+        </example>
+    </rule>
+
+</ruleset>

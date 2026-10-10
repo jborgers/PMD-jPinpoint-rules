@@ -82,6 +82,10 @@ After installing the PMD tool you can run `pmd` similar to the following
 
 - Alternatively, download and add your local copy: *[rulesets/java/jpinpoint-rules.xml](https://raw.githubusercontent.com/jborgers/PMD-jPinpoint-rules/refs/heads/pmd7/rulesets/java/jpinpoint-rules.xml)*
   - remember to download regularly to get up-to-date
+
+- If you're on a recent-enough PMD version, you can instead use a "nextgen" ruleset (e.g. `jpinpoint-kotlin-rules-nextgen.xml`)
+  for improved versions of select rules that rely on newer PMD features. See [Nextgen rules](CONTRIBUTING.md#nextgen-rules) below for details
+  and minimum PMD version requirements.
   
 - Options tab: optionally check 'Skip Test Sources' and optionally set your Java version 
 

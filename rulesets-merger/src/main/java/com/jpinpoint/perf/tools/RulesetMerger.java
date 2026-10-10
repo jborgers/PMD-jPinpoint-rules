@@ -59,6 +59,22 @@ public class RulesetMerger {
     private static final String COMPANY_DOC_ROOT = "https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs";
     private static final boolean IS_ADD_TAG_TO_DESCRIPTION_AND_DOC = true;
 
+    // "nextgen" source files (e.g. category/kotlin/commonnextgen.xml) hold rewrites of existing rules that require
+    // a newer PMD version (e.g. new Kotlin type-resolution XPath functions from PMD 7.28.0). They are excluded from
+    // the regular merged ruleset (so that one keeps working on older PMD versions), and instead published as a
+    // separate "-nextgen" overlay ruleset that references the regular one and overrides just those rules.
+    private static final String NEXTGEN_MARKER = "nextgen";
+    private static final String NEXTGEN_OUTPUT_SUFFIX = "-nextgen";
+    private static final String NEXTGEN_RULE_SET_LINE_TEMPLATE = "<ruleset name=\"%s\" %n" +
+            "         xmlns=\"http://pmd.sourceforge.net/ruleset/2.0.0\" %n"  +
+            "         xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" %n" +
+            "         xsi:schemaLocation=\"http://pmd.sourceforge.net/ruleset/2.0.0 http://pmd.sourceforge.net/ruleset_2_0_0.xsd\"> ";
+    private static final String NEXTGEN_DESC_LINE_TEMPLATE = "<description>%n" +
+            "    jPinpoint \"nextgen\" overlay for %s. Replaces select rules with versions that use newer PMD%n" +
+            "    language-module features (see each rule's description for its minimum PMD version). Requires a%n" +
+            "    PMD version compatible with those features.%n" +
+            "</description>";
+
     // constants unlikely to have to change
     private static final String MERGED_RULESETS_DIR = "rulesets/%s";
     private static final String RESULT_START_LINE = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
@@ -143,11 +159,19 @@ public class RulesetMerger {
     private static void mergeRuleFiles(File repositoryBaseDir, File optionalExtRulesFile, String mergeWithRepoName, String resultRulesName, Language language) {
         // Get rule files
         File ourProjectRulesDir = new File(repositoryBaseDir, String.format(PATH_TO_CAT_RULES, language.getDir()));
-        String[] ourRulesFiles = ourProjectRulesDir.list((dir, name) -> name.endsWith(".xml"));
+        String[] allRulesFiles = ourProjectRulesDir.list((dir, name) -> name.endsWith(".xml"));
         File outputDir = new File(repositoryBaseDir, String.format(MERGED_RULESETS_DIR, language.getDir()));
         File resultFile = new File(outputDir, resultRulesName + ".xml");
         System.out.println("INFO: start on '" + resultFile.getName() + "'");
-        checkIfValid(ourProjectRulesDir, ourRulesFiles, outputDir, resultFile);
+        checkIfValid(ourProjectRulesDir, allRulesFiles, outputDir, resultFile);
+
+        // "nextgen" files are excluded from the regular merge, they get their own overlay ruleset (see below)
+        String[] ourRulesFiles = Arrays.stream(allRulesFiles)
+                .filter(name -> !isNextgenFileName(name))
+                .toArray(String[]::new);
+        String[] nextgenRulesFiles = Arrays.stream(allRulesFiles)
+                .filter(RulesetMerger::isNextgenFileName)
+                .toArray(String[]::new);
 
         // this should not occur anymore?
         if ((optionalExtRulesFile != null) && (optionalExtRulesFile.equals(resultFile))) {
@@ -190,6 +214,82 @@ public class RulesetMerger {
         catch(IOException e) {
             System.out.println(String.format("Error while trying to merge rules into '%s'.", resultFile.getPath()));
             System.out.println(e);
+        }
+
+        if (nextgenRulesFiles.length > 0) {
+            Arrays.sort(nextgenRulesFiles);
+            mergeNextgenOverlay(ourProjectRulesDir, nextgenRulesFiles, outputDir, resultFile.getName(), resultRulesName, language);
+        }
+    }
+
+    private static boolean isNextgenFileName(String fileName) {
+        return fileName.toLowerCase(Locale.ROOT).contains(NEXTGEN_MARKER);
+    }
+
+    /**
+     * Builds the "-nextgen" overlay ruleset: it references the regular merged ruleset (same directory, relative
+     * file reference, which PMD resolves fine), excludes the rules that are redefined in the nextgen source
+     * file(s), and then includes those redefined (nextgen) rules. This way the regular ruleset's published
+     * file name/URL never changes (important: it's used e.g. as a download URL in the IntelliJ PMD plugin),
+     * while nextgen rules needing a newer PMD version are opt-in via the separate overlay file.
+     */
+    private static void mergeNextgenOverlay(File ourProjectRulesDir, String[] nextgenRulesFiles, File outputDir,
+                                             String baseResultFileName, String resultRulesName, Language language) {
+        String nextgenResultRulesName = resultRulesName + NEXTGEN_OUTPUT_SUFFIX;
+        File nextgenResultFile = new File(outputDir, nextgenResultRulesName + ".xml");
+        System.out.println("INFO: start on '" + nextgenResultFile.getName() + "'");
+        try {
+            List<String> nextgenFileLines = new ArrayList<>();
+            List<String> overriddenRuleNames = new ArrayList<>();
+            for (String eachFileName : nextgenRulesFiles) {
+                File nextgenFile = new File(ourProjectRulesDir, eachFileName);
+                overriddenRuleNames.addAll(extractRuleNames(nextgenFile));
+                mergeFileIntoLines(nextgenFile, nextgenFileLines);
+            }
+
+            List<String> headerLines = new ArrayList<>();
+            headerLines.add(RESULT_START_LINE);
+            headerLines.add(String.format(NEXTGEN_RULE_SET_LINE_TEMPLATE, nextgenResultRulesName));
+            headerLines.add("");
+            headerLines.add(String.format(NEXTGEN_DESC_LINE_TEMPLATE, baseResultFileName));
+            headerLines.add("");
+            headerLines.add("<!-- IMPORTANT NOTICE: The content of this file is generated. Do not edit this file directly since changes may be lost when this file is regenerated! -->");
+            headerLines.add("");
+            headerLines.add(String.format("<rule ref=\"%s\">", baseResultFileName));
+            for (String ruleName : overriddenRuleNames) {
+                headerLines.add(String.format("    <exclude name=\"%s\"/>", ruleName));
+            }
+            headerLines.add("</rule>");
+            headerLines.add("");
+
+            if (IS_ADD_TAG_TO_DESCRIPTION_AND_DOC) {
+                nextgenFileLines = addTagToDescriptionAndDoc(nextgenFileLines, String.format("(%s)%s", "jpinpoint-rules", DESCRIPTION_END_TAG));
+            }
+            nextgenFileLines.add(RESULT_END_LINE);
+
+            List<String> allLines = new ArrayList<>(headerLines);
+            allLines.addAll(nextgenFileLines);
+            OutputStream out = new BufferedOutputStream(Files.newOutputStream(nextgenResultFile.toPath()));
+            IOUtils.writeLines(allLines, LSEP, out, Charset.defaultCharset());
+            out.close();
+            System.out.println(String.format("INFO: merged nextgen overlay into '%s'.", nextgenResultFile.getPath()));
+        }
+        catch (IOException e) {
+            System.out.println(String.format("Error while trying to merge nextgen overlay into '%s'.", nextgenResultFile.getPath()));
+            System.out.println(e);
+        }
+    }
+
+    private static List<String> extractRuleNames(File file) throws IOException {
+        try (InputStream is = Files.newInputStream(file.toPath())) {
+            List<String> fileLines = IOUtils.readLines(is, Charset.defaultCharset());
+            List<List<String>> ruleLinesList = parseSortIntoRuleLinesList(fileLines);
+            List<String> ruleNames = new ArrayList<>();
+            for (List<String> ruleLines : ruleLinesList) {
+                String firstLine = ruleLines.get(0);
+                ruleNames.add(StringUtils.substringBetween(firstLine, "\""));
+            }
+            return ruleNames;
         }
     }
 
