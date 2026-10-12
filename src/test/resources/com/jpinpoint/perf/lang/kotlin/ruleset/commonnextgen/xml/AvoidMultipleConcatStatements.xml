@@ -1,0 +1,444 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>AvoidMultipleConcatStatements</description>
+        <expected-problems>12</expected-problems>
+        <expected-linenumbers>8,22,36,52,70,85,103,116,129,143,157,171</expected-linenumbers>
+        <code><![CDATA[
+import java.util.Arrays
+
+class AvoidMultipleConcatStatementsKt {
+    fun testMultipleConcatDefect() {
+        var logStatement = ""
+        val values = Arrays.asList(*arrayOf("tic", "tac", "toe"))
+        logStatement += values[0]
+        logStatement += values[1] // bad 8
+    }
+
+    fun testMultipleConcatCorrect() {
+        var log = 0
+        val values = listOf(1, 2, 3)
+        log += values[0]
+        log += values[1]
+    }
+
+    fun testMultipleConcatDefect2() {
+        var logStatement = ""
+        val values = listOf("tic", "tac", "toe")
+        logStatement = logStatement + values[0]
+        logStatement = logStatement + values[1] // bad 22
+    }
+
+    fun testMultipleConcatCorrect2() {
+        var log = 0
+        val values = arrayOf(1, 2, 3)
+        log = log + values[0]
+        log = log + values[1]
+    }
+
+    fun testMultipleConcatDefect3() {
+        var logStatement = "info: "
+        val values = listOf("tic", "tac", "toe")
+        logStatement += 2
+        logStatement += values[1] // bad 36
+    }
+
+    fun testMultipleConcatCorrect3() {
+        var log = 0
+        val values = listOf(1, 2, 3)
+        log += 2
+        log += values[1]
+    }
+
+    fun testMultipleConcatDefect4() {
+        var log = ""
+        var i = 0
+        val values = listOf(1, 2, 3)
+        while (i++ < 3) {
+            log = log + values[0]
+            log = log + values[1] // bad 51
+        }
+    }
+
+    fun testMultipleConcatCorrect4() {
+        var log = 0
+        var i = 0
+        while (i++ < 3) {
+            val values = listOf(1, 2, 3)
+            log = log + values[0]
+            log = log + values[1]
+        }
+    }
+
+    fun testMultipleConcatDefect5() {
+        var logStatement = ""
+        val values = listOf("tic", "tac", "toe")
+        logStatement = logStatement + values[0]
+        logStatement += values[1] // bad 69
+    }
+
+    fun testMultipleConcatCorrect5() {
+        var logStatement = ""
+        val values = listOf("tic", "tac", "toe")
+        logStatement = logStatement + values[0] + values[1]
+    }
+
+    fun testMultipleConcatDefect6() {
+        var log = someString();
+        var i = 0
+        while (i++ < 3) {
+            val values = listOf(1, 2, 3)
+            log = log + values[0]
+            log = log + values[1] //bad 84
+        }
+    }
+
+    fun testMultipleConcatCorrect6() {
+        var log = someInt("");
+        var i = 0
+        while (i++ < 3) {
+            val values = listOf(1, 2, 3)
+            log = log + values[0]
+            log = log + values[1]
+        }
+    }
+
+    fun testMultipleConcatDefect7() {
+        var logStatement: String = someUnknown();
+        val values = listOf("tic", "tac", "toe")
+        logStatement += values[0]
+        logStatement += values[1] // bad 102
+    }
+
+    fun testMultipleConcatCorrect7() {
+        var logStatement: String = someUnknown();
+        val values = listOf("tic", "tac", "toe")
+        logStatement += values[0] + values[1]
+    }
+
+    fun testMultipleConcatDefect8() {
+        var logStatement = "{"
+        val values = listOf("tic", "tac", "toe")
+        logStatement += "$values[0], "
+        logStatement += "$values[1]}" // bad 115
+    }
+
+    fun testMultipleConcatCorrect8() {
+        var logStatement = "{"
+        val values = listOf("tic", "tac", "toe")
+        logStatement += "$values[0], $values[1]}"
+    }
+
+    fun testMultipleConcatDefect9(first: String) {
+        var logStatement = first;
+        val values = listOf("tic", "tac", "toe")
+        logStatement += values[0]
+        logStatement += values[1] // bad 128
+    }
+
+    fun testMultipleConcatCorrect9(first: Int) {
+        var logStatement = first;
+        val values = listOf(1, 2, 3)
+        logStatement += values[0]
+        logStatement += values[1]
+    }
+
+    fun testMultipleConcatDefect10() {
+        var logStatement = someString();
+        val values = listOf("tic", "tac", "toe")
+        logStatement += values[0]
+        logStatement += values[1] // bad 142
+    }
+
+    fun testMultipleConcatCorrect10() {
+        var logStatement = someInt("");
+        val values = listOf("tic", "tac", "toe")
+        logStatement += values[0]
+        logStatement += values[1]
+    }
+
+    fun testMultipleConcatDefect11() {
+        var logStatement = someString(someString());
+        val values = listOf("tic", "tac", "toe")
+        logStatement += values[0]
+        logStatement += values[1] // bad 156
+    }
+
+    fun testMultipleConcatCorrect11() {
+        var logStatement = someInt(someString());
+        val values = listOf("tic", "tac", "toe")
+        logStatement += values[0]
+        logStatement += values[1]
+    }
+
+    fun testMultipleConcatDefect12() {
+        var logStatement = someString("");
+        val values = listOf("tic", "tac", "toe")
+        logStatement += values[0]
+        logStatement += values[1] // bad 170
+    }
+
+    fun testMultipleConcatCorrect12() {
+        var logStatement = someString("");
+        val values = listOf("tic", "tac", "toe")
+        logStatement += values[0] + values[1]
+    }
+
+    private fun someString(): String {
+        return "";
+    }
+
+    private fun someString(str: String): String {
+        return str;
+    }
+
+    private fun someInt(str: String): Int {
+        return 0;
+    }
+}
+
+        ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>Fix Request: false positive on Kotlin AvoidMultipleConcatStatements for mutableMap #674</description>
+        <expected-problems>0</expected-problems>
+
+        <code><![CDATA[
+class AvoidMultipleConcatStatementsFalsePos {
+    private fun falsePos(): Map<String, String> {
+            val key = "key:"
+            return mutableMapOf<String, String>().apply {
+                this[key + "A"] = "valA"
+                this[key + "B"] = "valB" // <-- false positive
+            }
+    }
+}
+        ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>Plus usages on non-String types should not be flagged</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+class AvoidMultipleConcatStatementsNonStringPlus {
+    fun numericPlus() {
+        var sum = 0
+        val a = 1
+        val b = 2
+        sum += a
+        sum += b
+        sum = sum + 3
+        sum = sum + 4
+    }
+    fun listPlus() {
+        var list = listOf(1, 2)
+        list = list + listOf(3)
+        list = list + listOf(4)
+    }
+    fun arrayPlus() {
+        var arr = arrayOf(1)
+        arr = arr + arrayOf(2)
+        arr = arr + arrayOf(3)
+    }
+    fun setPlus() {
+        var set = setOf(1)
+        set = set + 2
+        set = set + 3
+    }
+    fun mapPlus() {
+        var m = mapOf("a" to 1)
+        m = m + mapOf("b" to 2)
+        m = m + mapOf("c" to 3)
+    }
+}
+        ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>Char arithmetic plus should not be flagged</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+class AvoidMultipleConcatStatementsCharPlus {
+    fun charPlus() {
+        var c = 'a'
+        c = (c + 1)
+        c = (c + 1)
+    }
+}
+        ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>Primitive arrays plus should not be flagged</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+class AvoidMultipleConcatStatementsPrimitiveArrayPlus {
+    fun intArrayPlus() {
+        var arr = intArrayOf(1)
+        arr = arr + 2
+        arr = arr + intArrayOf(3)
+    }
+}
+        ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>Sequence plus should not be flagged</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+class AvoidMultipleConcatStatementsSequencePlus {
+    fun seqPlus() {
+        var s = sequenceOf(1)
+        s = s + 2
+        s = s + 3
+    }
+}
+        ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>plusAssign on mutable collections should not be flagged</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+class AvoidMultipleConcatStatementsPlusAssign {
+    fun mutablePlusAssign() {
+        val ml = mutableListOf(1)
+        ml += 2
+        ml += 3
+        val ms = mutableSetOf(1)
+        ms += 2
+        ms += 3
+        val mm = mutableMapOf("a" to 1)
+        mm += ("b" to 2)
+        mm += ("c" to 3)
+    }
+}
+        ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>Map plus with Pair entry should not be flagged</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+class AvoidMultipleConcatStatementsMapPairPlus {
+    fun mapPairPlus() {
+        var m = mapOf("a" to 1)
+        m = m + ("b" to 2)
+        m = m + ("c" to 3)
+    }
+}
+        ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>String property LHS with repeated += should be flagged once</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>5</expected-linenumbers>
+        <code><![CDATA[
+class AvoidMultipleConcatStatementsStringPropertyPlus {
+    var prop: String = ""
+    fun bad() {
+        prop += "A"
+        prop += "B" // bad
+    }
+}
+        ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>Nullable String with elvis in += twice should be flagged once</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>5</expected-linenumbers>
+        <code><![CDATA[
+class AvoidMultipleConcatStatementsNullableStringPlus {
+    fun bad(s1: String?, s2: String?) {
+        var log = ""
+        log += (s1 ?: "")
+        log += (s2 ?: "") // bad
+    }
+}
+        ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>Char concatenation via += twice should be flagged once</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>5</expected-linenumbers>
+        <code><![CDATA[
+class AvoidMultipleConcatStatementsCharToStringPlus {
+    fun bad() {
+        var s = ""
+        s += 'a'
+        s += 'b' // bad
+    }
+}
+        ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>Scope function apply modifies String property with two += should be flagged once</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>6</expected-linenumbers>
+        <code><![CDATA[
+class AvoidMultipleConcatStatementsApplyPlus {
+    var msg: String = ""
+    fun bad() {
+        this.apply {
+            msg += "A"
+            msg += "B" // bad
+        }
+    }
+}
+        ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>Local variable shadowing a same-named non-String class property should not be flagged</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+class AvoidMultipleConcatStatementsShadowedProperty {
+    var prop: String = ""
+    fun ok() {
+        var prop = 0
+        prop += 1
+        prop += 2
+    }
+}
+        ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>String property on an object declaration with repeated += should be flagged once</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>5</expected-linenumbers>
+        <code><![CDATA[
+object AvoidMultipleConcatStatementsObjectProperty {
+    var msg: String = ""
+    fun bad() {
+        msg += "A"
+        msg += "B" // bad
+    }
+}
+        ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>Two different String vars, each with a single += should not be flagged (not the same var twice)</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+class AvoidMultipleConcatStatementsTwoDifferentVarsOnceEach {
+    fun ok() {
+        var a: String = ""
+        var b: String = ""
+        a += "x"
+        b += "y"
+    }
+}
+        ]]></code>
+    </test-code>
+
+</test-data>
