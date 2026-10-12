@@ -298,6 +298,9 @@ class NonStringPlusUsages {
     }
 }
     ]]></code>
+    </test-code>
+
+    <test-code>
         <description>Fix Request: false positive on Kotlin AvoidMultipleConcatStatements for mutableMap #674</description>
         <expected-problems>0</expected-problems>
 
