@@ -901,7 +901,7 @@ class Good {
         (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
-            <property name="tags" value="cpu,io,jpinpoint-rule,performance,sustainability-high" type="String" description="classification"/>
+            <property name="tags" value="cpu,io,jpinpoint-rule,multi-threading,performance,sustainability-high" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
 //MethodDeclaration[not((@Name='main' and @Static=true()) or ModifierList/Annotation/@SimpleName='PostConstruct')]//(
@@ -971,7 +971,7 @@ class MessageDigestIssue {
         (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
-            <property name="tags" value="cpu,io,jpinpoint-rule,performance,sustainability-high" type="String" description="classification"/>
+            <property name="tags" value="cpu,io,jpinpoint-rule,multi-threading,performance,sustainability-high" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
 //MethodDeclaration
@@ -1096,7 +1096,7 @@ public class Foo {
             Solution: Replace StringBuffer by StringBuilder.  (jpinpoint-rules)</description>
         <priority>3</priority>
         <properties>
-            <property name="tags" value="cpu,jpinpoint-rule,performance,sustainability-low" type="String" description="classification"/>
+            <property name="tags" value="cpu,jpinpoint-rule,multi-threading,performance,sustainability-low" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
 //ConstructorCall/ClassType[pmd-java:typeIs('java.lang.StringBuffer')]
@@ -1269,7 +1269,7 @@ class Foo {
         (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
-            <property name="tags" value="cpu,io,jpinpoint-rule,performance,sustainability-high" type="String" description="classification"/>
+            <property name="tags" value="cpu,io,jpinpoint-rule,multi-threading,performance,sustainability-high" type="String" description="classification"/>
             <property name="xpath">
                 <value>
                     <![CDATA[
@@ -5390,7 +5390,7 @@ class Good {
         (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
-            <property name="tags" value="cpu,jpinpoint-rule,performance,sustainability-high" type="String" description="classification"/>
+            <property name="tags" value="cpu,jpinpoint-rule,multi-threading,performance,sustainability-high" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
 //ClassType[pmd-java:typeIs('org.springframework.ws.soap.saaj.SaajSoapMessageFactory')
