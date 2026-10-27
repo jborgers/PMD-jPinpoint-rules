@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+
+    <test-code>
+        <description>violation: new SecureRandom() assigned to a jitter variable (branch 2: declarator name + ConstructorCall)</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>4</expected-linenumbers>
+        <code><![CDATA[
+import java.security.SecureRandom;
+public class RetryService {
+    public void execute() {
+        long jitter = new SecureRandom().nextInt(1000); // bad
+    }
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>violation: SecureRandom field accessed in a backoff-named method (branch 1: method name + VariableAccess)</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>5</expected-linenumbers>
+        <code><![CDATA[
+import java.security.SecureRandom;
+public class RetryService {
+    private final SecureRandom random = new SecureRandom();
+    public long calculateBackoff() {
+        return random.nextInt(1000); // bad
+    }
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>violation: multiple SecureRandom accesses in a retry-named method (branch 1)</description>
+        <expected-problems>2</expected-problems>
+        <expected-linenumbers>5,6</expected-linenumbers>
+        <code><![CDATA[
+import java.security.SecureRandom;
+public class RetryService {
+    private final SecureRandom secureRandom = new SecureRandom();
+    public void retryWithJitter() {
+        long jitter = secureRandom.nextInt(500); // bad
+        long more = secureRandom.nextInt(100); // bad
+    }
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>violation: SecureRandom factory assigned to a delay variable (branch 2: declarator name + MethodCall returning SecureRandom)</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>5</expected-linenumbers>
+        <code><![CDATA[
+import java.security.SecureRandom;
+import java.security.NoSuchAlgorithmException;
+public class RetryService {
+    public void schedule() throws NoSuchAlgorithmException {
+        SecureRandom delayGenerator = SecureRandom.getInstanceStrong(); // bad
+    }
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>violation: existing SecureRandom accessed via a delay-named variable in a non-matching method (branch 2: declarator name + VariableAccess)</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>5</expected-linenumbers>
+        <code><![CDATA[
+import java.security.SecureRandom;
+public class RetryService {
+    private final SecureRandom secureRandom = new SecureRandom();
+    public long nextValue() {
+        long delay = secureRandom.nextInt(1000); // bad
+        return delay;
+    }
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>no violation: SecureRandom used for genuine cryptographic tasks (no retry/jitter/... naming)</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import java.security.SecureRandom;
+public class TokenService {
+    private final SecureRandom secureRandom = new SecureRandom();
+    public byte[] generateToken() {
+        byte[] token = new byte[32];
+        secureRandom.nextBytes(token);
+        return token;
+    }
+    public SecureRandom createGenerator() {
+        return new SecureRandom();
+    }
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>no violation: ThreadLocalRandom used in a backoff-named method (the recommended alternative)</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import java.util.concurrent.ThreadLocalRandom;
+public class RetryService {
+    public void retryWithBackoff() {
+        long backoff = ThreadLocalRandom.current().nextInt(1000); // good
+    }
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>no violation: SecureRandom with non-matching method and variable names</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import java.security.SecureRandom;
+public class SaltService {
+    public byte[] createSalt() {
+        SecureRandom rng = new SecureRandom();
+        byte[] salt = new byte[16];
+        rng.nextBytes(salt);
+        return salt;
+    }
+}
+     ]]></code>
+    </test-code>
+
+</test-data>

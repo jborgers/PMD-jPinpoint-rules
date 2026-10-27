@@ -1252,6 +1252,68 @@ class Foo {
         </example>
     </rule>
 
+    <rule name="AvoidUnnecessarySecureRandom"
+          language="java"
+          message="Use SecureRandom only for cryptographic tasks since it is expensive."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#iuosf03">
+        <description>
+            Problem: java.security.SecureRandom is expensive because it relies on cryptographically heavy algorithms,
+            causes synchronization and contention overhead across multiple threads, and can completely block your
+            application when the operating system's entropy pool (/dev/random) runs dry.
+            This issue is particularly severe in headless servers, Docker containers, and cloud environments.
+            Solution: - For platform threads: Switch to ThreadLocalRandom.current(), which is non-blocking, thread-safe, and extremely fast.
+            - For virtual threads (Java 21+): ThreadLocalRandom is safe, but can cause GC pressure if used in millions of short-lived tasks.
+            Use a shared thread-safe SplittableGenerator or dedicated RandomGenerator instances.
+            Note: Java 17+ introduces the RandomGenerator API for fine-tuning and faster non-blocking algorithms.
+        (jpinpoint-rules)</description>
+        <priority>2</priority>
+        <properties>
+            <property name="tags" value="cpu,io,jpinpoint-rule,performance,sustainability-high" type="String" description="classification"/>
+            <property name="xpath">
+                <value>
+                    <![CDATA[
+//*[self::ConstructorCall or self::MethodCall or self::VariableAccess]
+    [pmd-java:typeIs('java.security.SecureRandom')]
+    [ancestor::MethodDeclaration[matches(@Name, 'retry|jitter|backoff|delay|interval|timeout|wait', 'i')]
+     or ancestor::VariableDeclarator[matches(@Name, 'retry|jitter|backoff|delay|interval|timeout|wait', 'i')]]
+                ]]>
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+import java.security.SecureRandom;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.random.RandomGenerator;
+
+public class RetryService {
+
+    // Bad: Slow, heavy, and can block your application/threads on /dev/random
+    public void executeWithRetryBad() {
+        SecureRandom random = new SecureRandom();
+        long jitter = random.nextInt(1000);
+        // ... retry logic
+    }
+
+    // Good (Platform Threads): Fast, non-blocking, and thread-safe
+    public void executeWithRetryGood() {
+        long jitter = ThreadLocalRandom.current().nextInt(1000);
+        // ... retry logic
+    }
+
+    // Good (Java 21+ / Virtual Threads): Uses a shared, modern, non-blocking LXM algorithm
+    private static final RandomGenerator JITTER_GEN = RandomGenerator.of("L64X128MixRandom");
+
+    public void executeWithRetryVirtualThreadsGood() {
+        long jitter = JITTER_GEN.nextInt(1000);
+        // ... retry logic
+    }
+}
+        ]]>
+        </example>
+    </rule>
+
     <rule name="AvoidUnnecessaryStringBuilderCreation"
           language="java"
           message="Use concatenation (+) instead of new StringBuilder if only one statement."
