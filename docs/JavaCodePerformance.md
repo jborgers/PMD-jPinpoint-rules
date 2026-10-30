@@ -2330,12 +2330,12 @@ unpredictability is not needed there.
 - For virtual threads (Java 21+): `ThreadLocalRandom` is safe, but can cause GC pressure with millions of short-lived tasks;
   use a shared thread-safe `SplittableGenerator` or dedicated `RandomGenerator` instances.
 - Java 17+ offers the `RandomGenerator` API with faster, non-blocking algorithms.   
+
 **Note:** This rule is heuristic: it only fires when the enclosing method or variable name matches
 `retry|jitter|backoff|delay|interval|timeout|wait` (non-cryptographic intent) **and** that same name does not also contain a
 cryptographic term `token|key|salt|nonce|secret|password|passwd|pwd|crypt|cipher|signature|otp|uuid|guid|seed|hash`. The exclude
 list prevents frequent false positives such as a genuinely cryptographic `generateSessionTimeoutToken()`. Because the match is
-name-based it can still miss cases (other naming) or over-report; suppress remaining false positives with `@SuppressWarnings` /
-NOPMD where the use is really cryptographic.   
+name-based it can still miss cases (other naming) or over-report; suppress remaining false positives with `@SuppressWarnings` where the use is really cryptographic.   
 **Rule name:** AvoidUnnecessarySecureRandom.    
 **Example:**
 ```java
