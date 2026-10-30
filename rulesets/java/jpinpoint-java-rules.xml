@@ -1258,14 +1258,22 @@ class Foo {
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#iuosf03">
         <description>
-            Problem: java.security.SecureRandom is expensive because it relies on cryptographically heavy algorithms,
-            causes synchronization and contention overhead across multiple threads, and can completely block your
-            application when the operating system's entropy pool (/dev/random) runs dry.
-            This issue is particularly severe in headless servers, Docker containers, and cloud environments.
+            Problem: java.security.SecureRandom is expensive because it relies on cryptographically heavy algorithms, and
+            it uses a synchronized internal generator, so a shared instance becomes a lock-contention point across threads
+            (typically 100-300x slower than ThreadLocalRandom, and far worse under a CPU limit). In addition,
+            SecureRandom.getInstanceStrong() may block on low-entropy systems (headless servers, containers, cloud).
+            For non-cryptographic values (retries, backoff, jitter, delays, timeouts) this cost buys nothing, since
+            unpredictability is not needed there.
             Solution: - For platform threads: Switch to ThreadLocalRandom.current(), which is non-blocking, thread-safe, and extremely fast.
             - For virtual threads (Java 21+): ThreadLocalRandom is safe, but can cause GC pressure if used in millions of short-lived tasks.
             Use a shared thread-safe SplittableGenerator or dedicated RandomGenerator instances.
-            Note: Java 17+ introduces the RandomGenerator API for fine-tuning and faster non-blocking algorithms.
+            Note 1: Java 17+ introduces the RandomGenerator API for fine-tuning and faster non-blocking algorithms.
+            Note 2: This rule is heuristic: it only fires when the enclosing method or variable name matches
+            'retry|jitter|backoff|delay|interval|timeout|wait', which signals non-cryptographic intent, and that same name
+            does not also contain a cryptographic term ('token|key|salt|nonce|secret|password|passwd|pwd|crypt|cipher|
+            signature|otp|uuid|guid|seed|hash'), which would indicate a genuine cryptographic use (e.g.
+            generateSessionTimeoutToken() is not flagged). Being name-based it can still miss cases or over-report; suppress
+            remaining false positives with @SuppressWarnings / NOPMD where the use is really cryptographic.
         (jpinpoint-rules)</description>
         <priority>2</priority>
         <properties>
@@ -1273,10 +1281,15 @@ class Foo {
             <property name="xpath">
                 <value>
                     <![CDATA[
+(: Heuristic: flag a SecureRandom usage only in a timing context - the enclosing method or variable name matches the :)
+(: include list (retry|jitter|...) - AND that same name does not also signal cryptographic intent. The exclude list cuts :)
+(: frequent false positives such as generateSessionTimeoutToken() (crypto token that happens to contain 'timeout'). :)
 //*[self::ConstructorCall or self::MethodCall or self::VariableAccess]
     [pmd-java:typeIs('java.security.SecureRandom')]
-    [ancestor::MethodDeclaration[matches(@Name, 'retry|jitter|backoff|delay|interval|timeout|wait', 'i')]
-     or ancestor::VariableDeclarator[matches(@Name, 'retry|jitter|backoff|delay|interval|timeout|wait', 'i')]]
+    [ancestor::MethodDeclaration[matches(@Name, 'retry|jitter|backoff|delay|interval|timeout|wait', 'i')
+         and not(matches(@Name, 'token|key|salt|nonce|secret|password|passwd|pwd|crypt|cipher|signature|otp|uuid|guid|seed|hash', 'i'))]
+     or ancestor::VariableDeclarator[matches(@Name, 'retry|jitter|backoff|delay|interval|timeout|wait', 'i')
+         and not(matches(@Name, 'token|key|salt|nonce|secret|password|passwd|pwd|crypt|cipher|signature|otp|uuid|guid|seed|hash', 'i'))]]
                 ]]>
                 </value>
             </property>
@@ -1289,7 +1302,7 @@ import java.util.random.RandomGenerator;
 
 public class RetryService {
 
-    // Bad: Slow, heavy, and can block your application/threads on /dev/random
+    // Bad: expensive and lock-contended across threads
     public void executeWithRetryBad() {
         SecureRandom random = new SecureRandom();
         long jitter = random.nextInt(1000);

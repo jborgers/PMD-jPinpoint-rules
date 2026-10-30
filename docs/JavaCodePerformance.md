@@ -2318,6 +2318,56 @@ class Foo {
 }
 ```
 
+#### IUOSF03
+
+**Observation: java.security.SecureRandom is used in a non-cryptographic context** (e.g. computing a retry/backoff/jitter/delay/timeout).   
+**Problem:** SecureRandom is expensive and uses a `synchronized` internal generator, so a shared instance becomes a lock-contention
+point under multiple threads (measured ~100-300x slower than `ThreadLocalRandom`, and far worse under a CPU limit). Additionally,
+`SecureRandom.getInstanceStrong()` may block on low-entropy systems. For non-cryptographic values this cost buys nothing:
+unpredictability is not needed there.   
+**Solution:**
+- For platform threads: use `ThreadLocalRandom.current()`, which is non-blocking, thread-safe and fast.
+- For virtual threads (Java 21+): `ThreadLocalRandom` is safe, but can cause GC pressure with millions of short-lived tasks;
+  use a shared thread-safe `SplittableGenerator` or dedicated `RandomGenerator` instances.
+- Java 17+ offers the `RandomGenerator` API with faster, non-blocking algorithms.   
+**Note:** This rule is heuristic: it only fires when the enclosing method or variable name matches
+`retry|jitter|backoff|delay|interval|timeout|wait` (non-cryptographic intent) **and** that same name does not also contain a
+cryptographic term `token|key|salt|nonce|secret|password|passwd|pwd|crypt|cipher|signature|otp|uuid|guid|seed|hash`. The exclude
+list prevents frequent false positives such as a genuinely cryptographic `generateSessionTimeoutToken()`. Because the match is
+name-based it can still miss cases (other naming) or over-report; suppress remaining false positives with `@SuppressWarnings` /
+NOPMD where the use is really cryptographic.   
+**Rule name:** AvoidUnnecessarySecureRandom.    
+**Example:**
+```java
+import java.security.SecureRandom;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.random.RandomGenerator;
+
+public class RetryService {
+
+    // Bad: expensive and lock-contended across threads
+    public void executeWithRetryBad() {
+        SecureRandom random = new SecureRandom();
+        long jitter = random.nextInt(1000);
+        // ... retry logic
+    }
+
+    // Good (Platform Threads): fast, non-blocking, thread-safe
+    public void executeWithRetryGood() {
+        long jitter = ThreadLocalRandom.current().nextInt(1000);
+        // ... retry logic
+    }
+
+    // Good (Java 21+ / Virtual Threads): shared, modern, non-blocking LXM algorithm
+    private static final RandomGenerator JITTER_GEN = RandomGenerator.of("L64X128MixRandom");
+
+    public void executeWithRetryVirtualThreadsGood() {
+        long jitter = JITTER_GEN.nextInt(1000);
+        // ... retry logic
+    }
+}
+```
+
 Extensive use of classpath scanning
 -----------------------------------
 

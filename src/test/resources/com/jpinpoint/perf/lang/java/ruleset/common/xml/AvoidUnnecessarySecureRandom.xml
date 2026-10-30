@@ -128,4 +128,82 @@ public class SaltService {
      ]]></code>
     </test-code>
 
+    <test-code>
+        <description>violation: new SecureRandom() in a retry-named field initializer (branch 2: declarator name + ConstructorCall)</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>3</expected-linenumbers>
+        <code><![CDATA[
+import java.security.SecureRandom;
+public class RetryService {
+    private final SecureRandom retryRandom = new SecureRandom(); // bad
+    public long next() {
+        return retryRandom.nextInt(1000);
+    }
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>violation: SecureRandom accessed from a lambda inside a retry-named method (branch 1)</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>6</expected-linenumbers>
+        <code><![CDATA[
+import java.security.SecureRandom;
+import java.util.function.LongSupplier;
+public class RetryService {
+    private final SecureRandom secureRandom = new SecureRandom();
+    public LongSupplier scheduleRetry() {
+        return () -> secureRandom.nextInt(1000); // bad
+    }
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>no violation: crypto-intent method name (token) suppresses the heuristic even though 'timeout' matches</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import java.security.SecureRandom;
+public class TokenService {
+    public byte[] generateSessionTimeoutToken() {
+        byte[] token = new byte[32];
+        new SecureRandom().nextBytes(token); // good: cryptographic use, excluded by 'token'
+        return token;
+    }
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>no violation: crypto-intent variable name (key) suppresses the heuristic even though 'delay' matches</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import java.security.SecureRandom;
+public class KeyService {
+    public byte[] rotate() {
+        SecureRandom delayKey = new SecureRandom(); // good: excluded by 'key'
+        byte[] k = new byte[32];
+        delayKey.nextBytes(k);
+        return k;
+    }
+}
+     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>known limitation (heuristic): 'await' matches the 'wait' keyword as a substring and has no crypto term - documented false positive</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>5</expected-linenumbers>
+        <code><![CDATA[
+import java.security.SecureRandom;
+public class Service {
+    public byte[] awaitValue() {
+        byte[] value = new byte[16];
+        new SecureRandom().nextBytes(value); // heuristic FP: 'wait' substring in 'await'
+        return value;
+    }
+}
+     ]]></code>
+    </test-code>
+
 </test-data>
