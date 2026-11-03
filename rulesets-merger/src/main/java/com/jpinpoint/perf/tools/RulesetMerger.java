@@ -73,6 +73,7 @@ public class RulesetMerger {
     private static final String BEGIN_INCLUDED_FILE_COMMENT_TEMPLATE = "<!-- BEGIN Included file '%s' -->";
     private static final String END_INCLUDED_FILE_COMMENT_TEMPLATE = "<!-- END Included file '%s' -->";
     private static final String DESCRIPTION_END_TAG_PATTERN = DESCRIPTION_END_TAG.replace('<','.').replace('>', '.');
+    private static final Pattern TAG_ENDED_LINE_PATTERN = Pattern.compile(".*\\(jpinpoint[\\w-]*\\)\\s*");
     private static final Pattern TAGGED_DESCRIPTION_END_TAG_PATTERN = Pattern.compile("\\(.*\\)\\s*" + DESCRIPTION_END_TAG_PATTERN);
 
     public static void main(String[] args) {
@@ -263,11 +264,17 @@ public class RulesetMerger {
     private static List<String> addTagToDescriptionAndDoc(List<String> mergedFileLines, String taggedDescriptionEndTag) {
 
         List<String> fileLinesWithReplaced = new ArrayList<>(mergedFileLines.size());
+        String previousNonBlankLine = "";
         for(String line : mergedFileLines) {
             Matcher matcher = TAGGED_DESCRIPTION_END_TAG_PATTERN.matcher(line);
-            if (!matcher.find()) {
+            // a tag at the end of the line before the end tag (on its own line or after text) also counts as already tagged
+            boolean alreadyTagged = matcher.find() || (line.trim().equals(DESCRIPTION_END_TAG) && TAG_ENDED_LINE_PATTERN.matcher(previousNonBlankLine).matches());
+            if (!alreadyTagged) {
                 // not yet tag so add our tag
                 line = line.replace(DESCRIPTION_END_TAG, taggedDescriptionEndTag);
+            }
+            if (!line.isBlank()) {
+                previousNonBlankLine = line;
             }
             // TODO replace externalInfoUrl="..."
             line = line.replace("${doc_root}", COMPANY_DOC_ROOT);
