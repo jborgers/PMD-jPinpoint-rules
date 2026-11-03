@@ -20,7 +20,7 @@
             Problem: java.text.DecimalFormat and java.text.ChoiceFormat are thread-unsafe.
             Solution: usual solution is to create a new local one when needed in a method.
             (jpinpoint-rules)
-        (jpinpoint-rules)</description>
+        </description>
         <priority>1</priority>
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
@@ -184,7 +184,7 @@ externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/
             The default constructor of ByteArrayOutputStream creates a 32-byte initial capacity and for StringWriter 16 chars. Problem: Such a small buffer as capacity usually needs several expensive expansions.&#13;
             Solution: Pre-size the ByteArrayOutputStream or StringWriter with an initial capacity such that an expansion is not needed in most cases, typically much larger than 32, for instance, 4096.
             (jpinpoint-rules)
-        (jpinpoint-rules)</description>
+        </description>
         <priority>2</priority>
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
@@ -227,21 +227,31 @@ class AvoidInMemoryStreamingDefaultConstructor {
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
             <property name="xpath">
                 <value><![CDATA[
-//FunctionBody[count(.//Assignment[.//(AssignmentAndOperator/T-ADD_ASSIGNMENT|AdditiveOperator/T-ADD)]/(AssignableExpression|DirectlyAssignableExpression)//T-Identifier[@Text=
-(: property a string literal :)
-ancestor::FunctionBody//PropertyDeclaration[(
-    Expression[not(.//Expression)]//StringLiteral or
-    (: or explicit type String:)
-    VariableDeclaration/Type//T-Identifier[@Text='String'] or
-    (: or assigned parameter of type String :)
-    Expression[.//T-Identifier[@Text = ancestor::FunctionDeclaration/FunctionValueParameters/FunctionValueParameter[Parameter/Type//T-Identifier[@Text='String']]//T-Identifier/@Text]] or
-    (: or assigned non-nested function of explicit type String :) (: known issue: ignores parameters, may give false positives with overloaded methods :)
-    Expression[.//T-Identifier[not(ancestor::CallSuffix)][@Text = ancestor::ClassMemberDeclarations//FunctionDeclaration[Type//T-Identifier[@Text='String']]//T-Identifier/@Text]]
-)]
-/VariableDeclaration//T-Identifier/@Text]) > 1]
+//FunctionBody[
+  count(
+    .//Assignment[
+      .//(AssignmentAndOperator/T-ADD_ASSIGNMENT|AdditiveOperator/T-ADD)
+      and
+      (AssignableExpression|DirectlyAssignableExpression)//T-Identifier[
+        (: property a string literal :)
+        @Text = ancestor::FunctionBody//PropertyDeclaration[
+          (
+            Expression[not(.//Expression)]//StringLiteral
+            (: explicit type String:)
+            or VariableDeclaration/Type//T-Identifier[@Text='String']
+            (: assigned parameter of type String :)
+            or Expression[.//T-Identifier[@Text = ancestor::FunctionDeclaration/FunctionValueParameters/FunctionValueParameter[Parameter/Type//T-Identifier[@Text='String']]//T-Identifier/@Text]]
+            (: assigned non-nested function of explicit type String :) (: known issue: ignores parameters, may give false positives with overloaded methods :)
+            or Expression[.//T-Identifier[not(ancestor::CallSuffix)][@Text = ancestor::ClassMemberDeclarations//FunctionDeclaration[Type//T-Identifier[@Text='String']]//T-Identifier/@Text]]
+          )
+          and not(Expression//T-Identifier[@Text='toMutableList'])
+        ]/VariableDeclaration//T-Identifier/@Text
+      ]
+    ]
+  ) > 1
+]
 //Statement[Assignment//(T-ADD_ASSIGNMENT|T-ADD)][position()=last()]
-
-	]]></value>
+                ]]></value>
             </property>
         </properties>
         <example>
@@ -748,7 +758,7 @@ class GoodKotlinMdc {
             Problem: NTLM authenticated connections and SSL/TLS connections with client certificate authentication are stateful: they have a specific user identity/security context per session. If HttpClients have enabled connection state tracking which is the default, established TLS connections will not be reused because it is assumed that the user identity or security context may differ.
             Then performance will suffer due to a full TLS handshake for each request.&#13;
             Solution: HttpClients should disable connection state tracking in order to reuse TLS connections, since service calls for one pool have the same user identity/security context for all sessions. (jpinpoint-rules)
-        (jpinpoint-rules)</description>
+        </description>
         <priority>2</priority>
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
@@ -796,7 +806,7 @@ class GoodKotlinMdc {
             1. use setConnectionManager and call setMaxTotal and setDefaultMaxPerRoute on that connection manager, or
             2. use no ConnectionManager, call setMaxConnTotal and setMaxConnPerRoute on the client directly (v4 only).
             (jpinpoint-rules)
-        (jpinpoint-rules)</description>
+        </description>
         <priority>2</priority>
         <properties>
             <property name="tag" value="jpinpoint-rule" type="String" description="for-sonar"/>
@@ -891,7 +901,7 @@ fun goodWithSizes(): HttpClient =
             Solution: Set the timeouts explicitly to proper reasoned values. See best practice values via the link. Use
             the setDefaultRequestConfig with a method with a RequestConfig object on HttpClient builders to set the
             timeouts. (jpinpoint-rules)
-        (jpinpoint-rules)</description>
+        </description>
         <priority>2</priority>
         <properties>
             <property name="tags" value="io,jpinpoint-rule,performance,pitfall,resilience" type="String" description="classification"/>
@@ -990,7 +1000,7 @@ class GoodHttpClientV5 {
             This is often too high, leading to unnecessary long waiting times.
             Solution: Define both `maxConnections` and `pendingAcquireTimeout` with proper values, for instance, `50` and `300 [ms]` respectively.
             (jpinpoint-rules)
-        (jpinpoint-rules)</description>
+        </description>
         <priority>1</priority>
         <properties>
             <property name="tags" value="io,jpinpoint-rule,performance,sustainability-low,resilience" type="String" description="classification"/>

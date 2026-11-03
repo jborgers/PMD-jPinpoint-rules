@@ -133,7 +133,7 @@ public enum Animal {
         <description>Problem: java.text.NumberFormat: DecimalFormat and ChoiceFormat are thread-unsafe.&#13;
             Solution: usual solution is to create a new local one when needed in a method.
             (jpinpoint-rules)
-        (jpinpoint-rules)</description>
+        </description>
         <priority>1</priority>
         <properties>
             <property name="tags" value="jpinpoint-rule,multi-threading" type="String" description="classification"/>
@@ -495,7 +495,7 @@ class IterationsBetter {
             Note: Not a problem for small files. In that case use e.g.:
             @SuppressWarnings("PMD.AvoidLoadingAllFromFile") // only small files: max 1 kB.
             (jpinpoint-rules)
-        (jpinpoint-rules)</description>
+        </description>
         <priority>2</priority>
         <properties>
             <property name="tags" value="jpinpoint-rule,memory,performance,sustainability-medium" type="String" description="classification"/>
@@ -1567,7 +1567,7 @@ class Foo {
           externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodeQuality.md#ieah03">
         <description>Problem: Equal objects may have different hashCodes and end-up in different buckets of a Map/Set. Strange things can happen like adding an object to a Set and not being able to find it back.
             Solution: When objects are equal, hashCode needs to be equal, too. Use the same fields in equals and hashCode and use identical conversions like toUpperCase() in both when needed. Don't use equalsIgnoreCase. (jpinpoint-rules)
-        (jpinpoint-rules)</description>
+        </description>
         <priority>1</priority>
         <properties>
             <property name="tags" value="correctness,jpinpoint-rule" type="String" description="classification"/>
@@ -5218,7 +5218,7 @@ class SingletonGood {
             Default pool size and timeouts will be used, possibly resulting in very slow connection use.&#13;
             Solution: Provide your own supplier with explicit pool sizing and timeouts by a class implementing Supplier.
             (jpinpoint-rules)
-        (jpinpoint-rules)</description>
+        </description>
         <priority>2</priority>
         <properties>
             <property name="tags" value="confusing,jpinpoint-rule,performance,suspicious" type="String" description="classification"/>
@@ -5326,7 +5326,7 @@ class Good {
           externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#ibi11">
         <description>Problem: Hystrix is not actively maintained anymore.&#13;
             Solution: Netflix recommends to use open source alternatives like resilience4j. (jpinpoint-rules)
-        (jpinpoint-rules)</description>
+        </description>
         <priority>3</priority>
         <properties>
             <property name="tags" value="deprecated,jpinpoint-rule" type="String" description="classification"/>
@@ -5350,7 +5350,7 @@ class Good {
             constructor because it is replaced by the one provided to the setter. &#13;
             Solution: Don't use both on the same factory, provide the HttpClient only once to the factory.
             (jpinpoint-rules)
-        (jpinpoint-rules)</description>
+        </description>
         <priority>2</priority>
         <properties>
             <property name="tags" value="confusing,jpinpoint-rule" type="String" description="classification"/>
@@ -5400,7 +5400,7 @@ class Good {
             SAAJ, set the proper system properties to prevent the excessive class loading.
             Note: Axiom (2.0) is available again in Spring web services, since version 4.1.
             (jpinpoint-rules)
-        (jpinpoint-rules)</description>
+        </description>
         <priority>2</priority>
         <properties>
             <property name="tags" value="cpu,jpinpoint-rule,multi-threading,performance,sustainability-high" type="String" description="classification"/>
@@ -5442,7 +5442,7 @@ static {
             difficult to manage and tune these settings.&#13;
             Solution: use property files, e.g. yml, to define the values for these settings for each called service.
             (jpinpoint-rules)
-        (jpinpoint-rules)</description>
+        </description>
         <priority>3</priority>
         <properties>
             <property name="tags" value="bad-practice,jpinpoint-rule,performance" type="String" description="classification"/>
@@ -5504,7 +5504,7 @@ class AvoidHardcodedConnectionConfig {
             1. https://github.com/jborgers/http-client-monitor or
             2. micrometer and apache http client 4 and 5 metrics with spring boot actuator, help here.&#13;
             (jpinpoint-rules)
-        (jpinpoint-rules)</description>
+        </description>
         <priority>2</priority>
         <properties>
             <property name="tags" value="confusing,jpinpoint-rule,suspicious" type="String" description="classification"/>
@@ -5576,7 +5576,7 @@ public class XMLConversion {
             Solution: Only call EventPublisher.onRetry (that is, add a consumer) in the same scope as the Retry instance
             lives. Note there is no way to unregister a consumer.
             (jpinpoint-rules)
-        (jpinpoint-rules)</description>
+        </description>
         <priority>1</priority>
         <properties>
             <property name="tags" value="jpinpoint-rule,memory,performance,sustainability-high" type="String" description="classification"/>
@@ -5629,7 +5629,7 @@ public class Foo {
             to create ObjectReaders and ObjectWriters from ObjectMapper and pass those around since they are immutable
             and
             therefore thread-safe. (jpinpoint-rules)
-        (jpinpoint-rules)</description>
+        </description>
         <priority>2</priority>
         <properties>
             <property name="tags" value="jpinpoint-rule,multi-threading" type="String" description="classification"/>
@@ -5698,7 +5698,7 @@ public class NewStyle {
             Also, when used like jaxMsgConverter.setObjectMapper(objectMapper) it is not considered a violation.
             And, when the class implements ContextResolver&lt;ObjectMapper&gt;.
             (jpinpoint-rules)
-        (jpinpoint-rules)</description>
+        </description>
         <priority>3</priority>
         <properties>
             <property name="tags" value="jpinpoint-rule,multi-threading" type="String" description="classification"/>
@@ -5738,7 +5738,7 @@ class GoodStyle {
         <description>Problem: For troubleshooting Reactor, Blockhound can be used. It needs proper stack traces which
             can be achieved by Hooks.onOperatorDebug(). This can have much CPU overhead. &#13;
             Solution: Remove Hooks.onOperatorDebug() when not debugging. (jpinpoint-rules)
-        (jpinpoint-rules)</description>
+        </description>
         <priority>2</priority>
         <properties>
             <property name="tags" value="cpu,jpinpoint-rule,performance,sustainability-high" type="String" description="classification"/>
@@ -5772,7 +5772,7 @@ public class Foo {
             in all requests for that connection.&#13;
             Solution: Create/build HttpClient with proper connection pooling and timeouts once, and then use it for
             requests. (jpinpoint-rules)
-        (jpinpoint-rules)</description>
+        </description>
         <priority>2</priority>
         <properties>
             <property name="tags" value="cpu,jpinpoint-rule,performance,sustainability-high" type="String" description="classification"/>
@@ -5815,7 +5815,7 @@ class Foo {
             Solution: Always specify in the constructor whether the route is secure (true) or not (false) to make it clear.
             Note: Covers Apache Http-Client 4 and 5.
             (jpinpoint-rules)
-        (jpinpoint-rules)</description>
+        </description>
         <priority>2</priority>
         <properties>
             <property name="tags" value="io,jpinpoint-rule,performance,pitfall" type="String" description="classification"/>
@@ -5858,7 +5858,7 @@ public class Foo {
             with the poorly performing DatatypeFactory.
             Solution: Add a converter for alternative date handling with Java 8+ java.time.
             (jpinpoint-rules)
-        (jpinpoint-rules)</description>
+        </description>
         <priority>2</priority>
         <properties>
             <property name="tags" value="cpu,jpinpoint-rule,performance,sustainability-medium" type="String" description="classification"/>
@@ -5885,7 +5885,7 @@ public class Foo {
             &#13;
             Solution: Since the Axual Producer is thread-safe, it should be shared e.g. from a static field.
             (jpinpoint-rules)
-        (jpinpoint-rules)</description>
+        </description>
         <priority>1</priority>
         <properties>
             <property name="tags" value="cpu,jpinpoint-rule,performance,sustainability-high" type="String" description="classification"/>
@@ -5931,7 +5931,7 @@ public class AxualProducerBad {
         Problem: It buffers all incoming and outgoing streams fully in memory, which may result in unnecessary high memory usage.
         &#13;
         Solution: Avoid when possible; avoid multiple reads of the response body so buffering is not needed. You may however still need it for Content-Length since Spring 6.1 (jpinpoint-rules)
-    (jpinpoint-rules)</description>
+    </description>
     <priority>5</priority>
     <properties>
         <property name="tags" value="cpu,jpinpoint-rule,memory,performance,sustainability-high" type="String" description="classification"/>
@@ -5972,7 +5972,7 @@ public class Foo {
             latency.&#13;
             Solution: switch to a Feign client that supports HTTP connection pooling with mTLS, for instance Apache
             HttpClient 4 with disableConnectionState and proper connection pool size and timeouts. (jpinpoint-rules)
-        (jpinpoint-rules)</description>
+        </description>
         <priority>2</priority>
         <properties>
             <property name="tags" value="cpu,jpinpoint-rule,performance,sustainability-high" type="String" description="classification"/>
@@ -6019,7 +6019,7 @@ public class MyFeignClient {
             instances, from a static field. Pay attention
             to use thread-safe (custom) adapters and serializers.
             (jpinpoint-rules)
-        (jpinpoint-rules)</description>
+        </description>
         <priority>2</priority>
         <properties>
             <property name="tags" value="cpu,jpinpoint-rule,performance,sustainability-high" type="String" description="classification"/>
@@ -6062,7 +6062,7 @@ class Good {
             1. HttpClients should either use setConnectionManager and *only* call setMaxTotal and setDefaultMaxPerRoute on that ConnectionManager or
             2. not use a ConnectionManager and call setMaxConnTotal and setMaxConnPerRoute on the client directly
             (jpinpoint-rules)
-        (jpinpoint-rules)</description>
+        </description>
         <priority>2</priority>
         <properties>
             <property name="tags" value="correctness,jpinpoint-rule,resilience" type="String" description="classification"/>
@@ -6114,7 +6114,7 @@ return HttpClientBuilder.create() // good
             Then performance will suffer due to a full TLS handshake for each request.&#13;
             Solution: HttpClients should disable connection state tracking in order to reuse TLS connections, since
             service calls for one pool have the same user identity/security context for all sessions. (jpinpoint-rules)
-        (jpinpoint-rules)</description>
+        </description>
         <priority>2</priority>
         <properties>
             <property name="tags" value="cpu,jpinpoint-rule,performance,sustainability-high" type="String" description="classification"/>
@@ -6173,7 +6173,7 @@ class Good {
             1. use setConnectionManager and call setMaxTotal and setDefaultMaxPerRoute on that connection manager, or
             2. use no ConnectionManager, call setMaxConnTotal and setMaxConnPerRoute on the client directly (v4 only).
             (jpinpoint-rules)
-        (jpinpoint-rules)</description>
+        </description>
         <priority>2</priority>
         <properties>
             <property name="tags" value="jpinpoint-rule,performance,resilience" type="String" description="classification"/>
@@ -6291,7 +6291,7 @@ return HttpClientBuilder.create() // good, setConnectionManager called, pool con
             Solution: Set all these timeouts explicitly to proper reasoned values. See best practice values via the link. Use
             the setDefaultRequestConfig with a method with a RequestConfig object on HttpClient builders to set the
             timeouts. (jpinpoint-rules)
-        (jpinpoint-rules)</description>
+        </description>
         <priority>2</priority>
         <properties>
             <property name="tags" value="io,jpinpoint-rule,performance,pitfall,resilience" type="String" description="classification"/>
@@ -6436,7 +6436,7 @@ class GoodHttpClientV5 {
             possibly overload. &#13;
             Solution: Set connectTimeout and connectionRequestTimeout to values based om tests, for instance 200 ms and
             250 ms. respectively (jpinpoint-rules)
-        (jpinpoint-rules)</description>
+        </description>
         <priority>2</priority>
         <properties>
             <property name="tags" value="io,jpinpoint-rule,performance,sustainability-low,resilience" type="String" description="classification"/>
@@ -6517,7 +6517,7 @@ public class HttpClientStuff {
             For instance, it may cause the connection not to be released to the connection pool, which leads to pool exhaustion and unresponsiveness.
             Solution: Release resources by closing the response via ClientHttpResponse.close() when throwing an Exception.
             (jpinpoint-rules)
-        (jpinpoint-rules)</description>
+        </description>
         <priority>1</priority>
         <properties>
             <property name="tags" value="io,jpinpoint-rule,performance,pitfall" type="String" description="classification"/>
@@ -6592,7 +6592,7 @@ class ValidatingClientHttpRequestInterceptorGoodEx implements ClientHttpRequestI
             This is often too high, leading to unnecessary long waiting times.
             Solution: Define both `maxConnections` and `pendingAcquireTimeout` with proper values, for instance, `50` and `300 [ms]` respectively.
             (jpinpoint-rules)
-        (jpinpoint-rules)</description>
+        </description>
         <priority>1</priority>
         <properties>
             <property name="tags" value="io,jpinpoint-rule,performance,sustainability-low,resilience" type="String" description="classification"/>
@@ -6627,7 +6627,7 @@ public ConnectionProvider connectionProviderGood() {
             Solution: Since ObjectMapper/JsonMapper objects are thread-safe after configuration in one thread, they can
             be shared afterward between requests and reused. So, reuse created instances, from a static field.
             (jpinpoint-rules)
-        (jpinpoint-rules)</description>
+        </description>
         <priority>2</priority>
         <properties>
             <property name="tags" value="cpu,jpinpoint-rule,performance,sustainability-high" type="String" description="classification"/>
@@ -6669,7 +6669,7 @@ public static JsonMapper createMapper() {
             results in 3 x 3 x 3 = 27 calls instead of 1. This may cause it not being able to restart.&#13;
             Solution: Have the retry mechanism in one location in the chain only, recommended only the one closest to
             the user. (jpinpoint-rules)
-        (jpinpoint-rules)</description>
+        </description>
         <priority>5</priority>
         <properties>
             <property name="tags" value="cpu,jpinpoint-rule,performance,resilience,suspicious,sustainability-low" type="String" description="classification"/>
@@ -6710,7 +6710,7 @@ public class Foo {
             Solution: Call setQueueCapacity, for instance with a value equal to CorePoolSize.
             Note that the pool will only grow beyond CorePoolSize up to MaxPoolSize when the queue is full.
             (jpinpoint-rules)
-        (jpinpoint-rules)</description>
+        </description>
         <priority>2</priority>
         <properties>
             <property name="tags" value="bad-practice,jpinpoint-rule,memory,performance,sustainability-low" type="String" description="classification"/>
@@ -6753,7 +6753,7 @@ private ThreadPoolTaskExecutor good() {
             and connections may not (or not quick enough) become available from the pool.&#13;
             Solution: Use ClosableHttpClient to allow for invoking close on it to properly close the connection. Or use
             HttpComponentsClientHttpRequestFactory(httpClient) to let it manage closing. (jpinpoint-rules)
-        (jpinpoint-rules)</description>
+        </description>
         <priority>2</priority>
         <properties>
             <property name="tags" value="jpinpoint-rule,performance" type="String" description="classification"/>
