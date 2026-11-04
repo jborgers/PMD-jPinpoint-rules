@@ -150,6 +150,32 @@ For Kotlin instead of Java:
 ./merge kotlin
 ```
 
+### Nextgen rules
+
+Some rules are rewritten to use newer PMD language-module features (e.g. Kotlin type-resolution XPath functions
+introduced in PMD 7.28.0, such as `pmd-kotlin:typeIs()`). Such a rewrite only works with a PMD version that supports
+those features, so it is **not** included in the regular merged ruleset — that file must keep working unchanged on
+older PMD versions, since its name/URL is used as a stable download reference (e.g. by the IntelliJ PMD plugin).
+
+Instead, these rewrites live in a separate "nextgen" source file per category, e.g.
+`src/main/resources/category/kotlin/commonnextgen.xml` (any `*.xml` file with `nextgen` in its name is picked up
+automatically, for any category and language). The merger excludes these files from the regular merge and instead
+generates a separate overlay ruleset, e.g. `rulesets/kotlin/jpinpoint-kotlin-rules-nextgen.xml`, which fully
+**inlines** all of the base ruleset's non-overridden rules together with the redefined (nextgen) rules into one
+self-contained file. (An earlier version of this mechanism used `<rule ref="jpinpoint-kotlin-rules.xml">` to
+reference the regular merged ruleset instead of inlining it, but that reference does not resolve when the ruleset
+is loaded from a remote URL — e.g. the IntelliJ PMD plugin loading it directly from its raw GitHub URL — since
+PMD only resolves sibling `<rule ref="...">` paths against the local filesystem. Inlining avoids this problem
+entirely.)
+
+Use the `-nextgen` ruleset only if your PMD version supports the features the nextgen rules rely on (see each rule's
+description for its minimum PMD version); otherwise keep using the regular ruleset. This same mechanism can be reused
+for future PMD upgrades (e.g. a PMD 8.0 rewrite) by adding another `*nextgen*.xml` source file.
+
+Note: because the test framework derives the category source file name from the test's Java package name
+(`category/<language>/<categoryName>.xml`), nextgen category file names must be valid Java identifiers — no dashes
+or extra dots (e.g. `commonnextgen.xml`, not `common-nextgen.xml` or `common.nextgen.xml`).
+
 ### Merging with company-specific rules
 
 Company-specific rules are useful for instance for checking the right use of company-specific or company-bought frameworks and libraries.
