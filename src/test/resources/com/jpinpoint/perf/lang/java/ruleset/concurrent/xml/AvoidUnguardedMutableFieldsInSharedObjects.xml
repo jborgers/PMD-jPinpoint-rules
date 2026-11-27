@@ -503,4 +503,24 @@ public class Issue389good {
         ]]></code>
     </test-code>
 
+    <test-code>
+        <description>violation: unguarded mutable field in an @Aspect, which is a singleton by default</description>
+        <expected-problems>2</expected-problems>
+        <expected-linenumbers>6,12</expected-linenumbers>
+        <code><![CDATA[
+import org.aspectj.lang.annotation.Aspect;
+import java.util.Date;
+
+@Aspect
+public class MyAspect {
+    private int someState; // bad
+    private final int ok = 1;
+}
+
+@Aspect("pertarget(execution(* com.xyz.Service.*(..)))")
+public class PerTargetAspect {
+    private Date someState; // bad
+}
+     ]]></code>
+    </test-code>
 </test-data>

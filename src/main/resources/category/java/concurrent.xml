@@ -196,6 +196,8 @@ class Exporter {
   (
        pmd-java:hasAnnotation('org.springframework.stereotype.Service')
     or pmd-java:hasAnnotation('org.springframework.stereotype.Component')
+    (: Spring AOP aspect, singleton by default; perthis/pertarget are typically shared too, as the advised target is typically a singleton :)
+    or pmd-java:hasAnnotation('org.aspectj.lang.annotation.Aspect')
     or pmd-java:hasAnnotation('org.springframework.stereotype.Controller')
     or pmd-java:hasAnnotation('org.springframework.stereotype.Repository')
     or pmd-java:hasAnnotation('org.springframework.web.bind.annotation.RestController')
@@ -320,6 +322,8 @@ class MyService {
   (
        pmd-java:hasAnnotation('org.springframework.stereotype.Service')
     or pmd-java:hasAnnotation('org.springframework.stereotype.Component')
+    (: Spring AOP aspect, singleton by default; perthis/pertarget are typically shared too, as the advised target is typically a singleton :)
+    or pmd-java:hasAnnotation('org.aspectj.lang.annotation.Aspect')
     or pmd-java:hasAnnotation('org.springframework.stereotype.Controller')
     or pmd-java:hasAnnotation('org.springframework.stereotype.Repository')
     or pmd-java:hasAnnotation('org.springframework.web.bind.annotation.RestController')
@@ -395,6 +399,8 @@ public class RootController {
    (
        pmd-java:hasAnnotation('org.springframework.stereotype.Service')
     or pmd-java:hasAnnotation('org.springframework.stereotype.Component')
+    (: Spring AOP aspect, singleton by default; perthis/pertarget are typically shared too, as the advised target is typically a singleton :)
+    or pmd-java:hasAnnotation('org.aspectj.lang.annotation.Aspect')
     or pmd-java:hasAnnotation('org.springframework.stereotype.Controller')
     or pmd-java:hasAnnotation('org.springframework.stereotype.Repository')
     or pmd-java:hasAnnotation('org.springframework.web.bind.annotation.RestController')
@@ -549,6 +555,8 @@ class BadMutableTypes {
    (
        pmd-java:hasAnnotation('org.springframework.stereotype.Service')
     or pmd-java:hasAnnotation('org.springframework.stereotype.Component')
+    (: Spring AOP aspect, singleton by default; perthis/pertarget are typically shared too, as the advised target is typically a singleton :)
+    or pmd-java:hasAnnotation('org.aspectj.lang.annotation.Aspect')
     or pmd-java:hasAnnotation('org.springframework.stereotype.Controller')
     or pmd-java:hasAnnotation('org.springframework.stereotype.Repository')
     or pmd-java:hasAnnotation('org.springframework.web.bind.annotation.RestController')

@@ -613,5 +613,32 @@ public class Foo {
 }
         ]]></code>
     </test-code>
+    <test-code>
+        <description>violation: unguarded assignment to non-final field in an @Aspect, which is a singleton by default</description>
+        <expected-problems>2</expected-problems>
+        <expected-linenumbers>9,18</expected-linenumbers>
+        <code><![CDATA[
+import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.annotation.Before;
+
+@Aspect
+public class MyAspect {
+    private int someState;
+    @Before("execution(* com.xyz.Service.*(..))")
+    public void record() {
+        someState = 1; // bad
+    }
+}
+
+@Aspect("perthis(execution(* com.xyz.Service.*(..)))")
+public class PerThisAspect {
+    private int someState;
+    @Before("execution(* com.xyz.Service.*(..))")
+    public void record() {
+        someState = 1; // bad
+    }
+}
+     ]]></code>
+    </test-code>
 </test-data>
 

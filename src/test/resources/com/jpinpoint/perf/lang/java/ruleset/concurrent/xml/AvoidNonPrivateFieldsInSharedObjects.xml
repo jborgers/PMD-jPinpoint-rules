@@ -94,4 +94,25 @@ public abstract class Issue268 implements Strategy {
 }
         ]]></code>
     </test-code>
+    <test-code>
+        <description>violation: non-private fields in an @Aspect, which is a singleton by default</description>
+        <expected-problems>2</expected-problems>
+        <expected-linenumbers>6,12</expected-linenumbers>
+        <code><![CDATA[
+import org.aspectj.lang.annotation.Aspect;
+import java.util.List;
+
+@Aspect
+public class MyAspect {
+    List state; // bad, not private
+    private List ok;
+}
+
+@Aspect("perthis(execution(* com.xyz.Service.*(..)))")
+public class PerThisAspect {
+    protected List state; // bad, the advised target is typically a singleton, so shared as well
+    private List ok;
+}
+     ]]></code>
+    </test-code>
 </test-data>

@@ -225,4 +225,24 @@ public final class Foo extends AbstractService {
 }
         ]]></code>
     </test-code>
+    <test-code>
+        <description>violation: mutation of inherited field in an @Aspect, which is a singleton by default</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>11</expected-linenumbers>
+        <code><![CDATA[
+import org.aspectj.lang.annotation.Aspect;
+import java.util.Date;
+
+class Base {
+    protected Date date = new Date();
+}
+
+@Aspect
+public class MyAspect extends Base {
+    public void mutate() {
+        date.setTime(100); // bad
+    }
+}
+     ]]></code>
+    </test-code>
 </test-data>
