@@ -94,4 +94,86 @@ public abstract class Issue268 implements Strategy {
 }
         ]]></code>
     </test-code>
+    <test-code>
+        <description>violation: ControllerAdvice, RestControllerAdvice and Spring Boot actuator Endpoint, WebEndpoint, JmxEndpoint are singleton beans</description>
+        <expected-problems>5</expected-problems>
+        <expected-linenumbers>10,15,20,25,30</expected-linenumbers>
+        <code><![CDATA[
+import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.boot.actuate.endpoint.annotation.Endpoint;
+import org.springframework.boot.actuate.endpoint.web.annotation.WebEndpoint;
+import org.springframework.boot.actuate.endpoint.jmx.annotation.JmxEndpoint;
+import java.util.List;
+
+@ControllerAdvice
+class ControllerAdviceClass {
+    List state; // bad, not private
+}
+
+@RestControllerAdvice
+class RestControllerAdviceClass {
+    List state; // bad, not private
+}
+
+@Endpoint
+class EndpointClass {
+    List state; // bad, not private
+}
+
+@WebEndpoint
+class WebEndpointClass {
+    List state; // bad, not private
+}
+
+@JmxEndpoint
+class JmxEndpointClass {
+    List state; // bad, not private
+}
+
+     ]]></code>
+    </test-code>
+    <test-code>
+        <description>violation: inject Singleton is a singleton bean (javax)</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>6</expected-linenumbers>
+        <code><![CDATA[
+import javax.inject.Singleton;
+import java.util.List;
+
+@Singleton
+class Foo {
+    List state; // bad, not private
+}
+     ]]></code>
+    </test-code>
+    <test-code>
+        <description>violation: inject Singleton is a singleton bean (jakarta)</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>6</expected-linenumbers>
+        <code><![CDATA[
+import jakarta.inject.Singleton;
+import java.util.List;
+
+@Singleton
+class Foo {
+    List state; // bad, not private
+}
+     ]]></code>
+    </test-code>
+    <test-code>
+        <description>no violation: request scoped advice is not shared</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.context.annotation.RequestScope;
+import java.util.List;
+
+@ControllerAdvice
+@RequestScope
+class RequestAdvice {
+    List state;
+}
+     ]]></code>
+    </test-code>
 </test-data>

@@ -613,5 +613,107 @@ public class Foo {
 }
         ]]></code>
     </test-code>
+    <test-code>
+        <description>violation: ControllerAdvice, RestControllerAdvice and Spring Boot actuator Endpoint, WebEndpoint, JmxEndpoint are singleton beans</description>
+        <expected-problems>5</expected-problems>
+        <expected-linenumbers>11,19,27,35,43</expected-linenumbers>
+        <code><![CDATA[
+import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.boot.actuate.endpoint.annotation.Endpoint;
+import org.springframework.boot.actuate.endpoint.web.annotation.WebEndpoint;
+import org.springframework.boot.actuate.endpoint.jmx.annotation.JmxEndpoint;
+
+@ControllerAdvice
+class ControllerAdviceClass {
+    private int someState;
+    void record() {
+        someState = 1; // bad
+    }
+}
+
+@RestControllerAdvice
+class RestControllerAdviceClass {
+    private int someState;
+    void record() {
+        someState = 1; // bad
+    }
+}
+
+@Endpoint
+class EndpointClass {
+    private int someState;
+    void record() {
+        someState = 1; // bad
+    }
+}
+
+@WebEndpoint
+class WebEndpointClass {
+    private int someState;
+    void record() {
+        someState = 1; // bad
+    }
+}
+
+@JmxEndpoint
+class JmxEndpointClass {
+    private int someState;
+    void record() {
+        someState = 1; // bad
+    }
+}
+
+     ]]></code>
+    </test-code>
+    <test-code>
+        <description>violation: inject Singleton is a singleton bean (javax)</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>7</expected-linenumbers>
+        <code><![CDATA[
+import javax.inject.Singleton;
+
+@Singleton
+class Foo {
+    private int someState;
+    void record() {
+        someState = 1; // bad
+    }
+}
+     ]]></code>
+    </test-code>
+    <test-code>
+        <description>violation: inject Singleton is a singleton bean (jakarta)</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>7</expected-linenumbers>
+        <code><![CDATA[
+import jakarta.inject.Singleton;
+
+@Singleton
+class Foo {
+    private int someState;
+    void record() {
+        someState = 1; // bad
+    }
+}
+     ]]></code>
+    </test-code>
+    <test-code>
+        <description>no violation: request scoped advice is not shared</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.context.annotation.RequestScope;
+
+@ControllerAdvice
+@RequestScope
+class RequestAdvice {
+    private int someState;
+    void record() {
+        someState = 1;
+    }
+}
+     ]]></code>
+    </test-code>
 </test-data>
 
