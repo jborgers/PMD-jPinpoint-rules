@@ -3868,7 +3868,7 @@ enum Good {
        StringLiteral[contains(@Image,'request') or contains(@Image,'prototype')]
        or FieldAccess[@Name='SCOPE_REQUEST' or @Name='SCOPE_PROTOTYPE']/TypeExpression[pmd-java:typeIs('org.springframework.beans.factory.config.ConfigurableBeanFactory')]]
     )
-   and not(pmd-java:hasAnnotation('org.springframework.context.annotation.RequestScope'))
+   and not(pmd-java:hasAnnotation('org.springframework.web.context.annotation.RequestScope'))
    (: if @NotThreadSafe no checking :)
    and not(pmd-java:hasAnnotation('net.jcip.annotations.NotThreadSafe'))
 ]
@@ -4543,7 +4543,7 @@ public class Good {
        StringLiteral[contains(@Image,'request') or contains(@Image,'prototype')]
        or FieldAccess[@Name='SCOPE_REQUEST' or @Name='SCOPE_PROTOTYPE']/TypeExpression[pmd-java:typeIs('org.springframework.beans.factory.config.ConfigurableBeanFactory')]]
     )
-   and not(pmd-java:hasAnnotation('org.springframework.context.annotation.RequestScope'))
+   and not(pmd-java:hasAnnotation('org.springframework.web.context.annotation.RequestScope'))
    (: if @NotThreadSafe no checking :)
    and not(pmd-java:hasAnnotation('net.jcip.annotations.NotThreadSafe'))
    (: ConfigurationProperties assumed executed only once, no violation, except if Lombok Setter :)
@@ -4706,7 +4706,7 @@ class BadMutableTypes {
        StringLiteral[contains(@Image,'request') or contains(@Image,'prototype')]
        or FieldAccess[@Name='SCOPE_REQUEST' or @Name='SCOPE_PROTOTYPE']/TypeExpression[pmd-java:typeIs('org.springframework.beans.factory.config.ConfigurableBeanFactory')]]
     )
-   and not(pmd-java:hasAnnotation('org.springframework.context.annotation.RequestScope'))
+   and not(pmd-java:hasAnnotation('org.springframework.web.context.annotation.RequestScope'))
    (: if @NotThreadSafe no checking :)
    and not(pmd-java:hasAnnotation('net.jcip.annotations.NotThreadSafe'))
    (: ConfigurationProperties assumed executed only once, no violation, except if Lombok Setter :)

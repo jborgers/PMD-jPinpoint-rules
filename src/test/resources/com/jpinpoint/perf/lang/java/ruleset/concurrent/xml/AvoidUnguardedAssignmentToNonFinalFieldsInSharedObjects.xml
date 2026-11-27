@@ -698,5 +698,22 @@ class Foo {
 }
      ]]></code>
     </test-code>
+    <test-code>
+        <description>no violation: request scoped advice is not shared</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.context.annotation.RequestScope;
+
+@ControllerAdvice
+@RequestScope
+class RequestAdvice {
+    private int someState;
+    void record() {
+        someState = 1;
+    }
+}
+     ]]></code>
+    </test-code>
 </test-data>
 
