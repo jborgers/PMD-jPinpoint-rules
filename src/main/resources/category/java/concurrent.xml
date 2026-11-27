@@ -196,7 +196,7 @@ class Exporter {
   (
        pmd-java:hasAnnotation('org.springframework.stereotype.Service')
     or pmd-java:hasAnnotation('org.springframework.stereotype.Component')
-    (: Spring AOP aspect, singleton by default; perthis/pertarget are typically shared too, as the advised target is typically a singleton :)
+    (: Spring AOP aspect, singleton by default; perthis/pertarget aspects are prototype scoped but typically shared too, as the advised target is typically a singleton :)
     or pmd-java:hasAnnotation('org.aspectj.lang.annotation.Aspect')
     or pmd-java:hasAnnotation('org.springframework.stereotype.Controller')
     or pmd-java:hasAnnotation('org.springframework.stereotype.Repository')
@@ -206,8 +206,8 @@ class Exporter {
    )
    (: no @RequestScope annotation :)
    and not (pmd-java:hasAnnotation('org.springframework.context.annotation.Scope') and .//AnnotationMemberList/MemberValuePair[
-       StringLiteral[contains(@Image,'request') or contains(@Image,'prototype')]
-       or FieldAccess[@Name='SCOPE_REQUEST' or @Name='SCOPE_PROTOTYPE']/TypeExpression[pmd-java:typeIs('org.springframework.beans.factory.config.ConfigurableBeanFactory')]]
+       StringLiteral[contains(@Image,'request') or (contains(@Image,'prototype') and not(ancestor::ClassDeclaration[1]/ModifierList/Annotation[pmd-java:typeIs('org.aspectj.lang.annotation.Aspect')]//StringLiteral[matches(@Image,'^"?per(this|target)\s*\(')]))]
+       or FieldAccess[@Name='SCOPE_REQUEST' or (@Name='SCOPE_PROTOTYPE' and not(ancestor::ClassDeclaration[1]/ModifierList/Annotation[pmd-java:typeIs('org.aspectj.lang.annotation.Aspect')]//StringLiteral[matches(@Image,'^"?per(this|target)\s*\(')]))]/TypeExpression[pmd-java:typeIs('org.springframework.beans.factory.config.ConfigurableBeanFactory')]]
     )
     (: no request or prototype @Scope, literal or via constant :)
   and not(pmd-java:hasAnnotation('org.springframework.web.context.annotation.RequestScope'))
@@ -322,7 +322,7 @@ class MyService {
   (
        pmd-java:hasAnnotation('org.springframework.stereotype.Service')
     or pmd-java:hasAnnotation('org.springframework.stereotype.Component')
-    (: Spring AOP aspect, singleton by default; perthis/pertarget are typically shared too, as the advised target is typically a singleton :)
+    (: Spring AOP aspect, singleton by default; perthis/pertarget aspects are prototype scoped but typically shared too, as the advised target is typically a singleton :)
     or pmd-java:hasAnnotation('org.aspectj.lang.annotation.Aspect')
     or pmd-java:hasAnnotation('org.springframework.stereotype.Controller')
     or pmd-java:hasAnnotation('org.springframework.stereotype.Repository')
@@ -332,8 +332,8 @@ class MyService {
    )
    (: not shared when request or prototype scope :)
    and not(pmd-java:hasAnnotation('org.springframework.context.annotation.Scope') and .//AnnotationMemberList/MemberValuePair[
-       StringLiteral[contains(@Image,'request') or contains(@Image,'prototype')]
-       or FieldAccess[@Name='SCOPE_REQUEST' or @Name='SCOPE_PROTOTYPE']/TypeExpression[pmd-java:typeIs('org.springframework.beans.factory.config.ConfigurableBeanFactory')]]
+       StringLiteral[contains(@Image,'request') or (contains(@Image,'prototype') and not(ancestor::ClassDeclaration[1]/ModifierList/Annotation[pmd-java:typeIs('org.aspectj.lang.annotation.Aspect')]//StringLiteral[matches(@Image,'^"?per(this|target)\s*\(')]))]
+       or FieldAccess[@Name='SCOPE_REQUEST' or (@Name='SCOPE_PROTOTYPE' and not(ancestor::ClassDeclaration[1]/ModifierList/Annotation[pmd-java:typeIs('org.aspectj.lang.annotation.Aspect')]//StringLiteral[matches(@Image,'^"?per(this|target)\s*\(')]))]/TypeExpression[pmd-java:typeIs('org.springframework.beans.factory.config.ConfigurableBeanFactory')]]
     )
    and not(pmd-java:hasAnnotation('org.springframework.context.annotation.RequestScope'))
    (: if @NotThreadSafe no checking :)
@@ -399,7 +399,7 @@ public class RootController {
    (
        pmd-java:hasAnnotation('org.springframework.stereotype.Service')
     or pmd-java:hasAnnotation('org.springframework.stereotype.Component')
-    (: Spring AOP aspect, singleton by default; perthis/pertarget are typically shared too, as the advised target is typically a singleton :)
+    (: Spring AOP aspect, singleton by default; perthis/pertarget aspects are prototype scoped but typically shared too, as the advised target is typically a singleton :)
     or pmd-java:hasAnnotation('org.aspectj.lang.annotation.Aspect')
     or pmd-java:hasAnnotation('org.springframework.stereotype.Controller')
     or pmd-java:hasAnnotation('org.springframework.stereotype.Repository')
@@ -409,8 +409,8 @@ public class RootController {
    )
    (: not shared when request or prototype scope :)
    and not(pmd-java:hasAnnotation('org.springframework.context.annotation.Scope') and .//AnnotationMemberList/MemberValuePair[
-       StringLiteral[contains(@Image,'request') or contains(@Image,'prototype')]
-       or FieldAccess[@Name='SCOPE_REQUEST' or @Name='SCOPE_PROTOTYPE']/TypeExpression[pmd-java:typeIs('org.springframework.beans.factory.config.ConfigurableBeanFactory')]]
+       StringLiteral[contains(@Image,'request') or (contains(@Image,'prototype') and not(ancestor::ClassDeclaration[1]/ModifierList/Annotation[pmd-java:typeIs('org.aspectj.lang.annotation.Aspect')]//StringLiteral[matches(@Image,'^"?per(this|target)\s*\(')]))]
+       or FieldAccess[@Name='SCOPE_REQUEST' or (@Name='SCOPE_PROTOTYPE' and not(ancestor::ClassDeclaration[1]/ModifierList/Annotation[pmd-java:typeIs('org.aspectj.lang.annotation.Aspect')]//StringLiteral[matches(@Image,'^"?per(this|target)\s*\(')]))]/TypeExpression[pmd-java:typeIs('org.springframework.beans.factory.config.ConfigurableBeanFactory')]]
     )
    and not(pmd-java:hasAnnotation('org.springframework.context.annotation.RequestScope'))
    (: if @NotThreadSafe no checking :)
@@ -555,7 +555,7 @@ class BadMutableTypes {
    (
        pmd-java:hasAnnotation('org.springframework.stereotype.Service')
     or pmd-java:hasAnnotation('org.springframework.stereotype.Component')
-    (: Spring AOP aspect, singleton by default; perthis/pertarget are typically shared too, as the advised target is typically a singleton :)
+    (: Spring AOP aspect, singleton by default; perthis/pertarget aspects are prototype scoped but typically shared too, as the advised target is typically a singleton :)
     or pmd-java:hasAnnotation('org.aspectj.lang.annotation.Aspect')
     or pmd-java:hasAnnotation('org.springframework.stereotype.Controller')
     or pmd-java:hasAnnotation('org.springframework.stereotype.Repository')
@@ -565,8 +565,8 @@ class BadMutableTypes {
    )
    (: not shared when request or prototype scope :)
    and not(pmd-java:hasAnnotation('org.springframework.context.annotation.Scope') and .//AnnotationMemberList/MemberValuePair[
-       StringLiteral[contains(@Image,'request') or contains(@Image,'prototype')]
-       or FieldAccess[@Name='SCOPE_REQUEST' or @Name='SCOPE_PROTOTYPE']/TypeExpression[pmd-java:typeIs('org.springframework.beans.factory.config.ConfigurableBeanFactory')]]
+       StringLiteral[contains(@Image,'request') or (contains(@Image,'prototype') and not(ancestor::ClassDeclaration[1]/ModifierList/Annotation[pmd-java:typeIs('org.aspectj.lang.annotation.Aspect')]//StringLiteral[matches(@Image,'^"?per(this|target)\s*\(')]))]
+       or FieldAccess[@Name='SCOPE_REQUEST' or (@Name='SCOPE_PROTOTYPE' and not(ancestor::ClassDeclaration[1]/ModifierList/Annotation[pmd-java:typeIs('org.aspectj.lang.annotation.Aspect')]//StringLiteral[matches(@Image,'^"?per(this|target)\s*\(')]))]/TypeExpression[pmd-java:typeIs('org.springframework.beans.factory.config.ConfigurableBeanFactory')]]
     )
    and not(pmd-java:hasAnnotation('org.springframework.context.annotation.RequestScope'))
    (: if @NotThreadSafe no checking :)

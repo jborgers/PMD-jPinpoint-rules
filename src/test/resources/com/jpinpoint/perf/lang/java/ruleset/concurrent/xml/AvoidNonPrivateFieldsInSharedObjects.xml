@@ -115,4 +115,44 @@ public class PerThisAspect {
 }
      ]]></code>
     </test-code>
+    <test-code>
+        <description>violation: perthis/pertarget aspects must be prototype scoped, but are shared when the advised target is a singleton</description>
+        <expected-problems>2</expected-problems>
+        <expected-linenumbers>9,15</expected-linenumbers>
+        <code><![CDATA[
+import org.aspectj.lang.annotation.Aspect;
+import org.springframework.context.annotation.Scope;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import java.util.List;
+
+@Aspect("perthis(execution(* com.xyz.Service.*(..)))")
+@Scope("prototype")
+class PerThisAspect {
+    List state; // bad, not private
+}
+
+@Aspect("pertarget(execution(* com.xyz.Service.*(..)))")
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+class PerTargetAspect {
+    List state; // bad, not private
+}
+
+     ]]></code>
+    </test-code>
+    <test-code>
+        <description>no violation: ordinary prototype scoped aspect, not shared</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import org.aspectj.lang.annotation.Aspect;
+import org.springframework.context.annotation.Scope;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import java.util.List;
+
+@Aspect
+@Scope("prototype")
+class OrdinaryAspect {
+    List state; // bad, not private
+}
+     ]]></code>
+    </test-code>
 </test-data>
