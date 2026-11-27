@@ -695,7 +695,7 @@ Setting values to 1 allows for serial execution only, while one typically wants 
 **Solution:** The max number of threads should be based on request rate (tps) and response times of a healthy called service in peak load situations, such that all requests can be handled without queueing and no more threads are used than necessary.
 Make core size N smaller than max size to reduce overhead and resource usage in the common case when N threads is enough. E.g. core size = 10, max size = 30.
 Note that the pool will only grow bigger than core size when the queue limit is reached.  
-**Rule names:** SetPoolSizesForTaskExecutor, SetPoolSizesForTaskExecutorBuilder (Spring Boot ThreadPoolTaskExecutorBuilder)   
+**Rule name:** SetPoolSizesForTaskExecutor (also checks Spring Boot's ThreadPoolTaskExecutorBuilder)   
 **Example:** 
 ```java
 ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();

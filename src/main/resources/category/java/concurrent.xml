@@ -1840,14 +1840,14 @@ class RightUseOfGuardedBy {
     <rule name="SetPoolSizesForTaskExecutor"
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           language="java"
-          message="Configure the core and max pool size for the ThreadPoolTaskExecutor."
+          message="Configure the core and max pool size for the ThreadPoolTaskExecutor or its builder."
           externalInfoUrl="${doc_root}/JavaCodePerformance.md#ia01">
-        <description>The org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor pool sizes are not
+        <description>The org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor, or Spring Boot ThreadPoolTaskExecutorBuilder/TaskExecutorBuilder, pool sizes are not
             configured in the method, constructor, initializer or, for fields, class where it is created.
             Problem: It has a default core pool size of 1 and an unlimited max pool size, which are almost never appropriate:
             effectively single threaded, or too many threads when the called service is slow or unavailable.
             &#13;
-            Solution: Call setCorePoolSize and setMaxPoolSize with values based on measurements.
+            Solution: Call setCorePoolSize and setMaxPoolSize (corePoolSize and maxPoolSize for the builders) with values based on measurements.
             (jpinpoint-rules)
         </description>
         <priority>2</priority>
@@ -1855,9 +1855,11 @@ class RightUseOfGuardedBy {
             <property name="tags" value="bad-practice,jpinpoint-rule,memory,performance,sustainability-low" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
-//ConstructorCall[pmd-java:typeIs('org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor')]
+//ConstructorCall[pmd-java:typeIs('org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor')
+        or pmd-java:typeIs('org.springframework.boot.task.ThreadPoolTaskExecutorBuilder')
+        or pmd-java:typeIs('org.springframework.boot.task.TaskExecutorBuilder')]
     [let $scope := (ancestor::MethodDeclaration | ancestor::ConstructorDeclaration | ancestor::Initializer | ancestor::ClassBody)[last()]
-     return not($scope//MethodCall[@MethodName='setCorePoolSize'] and $scope//MethodCall[@MethodName='setMaxPoolSize'])]
+     return not($scope//MethodCall[@MethodName=('setCorePoolSize','corePoolSize')] and $scope//MethodCall[@MethodName=('setMaxPoolSize','maxPoolSize')])]
     ]]>
                 </value>
             </property>
@@ -1878,6 +1880,14 @@ private ThreadPoolTaskExecutor good() {
     executor.setQueueCapacity(10);
     executor.initialize();
     return executor;
+}
+
+Object badBuilder() {
+    return new ThreadPoolTaskExecutorBuilder().queueCapacity(10).build(); // bad
+}
+
+Object goodBuilder() {
+    return new ThreadPoolTaskExecutorBuilder().corePoolSize(10).maxPoolSize(20).queueCapacity(10).build();
 }
     ]]>
         </example>
@@ -1916,42 +1926,6 @@ private ThreadPoolTaskScheduler good() {
     ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
     scheduler.setPoolSize(5);
     return scheduler;
-}
-    ]]>
-        </example>
-    </rule>
-
-    <rule name="SetPoolSizesForTaskExecutorBuilder"
-          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
-          language="java"
-          message="Configure the core and max pool size for the task executor builder."
-          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ia01">
-        <description>The Spring Boot ThreadPoolTaskExecutorBuilder or TaskExecutorBuilder pool sizes are not configured.
-            Problem: The default core pool size is 1 and the max pool size is unlimited, which are almost never appropriate.
-            &#13;
-            Solution: Call corePoolSize and maxPoolSize with values based on measurements.
-            (jpinpoint-rules)
-        </description>
-        <priority>2</priority>
-        <properties>
-            <property name="tags" value="bad-practice,jpinpoint-rule,memory,performance,sustainability-low" type="String" description="classification"/>
-            <property name="xpath">
-                <value><![CDATA[
-//ConstructorCall[pmd-java:typeIs('org.springframework.boot.task.ThreadPoolTaskExecutorBuilder') or pmd-java:typeIs('org.springframework.boot.task.TaskExecutorBuilder')]
-    [let $scope := (ancestor::MethodDeclaration | ancestor::ConstructorDeclaration | ancestor::Initializer | ancestor::ClassBody)[last()]
-     return not($scope//MethodCall[@MethodName='corePoolSize'] and $scope//MethodCall[@MethodName='maxPoolSize'])]
-    ]]>
-                </value>
-            </property>
-        </properties>
-        <example>
-            <![CDATA[
-Object bad() {
-    return new ThreadPoolTaskExecutorBuilder().queueCapacity(10).build(); // bad
-}
-
-Object good() {
-    return new ThreadPoolTaskExecutorBuilder().corePoolSize(10).maxPoolSize(20).queueCapacity(10).build();
 }
     ]]>
         </example>
