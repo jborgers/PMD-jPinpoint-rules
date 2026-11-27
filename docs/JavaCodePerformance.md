@@ -2270,7 +2270,7 @@ Inefficient use of security features
 
 **Observation: A security provider is re-created, that is, created in a method called more than once.**   
 **Problem:** Creating a security provider is expensive because of loading of algorithms and other classes. 
-Additionally, it uses synchronized which leads to lock contention when used with multiple threads.  
+Additionally, it uses synchronized which leads to lock contention when used with multiple threads, resulting in response time spikes.   
 **Solution:** This only needs to happen once in the JVM lifetime, because once loaded, the provider is available from the Security class. 
 Create the security provider only once: only in case it is not available from the Security class, yet.   
 **Rule name:** AvoidRecreatingSecurityProviders.    
@@ -2292,7 +2292,114 @@ class Foo {
   }
 }
 ```
-**Note:** An addProvider call inside a static main method or inside a @PostConstruct annotated method is not reported as a violation since it is assumed to be called only once. 
+**Note:** An addProvider call inside a static main method or inside a @PostConstruct annotated method is *not* reported as a violation since it is assumed to be called only once. 
+
+#### IUOSF02
+
+**Observation: A MessageDigest instance is repeatedly created inside a potentially frequently called method.**   
+**Problem:** Instantiating MessageDigest is expensive due to provider lookups and class loading. Additionally, provider lookup uses synchronization, 
+causing lock contention and latency spikes under heavy multi-threading.  
+**Solution:** Since MessageDigest is not thread-safe, create a single baseline instance and call .clone() for each operation. Cloning bypasses startup overhead and synchronization.   
+**Notes:** 
+1. While major providers (like Bouncy Castle and Oracle) support clone(), implementation support is optional and should include a fallback (catch `CloneNotSupportedException` and create a fresh instance via `getInstance`).   
+2. Apache Commons codec DigestUtils does not use clone(). Avoid its methods that create a MessageDigest under the hood.   
+3. Creating a MessageDigest inside a static main method or inside a @PostConstruct annotated method is *not* reported as a violation since it is assumed to be called only once.   
+4. The rule flags only calls to APIs that create a new MessageDigest, matched by signature, split by what the API returns:   
+   - *Producers* return a reusable MessageDigest (e.g. `MessageDigest.getInstance`). Reported only when created transiently (local variable or used inline), not when returned as a factory or stored in a field.   
+   - *One-shot hashers* return `byte[]`/`String` (e.g. `DigestUtils.sha256`) and recreate a digest on every call, so they are always reported.   
+   - *Reuse APIs* (e.g. `DigestUtils.updateDigest(md, ..)`) are never reported.   
+
+**Rule name:** AvoidRecreatingMessageDigests.    
+**Example:**
+```java
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.nio.charset.StandardCharsets;
+import org.apache.commons.codec.digest.DigestUtils;
+import static org.apache.commons.codec.digest.MessageDigestAlgorithms.SHA_256;
+
+class Foo {
+    static final MessageDigest baseDigest = createBaseDigest(); // created once, only cloned - never updated
+    byte[] dataToDigest = "Hello World!".getBytes(StandardCharsets.UTF_8);
+
+    static MessageDigest createBaseDigest() {
+        try {
+            return MessageDigest.getInstance("SHA-256");
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException("SHA-256 not available", e);
+        }
+    }
+
+    byte[] bad() throws NoSuchAlgorithmException {
+        MessageDigest localDigest = MessageDigest.getInstance("SHA-256"); // bad
+        return localDigest.digest(dataToDigest);
+    }
+
+    byte[] good() throws CloneNotSupportedException {
+        MessageDigest localDigest = (MessageDigest) baseDigest.clone();
+        return localDigest.digest(dataToDigest);
+    }
+
+    byte[] badDigestUtils() {
+        return new DigestUtils(SHA_256).digest(dataToDigest); // bad
+    }
+
+    byte[] goodDigestUtils() throws CloneNotSupportedException {
+        MessageDigest localDigest = (MessageDigest) baseDigest.clone();
+        return DigestUtils.digest(localDigest, dataToDigest);
+    }
+}
+```
+
+#### IUOSF03
+
+**Observation: java.security.SecureRandom is used in a non-cryptographic context** (e.g. computing a retry/backoff/jitter/delay/timeout).   
+**Problem:** SecureRandom is expensive and uses a `synchronized` internal generator, so a shared instance becomes a lock-contention
+point under multiple threads (measured ~100-300x slower than `ThreadLocalRandom`, and far worse under a CPU limit). Additionally,
+`SecureRandom.getInstanceStrong()` may block on low-entropy systems. For non-cryptographic values this cost buys nothing:
+unpredictability is not needed there.   
+**Solution:**
+- For platform threads: use `ThreadLocalRandom.current()`, which is non-blocking, thread-safe and fast.
+- For virtual threads (Java 21+): `ThreadLocalRandom` is safe, but can cause GC pressure with millions of short-lived tasks;
+  use a shared thread-safe `SplittableGenerator` or dedicated `RandomGenerator` instances.
+- Java 17+ offers the `RandomGenerator` API with faster, non-blocking algorithms.   
+
+**Note:** This rule is heuristic: it only fires when the enclosing method or variable name matches
+`retry|jitter|backoff|delay|interval|timeout|wait` (non-cryptographic intent) **and** that same name does not also contain a
+cryptographic term `token|key|salt|nonce|secret|password|passwd|pwd|crypt|cipher|signature|otp|uuid|guid|seed|hash`. The exclude
+list prevents frequent false positives such as a genuinely cryptographic `generateSessionTimeoutToken()`. Because the match is
+name-based it can still miss cases (other naming) or over-report; suppress remaining false positives with `@SuppressWarnings` where the use is really cryptographic.   
+**Rule name:** AvoidUnnecessarySecureRandom.    
+**Example:**
+```java
+import java.security.SecureRandom;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.random.RandomGenerator;
+
+public class RetryService {
+
+    // Bad: expensive and lock-contended across threads
+    public void executeWithRetryBad() {
+        SecureRandom random = new SecureRandom();
+        long jitter = random.nextInt(1000);
+        // ... retry logic
+    }
+
+    // Good (Platform Threads): fast, non-blocking, thread-safe
+    public void executeWithRetryGood() {
+        long jitter = ThreadLocalRandom.current().nextInt(1000);
+        // ... retry logic
+    }
+
+    // Good (Java 21+ / Virtual Threads): shared, modern, non-blocking LXM algorithm
+    private static final RandomGenerator JITTER_GEN = RandomGenerator.of("L64X128MixRandom");
+
+    public void executeWithRetryVirtualThreadsGood() {
+        long jitter = JITTER_GEN.nextInt(1000);
+        // ... retry logic
+    }
+}
+```
 
 Extensive use of classpath scanning
 -----------------------------------
@@ -3091,9 +3198,11 @@ Set<YourEnumType> set = EnumSet.allOf(YourEnumType.class);
 #### IUOC07
 
 **Observation: To get an enum value by its defined field, the values are streamed on every call.**   
-**Problem:** the time to find element is O(n); n = the number of enum values. This identical processing is executed for every call. Considered problematic when n > 3.     
+**Problem:** the time to find an element is O(n); n = the number of enum values. This identical processing is executed for every call. Considered problematic when n > 3.     
 **Solution:** use a static field-to-enum-value Map. Access time is O(1), provided the [hashCode is well-defined](http://www.ibm.com/developerworks/library/j-jtp05273/).
-For one String field, usually toString returns that field. Consider to implement a fromString method to provide the reverse conversion by using the map, see the following examples:   
+For one String field, usually toString returns that field. Consider implementing a fromString method to provide the reverse conversion by using the map, see the following examples.   
+**Rule name:** AvoidReStreamingEnumValues   
+**Note:** The rule will flag for cases with more than 3 enum values, in case it occurs in a method inside the enum itself. Outside the enum it does not consider the number of enum values.    
 **Examples:**
 ```java
 // BAD
@@ -3112,6 +3221,12 @@ public enum Fruit {
 
     public static Optional<Fruit> fromString(String name) {
         return Stream.of(values()).filter(v -> v.toString().equals(name)).findAny(); // bad: iterates for every call, O(n) access time
+    }
+}
+
+class BadFruitHelper {
+    BadFruit toBadFruit(String name) {
+        return Arrays.stream(BadFruit.values()).filter(v -> v.toString().equals(name)).findFirst().orElse(null); // bad: iterates for every call
     }
 }
 ```

@@ -1439,7 +1439,7 @@ class AvoidHardcodedConnectionConfig {
         </description>
         <priority>2</priority>
         <properties>
-            <property name="tags" value="cpu,jpinpoint-rule,performance,sustainability-high" type="String" description="classification"/>
+            <property name="tags" value="cpu,jpinpoint-rule,multi-threading,performance,sustainability-high" type="String" description="classification"/>
             <property name="xpath">
                 <value><![CDATA[
 //ClassType[pmd-java:typeIs('org.springframework.ws.soap.saaj.SaajSoapMessageFactory')

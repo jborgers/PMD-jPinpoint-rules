@@ -5,8 +5,8 @@
         xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
     <test-code>
         <description>violation: AvoidReStreamingEnumValues bad</description>
-        <expected-problems>2</expected-problems>
-        <expected-linenumbers>15, 18</expected-linenumbers>
+        <expected-problems>3</expected-problems>
+        <expected-linenumbers>15, 18, 25</expected-linenumbers>
         <code><![CDATA[
 import java.util.*;
 import java.util.stream.*;
@@ -22,10 +22,28 @@ public enum BadFruit {
     BadFruit(String name) { this.name = name; }
     @Override public String toString() { return name; }
     public static Optional<BadFruit> fromString(String name) {
-        return Stream.of(values()).filter(v -> v.toString().equals(name)).findAny(); // bad: iterates for every call, O(n) access time
+        return Stream.of(values()).filter(v -> v.toString().equals(name)).findAny(); // bad 1: iterates for every call, O(n) access time
     }
     public static Optional<BadFruit> fromName(String name) {
-        return Arrays.stream(BadFruit.values()).filter(f -> f.toString().equals(name)).findFirst(); // bad: iterates for every call, O(n) access time
+        return Arrays.stream(BadFruit.values()).filter(f -> f.toString().equals(name)).findFirst(); // bad 2: iterates for every call, O(n) access time
+    }
+}
+
+// Issue #708: missing case
+class BadFruitHelper {
+    BadFruit toBadFruit(String name) {
+        return Arrays.stream(BadFruit.values()).filter(v -> v.toString().equals(name)).findFirst().orElse(null); // bad 3: iterates for every call
+    }
+}
+
+class BadClass {
+    public static BadClass[] values() { return null; }
+}
+
+class BadClassHelper {
+    BadClass toBadClass(String type) {
+        return Arrays.stream(BadClass.values()) // ok, not a predefined method, we don't know the implementation
+		.filter(k -> k.value().equals(type)).findFirst().orElse(null);
     }
 }
      ]]></code>

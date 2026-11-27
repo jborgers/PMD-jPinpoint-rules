@@ -171,6 +171,13 @@
             <artifactId>httpclient</artifactId>
             <version>4.5.14</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/commons-codec/commons-codec -->
+        <!-- Declared directly to override the old transitive version from httpclient, so rule tests resolve against the modern DigestUtils API -->
+        <dependency>
+            <groupId>commons-codec</groupId>
+            <artifactId>commons-codec</artifactId>
+            <version>1.22.1</version>
+        </dependency>
         <!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind -->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
