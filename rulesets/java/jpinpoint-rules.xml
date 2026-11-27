@@ -3312,6 +3312,7 @@ public class FooGood {
             a slow or unavailable remote service can eat up all its threads.
             &#13;
             Solution: Specify a dedicated, properly sized and monitored executor bean, e.g. @Async("myPool").
+            Note: also finds empty @Async() and an empty String constant of the same class as value.
             (jpinpoint-rules)
         (jpinpoint-rules)</description>
         <priority>3</priority>
@@ -3320,7 +3321,8 @@ public class FooGood {
             <property name="xpath">
                 <value><![CDATA[
 //Annotation[pmd-java:typeIs('org.springframework.scheduling.annotation.Async')]
-    [not(AnnotationMemberList) or AnnotationMemberList/MemberValuePair[@Name='value']/StringLiteral[@Empty=true()]]
+    [not(AnnotationMemberList/MemberValuePair[@Name='value']) or AnnotationMemberList/MemberValuePair[@Name='value']/*[self::StringLiteral[@Empty=true()]
+        or (self::VariableAccess and (let $n := @Name return ancestor::ClassBody[1]/FieldDeclaration/VariableDeclarator[VariableId/@Name = $n]/StringLiteral[@Empty=true()]))]]
     ]]>
                 </value>
             </property>
@@ -5078,8 +5080,11 @@ class Good1 {
 //ConstructorCall[pmd-java:typeIs('org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler')]
     [let $scope := (ancestor::MethodDeclaration | ancestor::ConstructorDeclaration | ancestor::Initializer | ancestor::ClassBody)[last()],
          $called := $scope//MethodCall/@MethodName,
-         $all := ($scope | ancestor::ClassBody[1]/MethodDeclaration[@Name = $called])
-     return not($all//MethodCall[@MethodName='setPoolSize'])]
+         $others := ancestor::ClassBody[1]/MethodDeclaration[@Name = $called],
+         $var := (parent::VariableDeclarator/@Name, parent::AssignmentExpression/*[1][self::VariableAccess or self::FieldAccess]/@Name)[1],
+         $own := (ancestor::MethodCall | $scope//MethodCall[exists($var) and *[1][(self::VariableAccess or self::FieldAccess) and @Name = $var]]),
+         $all := ($own | $others//MethodCall)
+     return not($all[@MethodName='setPoolSize'])]
     ]]>
                 </value>
             </property>
@@ -5107,6 +5112,7 @@ private ThreadPoolTaskScheduler good() {
         <description>The org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor, or Spring Boot ThreadPoolTaskExecutorBuilder/TaskExecutorBuilder, pool sizes are not
             configured in the method, constructor, initializer or, for fields, class where it is created,
             or in a method of the same class that is called from there.
+            The sizes must be set on the created instance (or its builder chain), in the called method any receiver counts.
             Problem: It has a default core pool size of 1, an unlimited max pool size and an unlimited queue, which are almost never appropriate:
             effectively single threaded; and when only the queue capacity is limited, too many threads when the called service is slow or unavailable.
             &#13;
@@ -5126,8 +5132,11 @@ private ThreadPoolTaskScheduler good() {
         or pmd-java:typeIs('org.springframework.boot.task.TaskExecutorBuilder')]
     [let $scope := (ancestor::MethodDeclaration | ancestor::ConstructorDeclaration | ancestor::Initializer | ancestor::ClassBody)[last()],
          $called := $scope//MethodCall/@MethodName,
-         $all := ($scope | ancestor::ClassBody[1]/MethodDeclaration[@Name = $called])
-     return not($all//MethodCall[@MethodName=('setCorePoolSize','corePoolSize')] and $all//MethodCall[@MethodName=('setMaxPoolSize','maxPoolSize')])]
+         $others := ancestor::ClassBody[1]/MethodDeclaration[@Name = $called],
+         $var := (parent::VariableDeclarator/@Name, parent::AssignmentExpression/*[1][self::VariableAccess or self::FieldAccess]/@Name)[1],
+         $own := (ancestor::MethodCall | $scope//MethodCall[exists($var) and *[1][(self::VariableAccess or self::FieldAccess) and @Name = $var]]),
+         $all := ($own | $others//MethodCall)
+     return not($all[@MethodName=('setCorePoolSize','corePoolSize')] and $all[@MethodName=('setMaxPoolSize','maxPoolSize')])]
     ]]>
                 </value>
             </property>

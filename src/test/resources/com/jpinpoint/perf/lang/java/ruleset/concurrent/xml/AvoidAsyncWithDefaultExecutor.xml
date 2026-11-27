@@ -38,4 +38,39 @@ public class Foo {
 }
      ]]></code>
     </test-code>
+    <test-code>
+        <description>violation: empty parentheses and empty constant as executor</description>
+        <expected-problems>2</expected-problems>
+        <expected-linenumbers>6,10</expected-linenumbers>
+        <code><![CDATA[
+import org.springframework.scheduling.annotation.Async;
+
+public class Foo {
+    static final String DEFAULT_EXECUTOR = "";
+
+    @Async() //bad
+    public void bad() {
+    }
+
+    @Async(DEFAULT_EXECUTOR) //bad
+    public void bad2() {
+    }
+}
+     ]]></code>
+    </test-code>
+    <test-code>
+        <description>no violation: constant with executor name</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import org.springframework.scheduling.annotation.Async;
+
+public class Foo {
+    static final String POOL = "myPool";
+
+    @Async(POOL)
+    public void good() {
+    }
+}
+     ]]></code>
+    </test-code>
 </test-data>

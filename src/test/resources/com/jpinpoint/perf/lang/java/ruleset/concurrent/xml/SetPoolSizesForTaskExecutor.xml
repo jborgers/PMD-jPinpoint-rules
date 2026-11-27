@@ -251,4 +251,61 @@ public class Foo {
 }
      ]]></code>
     </test-code>
+    <test-code>
+        <description>violation: configured and unconfigured instances in the same scope</description>
+        <expected-problems>4</expected-problems>
+        <expected-linenumbers>7,14,23,26</expected-linenumbers>
+        <code><![CDATA[
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.boot.task.ThreadPoolTaskExecutorBuilder;
+
+public class Foo {
+    Object two() {
+        ThreadPoolTaskExecutor configured = new ThreadPoolTaskExecutor();
+        ThreadPoolTaskExecutor unconfigured = new ThreadPoolTaskExecutor(); //bad
+        configured.setCorePoolSize(10);
+        configured.setMaxPoolSize(20);
+        return unconfigured;
+    }
+
+    Object twoReversed() {
+        ThreadPoolTaskExecutor unconfigured = new ThreadPoolTaskExecutor(); //bad
+        ThreadPoolTaskExecutor configured = new ThreadPoolTaskExecutor();
+        configured.setCorePoolSize(10);
+        configured.setMaxPoolSize(20);
+        return unconfigured;
+    }
+
+    Object twoBuilders() {
+        Object ok = new ThreadPoolTaskExecutorBuilder().corePoolSize(10).maxPoolSize(20).build();
+        return new ThreadPoolTaskExecutorBuilder().queueCapacity(10).build(); //bad
+    }
+
+    private final ThreadPoolTaskExecutor a = new ThreadPoolTaskExecutor(); //bad
+    private final ThreadPoolTaskExecutor b = new ThreadPoolTaskExecutor();
+
+    void init() {
+        b.setCorePoolSize(10);
+        b.setMaxPoolSize(20);
+    }
+}
+     ]]></code>
+    </test-code>
+    <test-code>
+        <description>no violation: fields configured via this and instances assigned later</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+
+public class Foo {
+    private ThreadPoolTaskExecutor executor;
+
+    void init() {
+        this.executor = new ThreadPoolTaskExecutor();
+        this.executor.setCorePoolSize(10);
+        this.executor.setMaxPoolSize(20);
+    }
+}
+     ]]></code>
+    </test-code>
 </test-data>

@@ -74,4 +74,21 @@ public class Foo {
 }
      ]]></code>
     </test-code>
+    <test-code>
+        <description>violation: configured and unconfigured instances in the same scope</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>5</expected-linenumbers>
+        <code><![CDATA[
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
+
+public class Foo {
+    Object two() {
+        ThreadPoolTaskScheduler unconfigured = new ThreadPoolTaskScheduler(); //bad
+        ThreadPoolTaskScheduler configured = new ThreadPoolTaskScheduler();
+        configured.setPoolSize(5);
+        return unconfigured;
+    }
+}
+     ]]></code>
+    </test-code>
 </test-data>
