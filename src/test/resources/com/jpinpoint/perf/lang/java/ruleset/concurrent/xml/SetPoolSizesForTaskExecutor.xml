@@ -1,0 +1,373 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>violation: no pool sizes set</description>
+        <expected-problems>2</expected-problems>
+        <expected-linenumbers>5,11</expected-linenumbers>
+        <code><![CDATA[
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+
+public class Foo {
+    private ThreadPoolTaskExecutor bad() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor(); //bad
+        executor.setQueueCapacity(10);
+        return executor;
+    }
+
+    private ThreadPoolTaskExecutor bad2() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor(); //bad, max not set
+        executor.setCorePoolSize(10);
+        return executor;
+    }
+}
+     ]]></code>
+    </test-code>
+    <test-code>
+        <description>no violation: core and max pool size set</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+
+public class Foo {
+    private ThreadPoolTaskExecutor good() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(10);
+        executor.setMaxPoolSize(20);
+        executor.setQueueCapacity(10);
+        executor.initialize();
+        return executor;
+    }
+}
+     ]]></code>
+    </test-code>
+    <test-code>
+        <description>violation: field initializers and constructor without pool sizes</description>
+        <expected-problems>3</expected-problems>
+        <expected-linenumbers>4,5,9</expected-linenumbers>
+        <code><![CDATA[
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+
+public class Foo {
+    private final ThreadPoolTaskExecutor field = new ThreadPoolTaskExecutor(); //bad
+    private ThreadPoolTaskExecutor other = new ThreadPoolTaskExecutor(); //bad
+    private ThreadPoolTaskExecutor inCtor;
+
+    public Foo() {
+        inCtor = new ThreadPoolTaskExecutor(); //bad
+        inCtor.setQueueCapacity(10);
+    }
+}
+     ]]></code>
+    </test-code>
+    <test-code>
+        <description>no violation: sizes set elsewhere in the same class</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import javax.annotation.PostConstruct;
+
+public class Foo {
+    private final ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+
+    @PostConstruct
+    void init() {
+        executor.setCorePoolSize(10);
+        executor.setMaxPoolSize(20);
+        executor.initialize();
+    }
+}
+
+class Bar {
+    private final ThreadPoolTaskExecutor executor;
+
+    Bar() {
+        executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(10);
+        executor.setMaxPoolSize(20);
+    }
+}
+     ]]></code>
+    </test-code>
+    <test-code>
+        <description>violation: subclass of ThreadPoolTaskExecutor without pool sizes</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>6</expected-linenumbers>
+        <code><![CDATA[
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+
+class MyExecutor extends ThreadPoolTaskExecutor {}
+
+public class Foo {
+    private MyExecutor bad() { return new MyExecutor(); } //bad
+}
+     ]]></code>
+    </test-code>
+    <test-code>
+        <description>violation: builder without pool sizes</description>
+        <expected-problems>3</expected-problems>
+        <expected-linenumbers>6,10,14</expected-linenumbers>
+        <code><![CDATA[
+import org.springframework.boot.task.ThreadPoolTaskExecutorBuilder;
+import org.springframework.boot.task.TaskExecutorBuilder;
+
+public class Foo {
+    Object bad() {
+        return new ThreadPoolTaskExecutorBuilder().queueCapacity(10).build(); //bad
+    }
+
+    Object bad2() {
+        return new TaskExecutorBuilder().threadNamePrefix("x").build(); //bad
+    }
+
+    Object bad3() {
+        return new ThreadPoolTaskExecutorBuilder().corePoolSize(10).build(); //bad, max not set
+    }
+}
+     ]]></code>
+    </test-code>
+    <test-code>
+        <description>no violation: builder with core and max pool size</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import org.springframework.boot.task.ThreadPoolTaskExecutorBuilder;
+
+public class Foo {
+    Object good() {
+        return new ThreadPoolTaskExecutorBuilder().corePoolSize(10).maxPoolSize(20).queueCapacity(10).build();
+    }
+}
+     ]]></code>
+    </test-code>
+    <test-code>
+        <description>no violation: sizes are set in other methods of the same class that are called</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.boot.task.ThreadPoolTaskExecutorBuilder;
+
+public class Foo {
+    ThreadPoolTaskExecutor viaHelper() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        configure(executor);
+        return executor;
+    }
+
+    ThreadPoolTaskExecutor viaTwoHelpers() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        configureCore(executor);
+        configureMax(executor);
+        return executor;
+    }
+
+    ThreadPoolTaskExecutor viaWrappedConstructorCall() {
+        return configure(new ThreadPoolTaskExecutor());
+    }
+
+    Object builderViaHelper() {
+        return sized(new ThreadPoolTaskExecutorBuilder()).build();
+    }
+
+    private ThreadPoolTaskExecutor configure(ThreadPoolTaskExecutor executor) {
+        executor.setCorePoolSize(10);
+        executor.setMaxPoolSize(20);
+        return executor;
+    }
+
+    private void configureCore(ThreadPoolTaskExecutor executor) {
+        executor.setCorePoolSize(10);
+    }
+
+    private void configureMax(ThreadPoolTaskExecutor executor) {
+        executor.setMaxPoolSize(20);
+    }
+
+    private ThreadPoolTaskExecutorBuilder sized(ThreadPoolTaskExecutorBuilder builder) {
+        return builder.corePoolSize(10).maxPoolSize(20);
+    }
+}
+     ]]></code>
+    </test-code>
+    <test-code>
+        <description>no violation: constructor calls a method that sets the sizes</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+
+public class Foo {
+    private final ThreadPoolTaskExecutor executor;
+
+    Foo() {
+        executor = new ThreadPoolTaskExecutor();
+        init();
+    }
+
+    private void init() {
+        executor.setCorePoolSize(10);
+        executor.setMaxPoolSize(20);
+    }
+}
+     ]]></code>
+    </test-code>
+    <test-code>
+        <description>violation: called methods set only some sizes, or sizes are set in a method that is not called</description>
+        <expected-problems>3</expected-problems>
+        <expected-linenumbers>5,11,17</expected-linenumbers>
+        <code><![CDATA[
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+
+public class Foo {
+    ThreadPoolTaskExecutor onlyCore() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor(); //bad, max not set by helper
+        configureCore(executor);
+        return executor;
+    }
+
+    ThreadPoolTaskExecutor unrelatedHelper() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor(); //bad, helper sets no sizes
+        decorate(executor);
+        return executor;
+    }
+
+    ThreadPoolTaskExecutor notCalled() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor(); //bad, configure is not called
+        return executor;
+    }
+
+    private void configureCore(ThreadPoolTaskExecutor executor) {
+        executor.setCorePoolSize(10);
+    }
+
+    private void decorate(ThreadPoolTaskExecutor executor) {
+        executor.setThreadNamePrefix("x-");
+    }
+
+    private void configure(ThreadPoolTaskExecutor executor) {
+        executor.setCorePoolSize(10);
+        executor.setMaxPoolSize(20);
+    }
+}
+     ]]></code>
+    </test-code>
+    <test-code>
+        <description>violation: configured and unconfigured instances in the same scope</description>
+        <expected-problems>4</expected-problems>
+        <expected-linenumbers>7,14,23,26</expected-linenumbers>
+        <code><![CDATA[
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.boot.task.ThreadPoolTaskExecutorBuilder;
+
+public class Foo {
+    Object two() {
+        ThreadPoolTaskExecutor configured = new ThreadPoolTaskExecutor();
+        ThreadPoolTaskExecutor unconfigured = new ThreadPoolTaskExecutor(); //bad
+        configured.setCorePoolSize(10);
+        configured.setMaxPoolSize(20);
+        return unconfigured;
+    }
+
+    Object twoReversed() {
+        ThreadPoolTaskExecutor unconfigured = new ThreadPoolTaskExecutor(); //bad
+        ThreadPoolTaskExecutor configured = new ThreadPoolTaskExecutor();
+        configured.setCorePoolSize(10);
+        configured.setMaxPoolSize(20);
+        return unconfigured;
+    }
+
+    Object twoBuilders() {
+        Object ok = new ThreadPoolTaskExecutorBuilder().corePoolSize(10).maxPoolSize(20).build();
+        return new ThreadPoolTaskExecutorBuilder().queueCapacity(10).build(); //bad
+    }
+
+    private final ThreadPoolTaskExecutor a = new ThreadPoolTaskExecutor(); //bad
+    private final ThreadPoolTaskExecutor b = new ThreadPoolTaskExecutor();
+
+    void init() {
+        b.setCorePoolSize(10);
+        b.setMaxPoolSize(20);
+    }
+}
+     ]]></code>
+    </test-code>
+    <test-code>
+        <description>no violation: fields configured via this and instances assigned later</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+
+public class Foo {
+    private ThreadPoolTaskExecutor executor;
+
+    void init() {
+        this.executor = new ThreadPoolTaskExecutor();
+        this.executor.setCorePoolSize(10);
+        this.executor.setMaxPoolSize(20);
+    }
+}
+     ]]></code>
+    </test-code>
+    <test-code>
+        <description>violation: field is not configured, a local of the same name in another method is</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>4</expected-linenumbers>
+        <code><![CDATA[
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+
+public class Foo {
+    private final ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor(); //bad
+
+    void other(ThreadPoolTaskExecutor param) {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(10);
+        executor.setMaxPoolSize(20);
+    }
+}
+     ]]></code>
+    </test-code>
+    <test-code>
+        <description>violation: builder is immutable, discarded results of corePoolSize and maxPoolSize have no effect</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>5</expected-linenumbers>
+        <code><![CDATA[
+import org.springframework.boot.task.ThreadPoolTaskExecutorBuilder;
+
+public class Foo {
+    Object bad() {
+        ThreadPoolTaskExecutorBuilder b = new ThreadPoolTaskExecutorBuilder(); //bad
+        b.corePoolSize(10);
+        b.maxPoolSize(20);
+        return b.build();
+    }
+}
+     ]]></code>
+    </test-code>
+    <test-code>
+        <description>no violation: stored builder with sizes retained, in a chain or assigned back</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import org.springframework.boot.task.ThreadPoolTaskExecutorBuilder;
+
+public class Foo {
+    Object chain() {
+        var b = new ThreadPoolTaskExecutorBuilder();
+        return b.corePoolSize(10).maxPoolSize(20).build();
+    }
+
+    Object assignedChain() {
+        ThreadPoolTaskExecutorBuilder b = new ThreadPoolTaskExecutorBuilder();
+        b = b.corePoolSize(10).maxPoolSize(20);
+        return b.build();
+    }
+
+    Object assignedSeparately() {
+        ThreadPoolTaskExecutorBuilder b = new ThreadPoolTaskExecutorBuilder();
+        b = b.corePoolSize(10);
+        b = b.maxPoolSize(20);
+        return b.build();
+    }
+}
+     ]]></code>
+    </test-code>
+</test-data>

@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>violation: pool size not set, default is 1</description>
+        <expected-problems>2</expected-problems>
+        <expected-linenumbers>5,9</expected-linenumbers>
+        <code><![CDATA[
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
+
+public class Foo {
+    private ThreadPoolTaskScheduler bad() {
+        ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler(); //bad
+        return scheduler;
+    }
+
+    private final ThreadPoolTaskScheduler field = new ThreadPoolTaskScheduler(); //bad
+}
+     ]]></code>
+    </test-code>
+    <test-code>
+        <description>no violation: pool size set</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
+
+public class Foo {
+    private ThreadPoolTaskScheduler good() {
+        ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
+        scheduler.setPoolSize(5);
+        return scheduler;
+    }
+}
+     ]]></code>
+    </test-code>
+    <test-code>
+        <description>no violation: pool size is set in a called method of the same class</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
+
+public class Foo {
+    ThreadPoolTaskScheduler viaHelper() {
+        ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
+        configure(scheduler);
+        return scheduler;
+    }
+
+    private void configure(ThreadPoolTaskScheduler scheduler) {
+        scheduler.setPoolSize(5);
+    }
+}
+     ]]></code>
+    </test-code>
+    <test-code>
+        <description>violation: called method does not set the pool size</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>5</expected-linenumbers>
+        <code><![CDATA[
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
+
+public class Foo {
+    ThreadPoolTaskScheduler unrelatedHelper() {
+        ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler(); //bad
+        decorate(scheduler);
+        return scheduler;
+    }
+
+    private void decorate(ThreadPoolTaskScheduler scheduler) {
+        scheduler.setThreadNamePrefix("x-");
+    }
+}
+     ]]></code>
+    </test-code>
+    <test-code>
+        <description>violation: configured and unconfigured instances in the same scope</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>5</expected-linenumbers>
+        <code><![CDATA[
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
+
+public class Foo {
+    Object two() {
+        ThreadPoolTaskScheduler unconfigured = new ThreadPoolTaskScheduler(); //bad
+        ThreadPoolTaskScheduler configured = new ThreadPoolTaskScheduler();
+        configured.setPoolSize(5);
+        return unconfigured;
+    }
+}
+     ]]></code>
+    </test-code>
+    <test-code>
+        <description>violation: field is not configured, a local of the same name in another method is</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>4</expected-linenumbers>
+        <code><![CDATA[
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
+
+public class Foo {
+    private final ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler(); //bad
+
+    void other() {
+        ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
+        scheduler.setPoolSize(5);
+    }
+}
+     ]]></code>
+    </test-code>
+</test-data>
