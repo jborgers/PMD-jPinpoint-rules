@@ -5111,6 +5111,9 @@ private ThreadPoolTaskScheduler good() {
             effectively single threaded; and when only the queue capacity is limited, too many threads when the called service is slow or unavailable.
             &#13;
             Solution: Call setCorePoolSize and setMaxPoolSize (corePoolSize and maxPoolSize for the builders) with values based on measurements.
+            Note: the builders are immutable, use the result of corePoolSize/maxPoolSize, a discarded result has no effect.
+            TaskExecutorBuilder was removed in Spring Boot 3.4, use ThreadPoolTaskExecutorBuilder.
+            Sizes set through customizers, or in other classes, are not seen by this rule.
             (jpinpoint-rules)
         (jpinpoint-rules)</description>
         <priority>2</priority>
