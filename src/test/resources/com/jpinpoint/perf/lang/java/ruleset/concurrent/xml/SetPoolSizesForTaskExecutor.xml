@@ -308,4 +308,66 @@ public class Foo {
 }
      ]]></code>
     </test-code>
+    <test-code>
+        <description>violation: field is not configured, a local of the same name in another method is</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>4</expected-linenumbers>
+        <code><![CDATA[
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+
+public class Foo {
+    private final ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor(); //bad
+
+    void other(ThreadPoolTaskExecutor param) {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(10);
+        executor.setMaxPoolSize(20);
+    }
+}
+     ]]></code>
+    </test-code>
+    <test-code>
+        <description>violation: builder is immutable, discarded results of corePoolSize and maxPoolSize have no effect</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>5</expected-linenumbers>
+        <code><![CDATA[
+import org.springframework.boot.task.ThreadPoolTaskExecutorBuilder;
+
+public class Foo {
+    Object bad() {
+        ThreadPoolTaskExecutorBuilder b = new ThreadPoolTaskExecutorBuilder(); //bad
+        b.corePoolSize(10);
+        b.maxPoolSize(20);
+        return b.build();
+    }
+}
+     ]]></code>
+    </test-code>
+    <test-code>
+        <description>no violation: stored builder with sizes retained, in a chain or assigned back</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import org.springframework.boot.task.ThreadPoolTaskExecutorBuilder;
+
+public class Foo {
+    Object chain() {
+        var b = new ThreadPoolTaskExecutorBuilder();
+        return b.corePoolSize(10).maxPoolSize(20).build();
+    }
+
+    Object assignedChain() {
+        ThreadPoolTaskExecutorBuilder b = new ThreadPoolTaskExecutorBuilder();
+        b = b.corePoolSize(10).maxPoolSize(20);
+        return b.build();
+    }
+
+    Object assignedSeparately() {
+        ThreadPoolTaskExecutorBuilder b = new ThreadPoolTaskExecutorBuilder();
+        b = b.corePoolSize(10);
+        b = b.maxPoolSize(20);
+        return b.build();
+    }
+}
+     ]]></code>
+    </test-code>
 </test-data>

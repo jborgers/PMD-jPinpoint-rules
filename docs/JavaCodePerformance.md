@@ -696,7 +696,7 @@ Setting values to 1 allows for serial execution only, while one typically wants 
 Make core size N smaller than max size to reduce overhead and resource usage in the common case when N threads is enough. E.g. core size = 10, max size = 30.
 Note that the pool will only grow bigger than core size when the queue limit is reached.  
 **Rule name:** SetPoolSizesForTaskExecutor (also checks Spring Boot's ThreadPoolTaskExecutorBuilder)   
-**Note:** Spring Boot's ThreadPoolTaskExecutorBuilder (3.2+) is immutable: use the result of corePoolSize/maxPoolSize, a discarded result has no effect. TaskExecutorBuilder was removed in Spring Boot 3.4. With an unlimited queue the max pool size is ignored.   
+**Note:** Spring Boot's ThreadPoolTaskExecutorBuilder (3.2+) is immutable: use the result of corePoolSize/maxPoolSize, a discarded result has no effect (the rule does not count it as configured). TaskExecutorBuilder was removed in Spring Boot 3.4. With an unlimited queue the max pool size is ignored.   
 **Example:** 
 ```java
 ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();

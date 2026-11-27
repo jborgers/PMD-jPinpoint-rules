@@ -91,4 +91,21 @@ public class Foo {
 }
      ]]></code>
     </test-code>
+    <test-code>
+        <description>violation: field is not configured, a local of the same name in another method is</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>4</expected-linenumbers>
+        <code><![CDATA[
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
+
+public class Foo {
+    private final ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler(); //bad
+
+    void other() {
+        ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
+        scheduler.setPoolSize(5);
+    }
+}
+     ]]></code>
+    </test-code>
 </test-data>

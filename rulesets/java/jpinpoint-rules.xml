@@ -5082,7 +5082,9 @@ class Good1 {
          $called := $scope//MethodCall/@MethodName,
          $others := ancestor::ClassBody[1]/MethodDeclaration[@Name = $called],
          $var := (parent::VariableDeclarator/@Name, parent::AssignmentExpression/*[1][self::VariableAccess or self::FieldAccess]/@Name)[1],
-         $own := (ancestor::MethodCall | $scope//MethodCall[exists($var) and *[1][(self::VariableAccess or self::FieldAccess) and @Name = $var]]),
+         $own := (ancestor::MethodCall | $scope//MethodCall[exists($var) and (let $m := . return exists(.//*[
+             (self::FieldAccess or (self::VariableAccess and not($scope[self::ClassBody] and ancestor::MethodDeclaration[(.//LocalVariableDeclaration//VariableId | .//FormalParameter/VariableId)/@Name = $var])))
+             and @Name = $var and not(ancestor::ArgumentList[ancestor::MethodCall[. is $m]])]))]),
          $all := ($own | $others//MethodCall)
      return not($all[@MethodName='setPoolSize'])]
     ]]>
@@ -5117,7 +5119,7 @@ private ThreadPoolTaskScheduler good() {
             effectively single threaded; and when only the queue capacity is limited, too many threads when the called service is slow or unavailable.
             &#13;
             Solution: Call setCorePoolSize and setMaxPoolSize (corePoolSize and maxPoolSize for the builders) with values based on measurements.
-            Note: the builders are immutable, use the result of corePoolSize/maxPoolSize, a discarded result has no effect.
+            Note: the builders are immutable, a discarded result of corePoolSize/maxPoolSize has no effect and is not counted as configured.
             TaskExecutorBuilder was removed in Spring Boot 3.4, use ThreadPoolTaskExecutorBuilder.
             Sizes set through customizers, or in other classes, are not seen by this rule.
             (jpinpoint-rules)
@@ -5134,9 +5136,12 @@ private ThreadPoolTaskScheduler good() {
          $called := $scope//MethodCall/@MethodName,
          $others := ancestor::ClassBody[1]/MethodDeclaration[@Name = $called],
          $var := (parent::VariableDeclarator/@Name, parent::AssignmentExpression/*[1][self::VariableAccess or self::FieldAccess]/@Name)[1],
-         $own := (ancestor::MethodCall | $scope//MethodCall[exists($var) and *[1][(self::VariableAccess or self::FieldAccess) and @Name = $var]]),
+         $own := (ancestor::MethodCall | $scope//MethodCall[exists($var) and (let $m := . return exists(.//*[
+             (self::FieldAccess or (self::VariableAccess and not($scope[self::ClassBody] and ancestor::MethodDeclaration[(.//LocalVariableDeclaration//VariableId | .//FormalParameter/VariableId)/@Name = $var])))
+             and @Name = $var and not(ancestor::ArgumentList[ancestor::MethodCall[. is $m]])]))]),
          $all := ($own | $others//MethodCall)
-     return not($all[@MethodName=('setCorePoolSize','corePoolSize')] and $all[@MethodName=('setMaxPoolSize','maxPoolSize')])]
+     return not($all[@MethodName='setCorePoolSize' or (@MethodName='corePoolSize' and not(parent::ExpressionStatement))]
+         and $all[@MethodName='setMaxPoolSize' or (@MethodName='maxPoolSize' and not(parent::ExpressionStatement))])]
     ]]>
                 </value>
             </property>
