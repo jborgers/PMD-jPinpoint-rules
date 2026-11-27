@@ -225,4 +225,57 @@ public final class Foo extends AbstractService {
 }
         ]]></code>
     </test-code>
+    <test-code>
+        <description>violation: ControllerAdvice, RestControllerAdvice and Spring Boot actuator Endpoint, WebEndpoint, JmxEndpoint are singleton beans</description>
+        <expected-problems>5</expected-problems>
+        <expected-linenumbers>15,22,29,36,43</expected-linenumbers>
+        <code><![CDATA[
+import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.boot.actuate.endpoint.annotation.Endpoint;
+import org.springframework.boot.actuate.endpoint.web.annotation.WebEndpoint;
+import org.springframework.boot.actuate.endpoint.jmx.annotation.JmxEndpoint;
+import java.util.Date;
+
+class Base {
+    protected Date date = new Date();
+}
+
+@ControllerAdvice
+class ControllerAdviceClass extends Base {
+    void mutate() {
+        date.setTime(100); // bad
+    }
+}
+
+@RestControllerAdvice
+class RestControllerAdviceClass extends Base {
+    void mutate() {
+        date.setTime(100); // bad
+    }
+}
+
+@Endpoint
+class EndpointClass extends Base {
+    void mutate() {
+        date.setTime(100); // bad
+    }
+}
+
+@WebEndpoint
+class WebEndpointClass extends Base {
+    void mutate() {
+        date.setTime(100); // bad
+    }
+}
+
+@JmxEndpoint
+class JmxEndpointClass extends Base {
+    void mutate() {
+        date.setTime(100); // bad
+    }
+}
+
+     ]]></code>
+    </test-code>
 </test-data>

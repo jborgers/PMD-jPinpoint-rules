@@ -613,5 +613,58 @@ public class Foo {
 }
         ]]></code>
     </test-code>
+    <test-code>
+        <description>violation: ControllerAdvice, RestControllerAdvice and Spring Boot actuator Endpoint, WebEndpoint, JmxEndpoint are singleton beans</description>
+        <expected-problems>5</expected-problems>
+        <expected-linenumbers>11,19,27,35,43</expected-linenumbers>
+        <code><![CDATA[
+import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.boot.actuate.endpoint.annotation.Endpoint;
+import org.springframework.boot.actuate.endpoint.web.annotation.WebEndpoint;
+import org.springframework.boot.actuate.endpoint.jmx.annotation.JmxEndpoint;
+
+@ControllerAdvice
+class ControllerAdviceClass {
+    private int someState;
+    void record() {
+        someState = 1; // bad
+    }
+}
+
+@RestControllerAdvice
+class RestControllerAdviceClass {
+    private int someState;
+    void record() {
+        someState = 1; // bad
+    }
+}
+
+@Endpoint
+class EndpointClass {
+    private int someState;
+    void record() {
+        someState = 1; // bad
+    }
+}
+
+@WebEndpoint
+class WebEndpointClass {
+    private int someState;
+    void record() {
+        someState = 1; // bad
+    }
+}
+
+@JmxEndpoint
+class JmxEndpointClass {
+    private int someState;
+    void record() {
+        someState = 1; // bad
+    }
+}
+
+     ]]></code>
+    </test-code>
 </test-data>
 

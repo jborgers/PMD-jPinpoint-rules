@@ -503,4 +503,42 @@ public class Issue389good {
         ]]></code>
     </test-code>
 
+    <test-code>
+        <description>violation: ControllerAdvice, RestControllerAdvice and Spring Boot actuator Endpoint, WebEndpoint, JmxEndpoint are singleton beans</description>
+        <expected-problems>5</expected-problems>
+        <expected-linenumbers>9,14,19,24,29</expected-linenumbers>
+        <code><![CDATA[
+import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.boot.actuate.endpoint.annotation.Endpoint;
+import org.springframework.boot.actuate.endpoint.web.annotation.WebEndpoint;
+import org.springframework.boot.actuate.endpoint.jmx.annotation.JmxEndpoint;
+
+@ControllerAdvice
+class ControllerAdviceClass {
+    private int someState; // bad
+}
+
+@RestControllerAdvice
+class RestControllerAdviceClass {
+    private int someState; // bad
+}
+
+@Endpoint
+class EndpointClass {
+    private int someState; // bad
+}
+
+@WebEndpoint
+class WebEndpointClass {
+    private int someState; // bad
+}
+
+@JmxEndpoint
+class JmxEndpointClass {
+    private int someState; // bad
+}
+
+     ]]></code>
+    </test-code>
 </test-data>

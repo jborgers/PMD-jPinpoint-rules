@@ -94,4 +94,43 @@ public abstract class Issue268 implements Strategy {
 }
         ]]></code>
     </test-code>
+    <test-code>
+        <description>violation: ControllerAdvice, RestControllerAdvice and Spring Boot actuator Endpoint, WebEndpoint, JmxEndpoint are singleton beans</description>
+        <expected-problems>5</expected-problems>
+        <expected-linenumbers>10,15,20,25,30</expected-linenumbers>
+        <code><![CDATA[
+import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.boot.actuate.endpoint.annotation.Endpoint;
+import org.springframework.boot.actuate.endpoint.web.annotation.WebEndpoint;
+import org.springframework.boot.actuate.endpoint.jmx.annotation.JmxEndpoint;
+import java.util.List;
+
+@ControllerAdvice
+class ControllerAdviceClass {
+    List state; // bad, not private
+}
+
+@RestControllerAdvice
+class RestControllerAdviceClass {
+    List state; // bad, not private
+}
+
+@Endpoint
+class EndpointClass {
+    List state; // bad, not private
+}
+
+@WebEndpoint
+class WebEndpointClass {
+    List state; // bad, not private
+}
+
+@JmxEndpoint
+class JmxEndpointClass {
+    List state; // bad, not private
+}
+
+     ]]></code>
+    </test-code>
 </test-data>
