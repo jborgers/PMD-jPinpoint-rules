@@ -278,4 +278,44 @@ class JmxEndpointClass extends Base {
 
      ]]></code>
     </test-code>
+    <test-code>
+        <description>violation: inject Singleton is a singleton bean (javax)</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>11</expected-linenumbers>
+        <code><![CDATA[
+import javax.inject.Singleton;
+import java.util.Date;
+
+class Base {
+    protected Date date = new Date();
+}
+
+@Singleton
+class Foo extends Base {
+    void mutate() {
+        date.setTime(100); // bad
+    }
+}
+     ]]></code>
+    </test-code>
+    <test-code>
+        <description>violation: inject Singleton is a singleton bean (jakarta)</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>11</expected-linenumbers>
+        <code><![CDATA[
+import jakarta.inject.Singleton;
+import java.util.Date;
+
+class Base {
+    protected Date date = new Date();
+}
+
+@Singleton
+class Foo extends Base {
+    void mutate() {
+        date.setTime(100); // bad
+    }
+}
+     ]]></code>
+    </test-code>
 </test-data>

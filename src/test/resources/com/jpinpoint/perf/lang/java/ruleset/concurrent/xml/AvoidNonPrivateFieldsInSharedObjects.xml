@@ -133,4 +133,32 @@ class JmxEndpointClass {
 
      ]]></code>
     </test-code>
+    <test-code>
+        <description>violation: inject Singleton is a singleton bean (javax)</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>6</expected-linenumbers>
+        <code><![CDATA[
+import javax.inject.Singleton;
+import java.util.List;
+
+@Singleton
+class Foo {
+    List state; // bad, not private
+}
+     ]]></code>
+    </test-code>
+    <test-code>
+        <description>violation: inject Singleton is a singleton bean (jakarta)</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>6</expected-linenumbers>
+        <code><![CDATA[
+import jakarta.inject.Singleton;
+import java.util.List;
+
+@Singleton
+class Foo {
+    List state; // bad, not private
+}
+     ]]></code>
+    </test-code>
 </test-data>

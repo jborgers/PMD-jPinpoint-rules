@@ -666,5 +666,37 @@ class JmxEndpointClass {
 
      ]]></code>
     </test-code>
+    <test-code>
+        <description>violation: inject Singleton is a singleton bean (javax)</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>7</expected-linenumbers>
+        <code><![CDATA[
+import javax.inject.Singleton;
+
+@Singleton
+class Foo {
+    private int someState;
+    void record() {
+        someState = 1; // bad
+    }
+}
+     ]]></code>
+    </test-code>
+    <test-code>
+        <description>violation: inject Singleton is a singleton bean (jakarta)</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>7</expected-linenumbers>
+        <code><![CDATA[
+import jakarta.inject.Singleton;
+
+@Singleton
+class Foo {
+    private int someState;
+    void record() {
+        someState = 1; // bad
+    }
+}
+     ]]></code>
+    </test-code>
 </test-data>
 
