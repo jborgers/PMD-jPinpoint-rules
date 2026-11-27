@@ -4957,8 +4957,8 @@ private ThreadPoolTaskScheduler good() {
           externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#ia01">
         <description>The org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor, or Spring Boot ThreadPoolTaskExecutorBuilder/TaskExecutorBuilder, pool sizes are not
             configured in the method, constructor, initializer or, for fields, class where it is created.
-            Problem: It has a default core pool size of 1 and an unlimited max pool size, which are almost never appropriate:
-            effectively single threaded, or too many threads when the called service is slow or unavailable.
+            Problem: It has a default core pool size of 1, an unlimited max pool size and an unlimited queue, which are almost never appropriate:
+            effectively single threaded; and when only the queue capacity is limited, too many threads when the called service is slow or unavailable.
             &#13;
             Solution: Call setCorePoolSize and setMaxPoolSize (corePoolSize and maxPoolSize for the builders) with values based on measurements.
             (jpinpoint-rules)

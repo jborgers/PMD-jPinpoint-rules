@@ -688,7 +688,7 @@ We assume asynchronous calls are typically made to remote services.
 
 **Observation: A Spring @Async thread pool has default sizes, or is not sized based on measurements or best practices**      
 **Problem:** Spring @Async uses a ThreadPoolTaskExecutor. This Executor and Java's ThreadPoolExecutor have a setCorePoolSize and setMaxPoolSize method. 
-Spring's Executor has default core size = 1 and max size = unlimited, which are almost never appropriate, it uses too many thread resources when the called service is slow or unavailable. 
+Spring's Executor has default core size = 1, max size = unlimited and queue capacity = unlimited, which are almost never appropriate. With the unlimited queue the pool never grows beyond the core size, so it is effectively single threaded. If you only limit the queue capacity and leave max size unset, the pool grows without limit and uses too many thread resources when the called service is slow or unavailable. 
 Setting values to e.g. 100 is likely too high, causing too much thread resources usage and scheduling/context switching overhead. 
 Additionally, if remote connections use a connection pool and the number of threads is higher than the number of connections in the pool, threads will have to wait for a connection.
 Setting values to 1 allows for serial execution only, while one typically wants to utilize parallelism.  
@@ -1098,8 +1098,8 @@ class Foo {
 
 #### IA16
 **Observation: Spring @Async is used without specifying an executor.**   
-**Problem:** Without a qualifier, @Async uses the default executor: the single shared application task executor (or a SimpleAsyncTaskExecutor which creates a new thread for each call) that is not sized for the call.
-All async methods share it, so a slow or unavailable remote service can eat up all its threads (see IA03).   
+**Problem:** Without a qualifier, @Async uses the default executor: a unique TaskExecutor bean, or the bean named 'taskExecutor'. Spring Boot auto-configures one: a ThreadPoolTaskExecutor with 8 core threads (and by default an unlimited queue), or with virtual threads enabled a SimpleAsyncTaskExecutor. Without Spring Boot and without such a bean, Spring falls back to a SimpleAsyncTaskExecutor, which creates a new thread for each call and does not pool.
+All async methods share this executor, which is not sized for the call, so a slow or unavailable remote service can eat up all its threads (see IA03).   
 **Solution:** Specify a dedicated, properly sized and monitored executor bean, e.g. @Async("myPool"). See IA01, IA02 and IA05 for sizing it.   
 **Rule name:** AvoidAsyncWithDefaultExecutor   
 **Example:**   
