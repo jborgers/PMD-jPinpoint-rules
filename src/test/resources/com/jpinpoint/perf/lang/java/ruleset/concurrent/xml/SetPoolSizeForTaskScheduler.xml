@@ -35,4 +35,43 @@ public class Foo {
 }
      ]]></code>
     </test-code>
+    <test-code>
+        <description>no violation: pool size is set in a called method of the same class</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
+
+public class Foo {
+    ThreadPoolTaskScheduler viaHelper() {
+        ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
+        configure(scheduler);
+        return scheduler;
+    }
+
+    private void configure(ThreadPoolTaskScheduler scheduler) {
+        scheduler.setPoolSize(5);
+    }
+}
+     ]]></code>
+    </test-code>
+    <test-code>
+        <description>violation: called method does not set the pool size</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>5</expected-linenumbers>
+        <code><![CDATA[
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
+
+public class Foo {
+    ThreadPoolTaskScheduler unrelatedHelper() {
+        ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler(); //bad
+        decorate(scheduler);
+        return scheduler;
+    }
+
+    private void decorate(ThreadPoolTaskScheduler scheduler) {
+        scheduler.setThreadNamePrefix("x-");
+    }
+}
+     ]]></code>
+    </test-code>
 </test-data>

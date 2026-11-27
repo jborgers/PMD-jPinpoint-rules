@@ -5076,8 +5076,10 @@ class Good1 {
             <property name="xpath">
                 <value><![CDATA[
 //ConstructorCall[pmd-java:typeIs('org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler')]
-    [let $scope := (ancestor::MethodDeclaration | ancestor::ConstructorDeclaration | ancestor::Initializer | ancestor::ClassBody)[last()]
-     return not($scope//MethodCall[@MethodName='setPoolSize'])]
+    [let $scope := (ancestor::MethodDeclaration | ancestor::ConstructorDeclaration | ancestor::Initializer | ancestor::ClassBody)[last()],
+         $called := $scope//MethodCall/@MethodName,
+         $all := ($scope | ancestor::ClassBody[1]/MethodDeclaration[@Name = $called])
+     return not($all//MethodCall[@MethodName='setPoolSize'])]
     ]]>
                 </value>
             </property>
@@ -5103,7 +5105,8 @@ private ThreadPoolTaskScheduler good() {
           message="Configure the core and max pool size for the ThreadPoolTaskExecutor or its builder."
           externalInfoUrl="https://github.com/jborgers/PMD-jPinpoint-rules/tree/pmd7/docs/JavaCodePerformance.md#ia01">
         <description>The org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor, or Spring Boot ThreadPoolTaskExecutorBuilder/TaskExecutorBuilder, pool sizes are not
-            configured in the method, constructor, initializer or, for fields, class where it is created.
+            configured in the method, constructor, initializer or, for fields, class where it is created,
+            or in a method of the same class that is called from there.
             Problem: It has a default core pool size of 1, an unlimited max pool size and an unlimited queue, which are almost never appropriate:
             effectively single threaded; and when only the queue capacity is limited, too many threads when the called service is slow or unavailable.
             &#13;
@@ -5118,8 +5121,10 @@ private ThreadPoolTaskScheduler good() {
 //ConstructorCall[pmd-java:typeIs('org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor')
         or pmd-java:typeIs('org.springframework.boot.task.ThreadPoolTaskExecutorBuilder')
         or pmd-java:typeIs('org.springframework.boot.task.TaskExecutorBuilder')]
-    [let $scope := (ancestor::MethodDeclaration | ancestor::ConstructorDeclaration | ancestor::Initializer | ancestor::ClassBody)[last()]
-     return not($scope//MethodCall[@MethodName=('setCorePoolSize','corePoolSize')] and $scope//MethodCall[@MethodName=('setMaxPoolSize','maxPoolSize')])]
+    [let $scope := (ancestor::MethodDeclaration | ancestor::ConstructorDeclaration | ancestor::Initializer | ancestor::ClassBody)[last()],
+         $called := $scope//MethodCall/@MethodName,
+         $all := ($scope | ancestor::ClassBody[1]/MethodDeclaration[@Name = $called])
+     return not($all//MethodCall[@MethodName=('setCorePoolSize','corePoolSize')] and $all//MethodCall[@MethodName=('setMaxPoolSize','maxPoolSize')])]
     ]]>
                 </value>
             </property>
