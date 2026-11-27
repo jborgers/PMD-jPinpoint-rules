@@ -1837,4 +1837,158 @@ class RightUseOfGuardedBy {
                 ]]></example>
     </rule>
 
+    <rule name="SetPoolSizesForTaskExecutor"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          language="java"
+          message="Configure the core and max pool size for the ThreadPoolTaskExecutor."
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ia01">
+        <description>The org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor pool sizes are not
+            configured in the method, constructor, initializer or, for fields, class where it is created.
+            Problem: It has a default core pool size of 1 and an unlimited max pool size, which are almost never appropriate:
+            effectively single threaded, or too many threads when the called service is slow or unavailable.
+            &#13;
+            Solution: Call setCorePoolSize and setMaxPoolSize with values based on measurements.
+            (jpinpoint-rules)
+        </description>
+        <priority>2</priority>
+        <properties>
+            <property name="tags" value="bad-practice,jpinpoint-rule,memory,performance,sustainability-low" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+//ConstructorCall[pmd-java:typeIs('org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor')]
+    [let $scope := (ancestor::MethodDeclaration | ancestor::ConstructorDeclaration | ancestor::Initializer | ancestor::ClassBody)[last()]
+     return not($scope//MethodCall[@MethodName='setCorePoolSize'] and $scope//MethodCall[@MethodName='setMaxPoolSize'])]
+    ]]>
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+private ThreadPoolTaskExecutor bad() {
+    ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor(); // bad
+    executor.setQueueCapacity(10);
+    executor.initialize();
+    return executor;
+}
+
+private ThreadPoolTaskExecutor good() {
+    ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+    executor.setCorePoolSize(10);
+    executor.setMaxPoolSize(20);
+    executor.setQueueCapacity(10);
+    executor.initialize();
+    return executor;
+}
+    ]]>
+        </example>
+    </rule>
+
+    <rule name="SetPoolSizeForTaskScheduler"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          language="java"
+          message="Configure the pool size for the ThreadPoolTaskScheduler."
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ia17">
+        <description>The org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler pool size is not configured.
+            Problem: The default pool size is 1, so scheduled tasks are executed serially and a slow task delays all others.
+            &#13;
+            Solution: Call setPoolSize with a value based on the number and duration of the scheduled tasks.
+            (jpinpoint-rules)
+        </description>
+        <priority>2</priority>
+        <properties>
+            <property name="tags" value="bad-practice,jpinpoint-rule,memory,performance,sustainability-low" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+//ConstructorCall[pmd-java:typeIs('org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler')]
+    [let $scope := (ancestor::MethodDeclaration | ancestor::ConstructorDeclaration | ancestor::Initializer | ancestor::ClassBody)[last()]
+     return not($scope//MethodCall[@MethodName='setPoolSize'])]
+    ]]>
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+private ThreadPoolTaskScheduler bad() {
+    return new ThreadPoolTaskScheduler(); // bad
+}
+
+private ThreadPoolTaskScheduler good() {
+    ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
+    scheduler.setPoolSize(5);
+    return scheduler;
+}
+    ]]>
+        </example>
+    </rule>
+
+    <rule name="SetPoolSizesForTaskExecutorBuilder"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          language="java"
+          message="Configure the core and max pool size for the task executor builder."
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ia01">
+        <description>The Spring Boot ThreadPoolTaskExecutorBuilder or TaskExecutorBuilder pool sizes are not configured.
+            Problem: The default core pool size is 1 and the max pool size is unlimited, which are almost never appropriate.
+            &#13;
+            Solution: Call corePoolSize and maxPoolSize with values based on measurements.
+            (jpinpoint-rules)
+        </description>
+        <priority>2</priority>
+        <properties>
+            <property name="tags" value="bad-practice,jpinpoint-rule,memory,performance,sustainability-low" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+//ConstructorCall[pmd-java:typeIs('org.springframework.boot.task.ThreadPoolTaskExecutorBuilder') or pmd-java:typeIs('org.springframework.boot.task.TaskExecutorBuilder')]
+    [let $scope := (ancestor::MethodDeclaration | ancestor::ConstructorDeclaration | ancestor::Initializer | ancestor::ClassBody)[last()]
+     return not($scope//MethodCall[@MethodName='corePoolSize'] and $scope//MethodCall[@MethodName='maxPoolSize'])]
+    ]]>
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+Object bad() {
+    return new ThreadPoolTaskExecutorBuilder().queueCapacity(10).build(); // bad
+}
+
+Object good() {
+    return new ThreadPoolTaskExecutorBuilder().corePoolSize(10).maxPoolSize(20).queueCapacity(10).build();
+}
+    ]]>
+        </example>
+    </rule>
+
+    <rule name="AvoidAsyncWithDefaultExecutor"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          language="java"
+          message="Specify a dedicated, properly sized executor for @Async, for instance @Async(&quot;myPool&quot;)."
+          externalInfoUrl="${doc_root}/JavaCodePerformance.md#ia16">
+        <description>Spring @Async is used without specifying an executor.
+            Problem: The default executor is shared by all async methods and is not sized for the call;
+            a slow or unavailable remote service can eat up all its threads.
+            &#13;
+            Solution: Specify a dedicated, properly sized and monitored executor bean, e.g. @Async("myPool").
+            (jpinpoint-rules)
+        </description>
+        <priority>3</priority>
+        <properties>
+            <property name="tags" value="bad-practice,jpinpoint-rule,performance,sustainability-low" type="String" description="classification"/>
+            <property name="xpath">
+                <value><![CDATA[
+//Annotation[pmd-java:typeIs('org.springframework.scheduling.annotation.Async')]
+    [not(AnnotationMemberList) or AnnotationMemberList/MemberValuePair[@Name='value']/StringLiteral[@Empty=true()]]
+    ]]>
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+@Async // bad
+public void bad() {}
+
+@Async("myPool") // good
+public void good() {}
+    ]]>
+        </example>
+    </rule>
+
 </ruleset>

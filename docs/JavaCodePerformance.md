@@ -695,6 +695,7 @@ Setting values to 1 allows for serial execution only, while one typically wants 
 **Solution:** The max number of threads should be based on request rate (tps) and response times of a healthy called service in peak load situations, such that all requests can be handled without queueing and no more threads are used than necessary.
 Make core size N smaller than max size to reduce overhead and resource usage in the common case when N threads is enough. E.g. core size = 10, max size = 30.
 Note that the pool will only grow bigger than core size when the queue limit is reached.  
+**Rule names:** SetPoolSizesForTaskExecutor, SetPoolSizesForTaskExecutorBuilder (Spring Boot ThreadPoolTaskExecutorBuilder)   
 **Example:** 
 ```java
 ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
@@ -724,7 +725,8 @@ executor.setQueueCapacity(10); // based on measurements
 
 **Observation: A Spring @Async thread pool is used for more than one async remote service call**      
 **Problem:** Long response times or unavailability of one remote service will eat up threads of the pool so the other service will get no threads to do the remote call.  
-**Solution:** If this is undesirable, use a separate pool for each async service call. (Bulkhead pattern)
+**Solution:** If this is undesirable, use a separate pool for each async service call. (Bulkhead pattern)  
+**Note:** A rule for the related case of @Async without a named executor is IA16.
 
 #### IA04
 
@@ -1093,6 +1095,37 @@ class Foo {
   }
 }
 ```
+
+#### IA16
+**Observation: Spring @Async is used without specifying an executor.**   
+**Problem:** Without a qualifier, @Async uses the default executor: the single shared application task executor (or a SimpleAsyncTaskExecutor which creates a new thread for each call) that is not sized for the call.
+All async methods share it, so a slow or unavailable remote service can eat up all its threads (see IA03).   
+**Solution:** Specify a dedicated, properly sized and monitored executor bean, e.g. @Async("myPool"). See IA01, IA02 and IA05 for sizing it.   
+**Rule name:** AvoidAsyncWithDefaultExecutor   
+**Example:**   
+```java
+import org.springframework.scheduling.annotation.Async;
+
+class Foo {
+  @Async // bad, default executor
+  public void bad() {}
+
+  @Async("myPool") // good, dedicated and sized pool
+  public void good() {}
+}
+```
+
+#### IA17
+**Observation: A Spring ThreadPoolTaskScheduler is used without setting the pool size.**   
+**Problem:** The default pool size is 1: scheduled tasks are executed serially, so one slow task delays all others.   
+**Solution:** Call setPoolSize with a value based on the number and duration of the scheduled tasks.   
+**Rule name:** SetPoolSizeForTaskScheduler   
+**Example:**   
+```java
+ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
+scheduler.setPoolSize(5); // bad if missing
+```
+
 Improper caching
 -------------------
 

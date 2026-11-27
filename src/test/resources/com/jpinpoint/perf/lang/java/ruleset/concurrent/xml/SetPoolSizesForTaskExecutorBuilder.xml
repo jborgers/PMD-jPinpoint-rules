@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>violation: builder without pool sizes</description>
+        <expected-problems>3</expected-problems>
+        <expected-linenumbers>6,10,14</expected-linenumbers>
+        <code><![CDATA[
+import org.springframework.boot.task.ThreadPoolTaskExecutorBuilder;
+import org.springframework.boot.task.TaskExecutorBuilder;
+
+public class Foo {
+    Object bad() {
+        return new ThreadPoolTaskExecutorBuilder().queueCapacity(10).build(); //bad
+    }
+
+    Object bad2() {
+        return new TaskExecutorBuilder().threadNamePrefix("x").build(); //bad
+    }
+
+    Object bad3() {
+        return new ThreadPoolTaskExecutorBuilder().corePoolSize(10).build(); //bad, max not set
+    }
+}
+     ]]></code>
+    </test-code>
+    <test-code>
+        <description>no violation: builder with core and max pool size</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import org.springframework.boot.task.ThreadPoolTaskExecutorBuilder;
+
+public class Foo {
+    Object good() {
+        return new ThreadPoolTaskExecutorBuilder().corePoolSize(10).maxPoolSize(20).queueCapacity(10).build();
+    }
+}
+     ]]></code>
+    </test-code>
+</test-data>

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>violation: @Async without executor</description>
+        <expected-problems>2</expected-problems>
+        <expected-linenumbers>4,8</expected-linenumbers>
+        <code><![CDATA[
+import org.springframework.scheduling.annotation.Async;
+
+public class Foo {
+    @Async //bad
+    public void bad() {
+    }
+
+    @Async("") //bad, empty
+    public void bad2() {
+    }
+}
+     ]]></code>
+    </test-code>
+    <test-code>
+        <description>no violation: @Async with named executor</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import org.springframework.scheduling.annotation.Async;
+
+public class Foo {
+    @Async("myPool")
+    public void good() {
+    }
+
+    @Async(value = "myPool")
+    public void good2() {
+    }
+}
+     ]]></code>
+    </test-code>
+</test-data>

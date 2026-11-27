@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>violation: no pool sizes set</description>
+        <expected-problems>2</expected-problems>
+        <expected-linenumbers>5,11</expected-linenumbers>
+        <code><![CDATA[
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+
+public class Foo {
+    private ThreadPoolTaskExecutor bad() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor(); //bad
+        executor.setQueueCapacity(10);
+        return executor;
+    }
+
+    private ThreadPoolTaskExecutor bad2() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor(); //bad, max not set
+        executor.setCorePoolSize(10);
+        return executor;
+    }
+}
+     ]]></code>
+    </test-code>
+    <test-code>
+        <description>no violation: core and max pool size set</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+
+public class Foo {
+    private ThreadPoolTaskExecutor good() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(10);
+        executor.setMaxPoolSize(20);
+        executor.setQueueCapacity(10);
+        executor.initialize();
+        return executor;
+    }
+}
+     ]]></code>
+    </test-code>
+    <test-code>
+        <description>violation: field initializers and constructor without pool sizes</description>
+        <expected-problems>3</expected-problems>
+        <expected-linenumbers>4,5,9</expected-linenumbers>
+        <code><![CDATA[
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+
+public class Foo {
+    private final ThreadPoolTaskExecutor field = new ThreadPoolTaskExecutor(); //bad
+    private ThreadPoolTaskExecutor other = new ThreadPoolTaskExecutor(); //bad
+    private ThreadPoolTaskExecutor inCtor;
+
+    public Foo() {
+        inCtor = new ThreadPoolTaskExecutor(); //bad
+        inCtor.setQueueCapacity(10);
+    }
+}
+     ]]></code>
+    </test-code>
+    <test-code>
+        <description>no violation: sizes set elsewhere in the same class</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import javax.annotation.PostConstruct;
+
+public class Foo {
+    private final ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+
+    @PostConstruct
+    void init() {
+        executor.setCorePoolSize(10);
+        executor.setMaxPoolSize(20);
+        executor.initialize();
+    }
+}
+
+class Bar {
+    private final ThreadPoolTaskExecutor executor;
+
+    Bar() {
+        executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(10);
+        executor.setMaxPoolSize(20);
+    }
+}
+     ]]></code>
+    </test-code>
+    <test-code>
+        <description>violation: subclass of ThreadPoolTaskExecutor without pool sizes</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>6</expected-linenumbers>
+        <code><![CDATA[
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+
+class MyExecutor extends ThreadPoolTaskExecutor {}
+
+public class Foo {
+    private MyExecutor bad() { return new MyExecutor(); } //bad
+}
+     ]]></code>
+    </test-code>
+</test-data>
