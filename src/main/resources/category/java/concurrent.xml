@@ -196,7 +196,7 @@ class Exporter {
   (
        pmd-java:hasAnnotation('org.springframework.stereotype.Service')
     or pmd-java:hasAnnotation('org.springframework.stereotype.Component')
-    (: Spring AOP aspect, singleton by default; perthis/pertarget aspects are prototype scoped but typically shared too, as the advised target is typically a singleton :)
+    (: Spring AOP aspect: singleton by default, see the prototype scope exception below :)
     or pmd-java:hasAnnotation('org.aspectj.lang.annotation.Aspect')
     or pmd-java:hasAnnotation('org.springframework.stereotype.Controller')
     or pmd-java:hasAnnotation('org.springframework.stereotype.Repository')
@@ -204,10 +204,13 @@ class Exporter {
     or (pmd-java:hasAnnotation('javax.ejb.Singleton') and ModifierList/Annotation[pmd-java:typeIs('javax.ejb.ConcurrencyManagement')]/AnnotationMemberList/MemberValuePair/FieldAccess[./TypeExpression[pmd-java:typeIs('javax.ejb.ConcurrencyManagementType')] and @Name="BEAN"])
     or (pmd-java:hasAnnotation('jakarta.ejb.Singleton') and ModifierList/Annotation[pmd-java:typeIs('jakarta.ejb.ConcurrencyManagement')]/AnnotationMemberList/MemberValuePair/FieldAccess[./TypeExpression[pmd-java:typeIs('jakarta.ejb.ConcurrencyManagementType')] and @Name="BEAN"])
    )
+   (: Not shared if request or prototype scoped, checking only the class's own @Scope, as literal or constant. :)
+   (: Exception: an @Aspect stays shared when prototype scoped. Spring AOP makes one aspect instance per advised bean, not per request or thread, :)
+   (: so it is shared by many threads when the advised bean is a singleton (perthis/pertarget need a prototype bean, other aspects are cached as lazy singleton). :)
    (: no @RequestScope annotation :)
    and not (pmd-java:hasAnnotation('org.springframework.context.annotation.Scope') and ModifierList/Annotation[pmd-java:typeIs('org.springframework.context.annotation.Scope')]/AnnotationMemberList/MemberValuePair[
-       StringLiteral[contains(@Image,'request') or (contains(@Image,'prototype') and not(ancestor::ClassDeclaration[1]/ModifierList/Annotation[pmd-java:typeIs('org.aspectj.lang.annotation.Aspect')]//StringLiteral[matches(@Image,'^"?per(this|target)\s*\(')]))]
-       or FieldAccess[@Name='SCOPE_REQUEST' or (@Name='SCOPE_PROTOTYPE' and not(ancestor::ClassDeclaration[1]/ModifierList/Annotation[pmd-java:typeIs('org.aspectj.lang.annotation.Aspect')]//StringLiteral[matches(@Image,'^"?per(this|target)\s*\(')]))]/TypeExpression[pmd-java:typeIs('org.springframework.beans.factory.config.ConfigurableBeanFactory')]]
+       StringLiteral[contains(@Image,'request') or (contains(@Image,'prototype') and not(ancestor::ClassDeclaration[1][pmd-java:hasAnnotation('org.aspectj.lang.annotation.Aspect')]))]
+       or FieldAccess[@Name='SCOPE_REQUEST' or (@Name='SCOPE_PROTOTYPE' and not(ancestor::ClassDeclaration[1][pmd-java:hasAnnotation('org.aspectj.lang.annotation.Aspect')]))]/TypeExpression[pmd-java:typeIs('org.springframework.beans.factory.config.ConfigurableBeanFactory')]]
     )
     (: no request or prototype @Scope, literal or via constant :)
   and not(pmd-java:hasAnnotation('org.springframework.web.context.annotation.RequestScope'))
@@ -322,7 +325,7 @@ class MyService {
   (
        pmd-java:hasAnnotation('org.springframework.stereotype.Service')
     or pmd-java:hasAnnotation('org.springframework.stereotype.Component')
-    (: Spring AOP aspect, singleton by default; perthis/pertarget aspects are prototype scoped but typically shared too, as the advised target is typically a singleton :)
+    (: Spring AOP aspect: singleton by default, see the prototype scope exception below :)
     or pmd-java:hasAnnotation('org.aspectj.lang.annotation.Aspect')
     or pmd-java:hasAnnotation('org.springframework.stereotype.Controller')
     or pmd-java:hasAnnotation('org.springframework.stereotype.Repository')
@@ -330,10 +333,12 @@ class MyService {
     or (pmd-java:hasAnnotation('javax.ejb.Singleton') and ModifierList/Annotation[pmd-java:typeIs('javax.ejb.ConcurrencyManagement')]/AnnotationMemberList/MemberValuePair/FieldAccess[./TypeExpression[pmd-java:typeIs('javax.ejb.ConcurrencyManagementType')] and @Name="BEAN"])
     or (pmd-java:hasAnnotation('jakarta.ejb.Singleton') and ModifierList/Annotation[pmd-java:typeIs('jakarta.ejb.ConcurrencyManagement')]/AnnotationMemberList/MemberValuePair/FieldAccess[./TypeExpression[pmd-java:typeIs('jakarta.ejb.ConcurrencyManagementType')] and @Name="BEAN"])
    )
-   (: not shared when request or prototype scope :)
+   (: Not shared if request or prototype scoped, checking only the class's own @Scope, as literal or constant. :)
+   (: Exception: an @Aspect stays shared when prototype scoped. Spring AOP makes one aspect instance per advised bean, not per request or thread, :)
+   (: so it is shared by many threads when the advised bean is a singleton (perthis/pertarget need a prototype bean, other aspects are cached as lazy singleton). :)
    and not(pmd-java:hasAnnotation('org.springframework.context.annotation.Scope') and ModifierList/Annotation[pmd-java:typeIs('org.springframework.context.annotation.Scope')]/AnnotationMemberList/MemberValuePair[
-       StringLiteral[contains(@Image,'request') or (contains(@Image,'prototype') and not(ancestor::ClassDeclaration[1]/ModifierList/Annotation[pmd-java:typeIs('org.aspectj.lang.annotation.Aspect')]//StringLiteral[matches(@Image,'^"?per(this|target)\s*\(')]))]
-       or FieldAccess[@Name='SCOPE_REQUEST' or (@Name='SCOPE_PROTOTYPE' and not(ancestor::ClassDeclaration[1]/ModifierList/Annotation[pmd-java:typeIs('org.aspectj.lang.annotation.Aspect')]//StringLiteral[matches(@Image,'^"?per(this|target)\s*\(')]))]/TypeExpression[pmd-java:typeIs('org.springframework.beans.factory.config.ConfigurableBeanFactory')]]
+       StringLiteral[contains(@Image,'request') or (contains(@Image,'prototype') and not(ancestor::ClassDeclaration[1][pmd-java:hasAnnotation('org.aspectj.lang.annotation.Aspect')]))]
+       or FieldAccess[@Name='SCOPE_REQUEST' or (@Name='SCOPE_PROTOTYPE' and not(ancestor::ClassDeclaration[1][pmd-java:hasAnnotation('org.aspectj.lang.annotation.Aspect')]))]/TypeExpression[pmd-java:typeIs('org.springframework.beans.factory.config.ConfigurableBeanFactory')]]
     )
    and not(pmd-java:hasAnnotation('org.springframework.context.annotation.RequestScope'))
    (: if @NotThreadSafe no checking :)
@@ -399,7 +404,7 @@ public class RootController {
    (
        pmd-java:hasAnnotation('org.springframework.stereotype.Service')
     or pmd-java:hasAnnotation('org.springframework.stereotype.Component')
-    (: Spring AOP aspect, singleton by default; perthis/pertarget aspects are prototype scoped but typically shared too, as the advised target is typically a singleton :)
+    (: Spring AOP aspect: singleton by default, see the prototype scope exception below :)
     or pmd-java:hasAnnotation('org.aspectj.lang.annotation.Aspect')
     or pmd-java:hasAnnotation('org.springframework.stereotype.Controller')
     or pmd-java:hasAnnotation('org.springframework.stereotype.Repository')
@@ -407,10 +412,12 @@ public class RootController {
     or (pmd-java:hasAnnotation('javax.ejb.Singleton') and ModifierList/Annotation[pmd-java:typeIs('javax.ejb.ConcurrencyManagement')]/AnnotationMemberList/MemberValuePair/FieldAccess[./TypeExpression[pmd-java:typeIs('javax.ejb.ConcurrencyManagementType')] and @Name="BEAN"])
     or (pmd-java:hasAnnotation('jakarta.ejb.Singleton') and ModifierList/Annotation[pmd-java:typeIs('jakarta.ejb.ConcurrencyManagement')]/AnnotationMemberList/MemberValuePair/FieldAccess[./TypeExpression[pmd-java:typeIs('jakarta.ejb.ConcurrencyManagementType')] and @Name="BEAN"])
    )
-   (: not shared when request or prototype scope :)
+   (: Not shared if request or prototype scoped, checking only the class's own @Scope, as literal or constant. :)
+   (: Exception: an @Aspect stays shared when prototype scoped. Spring AOP makes one aspect instance per advised bean, not per request or thread, :)
+   (: so it is shared by many threads when the advised bean is a singleton (perthis/pertarget need a prototype bean, other aspects are cached as lazy singleton). :)
    and not(pmd-java:hasAnnotation('org.springframework.context.annotation.Scope') and ModifierList/Annotation[pmd-java:typeIs('org.springframework.context.annotation.Scope')]/AnnotationMemberList/MemberValuePair[
-       StringLiteral[contains(@Image,'request') or (contains(@Image,'prototype') and not(ancestor::ClassDeclaration[1]/ModifierList/Annotation[pmd-java:typeIs('org.aspectj.lang.annotation.Aspect')]//StringLiteral[matches(@Image,'^"?per(this|target)\s*\(')]))]
-       or FieldAccess[@Name='SCOPE_REQUEST' or (@Name='SCOPE_PROTOTYPE' and not(ancestor::ClassDeclaration[1]/ModifierList/Annotation[pmd-java:typeIs('org.aspectj.lang.annotation.Aspect')]//StringLiteral[matches(@Image,'^"?per(this|target)\s*\(')]))]/TypeExpression[pmd-java:typeIs('org.springframework.beans.factory.config.ConfigurableBeanFactory')]]
+       StringLiteral[contains(@Image,'request') or (contains(@Image,'prototype') and not(ancestor::ClassDeclaration[1][pmd-java:hasAnnotation('org.aspectj.lang.annotation.Aspect')]))]
+       or FieldAccess[@Name='SCOPE_REQUEST' or (@Name='SCOPE_PROTOTYPE' and not(ancestor::ClassDeclaration[1][pmd-java:hasAnnotation('org.aspectj.lang.annotation.Aspect')]))]/TypeExpression[pmd-java:typeIs('org.springframework.beans.factory.config.ConfigurableBeanFactory')]]
     )
    and not(pmd-java:hasAnnotation('org.springframework.context.annotation.RequestScope'))
    (: if @NotThreadSafe no checking :)
@@ -555,7 +562,7 @@ class BadMutableTypes {
    (
        pmd-java:hasAnnotation('org.springframework.stereotype.Service')
     or pmd-java:hasAnnotation('org.springframework.stereotype.Component')
-    (: Spring AOP aspect, singleton by default; perthis/pertarget aspects are prototype scoped but typically shared too, as the advised target is typically a singleton :)
+    (: Spring AOP aspect: singleton by default, see the prototype scope exception below :)
     or pmd-java:hasAnnotation('org.aspectj.lang.annotation.Aspect')
     or pmd-java:hasAnnotation('org.springframework.stereotype.Controller')
     or pmd-java:hasAnnotation('org.springframework.stereotype.Repository')
@@ -563,10 +570,12 @@ class BadMutableTypes {
     or (pmd-java:hasAnnotation('javax.ejb.Singleton') and ModifierList/Annotation[pmd-java:typeIs('javax.ejb.ConcurrencyManagement')]/AnnotationMemberList/MemberValuePair/FieldAccess[./TypeExpression[pmd-java:typeIs('javax.ejb.ConcurrencyManagementType')] and @Name="BEAN"])
     or (pmd-java:hasAnnotation('jakarta.ejb.Singleton') and ModifierList/Annotation[pmd-java:typeIs('jakarta.ejb.ConcurrencyManagement')]/AnnotationMemberList/MemberValuePair/FieldAccess[./TypeExpression[pmd-java:typeIs('jakarta.ejb.ConcurrencyManagementType')] and @Name="BEAN"])
    )
-   (: not shared when request or prototype scope :)
+   (: Not shared if request or prototype scoped, checking only the class's own @Scope, as literal or constant. :)
+   (: Exception: an @Aspect stays shared when prototype scoped. Spring AOP makes one aspect instance per advised bean, not per request or thread, :)
+   (: so it is shared by many threads when the advised bean is a singleton (perthis/pertarget need a prototype bean, other aspects are cached as lazy singleton). :)
    and not(pmd-java:hasAnnotation('org.springframework.context.annotation.Scope') and ModifierList/Annotation[pmd-java:typeIs('org.springframework.context.annotation.Scope')]/AnnotationMemberList/MemberValuePair[
-       StringLiteral[contains(@Image,'request') or (contains(@Image,'prototype') and not(ancestor::ClassDeclaration[1]/ModifierList/Annotation[pmd-java:typeIs('org.aspectj.lang.annotation.Aspect')]//StringLiteral[matches(@Image,'^"?per(this|target)\s*\(')]))]
-       or FieldAccess[@Name='SCOPE_REQUEST' or (@Name='SCOPE_PROTOTYPE' and not(ancestor::ClassDeclaration[1]/ModifierList/Annotation[pmd-java:typeIs('org.aspectj.lang.annotation.Aspect')]//StringLiteral[matches(@Image,'^"?per(this|target)\s*\(')]))]/TypeExpression[pmd-java:typeIs('org.springframework.beans.factory.config.ConfigurableBeanFactory')]]
+       StringLiteral[contains(@Image,'request') or (contains(@Image,'prototype') and not(ancestor::ClassDeclaration[1][pmd-java:hasAnnotation('org.aspectj.lang.annotation.Aspect')]))]
+       or FieldAccess[@Name='SCOPE_REQUEST' or (@Name='SCOPE_PROTOTYPE' and not(ancestor::ClassDeclaration[1][pmd-java:hasAnnotation('org.aspectj.lang.annotation.Aspect')]))]/TypeExpression[pmd-java:typeIs('org.springframework.beans.factory.config.ConfigurableBeanFactory')]]
     )
    and not(pmd-java:hasAnnotation('org.springframework.context.annotation.RequestScope'))
    (: if @NotThreadSafe no checking :)

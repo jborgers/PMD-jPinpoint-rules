@@ -140,8 +140,9 @@ class PerTargetAspect {
      ]]></code>
     </test-code>
     <test-code>
-        <description>no violation: ordinary prototype scoped aspect, not shared</description>
-        <expected-problems>0</expected-problems>
+        <description>violation: prototype scoped aspect without perthis/pertarget is a lazy singleton per advised bean, so shared</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>9</expected-linenumbers>
         <code><![CDATA[
 import org.aspectj.lang.annotation.Aspect;
 import org.springframework.context.annotation.Scope;
@@ -179,6 +180,29 @@ class CtrlClass {
     List state; // bad, not private
 }
 
+     ]]></code>
+    </test-code>
+    <test-code>
+        <description>violation: prototype scoped aspects, the per clause is not a plain literal</description>
+        <expected-problems>2</expected-problems>
+        <expected-linenumbers>9,15</expected-linenumbers>
+        <code><![CDATA[
+import org.aspectj.lang.annotation.Aspect;
+import org.springframework.context.annotation.Scope;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import java.util.List;
+
+@Aspect(Expressions.PER_TARGET)
+@Scope("prototype")
+class ConstAspect {
+    List state; // bad, not private
+}
+
+@Aspect("per" + "target(execution(* com.xyz.Service.*(..)))")
+@Scope("prototype")
+class ConcatAspect {
+    List state; // bad, not private
+}
      ]]></code>
     </test-code>
 </test-data>
