@@ -225,4 +225,144 @@ public final class Foo extends AbstractService {
 }
         ]]></code>
     </test-code>
+    <test-code>
+        <description>violation: mutation of inherited field in an @Aspect, which is a singleton by default</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>11</expected-linenumbers>
+        <code><![CDATA[
+import org.aspectj.lang.annotation.Aspect;
+import java.util.Date;
+
+class Base {
+    protected Date date = new Date();
+}
+
+@Aspect
+public class MyAspect extends Base {
+    public void mutate() {
+        date.setTime(100); // bad
+    }
+}
+     ]]></code>
+    </test-code>
+    <test-code>
+        <description>violation: perthis/pertarget aspects must be prototype scoped, but are shared when the advised target is a singleton</description>
+        <expected-problems>2</expected-problems>
+        <expected-linenumbers>14,22</expected-linenumbers>
+        <code><![CDATA[
+import org.aspectj.lang.annotation.Aspect;
+import org.springframework.context.annotation.Scope;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import java.util.Date;
+
+class Base {
+    protected Date date = new Date();
+}
+
+@Aspect("perthis(execution(* com.xyz.Service.*(..)))")
+@Scope("prototype")
+class PerThisAspect extends Base {
+    void mutate() {
+        date.setTime(100); // bad
+    }
+}
+
+@Aspect("pertarget(execution(* com.xyz.Service.*(..)))")
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+class PerTargetAspect extends Base {
+    void mutate() {
+        date.setTime(100); // bad
+    }
+}
+
+     ]]></code>
+    </test-code>
+    <test-code>
+        <description>violation: prototype scoped aspect without perthis/pertarget is a lazy singleton per advised bean, so shared</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>14</expected-linenumbers>
+        <code><![CDATA[
+import org.aspectj.lang.annotation.Aspect;
+import org.springframework.context.annotation.Scope;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import java.util.Date;
+
+class Base {
+    protected Date date = new Date();
+}
+
+@Aspect
+@Scope("prototype")
+class OrdinaryAspect extends Base {
+    void mutate() {
+        date.setTime(100); // bad
+    }
+}
+     ]]></code>
+    </test-code>
+    <test-code>
+        <description>violation: the word request or prototype in a pointcut or request mapping does not make the class request or prototype scoped</description>
+        <expected-problems>2</expected-problems>
+        <expected-linenumbers>15,24</expected-linenumbers>
+        <code><![CDATA[
+import org.aspectj.lang.annotation.Aspect;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import java.util.Date;
+
+class Base {
+    protected Date date = new Date();
+}
+
+@Aspect("perthis(execution(* com.xyz.request.Service.*(..)))")
+@Scope("prototype")
+class PerThisClass extends Base {
+    void mutate() {
+        date.setTime(100); // bad
+    }
+}
+
+@Controller
+@Scope("singleton")
+@RequestMapping("/request/prototype")
+class CtrlClass extends Base {
+    void mutate() {
+        date.setTime(100); // bad
+    }
+}
+
+     ]]></code>
+    </test-code>
+    <test-code>
+        <description>violation: prototype scoped aspects, the per clause is not a plain literal</description>
+        <expected-problems>2</expected-problems>
+        <expected-linenumbers>14,22</expected-linenumbers>
+        <code><![CDATA[
+import org.aspectj.lang.annotation.Aspect;
+import org.springframework.context.annotation.Scope;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import java.util.Date;
+
+class Base {
+    protected Date date = new Date();
+}
+
+@Aspect(Expressions.PER_TARGET)
+@Scope("prototype")
+class ConstAspect extends Base {
+    void mutate() {
+        date.setTime(100); // bad
+    }
+}
+
+@Aspect("per" + "target(execution(* com.xyz.Service.*(..)))")
+@Scope("prototype")
+class ConcatAspect extends Base {
+    void mutate() {
+        date.setTime(100); // bad
+    }
+}
+     ]]></code>
+    </test-code>
 </test-data>
