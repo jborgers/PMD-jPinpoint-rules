@@ -299,4 +299,38 @@ class OrdinaryAspect extends Base {
 }
      ]]></code>
     </test-code>
+    <test-code>
+        <description>violation: the word request or prototype in a pointcut or request mapping does not make the class request or prototype scoped</description>
+        <expected-problems>2</expected-problems>
+        <expected-linenumbers>15,24</expected-linenumbers>
+        <code><![CDATA[
+import org.aspectj.lang.annotation.Aspect;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import java.util.Date;
+
+class Base {
+    protected Date date = new Date();
+}
+
+@Aspect("perthis(execution(* com.xyz.request.Service.*(..)))")
+@Scope("prototype")
+class PerThisClass extends Base {
+    void mutate() {
+        date.setTime(100); // bad
+    }
+}
+
+@Controller
+@Scope("singleton")
+@RequestMapping("/request/prototype")
+class CtrlClass extends Base {
+    void mutate() {
+        date.setTime(100); // bad
+    }
+}
+
+     ]]></code>
+    </test-code>
 </test-data>

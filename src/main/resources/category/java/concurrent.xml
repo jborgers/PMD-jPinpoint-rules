@@ -205,7 +205,7 @@ class Exporter {
     or (pmd-java:hasAnnotation('jakarta.ejb.Singleton') and ModifierList/Annotation[pmd-java:typeIs('jakarta.ejb.ConcurrencyManagement')]/AnnotationMemberList/MemberValuePair/FieldAccess[./TypeExpression[pmd-java:typeIs('jakarta.ejb.ConcurrencyManagementType')] and @Name="BEAN"])
    )
    (: no @RequestScope annotation :)
-   and not (pmd-java:hasAnnotation('org.springframework.context.annotation.Scope') and .//AnnotationMemberList/MemberValuePair[
+   and not (pmd-java:hasAnnotation('org.springframework.context.annotation.Scope') and ModifierList/Annotation[pmd-java:typeIs('org.springframework.context.annotation.Scope')]/AnnotationMemberList/MemberValuePair[
        StringLiteral[contains(@Image,'request') or (contains(@Image,'prototype') and not(ancestor::ClassDeclaration[1]/ModifierList/Annotation[pmd-java:typeIs('org.aspectj.lang.annotation.Aspect')]//StringLiteral[matches(@Image,'^"?per(this|target)\s*\(')]))]
        or FieldAccess[@Name='SCOPE_REQUEST' or (@Name='SCOPE_PROTOTYPE' and not(ancestor::ClassDeclaration[1]/ModifierList/Annotation[pmd-java:typeIs('org.aspectj.lang.annotation.Aspect')]//StringLiteral[matches(@Image,'^"?per(this|target)\s*\(')]))]/TypeExpression[pmd-java:typeIs('org.springframework.beans.factory.config.ConfigurableBeanFactory')]]
     )
@@ -331,7 +331,7 @@ class MyService {
     or (pmd-java:hasAnnotation('jakarta.ejb.Singleton') and ModifierList/Annotation[pmd-java:typeIs('jakarta.ejb.ConcurrencyManagement')]/AnnotationMemberList/MemberValuePair/FieldAccess[./TypeExpression[pmd-java:typeIs('jakarta.ejb.ConcurrencyManagementType')] and @Name="BEAN"])
    )
    (: not shared when request or prototype scope :)
-   and not(pmd-java:hasAnnotation('org.springframework.context.annotation.Scope') and .//AnnotationMemberList/MemberValuePair[
+   and not(pmd-java:hasAnnotation('org.springframework.context.annotation.Scope') and ModifierList/Annotation[pmd-java:typeIs('org.springframework.context.annotation.Scope')]/AnnotationMemberList/MemberValuePair[
        StringLiteral[contains(@Image,'request') or (contains(@Image,'prototype') and not(ancestor::ClassDeclaration[1]/ModifierList/Annotation[pmd-java:typeIs('org.aspectj.lang.annotation.Aspect')]//StringLiteral[matches(@Image,'^"?per(this|target)\s*\(')]))]
        or FieldAccess[@Name='SCOPE_REQUEST' or (@Name='SCOPE_PROTOTYPE' and not(ancestor::ClassDeclaration[1]/ModifierList/Annotation[pmd-java:typeIs('org.aspectj.lang.annotation.Aspect')]//StringLiteral[matches(@Image,'^"?per(this|target)\s*\(')]))]/TypeExpression[pmd-java:typeIs('org.springframework.beans.factory.config.ConfigurableBeanFactory')]]
     )
@@ -408,7 +408,7 @@ public class RootController {
     or (pmd-java:hasAnnotation('jakarta.ejb.Singleton') and ModifierList/Annotation[pmd-java:typeIs('jakarta.ejb.ConcurrencyManagement')]/AnnotationMemberList/MemberValuePair/FieldAccess[./TypeExpression[pmd-java:typeIs('jakarta.ejb.ConcurrencyManagementType')] and @Name="BEAN"])
    )
    (: not shared when request or prototype scope :)
-   and not(pmd-java:hasAnnotation('org.springframework.context.annotation.Scope') and .//AnnotationMemberList/MemberValuePair[
+   and not(pmd-java:hasAnnotation('org.springframework.context.annotation.Scope') and ModifierList/Annotation[pmd-java:typeIs('org.springframework.context.annotation.Scope')]/AnnotationMemberList/MemberValuePair[
        StringLiteral[contains(@Image,'request') or (contains(@Image,'prototype') and not(ancestor::ClassDeclaration[1]/ModifierList/Annotation[pmd-java:typeIs('org.aspectj.lang.annotation.Aspect')]//StringLiteral[matches(@Image,'^"?per(this|target)\s*\(')]))]
        or FieldAccess[@Name='SCOPE_REQUEST' or (@Name='SCOPE_PROTOTYPE' and not(ancestor::ClassDeclaration[1]/ModifierList/Annotation[pmd-java:typeIs('org.aspectj.lang.annotation.Aspect')]//StringLiteral[matches(@Image,'^"?per(this|target)\s*\(')]))]/TypeExpression[pmd-java:typeIs('org.springframework.beans.factory.config.ConfigurableBeanFactory')]]
     )
@@ -564,7 +564,7 @@ class BadMutableTypes {
     or (pmd-java:hasAnnotation('jakarta.ejb.Singleton') and ModifierList/Annotation[pmd-java:typeIs('jakarta.ejb.ConcurrencyManagement')]/AnnotationMemberList/MemberValuePair/FieldAccess[./TypeExpression[pmd-java:typeIs('jakarta.ejb.ConcurrencyManagementType')] and @Name="BEAN"])
    )
    (: not shared when request or prototype scope :)
-   and not(pmd-java:hasAnnotation('org.springframework.context.annotation.Scope') and .//AnnotationMemberList/MemberValuePair[
+   and not(pmd-java:hasAnnotation('org.springframework.context.annotation.Scope') and ModifierList/Annotation[pmd-java:typeIs('org.springframework.context.annotation.Scope')]/AnnotationMemberList/MemberValuePair[
        StringLiteral[contains(@Image,'request') or (contains(@Image,'prototype') and not(ancestor::ClassDeclaration[1]/ModifierList/Annotation[pmd-java:typeIs('org.aspectj.lang.annotation.Aspect')]//StringLiteral[matches(@Image,'^"?per(this|target)\s*\(')]))]
        or FieldAccess[@Name='SCOPE_REQUEST' or (@Name='SCOPE_PROTOTYPE' and not(ancestor::ClassDeclaration[1]/ModifierList/Annotation[pmd-java:typeIs('org.aspectj.lang.annotation.Aspect')]//StringLiteral[matches(@Image,'^"?per(this|target)\s*\(')]))]/TypeExpression[pmd-java:typeIs('org.springframework.beans.factory.config.ConfigurableBeanFactory')]]
     )
